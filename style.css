@@ -1234,8 +1234,6 @@ PACKAGES
 
     gap:8px;
 
-    margin:0 auto 24px;
-
     padding:12px 22px;
 
     border-radius:999px;
@@ -1257,7 +1255,15 @@ PACKAGES
     height:16px;
     stroke-width:2.5;
     flex-shrink:0;
-    align-self:center;
+
+}
+
+.badge-wrapper{
+
+    display:flex;
+    justify-content:center;
+    margin-bottom:16px 0 24px;
+
 }
 
 .package-card h3{
