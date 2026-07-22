@@ -230,3 +230,7 @@ if (document.readyState === "complete") {
 } else {
     window.addEventListener("load", finishLoading, { once: true });
 }
+
+document.querySelectorAll(".feature-card").forEach(card => {
+    card.classList.add("show");
+});
