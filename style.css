@@ -1257,6 +1257,7 @@ PACKAGES
     height:16px;
     stroke-width:2.5;
     flex-shrink:0;
+    align-self:center;
 }
 
 .package-card h3{
