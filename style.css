@@ -413,12 +413,6 @@ nav a:hover{
 
 }
 
-.coming-soon{
-
-    opacity:.75;
-
-}
-
 /*==============================
         BENEFICIOS
 ===============================*/
@@ -773,34 +767,6 @@ nav a:hover{
 
 }
 
-@media(max-width:992px){
-
-.timeline{
-
-    grid-template-columns:1fr;
-
-}
-
-.timeline-line{
-
-    display:none;
-
-}
-
-.process-card{
-
-    padding-top:40px;
-
-}
-
-.circle{
-
-    margin-top:0;
-
-}
-
-}
-
 .timeline-line.animate-line::before{
 
     width:100%;
@@ -1035,45 +1001,6 @@ nav a:hover{
 =           RESPONSIVE                 =
 ======================================*/
 
-@media(max-width:1100px){
-
-    .features-grid{
-
-        grid-template-columns:repeat(2,1fr);
-
-    }
-
-}
-
-@media(max-width:700px){
-
-    .features{
-
-        padding:90px 0;
-
-    }
-
-    .features-grid{
-
-        grid-template-columns:1fr;
-        gap:22px;
-
-    }
-
-    .feature-card{
-
-        padding:30px;
-
-    }
-
-    .features h2{
-
-        font-size:2.6rem;
-
-    }
-
-}
-
 /*==========================
 COMPARISON
 ==========================*/
@@ -1199,144 +1126,6 @@ COMPARISON
     color:#d1d5db;
     width:24px;
     height:24px;
-
-}
-
-.overlay{
-
-    padding:35px;
-
-    width:100%;
-
-    color:white;
-
-}
-
-.feature-name{
-
-    display:flex;
-    align-items:center;
-    gap:14px;
-
-    padding:22px 28px;
-
-    font-weight:600;
-
-}
-
-.feature-name svg{
-
-    width:22px;
-    height:22px;
-
-    color:#b8860b;
-
-    flex-shrink:0;
-
-}
-
-/*==========================
-COMPARISON RESPONSIVE
-==========================*/
-
-@media (max-width:768px){
-
-    .comparison{
-
-        padding:90px 0;
-
-    }
-
-    .comparison-header{
-
-        display:none;
-
-    }
-
-    .comparison-table{
-
-        background:transparent;
-        border:none;
-        box-shadow:none;
-
-    }
-
-    .comparison-row{
-
-        display:flex;
-        flex-direction:column;
-
-        background:white;
-
-        border-radius:22px;
-
-        border:1px solid #ececec;
-
-        padding:22px;
-
-        margin-bottom:18px;
-
-        box-shadow:0 10px 25px rgba(0,0,0,.05);
-
-    }
-
-    .feature-name{
-
-        padding:0;
-        margin-bottom:18px;
-
-        justify-content:center;
-        text-align:center;
-
-    }
-
-    .feature-name span{
-
-        font-size:1rem;
-
-    }
-
-    .feature-name svg{
-
-        width:24px;
-        height:24px;
-
-    }
-
-    .check,
-    .cross{
-
-        display:flex;
-
-        justify-content:space-between;
-
-        align-items:center;
-
-        padding:14px 0;
-
-        border-top:1px solid #f3f3f3;
-
-    }
-
-    .check::before{
-
-        content:"Eventora Studio";
-
-        font-weight:600;
-
-        color:#333;
-
-    }
-
-    .cross::before{
-
-        content:"Invitación impresa";
-
-        font-weight:600;
-
-        color:#777;
-
-    }
 
 }
 
@@ -1626,31 +1415,6 @@ PACKAGES
 
 }
 
-@media (max-width:992px){
-
-    .packages-grid{
-
-        grid-template-columns:1fr;
-
-        gap:30px;
-
-    }
-
-    .featured{
-
-        transform:none;
-
-    }
-
-    .featured:hover{
-
-        transform:translateY(-10px);
-
-    }
-
-}
-
-
 /*==========================
 TESTIMONIOS
 ==========================*/
@@ -1865,22 +1629,6 @@ TESTIMONIOS
     color:#888;
 
     font-size:.9rem;
-
-}
-
-@media(max-width:992px){
-
-    .testimonials-grid{
-
-        grid-template-columns:1fr;
-
-    }
-
-    .testimonials-bg{
-
-        font-size:4rem;
-
-    }
 
 }
 
@@ -2106,24 +1854,6 @@ FAQ
 
 }
 
-@media(max-width:768px){
-
-    .faq-question{
-
-        padding:22px;
-
-        font-size:1rem;
-
-    }
-
-    .faq-answer p{
-
-        padding:0 22px 22px;
-
-    }
-
-}
-
 /*==========================
 CTA FINAL
 ==========================*/
@@ -2328,69 +2058,6 @@ CTA FINAL
 
 }
 
-/* Responsive */
-
-@media(max-width:768px){
-
-    .cta{
-
-        padding:120px 0;
-
-    }
-
-    .cta-background{
-
-        font-size:4rem;
-
-        letter-spacing:4px;
-
-    }
-
-    .cta h2{
-
-        font-size:2.3rem;
-
-    }
-
-    .cta-features{
-
-        flex-direction:column;
-
-        gap:22px;
-
-        align-items:center;
-
-    }
-
-}
-
-
-/*====================================
-SCROLL REVEAL
-====================================*/
-
-.reveal{
-
-    opacity:0;
-
-    transform:translateY(60px);
-
-    transition:
-        opacity .9s ease,
-        transform .9s cubic-bezier(.22,1,.36,1);
-
-    will-change:opacity,transform;
-
-}
-
-.reveal.show{
-
-    opacity:1;
-
-    transform:translateY(0);
-
-}
-
 /*====================================
 LOADER
 ====================================*/
@@ -2529,17 +2196,6 @@ body.loading{
 
 }
 
-/* Responsive */
-
-@media(max-width:768px){
-
-    .loader-logo{
-
-        width:170px;
-
-    }
-
-}
 #loader::before{
 
     content:"";
@@ -2721,24 +2377,6 @@ FOOTER
 
 }
 
-@media(max-width:768px){
-
-    .footer{
-
-        padding:70px 0 30px;
-
-    }
-
-    .footer-links{
-
-        flex-direction:column;
-
-        gap:18px;
-
-    }
-
-}
-
 .footer-quote{
 
     color:#D4AF37;
@@ -2753,18 +2391,1083 @@ FOOTER
 
 }
 
-.overlay h3{
+/*====================================
+DESKTOP BASE
+The mobile-only controls stay hidden here so the desktop layout is unchanged.
+====================================*/
 
-    font-size:2rem;
+.menu-toggle,
+.menu-backdrop,
+.whatsapp-float{
 
-    margin-bottom:15px;
-
-    font-family:'Cormorant Garamond',serif;
+    display:none;
 
 }
 
-.overlay span{
+@keyframes whatsappPulse{
 
-    opacity:.85;
+    0%,100%{
+
+        opacity:.2;
+        transform:scale(.94);
+
+    }
+
+    50%{
+
+        opacity:.45;
+        transform:scale(1.12);
+
+    }
+
+}
+
+/*====================================
+TABLET · 768px AND BELOW
+====================================*/
+
+@media (max-width:768px){
+
+    body.menu-open{
+
+        overflow:hidden;
+
+    }
+
+    .container{
+
+        width:min(100% - 40px,680px);
+
+    }
+
+    header .container{
+
+        position:relative;
+        min-height:72px;
+        padding:14px 0;
+
+    }
+
+    .logo span{
+
+        letter-spacing:5px;
+
+    }
+
+    .menu-toggle{
+
+        width:46px;
+        height:46px;
+
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        gap:5px;
+
+        border:1px solid #ececec;
+        border-radius:14px;
+        background:rgba(255,255,255,.72);
+        color:#111;
+        cursor:pointer;
+
+        transition:background .3s ease,border-color .3s ease;
+        z-index:3;
+
+    }
+
+    .menu-toggle span{
+
+        width:20px;
+        height:2px;
+
+        display:block;
+
+        border-radius:999px;
+        background:currentColor;
+
+        transition:transform .3s ease,opacity .2s ease;
+
+    }
+
+    .menu-toggle.is-active{
+
+        border-color:#C7A86D;
+        background:#F7F4EE;
+
+    }
+
+    .menu-toggle.is-active span:nth-child(1){
+
+        transform:translateY(7px) rotate(45deg);
+
+    }
+
+    .menu-toggle.is-active span:nth-child(2){
+
+        opacity:0;
+
+    }
+
+    .menu-toggle.is-active span:nth-child(3){
+
+        transform:translateY(-7px) rotate(-45deg);
+
+    }
+
+    nav{
+
+        position:absolute;
+        top:calc(100% + 10px);
+        right:0;
+        left:0;
+
+        display:flex;
+        flex-direction:column;
+        gap:4px;
+
+        padding:12px;
+
+        border:1px solid rgba(255,255,255,.7);
+        border-radius:20px;
+        background:rgba(255,255,255,.88);
+
+        box-shadow:0 18px 45px rgba(0,0,0,.1);
+        backdrop-filter:blur(18px);
+        -webkit-backdrop-filter:blur(18px);
+
+        opacity:0;
+        visibility:hidden;
+        pointer-events:none;
+        transform:translateY(-14px);
+
+        transition:opacity .28s ease,transform .35s cubic-bezier(.22,1,.36,1),visibility .35s;
+        z-index:2;
+
+    }
+
+    header.menu-open nav{
+
+        opacity:1;
+        visibility:visible;
+        pointer-events:auto;
+        transform:translateY(0);
+
+    }
+
+    nav a{
+
+        padding:14px 16px;
+
+        border-radius:12px;
+
+    }
+
+    nav a:hover,
+    nav a:focus-visible{
+
+        color:#111;
+        background:#F7F4EE;
+        outline:none;
+
+    }
+
+    .menu-toggle:focus-visible{
+
+        outline:2px solid #C7A86D;
+        outline-offset:3px;
+
+    }
+
+    .menu-backdrop{
+
+        position:fixed;
+        inset:0;
+
+        display:block;
+
+        background:rgba(17,17,17,.12);
+
+        opacity:0;
+        pointer-events:none;
+
+        backdrop-filter:blur(4px);
+        -webkit-backdrop-filter:blur(4px);
+
+        transition:opacity .3s ease;
+        z-index:998;
+
+    }
+
+    .menu-backdrop.is-active{
+
+        opacity:1;
+        pointer-events:auto;
+
+    }
+
+    .hero{
+
+        min-height:min(720px,100svh);
+
+        padding:128px 0 72px;
+
+        background-attachment:scroll;
+
+    }
+
+    .hero-content{
+
+        width:100%;
+        max-width:640px;
+
+    }
+
+    .hero-small{
+
+        margin-bottom:18px;
+
+        font-size:.75rem;
+        letter-spacing:4px;
+
+    }
+
+    .hero h1{
+
+        margin-bottom:24px;
+
+        font-size:clamp(2rem,8.5vw,4.2rem);
+        line-height:1.04;
+
+    }
+
+    .hero-description{
+
+        max-width:35rem;
+
+        font-size:1rem;
+        line-height:1.7;
+
+    }
+
+    .hero-buttons{
+
+        width:min(100%,420px);
+
+        flex-direction:column;
+        gap:12px;
+
+        margin:34px auto 0;
+
+    }
+
+    .btn-primary,
+    .btn-secondary{
+
+        width:100%;
+
+        padding:17px 24px;
+
+    }
+
+    .portfolio,
+    .benefits,
+    .process,
+    .features,
+    .comparison,
+    .packages,
+    .testimonials,
+    .faq{
+
+        padding:96px 0;
+
+    }
+
+    .portfolio h2,
+    .benefits h2,
+    .process h2,
+    .features h2,
+    .comparison h2,
+    .packages h2,
+    .testimonials h2,
+    .faq h2{
+
+        font-size:clamp(2.35rem,7vw,3.1rem);
+        line-height:1.12;
+
+    }
+
+    .portfolio-text,
+    .benefits-text,
+    .process-text,
+    .features .section-description,
+    .comparison-text,
+    .packages-text,
+    .testimonials-text,
+    .faq-text{
+
+        margin-bottom:42px;
+
+    }
+
+    .portfolio-grid{
+
+        display:grid;
+        grid-template-columns:none;
+        grid-auto-flow:column;
+        grid-auto-columns:minmax(280px,82vw);
+        gap:18px;
+
+        overflow-x:auto;
+
+        padding:4px 2px 18px;
+
+        scroll-snap-type:x mandatory;
+        scrollbar-width:none;
+        -webkit-overflow-scrolling:touch;
+
+    }
+
+    .portfolio-grid::-webkit-scrollbar{
+
+        display:none;
+
+    }
+
+    .portfolio-card{
+
+        min-width:0;
+
+        scroll-snap-align:start;
+        scroll-snap-stop:always;
+
+    }
+
+    .portfolio-card img{
+
+        height:230px;
+
+    }
+
+    .portfolio-info{
+
+        padding:24px;
+
+    }
+
+    .portfolio-info h3{
+
+        font-size:1.85rem;
+
+    }
+
+    .benefits-grid,
+    .features-grid,
+    .packages-grid,
+    .testimonials-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .benefits-grid{
+
+        max-width:600px;
+
+        gap:26px;
+
+        margin:auto;
+
+    }
+
+    .benefit-card{
+
+        padding:34px 26px;
+
+    }
+
+    .icon{
+
+        width:64px;
+        height:64px;
+
+        margin-bottom:22px;
+
+    }
+
+    .timeline{
+
+        display:flex;
+        flex-direction:column;
+        gap:26px;
+
+    }
+
+    .timeline-line{
+
+        top:60px;
+        bottom:60px;
+        left:35px;
+
+        display:block;
+
+        width:4px;
+        height:auto;
+
+    }
+
+    .timeline-line::before{
+
+        width:100%;
+        height:0;
+
+        background:linear-gradient(180deg,#2563EB,#C7A86D,#7C3AED,#059669);
+
+    }
+
+    .timeline-line.animate-line::before{
+
+        width:100%;
+        height:100%;
+
+    }
+
+    .process-card{
+
+        min-height:120px;
+
+        padding:27px 26px 27px 98px;
+
+        text-align:left;
+
+    }
+
+    .circle{
+
+        position:absolute;
+        top:24px;
+        left:0;
+
+        width:72px;
+        height:72px;
+
+        margin:0;
+
+        border-width:5px;
+
+    }
+
+    .process-card h3{
+
+        margin-bottom:10px;
+
+        font-size:1.75rem;
+
+    }
+
+    .process-card p{
+
+        line-height:1.7;
+
+    }
+
+    .features-grid{
+
+        max-width:600px;
+
+        gap:18px;
+
+        margin:auto;
+
+    }
+
+    .feature-card{
+
+        min-height:230px;
+
+        padding:28px;
+
+    }
+
+    .feature-icon{
+
+        width:62px;
+        height:62px;
+
+        margin-bottom:22px;
+
+    }
+
+    .comparison-table{
+
+        border:none;
+
+        background:transparent;
+
+        box-shadow:none;
+
+    }
+
+    .comparison-header{
+
+        display:none;
+
+    }
+
+    .comparison-row{
+
+        display:grid;
+        grid-template-columns:1fr;
+
+        overflow:hidden;
+
+        padding:0;
+
+        margin-bottom:16px;
+
+        border:1px solid #ececec;
+        border-radius:20px;
+
+        background:white;
+
+        box-shadow:0 10px 25px rgba(0,0,0,.05);
+
+    }
+
+    .comparison-row > span{
+
+        padding:20px 22px;
+
+        border-bottom:1px solid #f1f1f1;
+
+        font-weight:600;
+        line-height:1.45;
+
+    }
+
+    .check,
+    .cross{
+
+        width:100%;
+
+        justify-content:space-between;
+
+        padding:14px 22px;
+
+        border-top:1px solid #f3f3f3;
+
+    }
+
+    .check::before,
+    .cross::before{
+
+        font-weight:600;
+
+    }
+
+    .check::before{
+
+        content:"Eventora Studio";
+
+        color:#333;
+
+    }
+
+    .cross::before{
+
+        content:"Invitación impresa";
+
+        color:#777;
+
+    }
+
+    .comparison-row:last-child .cross::before{
+
+        content:"Eventora Studio";
+
+    }
+
+    .comparison-row:last-child .check::before{
+
+        content:"Invitación impresa";
+
+    }
+
+    .packages-grid{
+
+        max-width:520px;
+
+        gap:28px;
+
+        margin:auto;
+
+    }
+
+    .package-card{
+
+        padding:42px 28px;
+
+    }
+
+    .featured,
+    .featured:hover{
+
+        transform:none;
+
+    }
+
+    .package-btn{
+
+        margin-top:32px;
+
+    }
+
+    .testimonials-grid{
+
+        max-width:600px;
+
+        gap:22px;
+
+        margin:auto;
+
+    }
+
+    .testimonial-card{
+
+        padding:32px 28px;
+
+    }
+
+    .faq-list{
+
+        gap:14px;
+
+    }
+
+    .faq-question{
+
+        min-height:68px;
+
+        padding:20px 22px;
+
+        gap:16px;
+
+        font-size:1rem;
+        line-height:1.45;
+
+    }
+
+    .faq-answer p{
+
+        margin-left:22px;
+
+        padding:0 22px 24px;
+
+        line-height:1.8;
+
+    }
+
+    .cta{
+
+        padding:96px 0;
+
+    }
+
+    .cta-background{
+
+        font-size:4rem;
+        letter-spacing:4px;
+
+    }
+
+    .cta h2{
+
+        font-size:clamp(2.35rem,7vw,3rem);
+
+    }
+
+    .cta-btn{
+
+        width:min(100%,420px);
+
+        justify-content:center;
+
+        margin-top:38px;
+
+    }
+
+    .cta-features{
+
+        flex-direction:column;
+        align-items:center;
+
+        gap:18px;
+
+        margin-top:46px;
+
+    }
+
+    .loader-logo{
+
+        width:170px;
+
+    }
+
+    .footer{
+
+        padding:64px 0 28px;
+
+    }
+
+    .footer-links{
+
+        gap:18px 26px;
+
+        margin:42px 0 34px;
+
+    }
+
+    .footer-social{
+
+        margin-bottom:34px;
+
+    }
+
+    .whatsapp-float{
+
+        position:fixed;
+        right:20px;
+        bottom:20px;
+
+        width:58px;
+        height:58px;
+
+        display:flex;
+        align-items:center;
+        justify-content:center;
+
+        border-radius:50%;
+
+        background:#25D366;
+        color:white;
+
+        box-shadow:0 14px 30px rgba(37,211,102,.28);
+
+        text-decoration:none;
+
+        isolation:isolate;
+
+        transition:opacity .25s ease,transform .3s cubic-bezier(.22,1,.36,1);
+        z-index:997;
+
+    }
+
+    .whatsapp-float::before{
+
+        content:"";
+
+        position:absolute;
+        inset:-5px;
+
+        border:1px solid rgba(37,211,102,.5);
+        border-radius:inherit;
+
+        animation:whatsappPulse 2.8s ease-in-out infinite;
+
+        pointer-events:none;
+        z-index:-1;
+
+    }
+
+    .whatsapp-float svg{
+
+        width:27px;
+        height:27px;
+
+    }
+
+    .whatsapp-float.is-hidden{
+
+        opacity:0;
+
+        pointer-events:none;
+        transform:translateY(96px);
+
+    }
+
+}
+
+/*====================================
+MOBILE · 576px AND BELOW
+====================================*/
+
+@media (max-width:576px){
+
+    .container{
+
+        width:calc(100% - 32px);
+
+    }
+
+    header .container{
+
+        min-height:64px;
+
+        padding:10px 0;
+
+    }
+
+    .menu-toggle{
+
+        width:42px;
+        height:42px;
+
+        border-radius:13px;
+
+    }
+
+    .hero{
+
+        min-height:620px;
+
+        padding:108px 0 58px;
+
+    }
+
+    .hero-small{
+
+        font-size:.68rem;
+        letter-spacing:3px;
+
+    }
+
+    .hero h1{
+
+        font-size:clamp(2rem,8.5vw,3.1rem);
+
+    }
+
+    .hero-description{
+
+        font-size:.95rem;
+
+    }
+
+    .portfolio,
+    .benefits,
+    .process,
+    .features,
+    .comparison,
+    .packages,
+    .testimonials,
+    .faq{
+
+        padding:78px 0;
+
+    }
+
+    .section-tag{
+
+        font-size:.7rem;
+
+        letter-spacing:3px;
+
+    }
+
+    .portfolio h2,
+    .benefits h2,
+    .process h2,
+    .features h2,
+    .comparison h2,
+    .packages h2,
+    .testimonials h2,
+    .faq h2{
+
+        font-size:2.3rem;
+
+    }
+
+    .portfolio-text,
+    .benefits-text,
+    .process-text,
+    .features .section-description,
+    .comparison-text,
+    .packages-text,
+    .testimonials-text,
+    .faq-text{
+
+        margin-bottom:34px;
+
+        line-height:1.7;
+
+    }
+
+    .portfolio-grid{
+
+        grid-auto-columns:calc(100vw - 54px);
+
+    }
+
+    .portfolio-card img{
+
+        height:210px;
+
+    }
+
+    .portfolio-info{
+
+        padding:22px;
+
+    }
+
+    .benefit-card,
+    .feature-card{
+
+        padding:26px 22px;
+
+    }
+
+    .feature-card{
+
+        min-height:280px;
+
+    }
+
+    .timeline{
+
+        gap:22px;
+
+    }
+
+    .timeline-line{
+
+        top:55px;
+        bottom:55px;
+        left:31px;
+
+    }
+
+    .process-card{
+
+        min-height:108px;
+
+        padding:24px 20px 24px 82px;
+
+    }
+
+    .circle{
+
+        top:22px;
+
+        width:64px;
+        height:64px;
+
+    }
+
+    .process-card h3{
+
+        font-size:1.55rem;
+
+    }
+
+    .comparison-row > span{
+
+        padding:18px 20px;
+
+    }
+
+    .check,
+    .cross{
+
+        padding:13px 20px;
+
+        font-size:.92rem;
+
+    }
+
+    .package-card{
+
+        padding:38px 22px;
+
+    }
+
+    .package-card li{
+
+        margin:15px 0;
+
+    }
+
+    .testimonial-card{
+
+        padding:28px 22px;
+
+    }
+
+    .faq-question{
+
+        min-height:64px;
+
+        padding:18px;
+
+    }
+
+    .faq-answer p{
+
+        margin-left:18px;
+
+        padding:0 18px 22px;
+
+    }
+
+    .cta{
+
+        padding:78px 0;
+
+    }
+
+    .cta h2{
+
+        font-size:2.3rem;
+
+    }
+
+    .cta-btn{
+
+        padding:18px 22px;
+
+    }
+
+    .footer{
+
+        padding:54px 0 24px;
+
+    }
+
+    .footer-links{
+
+        flex-direction:column;
+
+        gap:16px;
+
+        margin:36px 0 30px;
+
+    }
+
+    .footer-social a{
+
+        width:48px;
+        height:48px;
+
+    }
+
+    .whatsapp-float{
+
+        right:16px;
+        bottom:16px;
+
+        width:54px;
+        height:54px;
+
+    }
 
 }
