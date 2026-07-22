@@ -1,0 +1,130 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  background: url('fondo.png') no-repeat center center/cover;
+  min-height: 100dvh;
+}
+
+/* pantalla inicio */
+#pantallaInicio {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: url('fondo.png') center/cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.inicio-card {
+  position: relative;
+  z-index: 10;
+  background: rgba(255,255,255,0.9);
+  padding: 30px;
+  border-radius: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.inicio-card h1 {
+  font-family: 'Pacifico', cursive;
+  color: #ff2d75;
+}
+
+/* 💥 splits */
+.split {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  background: url('fondo.png') center/cover no-repeat;
+  z-index: 5;
+  transition: transform 1s ease;
+}
+
+.left { left: 0; }
+.right { right: 0; }
+
+#pantallaInicio.abrir .left {
+  transform: translateX(-100%);
+}
+
+#pantallaInicio.abrir .right {
+  transform: translateX(100%);
+}
+
+/* overlay */
+.overlay {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 10px;
+  gap: 20px;
+}
+
+/* cards */
+.card {
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 25px;
+  padding: 25px;
+  width: 90%;
+  max-width: 380px;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.18);
+}
+
+/* texto */
+.titulo {
+  font-family: 'Pacifico', cursive;
+  color: #ff2d75;
+}
+
+#nombre {
+  font-family: 'Pacifico', cursive;
+  font-size: 2.6em;
+  color: #ff2d75;
+}
+
+#saludo {
+  color: #555;
+  margin-bottom: 5px;
+}
+
+/* botones */
+.btn {
+  padding: 12px;
+  border-radius: 30px;
+  background: linear-gradient(45deg, #00c6ff, #0072ff);
+  color: white;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn:hover { transform: scale(1.05); }
+.btn:active { transform: scale(0.95); }
+
+/* imagen */
+.imagen {
+  width: 100%;
+  border-radius: 15px;
+}
+
+/* flores */
+.flores span {
+  position: fixed;
+  top: 0;
+  animation: caer linear infinite;
+}
+
+@keyframes caer {
+  from { transform: translateY(-10vh); }
+  to { transform: translateY(100vh); }
+}
+
+.card h2 {
+  font-weight: 700;
+}

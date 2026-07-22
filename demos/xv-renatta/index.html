@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>XV Renatta 🌺</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="style.css?v=7">
+
+  <!-- fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<!-- 💌 Pantalla inicial -->
+<div id="pantallaInicio">
+  <div class="inicio-card">
+    <h1>🌺 XV Renatta 🌺</h1>
+    <p>Estás invitado a una experiencia súper especial</p>
+    <button id="abrirInvitacion">💌 Abrir invitación</button>
+  </div>
+
+  <!-- 💥 capas que se parten -->
+  <div class="split left"></div>
+  <div class="split right"></div>
+</div>
+
+<div class="flores"></div>
+
+<div class="overlay">
+
+  <!-- HERO -->
+  <section class="card">
+
+    <h1 class="titulo">🌺 Aloha 🌺</h1>
+
+    <!-- 👋 saludo -->
+    <p id="saludo"></p>
+
+    <p>Acompáñanos a celebrar el cumpleaños de</p>
+    <h2 id="nombre">RENATTA</h2>
+
+    <p>Prepárate para una experiencia inolvidable 🌴</p>
+
+    <div class="info">
+      <span>📅 20 Junio</span>
+      <span>⏰ 5:00pm - 10:00pm</span>
+    </div>
+
+    <p id="contador"></p>
+    <h3 id="pases"></h3>
+
+    <button id="toggleMusica" class="btn">🎵 Pausar música</button>
+
+  </section>
+
+  <!-- 👗 DRESS CODE -->
+  <section class="card">
+    <h2>🌸 Dress Code</h2>
+    <p>Tropical / Floral 🌴</p>
+    <img src="dresscode.png?v=2" class="imagen">
+  </section>
+
+  <section class="card">
+    <h2>🌺 Pool Party</h2>
+    <p>
+    Prepárate para disfrutar la alberca 🌊✨
+    </p>
+    <p>
+    Trae tu traje de baño y vibra tropical 🌴
+    </p>
+  </section>
+
+  <!-- 💌 SOBRE -->
+  <section class="card">
+    <h2>💌 Lluvia De Sobres</h2>
+    <img src="sobre.png" class="imagen">
+  </section>
+
+  <!-- 📍 UBICACIÓN -->
+  <section class="card">
+    <h2>📍 Ubicación</h2>
+    <a id="ubicacion" class="btn" style="pointer-events: none; opacity: 0.5; cursor: default;" onclick="return false;">Ver ubicación</a>
+  </section>
+
+  <!-- 📲 CONFIRMAR -->
+  <section class="card">
+    <h2>📲 Confirmar Asistencia</h2>
+    <a id="whatsapp" class="btn" style="pointer-events: none; opacity: 0.5; cursor: default;" onclick="return false;">Confirmar por WhatsApp</a>
+  </section>
+
+</div>
+
+<audio id="musica" loop>
+  <source src="musica.mp3" type="audio/mpeg">
+</audio>
+
+<script src="script.js?v=9"></script>
+
+</body>
+</html>
