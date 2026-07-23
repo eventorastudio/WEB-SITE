@@ -607,6 +607,14 @@
 
 }
 
+.package-section .feature-card{
+
+    opacity:1 !important;
+
+    transform:none !important;
+
+}
+
 @media (max-width: 768px){
 
     .package-section{
