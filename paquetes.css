@@ -615,6 +615,12 @@
 
 }
 
+.package-section .features-grid{
+
+    display:grid !important;
+
+}
+
 @media (max-width: 768px){
 
     .package-section{
