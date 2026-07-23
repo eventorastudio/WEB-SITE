@@ -1,0 +1,698 @@
+/*======================================================*/
+/* HERO */
+/*======================================================*/
+
+.packages-hero{
+
+    padding:170px 20px 120px;
+
+    text-align:center;
+
+    background:
+    linear-gradient(
+    180deg,
+    #fff,
+    #faf8f5);
+
+}
+
+.packages-hero .container{
+
+    max-width:850px;
+
+    margin:auto;
+
+}
+
+.packages-hero h1{
+
+    font-family:'Cormorant Garamond',serif;
+
+    font-size:4rem;
+
+    color:#1f1f1f;
+
+    margin:18px 0;
+
+}
+
+.packages-hero p{
+
+    max-width:700px;
+
+    margin:auto;
+
+    font-size:1.1rem;
+
+    line-height:1.8;
+
+    color:#6b6b6b;
+
+}
+
+.hero-btn{
+
+    margin-top:45px;
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    padding:16px 34px;
+
+    border-radius:999px;
+
+    text-decoration:none;
+
+    background:#1f1f1f;
+
+    color:white;
+
+    font-weight:600;
+
+    transition:.35s;
+
+}
+
+.hero-btn:hover{
+
+    transform:translateY(-3px);
+
+}
+
+/*======================================================*/
+/* COMPARACIÓN */
+/*======================================================*/
+
+.packages-overview{
+
+    padding:120px 20px;
+
+}
+
+.packages-overview .container{
+
+    max-width:1200px;
+
+    margin:auto;
+
+}
+
+.packages-overview h2{
+
+    text-align:center;
+
+    font-size:3rem;
+
+    font-family:'Cormorant Garamond',serif;
+
+    margin:20px 0;
+
+}
+
+.overview-description{
+
+    max-width:720px;
+
+    margin:auto;
+
+    text-align:center;
+
+    color:#6b6b6b;
+
+    line-height:1.8;
+
+}
+
+.overview-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:35px;
+
+    margin-top:70px;
+
+}
+
+.overview-card{
+
+    position:relative;
+
+    padding:45px;
+
+    border-radius:24px;
+
+    background:white;
+
+    border:1px solid #ececec;
+
+    transition:.35s;
+
+}
+
+.overview-card:hover{
+
+    transform:translateY(-8px);
+
+    box-shadow:0 18px 45px rgba(0,0,0,.08);
+
+}
+
+.overview-card h3{
+
+    font-size:2rem;
+
+    text-align:center;
+
+    margin:0;
+
+}
+
+.price-box{
+
+    margin:30px 0;
+
+    text-align:center;
+
+}
+
+.price-label{
+
+    display:block;
+
+    font-size:.9rem;
+
+    color:#9b9b9b;
+
+    letter-spacing:2px;
+
+    text-transform:uppercase;
+
+    margin-bottom:8px;
+
+}
+
+.price{
+
+    display:block;
+
+    font-size:2.2rem;
+
+    font-weight:700;
+
+    color:#D4AF37;
+
+    font-family:'Cormorant Garamond', serif;
+
+}
+
+.overview-card p{
+
+    text-align:center;
+
+    color:#6b6b6b;
+
+    line-height:1.8;
+
+}
+
+.overview-card a{
+
+    margin-top:35px;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:8px;
+
+    text-decoration:none;
+
+    color:#1f1f1f;
+
+    font-weight:600;
+
+}
+
+.package-badge{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:8px;
+
+    margin:16px 0 24px;
+
+}
+
+.package-badge span{
+
+    color:#D4AF37;
+
+    font-weight:600;
+
+    font-size:.95rem;
+
+}
+
+.package-badge svg{
+
+    width:18px;
+
+    height:18px;
+
+    stroke:#D4AF37;
+
+}
+
+/*======================================================*/
+/* SECCIONES DE PAQUETES */
+/*======================================================*/
+
+.package-section{
+
+    padding:140px 20px;
+
+}
+
+.package-section .container{
+
+    max-width:1200px;
+
+    margin:auto;
+
+}
+
+.package-section h2{
+
+    text-align:center;
+
+    font-size:3rem;
+
+    font-family:'Cormorant Garamond',serif;
+
+    margin:20px 0;
+
+}
+
+.package-description{
+
+    max-width:720px;
+
+    margin:auto;
+
+    text-align:center;
+
+    color:#6b6b6b;
+
+    line-height:1.8;
+
+}
+
+.package-layout{
+
+    margin-top:70px;
+
+    display:grid;
+
+    grid-template-columns:1fr 1fr;
+
+    gap:70px;
+
+    align-items:center;
+
+}
+
+.package-image img{
+
+    width:100%;
+
+    border-radius:24px;
+
+    box-shadow:0 20px 50px rgba(0,0,0,.08);
+
+}
+
+.package-content h3{
+
+    font-size:2rem;
+
+    margin-bottom:30px;
+
+}
+
+/*======================================================*/
+/* FEATURE CARDS */
+/*======================================================*/
+
+.features-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:24px;
+
+    margin:40px 0 55px;
+
+}
+
+.feature-card{
+
+    padding:24px;
+
+    border:1px solid #ececec;
+
+    border-radius:20px;
+
+    background:#fff;
+
+    transition:.35s;
+
+}
+
+.feature-card:hover{
+
+    transform:translateY(-6px);
+
+    box-shadow:0 15px 35px rgba(0,0,0,.07);
+
+}
+
+.feature-card i{
+
+    width:28px;
+
+    height:28px;
+
+    color:#D4AF37;
+
+    margin-bottom:18px;
+
+}
+
+.feature-card h4{
+
+    font-size:1.1rem;
+
+    color:#222;
+
+    margin-bottom:12px;
+
+}
+
+.feature-card p{
+
+    color:#6b6b6b;
+
+    line-height:1.7;
+
+    font-size:.95rem;
+
+}
+
+.package-btn{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:18px 34px;
+
+    border-radius:999px;
+
+    background:#1f1f1f;
+
+    color:#fff;
+
+    text-decoration:none;
+
+    font-weight:600;
+
+    transition:all .35s ease;
+
+    box-shadow:0 12px 30px rgba(0,0,0,.08);
+
+}
+
+.package-btn:hover{
+
+    transform:translateY(-4px);
+
+    background:#D4AF37;
+
+    box-shadow:0 16px 35px rgba(212,175,55,.25);
+
+}
+
+/*======================================================*/
+/* PREMIUM PHONE MOCKUP */
+/*======================================================*/
+
+.package-image{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+}
+
+.phone-mockup{
+
+    position:relative;
+
+    width:320px;
+
+    padding:12px;
+
+    background:#101010;
+
+    border-radius:48px;
+
+    box-shadow:
+        0 40px 90px rgba(0,0,0,.18),
+        inset 0 0 0 1px rgba(255,255,255,.05);
+
+}
+
+.dynamic-island{
+
+    position:absolute;
+
+    top:18px;
+
+    left:50%;
+
+    transform:translateX(-50%);
+
+    width:120px;
+
+    height:30px;
+
+    border-radius:999px;
+
+    background:#000;
+
+    z-index:10;
+
+    box-shadow:
+        inset 0 1px 2px rgba(255,255,255,.08);
+
+}
+
+.phone-screen{
+
+    overflow:hidden;
+
+    border-radius:36px;
+
+    aspect-ratio:9 / 19.5;
+
+    background:#f5f5f5;
+
+}
+
+.phone-screen img{
+
+    width:100%;
+
+    height:100%;
+
+    object-fit:cover;
+
+    display:block;
+
+}
+
+.phone-mockup{
+
+    animation:floatPhone 5s ease-in-out infinite;
+
+}
+
+.phone-mockup::after{
+
+    content:"";
+
+    position:absolute;
+
+    left:50%;
+
+    bottom:-30px;
+
+    transform:translateX(-50%);
+
+    width:70%;
+
+    height:25px;
+
+    background:rgba(0,0,0,.18);
+
+    filter:blur(22px);
+
+    border-radius:50%;
+
+    z-index:-1;
+
+}
+
+/*========================================*/
+/* PREMIUM */
+/*========================================*/
+
+.premium-section{
+
+    background:linear-gradient(
+        180deg,
+        #fffdf8 0%,
+        #ffffff 100%
+    );
+
+}
+
+/*========================================*/
+/* PRESTIGE */
+/*========================================*/
+
+.prestige-section{
+
+    background:#fafafa;
+
+}
+
+.package-btn{
+
+    gap:10px;
+
+}
+
+.package-btn svg{
+
+    width:18px;
+
+    height:18px;
+
+}
+
+@media (max-width: 768px){
+
+    .package-section{
+
+        padding:90px 20px;
+
+    }
+
+}
+
+@media(max-width:768px){
+
+    .package-layout{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .features-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+}
+
+@media(max-width:768px){
+
+    .packages-hero{
+
+        padding:140px 20px 90px;
+
+    }
+
+    .packages-hero h1{
+
+        font-size:2.8rem;
+
+    }
+
+    .packages-hero p{
+
+        font-size:1rem;
+
+    }
+
+}
+
+@media(max-width:900px){
+
+    .overview-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+}
+
+@keyframes floatPhone{
+
+    0%{
+
+        transform:translateY(0);
+
+    }
+
+    50%{
+
+        transform:translateY(-10px);
+
+    }
+
+    100%{
+
+        transform:translateY(0);
+
+    }
+
+}
+
+@media(max-width:768px){
+
+    .features-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+}
