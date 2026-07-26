@@ -183,15 +183,17 @@ body{
 }
 
 .logo{
-
-    display:block;
-
-    width:140px;
-
-    margin:0 auto 28px;
-
+    display: flex;
+    justify-content: center;
+    margin-bottom: 28px;
     animation:fadeUp 1.1s ease;
 
+}
+
+.logo img{
+    width: 140px;
+    height: auto;
+    display: block;
 }
 
 .eyebrow{
