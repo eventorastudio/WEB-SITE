@@ -180,10 +180,10 @@ body{
     align-items: center;
     overflow: hidden;
     padding: 100px 20px;
-    /* Fondo premium con radial gradients */
-    background: radial-gradient(circle at 50% 40%, #f7f4ed 0%, #e8e2d4 60%, #c9bda5 100%);
+    /* Fondo premium cálido con radial gradients */
+    background: radial-gradient(circle at 50% 30%, #f9f6f0 0%, #ede6d6 50%, #d4c5ab 100%);
     z-index: 9000;
-    transition: opacity 1s ease, visibility 1s ease;
+    transition: opacity 1.2s ease, visibility 1.2s ease;
 }
 
 /* Partículas desenfocadas detrás del sobre */
@@ -192,32 +192,32 @@ body{
     position: absolute;
     inset: 0;
     background-image: 
-        radial-gradient(circle at 15% 25%, rgba(212,175,55,0.15) 0%, transparent 4px),
-        radial-gradient(circle at 75% 35%, rgba(212,175,55,0.12) 0%, transparent 5px),
-        radial-gradient(circle at 25% 75%, rgba(212,175,55,0.1) 0%, transparent 4px),
-        radial-gradient(circle at 85% 70%, rgba(212,175,55,0.15) 0%, transparent 5px);
-    filter: blur(2px);
+        radial-gradient(circle at 20% 30%, rgba(212,175,55,0.15) 0%, transparent 5px),
+        radial-gradient(circle at 80% 25%, rgba(212,175,55,0.12) 0%, transparent 6px),
+        radial-gradient(circle at 25% 80%, rgba(212,175,55,0.1) 0%, transparent 4px),
+        radial-gradient(circle at 75% 70%, rgba(212,175,55,0.18) 0%, transparent 7px);
+    filter: blur(3px);
     z-index: 1;
-    opacity: 0.8;
+    opacity: 0.9;
 }
 
 .hero-glow {
     position: absolute;
-    width: 600px;
-    height: 600px;
+    width: 650px;
+    height: 650px;
     border-radius: 50%;
     /* Luz dorada muy sutil */
-    background: radial-gradient(circle, rgba(222, 185, 85, 0.12) 0%, rgba(212, 175, 55, 0) 70%);
+    background: radial-gradient(circle, rgba(222, 185, 85, 0.15) 0%, rgba(212, 175, 55, 0) 70%);
     filter: blur(60px);
     z-index: 0;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    animation: premiumGlowPulse 6s ease-in-out infinite alternate;
+    animation: premiumGlowPulse 5s ease-in-out infinite alternate;
 }
 
 @keyframes premiumGlowPulse {
-    0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.7; }
+    0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.6; }
     100% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
 }
 
@@ -264,9 +264,9 @@ body{
     margin-bottom: 30px;
 }
 
-/* Indicador de toque arriba del sobre */
+/* Indicador de toque ARRIBA del sobre */
 .tap-container {
-    margin-bottom: 40px;
+    margin-bottom: 35px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -275,7 +275,7 @@ body{
 .tap-text {
     color: #7d7260;
     font-size: .95rem;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
     text-transform: uppercase;
     font-weight: 500;
 }
@@ -289,7 +289,7 @@ body{
 
 @keyframes premiumBounce {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(6px); }
+    50% { transform: translateY(8px); }
 }
 
 /* --------------------------------------
@@ -301,212 +301,209 @@ body{
     height: 290px;
     margin: auto;
     cursor: pointer;
-    perspective: 1800px;
+    perspective: 2000px;
     transform-style: preserve-3d;
-    /* Rotación natural y flotación */
+    /* Rotación natural y flotación suave */
     animation: premiumFloat 7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
     box-shadow: 
-        0 40px 60px -15px rgba(0,0,0,0.15),
-        0 15px 25px -10px rgba(0,0,0,0.1);
-    border-radius: 4px;
+        0 45px 65px -15px rgba(0,0,0,0.15),
+        0 15px 30px -10px rgba(0,0,0,0.12);
+    border-radius: 6px;
 }
 
 @keyframes premiumFloat {
     0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-15px) rotate(1.5deg); }
+    50% { transform: translateY(-12px) rotate(1.2deg); }
 }
 
-/* ESPALDA DEL SOBRE (El interior visible al abrir) */
+/* 1. ESPALDA DEL SOBRE (Capa Z: 1) */
 .envelope-back {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, #e4ded0, #f1ede1);
-    border-radius: 4px;
+    background: linear-gradient(135deg, #e6e1d6, #f2efe9);
+    border-radius: 6px;
     z-index: 1;
-    overflow: hidden;
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.06); /* Sombra de profundidad interior */
 }
 
-/* Sombra profunda para el interior */
-.envelope-back::after {
+/* Textura sutil general para el papel */
+.envelope-back::before,
+.envelope-front::after,
+.envelope-top::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0) 60%);
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    border-radius: inherit;
 }
 
-/* LA CARTA (Completamente oculta cuando está cerrado) */
+/* 2. LA CARTA (Capa Z: 2 - Siempre oculta cuando está cerrado) */
 .letter {
     position: absolute;
     left: 50%;
-    bottom: 10px; /* Se mantiene dentro de los límites del sobre frontal */
+    bottom: 12px; /* Se apoya en el fondo del sobre */
     transform: translateX(-50%);
-    width: 90%;
-    height: 88%;
-    background: #fffdf9;
+    width: 88%; /* Deja 6% de margen en cada lado */
+    height: 85%;
+    background: linear-gradient(135deg, #fffdf9, #fcf9f2);
     border-radius: 4px;
-    z-index: 2; /* Atrapada entre el back y el front */
+    z-index: 2; /* Entre la espalda y el frente */
+    /* Sombra elegante y borde muy fino de textura */
     box-shadow: 
-        0 10px 25px rgba(0,0,0,0.08),
-        inset 0 0 0 1px rgba(212,175,55,0.15); /* Borde muy fino */
-    /* Textura ligera premium */
+        0 10px 25px rgba(0,0,0,0.1), 
+        inset 0 0 0 1px rgba(212,175,55,0.18);
     background-image: 
         linear-gradient(120deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 100%),
         url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
 }
 
-/* FRENTE DEL SOBRE (Pliegues inferiores y laterales) */
+/* 3. FRENTE DEL SOBRE (Capa Z: 3) */
 .envelope-front {
     position: absolute;
     inset: 0;
-    z-index: 3; /* Cubre la carta completamente */
-    background: linear-gradient(to top, #ece7db 0%, #f7f5ef 100%);
-    border-radius: 4px;
-    /* Recorte que simula la apertura natural de un sobre */
-    clip-path: polygon(0 0, 50% 55%, 100% 0, 100% 100%, 0 100%);
-    box-shadow: 
-        inset 0 0 20px rgba(0,0,0,0.02),
-        inset 0 -5px 15px rgba(0,0,0,0.03);
+    z-index: 3;
+    background: linear-gradient(to top, #e8e3d6 0%, #f4f1ea 100%);
+    border-radius: 6px;
+    
+    /* El truco mágico: Una hendidura del tamaño exacto de la carta.
+       La hendidura va de 5.5% a 94.5% (la carta es de 6% a 94%), bajando al 12%. 
+       Esto permite que la carta salga deslizándose sin atravesar los pliegues visuales. */
+    clip-path: polygon(0 0, 5.5% 0, 5.5% 12%, 50% 48%, 94.5% 12%, 94.5% 0, 100% 0, 100% 100%, 0 100%);
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.02);
 }
 
-/* Líneas sutiles de profundidad para los pliegues */
+/* Líneas de profundidad que simulan los pliegues laterales */
 .envelope-front::before {
     content: "";
     position: absolute;
     inset: 0;
     background: 
-        linear-gradient(115deg, transparent 49%, rgba(0,0,0,0.03) 50%, transparent 51%),
-        linear-gradient(-115deg, transparent 49%, rgba(0,0,0,0.03) 50%, transparent 51%);
-    z-index: 0;
+        linear-gradient(118deg, transparent 49%, rgba(0,0,0,0.04) 50%, transparent 51%),
+        linear-gradient(-118deg, transparent 49%, rgba(0,0,0,0.04) 50%, transparent 51%);
     pointer-events: none;
+    z-index: 0;
 }
 
-/* TEXTO GRABADO ("INVITACIÓN") */
+/* TEXTO "INVITACIÓN" GRABADO EN EL FRENTE */
 .envelope-title {
     position: absolute;
-    top: 72%;
+    top: 76%; /* Bajado para no interferir con el sello */
     left: 50%;
     transform: translate(-50%, -50%);
     display: flex;
     align-items: center;
-    gap: 12px;
-    width: 85%;
+    gap: 15px;
+    width: 80%;
     justify-content: center;
-    color: #938569;
-    /* Efecto de grabado o relieve inverso */
-    text-shadow: 1px 1px 0px rgba(255,255,255,0.7), -1px -1px 0px rgba(0,0,0,0.06);
     z-index: 1;
 }
 
 .envelope-title .title {
+    color: #9c8e75;
     font-family: 'Cormorant Garamond', serif;
-    font-size: 1.3rem;
-    letter-spacing: 5px;
+    font-size: 1.35rem;
+    letter-spacing: 6px;
     font-weight: 600;
+    /* Relieve inverso (hueco) */
+    text-shadow: 1px 1px 1px rgba(255,255,255,0.8), -1px -1px 1px rgba(0,0,0,0.08);
 }
 
 .envelope-title .line {
     flex: 1;
     height: 1px;
-    background: rgba(147, 133, 105, 0.4);
+    background: rgba(156, 142, 117, 0.3);
     box-shadow: 0 1px 0 rgba(255,255,255,0.6);
 }
 
-/* SOLAPA SUPERIOR */
+/* 4. SOLAPA SUPERIOR (Capa Z: 4) */
 .envelope-top {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
-    height: 60%;
-    background: linear-gradient(to bottom, #f3efe5 0%, #e6dfcd 100%);
-    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    height: 58%;
+    background: linear-gradient(to bottom, #f2efe7 0%, #e3dcd0 100%);
+    /* Su base sólida del 22% asegura cubrir completamente la hendidura del 12% del frente,
+       ocultando la carta al 100% cuando está cerrado. */
+    clip-path: polygon(0 0, 100% 0, 100% 22%, 50% 100%, 0 22%);
     transform-origin: top;
     z-index: 4;
-    /* Sombras reales projetadas sobre el cuerpo del sobre */
-    filter: drop-shadow(0 8px 6px rgba(0,0,0,0.12));
+    filter: drop-shadow(0 10px 10px rgba(0,0,0,0.15));
 }
 
-/* SELLO DE CERA 3D */
+/* 5. SELLO DE CERA (Capa Z: 5) */
 .gold-seal {
     position: absolute;
     left: 50%;
-    top: 59%;
+    top: 55%; /* Se sitúa exactamente en la punta de la solapa */
     transform: translate(-50%, -50%);
-    width: 72px;
-    height: 72px;
-    border-radius: 50%;
-    /* Efecto de cera realística */
-    background: radial-gradient(circle at 30% 30%, #f4d068 0%, #c89a20 40%, #8b6914 100%);
+    width: 76px;
+    height: 76px;
+    /* Forma irregular y orgánica para simular cera derretida real */
+    border-radius: 52% 48% 51% 49% / 50% 49% 51% 50%;
+    background: radial-gradient(circle at 35% 30%, #f7d570 0%, #c19218 45%, #7a5908 100%);
     box-shadow: 
-        inset 0 0 8px rgba(255,255,255,0.6), /* Brillo superior */
-        inset 0 0 15px rgba(0,0,0,0.2),      /* Profundidad interna */
-        0 6px 12px rgba(0,0,0,0.2),          /* Sombra del sello */
-        0 10px 25px rgba(212,175,55,0.4);    /* Resplandor dorado */
+        inset 0 0 10px rgba(255,255,255,0.5), /* Brillo interior */
+        inset 0 0 18px rgba(0,0,0,0.3),       /* Profundidad */
+        0 8px 15px rgba(0,0,0,0.25),          /* Sombra al sobre */
+        0 15px 30px rgba(212,175,55,0.25);    /* Resplandor */
     display: flex;
     justify-content: center;
     align-items: center;
-    color: #fff9e6;
+    color: #fdf5d3;
     font-family: 'Cormorant Garamond', serif;
-    font-size: 1.6rem;
+    font-size: 1.7rem;
     font-weight: 700;
     letter-spacing: 2px;
     z-index: 5;
-    text-shadow: 0px 1px 3px rgba(0,0,0,0.5);
-    border: 2px solid rgba(220,185,75,0.9);
-}
-
-/* Borde interno para el relieve de la cera */
-.gold-seal::before {
-    content: "";
-    position: absolute;
-    inset: 3px;
-    border-radius: 50%;
-    border: 1px solid rgba(255,255,255,0.3);
-    box-shadow: inset 0 0 8px rgba(0,0,0,0.25);
+    border: 2px solid rgba(230,195,85,0.8);
+    /* Texto con sombra pronunciada para simular relieve profundo */
+    text-shadow: -1px -1px 2px rgba(0,0,0,0.5), 1px 1px 2px rgba(255,255,255,0.4);
 }
 
 /*==================================================
-        SECUENCIA DE ANIMACIÓN (AL HACER CLIC)
+        SECUENCIA DE ANIMACIÓN (TIEMPO TOTAL: 3.4s)
 ==================================================*/
 
-/* 1. SELLO: Presiona -> Rompe -> Cae -> Desvanece */
+/* 1. SELLO (0s a 1.2s): Presiona -> Rompe -> Desprende -> Cae y Desvanece */
 #envelope.open .gold-seal {
-    animation: premiumSealBreak 0.4s forwards cubic-bezier(0.4, 0, 0.2, 1);
+    animation: premiumSealBreak 1.2s forwards cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes premiumSealBreak {
-    0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-    30% { transform: translate(-50%, -48%) scale(0.92); opacity: 1; box-shadow: 0 2px 5px rgba(0,0,0,0.3); } /* Presión */
-    60% { transform: translate(-50%, -35%) scale(0.95); opacity: 1; } /* Ruptura */
-    100% { transform: translate(-50%, 20px) scale(0.9); opacity: 0; visibility: hidden; } /* Cae y desaparece */
+    0%   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    15%  { transform: translate(-50%, -49%) scale(0.92); opacity: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.2); } /* Presión */
+    25%  { transform: translate(-50%, -44%) scale(0.95); opacity: 1; } /* Rompe */
+    60%  { transform: translate(-50%, 40px) scale(0.9); opacity: 0; } /* Cae unos px y fade */
+    100% { transform: translate(-50%, 40px) scale(0.9); opacity: 0; visibility: hidden; }
 }
 
-/* 2. SOLAPA: Se abre lentamente hacia arriba */
+/* 2. SOLAPA (0.7s a 1.5s): Abre suavemente mientras el sello cae */
 #envelope.open .envelope-top {
-    /* Comienza a abrir justo cuando el sello cae (0.4s) */
-    animation: premiumFlapOpen 0.4s 0.4s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+    animation: premiumFlapOpen 0.8s 0.7s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 @keyframes premiumFlapOpen {
-    0% { transform: rotateX(0deg); z-index: 4; }
-    49% { z-index: 4; }
-    /* El z-index baja para que la carta salga por delante de la solapa abierta */
-    50% { z-index: 0; } 
-    100% { transform: rotateX(170deg); z-index: 0; } 
+    0%   { transform: rotateX(0deg); z-index: 4; }
+    49%  { z-index: 4; }
+    50%  { z-index: 0; } /* Cambia z-index para que la carta salga por encima */
+    100% { transform: rotateX(175deg); z-index: 0; } 
 }
 
-/* 3. CARTA: Sale suavemente desde el interior (sin atravesar el sobre) */
+/* 3. CARTA (1.4s a 3.4s): Sale 25% -> Pausa -> Sale completamente */
 #envelope.open .letter {
-    /* Comienza justo al terminar de abrir la solapa (0.8s), termina a 1.5s */
-    animation: premiumLetterExtract 0.7s 0.8s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+    animation: premiumLetterExtract 2.0s 1.4s forwards cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes premiumLetterExtract {
-    0% { transform: translateX(-50%) translateY(0); }
-    100% { transform: translateX(-50%) translateY(-180px); }
+    0%   { transform: translateX(-50%) translateY(0); }
+    30%  { transform: translateX(-50%) translateY(-25%); } /* Sale ligeramente */
+    50%  { transform: translateX(-50%) translateY(-25%); } /* Pausa dramática */
+    100% { transform: translateX(-50%) translateY(-150%); opacity: 0; } /* Sale por completo */
 }
 
-/* La pantalla se oculta controlada por tu JS a los 1.7s, permitiendo una pausa de 0.2s */
+/* Transición final a la página completa */
 #envelope-screen.hide {
     opacity: 0;
     visibility: hidden;
@@ -820,8 +817,8 @@ main.show{
         RESPONSIVE DEL SOBRE PREMIUM
     --------------------------------------*/
     #envelope {
-        width: 320px;
-        height: 210px;
+        width: 330px;
+        height: 220px;
     }
 
     .envelope-wrapper h1 { font-size: 2.8rem; }
@@ -834,22 +831,24 @@ main.show{
 
     .envelope-title .title {
         font-size: 1rem;
-        letter-spacing: 3px;
+        letter-spacing: 4px;
     }
 
     .gold-seal {
-        width: 60px;
-        height: 60px;
-        font-size: 1.3rem;
+        width: 65px;
+        height: 65px;
+        font-size: 1.4rem;
     }
 
     #envelope.open .letter {
-        animation: premiumLetterExtractMobile 0.7s 0.8s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+        animation: premiumLetterExtractMobile 2.0s 1.4s forwards cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     @keyframes premiumLetterExtractMobile {
-        0% { transform: translateX(-50%) translateY(0); }
-        100% { transform: translateX(-50%) translateY(-130px); }
+        0%   { transform: translateX(-50%) translateY(0); }
+        30%  { transform: translateX(-50%) translateY(-25%); }
+        50%  { transform: translateX(-50%) translateY(-25%); }
+        100% { transform: translateX(-50%) translateY(-130%); opacity: 0; }
     }
     /*--------------------------------------*/
 
@@ -948,24 +947,27 @@ main.show{
         RESPONSIVE DEL SOBRE PREMIUM
     --------------------------------------*/
     #envelope {
-        width: 280px;
-        height: 185px;
+        width: 290px;
+        height: 195px;
     }
 
-    .envelope-title .title { font-size: 0.9rem; }
+    .envelope-title .title { font-size: 0.85rem; }
     
     .gold-seal {
-        width: 55px;
-        height: 55px;
+        width: 58px;
+        height: 58px;
+        font-size: 1.2rem;
     }
 
     #envelope.open .letter {
-        animation: premiumLetterExtractSmall 0.7s 0.8s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+        animation: premiumLetterExtractSmall 2.0s 1.4s forwards cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     @keyframes premiumLetterExtractSmall {
-        0% { transform: translateX(-50%) translateY(0); }
-        100% { transform: translateX(-50%) translateY(-110px); }
+        0%   { transform: translateX(-50%) translateY(0); }
+        30%  { transform: translateX(-50%) translateY(-25%); }
+        50%  { transform: translateX(-50%) translateY(-25%); }
+        100% { transform: translateX(-50%) translateY(-110%); opacity: 0; }
     }
     /*--------------------------------------*/
 

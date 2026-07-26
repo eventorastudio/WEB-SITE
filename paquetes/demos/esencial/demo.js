@@ -57,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         }
 
+        // Se sincroniza con el final de la secuencia de 3.4s del CSS
         setTimeout(() => {
 
             envelopeScreen.classList.add("hide");
@@ -67,13 +68,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
             musicButton.classList.add("show");
 
-        }, 1700);
+        }, 3300); // Ligeramente antes de 3.4s para asegurar una transición fluida
         
+        // Empieza a sonar la música durante la pausa dramática de la carta (2.4s)
         setTimeout(() => {
 
             music.play().catch(() => {});
 
-        }, 1200);
+        }, 2400);
 
     });
 
