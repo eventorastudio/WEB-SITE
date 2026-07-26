@@ -151,7 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (rsvpForm) {
         rsvpForm.addEventListener("submit", (e) => {
             e.preventDefault();
-            // Mensaje de éxito estilizado para la nueva estética
+            
             rsvpForm.innerHTML = `
                 <div style="text-align:center; padding:30px 10px; animation: fadeIn 1s ease;">
                     <i data-lucide="mail-check" style="width: 50px; height: 50px; color: var(--gold); margin-bottom: 20px;"></i>
@@ -162,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </p>
                 </div>
             `;
-            lucide.createIcons(); // Recarga los íconos para mostrar el check
+            lucide.createIcons(); 
         });
     }
 });
