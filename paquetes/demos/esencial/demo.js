@@ -107,11 +107,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (playBtn && coupleVideo && videoContainer) {
         
         const playVideo = () => {
-            // Activa las clases CSS para ocultar portada y revelar el video
             videoContainer.classList.add("playing");
             coupleVideo.play();
             
-            // Pausa la música de fondo automáticamente por UX
+            // Pausar la música ambiental al iniciar un video asegura una UX elegante
             if (playing && music) {
                 music.pause();
                 playing = false;
@@ -120,13 +119,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };
 
-        // Escucha eventos tanto en el botón como en la imagen de portada
         playBtn.addEventListener("click", playVideo);
         if (videoCover) {
             videoCover.addEventListener("click", playVideo);
         }
 
-        // Vuelve al estado inicial cuando termina el video
+        // Restaura la tarjeta al terminar el video
         coupleVideo.addEventListener("ended", () => {
             videoContainer.classList.remove("playing");
         });
