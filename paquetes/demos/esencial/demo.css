@@ -169,30 +169,350 @@ body{
 }
 
 /*==================================================
-            ENVELOPE SCREEN
+            ENVELOPE SCREEN (PREMIUM)
 ==================================================*/
 
-#envelope-screen{position:fixed;inset:0;display:flex;justify-content:center;align-items:center;overflow:hidden;padding:120px 20px;background:radial-gradient(circle at top,#f7f2e8 0%,#ffffff 65%);z-index:9000;transition:1s;}
-.hero-glow{position:absolute;width:520px;height:520px;border-radius:50%;background:rgba(212,175,55,.18);filter:blur(100px);z-index:0;}
-.envelope-wrapper{position:relative;z-index:2;text-align:center;max-width:760px;}
-.demo-badge{display:inline-block;padding:10px 22px;border-radius:999px;background:#fffaf2;border:1px solid rgba(212,175,55,.25);color:#c49a2c;font-size:.85rem;font-weight:600;letter-spacing:2px;margin-bottom:28px;}
-.envelope-wrapper h1{font-family:'Cormorant Garamond',serif;font-size:4.6rem;line-height:1.05;margin-bottom:22px;}
-.demo-description{max-width:620px;margin:auto;color:#666;font-size:1.15rem;line-height:1.8;margin-bottom:70px;}
-#envelope{position:relative;width:420px;height:285px;margin:auto;cursor:pointer;perspective:1500px;animation:floatEnvelope 6s ease-in-out infinite;}
-.envelope-back{position:absolute;inset:0;background:#fbfaf8;border-radius:10px;border:1px solid rgba(0,0,0,.04);box-shadow:0 35px 80px rgba(0,0,0,.12);}
-.envelope-top{position:absolute;left:0;top:0;width:100%;height:58%;background:#f6f3ee;clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top;transition:1s;z-index:5;}
-.letter{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:88%;height:78%;background:#fff;border-radius:8px;display:flex;justify-content:center;align-items:center;box-shadow:0 12px 35px rgba(0,0,0,.08);transition:1s;}
-.letter-title{font-family:'Cormorant Garamond',serif;font-size:2.2rem;letter-spacing:4px;}
-.gold-seal{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:68px;height:68px;border-radius:50%;background:linear-gradient(145deg,#f5d77b,#c89a20);display:flex;justify-content:center;align-items:center;color:#fff;font-weight:700;letter-spacing:2px;z-index:10;box-shadow:0 12px 28px rgba(212,175,55,.45);}
-.tap-text{margin-top:45px;color:#444;font-size:1rem;}
-.tap-arrow{margin-top:10px;font-size:1.5rem;animation:bounce 2s infinite;}
-@keyframes floatEnvelope{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
-@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(8px);}}
-#envelope.open .envelope-top{transform:rotateX(180deg);}
-#envelope.open .letter{transform:translateX(-50%) translateY(-140px);}
-#envelope-screen.hide{opacity:0;visibility:hidden;pointer-events:none;}
+#envelope-screen {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    padding: 100px 20px;
+    /* Fondo premium con radial gradients */
+    background: radial-gradient(circle at 50% 40%, #f7f4ed 0%, #e8e2d4 60%, #c9bda5 100%);
+    z-index: 9000;
+    transition: opacity 1s ease, visibility 1s ease;
+}
+
+/* Partículas desenfocadas detrás del sobre */
+#envelope-screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+        radial-gradient(circle at 15% 25%, rgba(212,175,55,0.15) 0%, transparent 4px),
+        radial-gradient(circle at 75% 35%, rgba(212,175,55,0.12) 0%, transparent 5px),
+        radial-gradient(circle at 25% 75%, rgba(212,175,55,0.1) 0%, transparent 4px),
+        radial-gradient(circle at 85% 70%, rgba(212,175,55,0.15) 0%, transparent 5px);
+    filter: blur(2px);
+    z-index: 1;
+    opacity: 0.8;
+}
+
+.hero-glow {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    /* Luz dorada muy sutil */
+    background: radial-gradient(circle, rgba(222, 185, 85, 0.12) 0%, rgba(212, 175, 55, 0) 70%);
+    filter: blur(60px);
+    z-index: 0;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: premiumGlowPulse 6s ease-in-out infinite alternate;
+}
+
+@keyframes premiumGlowPulse {
+    0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.7; }
+    100% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+}
+
+.envelope-wrapper {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    max-width: 800px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.demo-badge {
+    display: inline-block;
+    padding: 8px 24px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #fffaf2, #f9f1e1);
+    border: 1px solid rgba(212,175,55,.3);
+    color: #aa8123;
+    font-size: .8rem;
+    font-weight: 600;
+    letter-spacing: 3px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 15px rgba(212,175,55,0.1);
+}
+
+.envelope-wrapper h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 4.2rem;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    color: #2c2925;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.demo-description {
+    max-width: 580px;
+    margin: auto;
+    color: #5a5449;
+    font-size: 1.1rem;
+    line-height: 1.7;
+    margin-bottom: 30px;
+}
+
+/* Indicador de toque arriba del sobre */
+.tap-container {
+    margin-bottom: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.tap-text {
+    color: #7d7260;
+    font-size: .95rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.tap-arrow {
+    margin-top: 8px;
+    font-size: 1.2rem;
+    color: #a89468;
+    animation: premiumBounce 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes premiumBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(6px); }
+}
+
+/* --------------------------------------
+   EL SOBRE BASE
+--------------------------------------- */
+#envelope {
+    position: relative;
+    width: 440px;
+    height: 290px;
+    margin: auto;
+    cursor: pointer;
+    perspective: 1800px;
+    transform-style: preserve-3d;
+    /* Rotación natural y flotación */
+    animation: premiumFloat 7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    box-shadow: 
+        0 40px 60px -15px rgba(0,0,0,0.15),
+        0 15px 25px -10px rgba(0,0,0,0.1);
+    border-radius: 4px;
+}
+
+@keyframes premiumFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-15px) rotate(1.5deg); }
+}
+
+/* ESPALDA DEL SOBRE (El interior visible al abrir) */
+.envelope-back {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #e4ded0, #f1ede1);
+    border-radius: 4px;
+    z-index: 1;
+    overflow: hidden;
+}
+
+/* Sombra profunda para el interior */
+.envelope-back::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0) 60%);
+}
+
+/* LA CARTA (Completamente oculta cuando está cerrado) */
+.letter {
+    position: absolute;
+    left: 50%;
+    bottom: 10px; /* Se mantiene dentro de los límites del sobre frontal */
+    transform: translateX(-50%);
+    width: 90%;
+    height: 88%;
+    background: #fffdf9;
+    border-radius: 4px;
+    z-index: 2; /* Atrapada entre el back y el front */
+    box-shadow: 
+        0 10px 25px rgba(0,0,0,0.08),
+        inset 0 0 0 1px rgba(212,175,55,0.15); /* Borde muy fino */
+    /* Textura ligera premium */
+    background-image: 
+        linear-gradient(120deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 100%),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+/* FRENTE DEL SOBRE (Pliegues inferiores y laterales) */
+.envelope-front {
+    position: absolute;
+    inset: 0;
+    z-index: 3; /* Cubre la carta completamente */
+    background: linear-gradient(to top, #ece7db 0%, #f7f5ef 100%);
+    border-radius: 4px;
+    /* Recorte que simula la apertura natural de un sobre */
+    clip-path: polygon(0 0, 50% 55%, 100% 0, 100% 100%, 0 100%);
+    box-shadow: 
+        inset 0 0 20px rgba(0,0,0,0.02),
+        inset 0 -5px 15px rgba(0,0,0,0.03);
+}
+
+/* Líneas sutiles de profundidad para los pliegues */
+.envelope-front::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: 
+        linear-gradient(115deg, transparent 49%, rgba(0,0,0,0.03) 50%, transparent 51%),
+        linear-gradient(-115deg, transparent 49%, rgba(0,0,0,0.03) 50%, transparent 51%);
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* TEXTO GRABADO ("INVITACIÓN") */
+.envelope-title {
+    position: absolute;
+    top: 72%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 85%;
+    justify-content: center;
+    color: #938569;
+    /* Efecto de grabado o relieve inverso */
+    text-shadow: 1px 1px 0px rgba(255,255,255,0.7), -1px -1px 0px rgba(0,0,0,0.06);
+    z-index: 1;
+}
+
+.envelope-title .title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    letter-spacing: 5px;
+    font-weight: 600;
+}
+
+.envelope-title .line {
+    flex: 1;
+    height: 1px;
+    background: rgba(147, 133, 105, 0.4);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.6);
+}
+
+/* SOLAPA SUPERIOR */
+.envelope-top {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 60%;
+    background: linear-gradient(to bottom, #f3efe5 0%, #e6dfcd 100%);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    transform-origin: top;
+    z-index: 4;
+    /* Sombras reales projetadas sobre el cuerpo del sobre */
+    filter: drop-shadow(0 8px 6px rgba(0,0,0,0.12));
+}
+
+/* SELLO DE CERA 3D */
+.gold-seal {
+    position: absolute;
+    left: 50%;
+    top: 59%;
+    transform: translate(-50%, -50%);
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    /* Efecto de cera realística */
+    background: radial-gradient(circle at 30% 30%, #f4d068 0%, #c89a20 40%, #8b6914 100%);
+    box-shadow: 
+        inset 0 0 8px rgba(255,255,255,0.6), /* Brillo superior */
+        inset 0 0 15px rgba(0,0,0,0.2),      /* Profundidad interna */
+        0 6px 12px rgba(0,0,0,0.2),          /* Sombra del sello */
+        0 10px 25px rgba(212,175,55,0.4);    /* Resplandor dorado */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff9e6;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    z-index: 5;
+    text-shadow: 0px 1px 3px rgba(0,0,0,0.5);
+    border: 2px solid rgba(220,185,75,0.9);
+}
+
+/* Borde interno para el relieve de la cera */
+.gold-seal::before {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.3);
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.25);
+}
 
 /*==================================================
+        SECUENCIA DE ANIMACIÓN (AL HACER CLIC)
+==================================================*/
+
+/* 1. SELLO: Presiona -> Rompe -> Cae -> Desvanece */
+#envelope.open .gold-seal {
+    animation: premiumSealBreak 0.4s forwards cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes premiumSealBreak {
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    30% { transform: translate(-50%, -48%) scale(0.92); opacity: 1; box-shadow: 0 2px 5px rgba(0,0,0,0.3); } /* Presión */
+    60% { transform: translate(-50%, -35%) scale(0.95); opacity: 1; } /* Ruptura */
+    100% { transform: translate(-50%, 20px) scale(0.9); opacity: 0; visibility: hidden; } /* Cae y desaparece */
+}
+
+/* 2. SOLAPA: Se abre lentamente hacia arriba */
+#envelope.open .envelope-top {
+    /* Comienza a abrir justo cuando el sello cae (0.4s) */
+    animation: premiumFlapOpen 0.4s 0.4s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes premiumFlapOpen {
+    0% { transform: rotateX(0deg); z-index: 4; }
+    49% { z-index: 4; }
+    /* El z-index baja para que la carta salga por delante de la solapa abierta */
+    50% { z-index: 0; } 
+    100% { transform: rotateX(170deg); z-index: 0; } 
+}
+
+/* 3. CARTA: Sale suavemente desde el interior (sin atravesar el sobre) */
+#envelope.open .letter {
+    /* Comienza justo al terminar de abrir la solapa (0.8s), termina a 1.5s */
+    animation: premiumLetterExtract 0.7s 0.8s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes premiumLetterExtract {
+    0% { transform: translateX(-50%) translateY(0); }
+    100% { transform: translateX(-50%) translateY(-180px); }
+}
+
+/* La pantalla se oculta controlada por tu JS a los 1.7s, permitiendo una pausa de 0.2s */
+#envelope-screen.hide {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
 /*==================================================
                 MAIN
 ==================================================*/
@@ -464,161 +784,189 @@ main.show{
 ==================================================*/
 
 @media (max-width:1024px){
-.hero h2{font-size:5rem;}
-.section{padding:90px 0;}
+    .hero h2{font-size:5rem;}
+    .section{padding:90px 0;}
 }
 
 @media (max-width:768px){
 
-.container{width:92%;}
-.section{padding:70px 0;}
+    .container{width:92%;}
+    .section{padding:70px 0;}
 
-.hero{
-min-height:100svh;
-padding:120px 20px 80px;
-}
+    .hero{
+        min-height:100svh;
+        padding:120px 20px 80px;
+    }
 
-.hero h2{
-font-size:3.5rem;
-line-height:1.05;
-}
+    .hero h2{
+        font-size:3.5rem;
+        line-height:1.05;
+    }
 
-.hero p{
-font-size:.95rem;
-padding:0 10px;
-}
+    .hero p{
+        font-size:.95rem;
+        padding:0 10px;
+    }
 
-.hero-date{
-padding:14px 24px;
-font-size:.85rem;
-letter-spacing:2px;
-}
+    .hero-date{
+        padding:14px 24px;
+        font-size:.85rem;
+        letter-spacing:2px;
+    }
 
-.section h3{font-size:2.3rem;}
+    .section h3{font-size:2.3rem;}
 
-#envelope{
-width:300px;
-height:200px;
-}
+    /*--------------------------------------
+        RESPONSIVE DEL SOBRE PREMIUM
+    --------------------------------------*/
+    #envelope {
+        width: 320px;
+        height: 210px;
+    }
 
-.letter{height:160px;}
+    .envelope-wrapper h1 { font-size: 2.8rem; }
+    
+    .demo-description {
+        font-size: .95rem;
+        margin-bottom: 40px;
+        padding: 0 20px;
+    }
 
-.envelope-wrapper h1{
-font-size:2.8rem;
-}
+    .envelope-title .title {
+        font-size: 1rem;
+        letter-spacing: 3px;
+    }
 
-.demo-description{
-font-size:.95rem;
-margin-bottom:40px;
-padding:0 20px;
-}
+    .gold-seal {
+        width: 60px;
+        height: 60px;
+        font-size: 1.3rem;
+    }
 
-.countdown-grid{
-display:grid;
-grid-template-columns:repeat(2,1fr);
-gap:18px;
-margin-top:35px;
-}
+    #envelope.open .letter {
+        animation: premiumLetterExtractMobile 0.7s 0.8s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    
+    @keyframes premiumLetterExtractMobile {
+        0% { transform: translateX(-50%) translateY(0); }
+        100% { transform: translateX(-50%) translateY(-130px); }
+    }
+    /*--------------------------------------*/
 
-.countdown-grid div{
-padding:20px;
-background:#fff;
-border-radius:18px;
-box-shadow:0 10px 30px rgba(0,0,0,.05);
-}
+    .countdown-grid{
+        display:grid;
+        grid-template-columns:repeat(2,1fr);
+        gap:18px;
+        margin-top:35px;
+    }
 
-.countdown-grid span{font-size:2rem;}
+    .countdown-grid div{
+        padding:20px;
+        background:#fff;
+        border-radius:18px;
+        box-shadow:0 10px 30px rgba(0,0,0,.05);
+    }
 
-.dress-card{padding:30px 24px;}
+    .countdown-grid span{font-size:2rem;}
 
-.map iframe{
-width:100%;
-height:300px;
-border:0;
-border-radius:22px;
-}
+    .dress-card{padding:30px 24px;}
 
-#rsvpForm{
-display:flex;
-flex-direction:column;
-gap:20px;
-}
+    .map iframe{
+        width:100%;
+        height:300px;
+        border:0;
+        border-radius:22px;
+    }
 
-#rsvpForm input[type="text"]{width:100%;}
+    #rsvpForm{
+        display:flex;
+        flex-direction:column;
+        gap:20px;
+    }
 
-.options{
-display:flex;
-flex-direction:column;
-gap:12px;
-}
+    #rsvpForm input[type="text"]{width:100%;}
 
-.devices-grid{
-display:grid;
-grid-template-columns:1fr;
-gap:20px;
-}
+    .options{
+        display:flex;
+        flex-direction:column;
+        gap:12px;
+    }
 
-.primary-button{
-width:100%;
-justify-content:center;
-}
+    .devices-grid{
+        display:grid;
+        grid-template-columns:1fr;
+        gap:20px;
+    }
 
-#musicButton{
-width:48px;
-height:48px;
-top:18px;
-right:18px;
-}
+    .primary-button{
+        width:100%;
+        justify-content:center;
+    }
 
-.final-cta h2{
-font-size:2.2rem;
-line-height:1.2;
-}
+    #musicButton{
+        width:48px;
+        height:48px;
+        top:18px;
+        right:18px;
+    }
 
-.final-message{font-size:1rem;}
+    .final-cta h2{
+        font-size:2.2rem;
+        line-height:1.2;
+    }
 
-footer{
-padding:40px 20px;
-text-align:center;
-}
+    .final-message{font-size:1rem;}
+
+    footer{
+        padding:40px 20px;
+        text-align:center;
+    }
 
 }
 
 @media (hover:none){
 
-.primary-button:active,
-#envelope:active,
-.phone-demo-btn:active{
-transform:scale(.97);
-}
+    .primary-button:active,
+    #envelope:active,
+    .phone-demo-btn:active{
+        transform:scale(.97);
+    }
 
-#musicButton:active{
-transform:scale(.94);
-}
+    #musicButton:active{
+        transform:scale(.94);
+    }
 
 }
 
 @media (max-width:390px){
 
-.hero h2{font-size:3rem;}
+    .hero h2{font-size:3rem;}
+    .section{padding:60px 0;}
+    .hero-date{width:100%; max-width:280px;}
 
-#envelope{
-width:270px;
-height:180px;
-}
+    /*--------------------------------------
+        RESPONSIVE DEL SOBRE PREMIUM
+    --------------------------------------*/
+    #envelope {
+        width: 280px;
+        height: 185px;
+    }
 
-.letter{
-width:86%;
-height:145px;
-}
+    .envelope-title .title { font-size: 0.9rem; }
+    
+    .gold-seal {
+        width: 55px;
+        height: 55px;
+    }
 
-.section{
-padding:60px 0;
-}
-
-.hero-date{
-width:100%;
-max-width:280px;
-}
+    #envelope.open .letter {
+        animation: premiumLetterExtractSmall 0.7s 0.8s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    
+    @keyframes premiumLetterExtractSmall {
+        0% { transform: translateX(-50%) translateY(0); }
+        100% { transform: translateX(-50%) translateY(-110px); }
+    }
+    /*--------------------------------------*/
 
 }
