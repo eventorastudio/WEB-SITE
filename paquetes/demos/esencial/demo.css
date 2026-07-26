@@ -22,6 +22,18 @@ body{
 }
 
 /*==================================================
+            BLOQUEO DE SCROLL (UX FIX)
+==================================================*/
+
+body.no-scroll {
+    overflow: hidden !important;
+    height: 100vh !important;
+    height: 100dvh !important; /* dVH para manejar la barra de navegación móvil */
+    touch-action: none !important; /* Previene scroll táctil */
+    overscroll-behavior: none !important; /* Previene rebote en móviles */
+}
+
+/*==================================================
                 VARIABLES
 ==================================================*/
 
@@ -521,6 +533,15 @@ main{
     opacity:0;
 
     transition:1s;
+
+}
+
+main.hidden{
+
+    /* Se asegura de que el contenido no genere altura en el body mientras el sobre está cerrado */
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
 
 }
 

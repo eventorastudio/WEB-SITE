@@ -26,6 +26,33 @@ document.addEventListener("DOMContentLoaded", () => {
     const rsvpForm = document.getElementById("rsvpForm");
 
     /*=====================================
+          BLOQUEO DE SCROLL (UX FIX)
+    =====================================*/
+
+    // 1. Activar bloqueo estricto al cargar
+    document.body.classList.add("no-scroll");
+
+    // 2. Forzar scroll arriba instantáneamente (ignorando smooth scroll)
+    document.documentElement.style.scrollBehavior = "auto";
+    window.scrollTo(0, 0);
+    document.documentElement.style.scrollBehavior = "";
+
+    // 3. Prevenir eventos físicos mientras el sobre esté cerrado
+    const keysToBlock = ["Space", "ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End"];
+    
+    const preventScroll = (e) => {
+        if (document.body.classList.contains("no-scroll")) {
+            if (e.type === "keydown" && !keysToBlock.includes(e.code)) return; // Permite otras teclas
+            e.preventDefault();
+        }
+    };
+
+    window.addEventListener("wheel", preventScroll, { passive: false });
+    window.addEventListener("touchmove", preventScroll, { passive: false });
+    window.addEventListener("keydown", preventScroll, { passive: false });
+
+
+    /*=====================================
                 LOADER
     =====================================*/
 
@@ -62,11 +89,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
             envelopeScreen.classList.add("hide");
 
+            // 1. Recuperar la altura en el DOM eliminando la clase hidden
             invitation.classList.remove("hidden");
 
-            invitation.classList.add("show");
+            // 2. Forzar posición al inicio absoluto justo antes de mostrar
+            document.documentElement.style.scrollBehavior = "auto";
+            window.scrollTo(0, 0);
+            document.documentElement.style.scrollBehavior = "";
 
-            musicButton.classList.add("show");
+            // 3. Liberar el scroll del body
+            document.body.classList.remove("no-scroll");
+
+            // 4. Mostrar el contenido con la transición visual requerida
+            requestAnimationFrame(() => {
+                invitation.classList.add("show");
+                musicButton.classList.add("show");
+            });
 
         }, 3300); // Ligeramente antes de 3.4s para asegurar una transición fluida
         
