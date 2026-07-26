@@ -110,34 +110,67 @@
         </section>
 
         <!--==================================
-                FOTOGRAFÍA PRINCIPAL
+                BIENVENIDA
         ===================================-->
-        <section class="section photo-fullscreen">
+        <section class="section welcome" style="padding-bottom: 35px;">
             <div class="container">
-                <div class="premium-image-wrapper reveal">
-                    <img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=2000&auto=format&fit=crop" alt="Nosotros">
+                <div class="premium-card reveal">
+                    <div class="welcome-text text-center">
+                        <span class="section-badge">BIENVENIDOS</span>
+                        <h3>Nos casamos</h3>
+                        <p style="max-width: 600px; margin: 0 auto;">Gracias por acompañarnos en uno de los días más importantes de nuestras vidas. Tu presencia hará este momento <i>aún más especial</i>.</p>
+                    </div>
                 </div>
             </div>
         </section>
 
         <!--==================================
-            BIENVENIDA & CUENTA REGRESIVA
+                NUESTRA HISTORIA (VIDEO PREMIUM)
         ===================================-->
-        <section class="section welcome-countdown">
+        <section class="section video-story" style="padding-top: 35px; padding-bottom: 35px;">
+            <div class="container">
+                
+                <!-- Encabezado de la sección -->
+                <div class="text-center reveal" style="margin-bottom: 40px;">
+                    <span class="section-badge">Nuestra Historia</span>
+                    <h3>Un pequeño vistazo</h3>
+                    <p style="max-width: 550px; margin: auto; color: var(--gray);">Antes de celebrar este gran día, queremos compartir contigo un momento muy especial para nosotros.</p>
+                    <div class="divider small"><i data-lucide="film"></i></div>
+                </div>
+
+                <!-- Contenedor del Reproductor de Video -->
+                <div class="premium-video-card reveal" id="videoContainer">
+                    
+                    <!-- Imagen de Portada (Sustituible) -->
+                    <img src="https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=1200&auto=format&fit=crop" alt="Nuestra Historia" class="video-cover" id="videoCover">
+                    
+                    <!-- Botón Play Elegante -->
+                    <button class="play-button" id="playBtn" aria-label="Reproducir video">
+                        <i data-lucide="play" fill="currentColor"></i>
+                    </button>
+                    
+                    <!-- Etiqueta de Video HTML5 Integrada -->
+                    <video id="coupleVideo" class="custom-video" controls playsinline preload="metadata">
+                        <!-- Archivo de Video Demo (Sustituible) -->
+                        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+                        Tu navegador no soporta la etiqueta de video.
+                    </video>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!--==================================
+                CUENTA REGRESIVA
+        ===================================-->
+        <section class="section countdown" style="padding-top: 35px;">
             <div class="container">
                 <div class="premium-card reveal">
-                    <div class="welcome-text">
-                        <span class="section-badge">BIENVENIDOS</span>
-                        <h3>Nos casamos</h3>
-                        <p>Gracias por acompañarnos en uno de los días más importantes de nuestras vidas. Tu presencia hará este momento <i>aún más especial</i>.</p>
-                    </div>
-                    
-                    <div class="divider small">
-                        <i data-lucide="sparkles"></i>
-                    </div>
-
-                    <div class="countdown-wrapper">
-                        <h4 class="editorial-title">Falta muy poco</h4>
+                    <div class="countdown-wrapper text-center" style="margin-top: 0;">
+                        <h4 class="editorial-title" style="font-size: 2.2rem; margin-bottom: 8px;">Falta muy poco</h4>
+                        <p style="margin-bottom: 30px;">Para nuestro gran día</p>
+                        
                         <div class="countdown-grid">
                             <div class="time-box">
                                 <span id="days">00</span>

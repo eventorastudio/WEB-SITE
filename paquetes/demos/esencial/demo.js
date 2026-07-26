@@ -97,6 +97,42 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     /*=====================================
+          REPRODUCTOR DE VIDEO PREMIUM
+    =====================================*/
+    const videoContainer = document.getElementById("videoContainer");
+    const coupleVideo = document.getElementById("coupleVideo");
+    const playBtn = document.getElementById("playBtn");
+    const videoCover = document.getElementById("videoCover");
+
+    if (playBtn && coupleVideo && videoContainer) {
+        
+        const playVideo = () => {
+            // Activa las clases CSS para ocultar portada y revelar el video
+            videoContainer.classList.add("playing");
+            coupleVideo.play();
+            
+            // Pausa la música de fondo automáticamente por UX
+            if (playing && music) {
+                music.pause();
+                playing = false;
+                if (musicButton) musicButton.innerHTML = '<i data-lucide="volume-x"></i>';
+                lucide.createIcons();
+            }
+        };
+
+        // Escucha eventos tanto en el botón como en la imagen de portada
+        playBtn.addEventListener("click", playVideo);
+        if (videoCover) {
+            videoCover.addEventListener("click", playVideo);
+        }
+
+        // Vuelve al estado inicial cuando termina el video
+        coupleVideo.addEventListener("ended", () => {
+            videoContainer.classList.remove("playing");
+        });
+    }
+
+    /*=====================================
             CUENTA REGRESIVA
     =====================================*/
     const targetDate = new Date("Nov 15, 2027 18:00:00").getTime();
