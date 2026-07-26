@@ -170,11 +170,9 @@ body{
 
     text-align:center;
 
-    background:var(--glass);
+    background:#fdfbf7;
 
-    backdrop-filter:blur(24px);
-
-    border:1px solid var(--border);
+    border:1px solid rgba(231, 220, 198, .65);
 
     border-radius:var(--radius);
 
@@ -186,9 +184,11 @@ body{
 
 .logo{
 
+    display:block;
+
     width:140px;
 
-    margin-bottom:28px;
+    margin:0 auto 28px;
 
     animation:fadeUp 1.1s ease;
 
