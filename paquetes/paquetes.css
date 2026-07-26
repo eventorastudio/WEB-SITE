@@ -625,25 +625,44 @@
 
 .play-icon{
 
-    width:42px;
+    width:46px;
 
-    height:42px;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
+    height:46px;
 
     border-radius:50%;
 
     background:#111;
 
-    color:white;
+    display:flex;
 
-    font-size:14px;
+    justify-content:center;
+
+    align-items:center;
 
     flex-shrink:0;
+
+    transition:.3s;
+
+    box-shadow:
+        0 8px 18px rgba(0,0,0,.18);
+
+}
+
+.play-icon svg{
+
+    width:18px;
+
+    height:18px;
+
+    display:block;
+
+}
+
+.phone-demo-btn:hover .play-icon{
+
+    transform:scale(1.08);
+
+    background:#000;
 
 }
 
