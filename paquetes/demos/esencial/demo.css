@@ -55,6 +55,32 @@ body.no-scroll {
 }
 
 /*==================================================
+            SISTEMA DE ICONOS PREMIUM
+==================================================*/
+
+/* Componente reutilizable para alinear ópticamente todos los iconos */
+.icon-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #fdfcf9;
+    border: 1px solid rgba(212,175,55,0.25);
+    box-shadow: 0 4px 15px rgba(212,175,55,0.05), inset 0 0 10px rgba(212,175,55,0.02);
+    flex-shrink: 0;
+}
+
+.icon-box i {
+    width: 20px;
+    height: 20px;
+    color: var(--gold);
+    margin: 0 !important; /* Resetea cualquier margen indeseado */
+    display: block;
+}
+
+/*==================================================
                 COMPOSICIÓN EDITORIAL
 ==================================================*/
 h1, h2, h3, h4, .editorial-title {
@@ -80,7 +106,7 @@ i { font-style: italic; color: var(--gold); }
     height: 1px;
     background: linear-gradient(90deg, transparent, var(--gold-light), transparent);
 }
-.divider i { color: var(--gold); width: 16px; height: 16px; }
+.divider i { color: var(--gold); width: 16px; height: 16px; margin: 0; }
 
 .divider.small { margin: 25px auto; }
 .divider.small::before, .divider.small::after { width: 30px; }
@@ -238,12 +264,75 @@ main.show { opacity:1; }
 .time-box small { font-size: .75rem; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); font-weight: 500; }
 
 /*==================================================
-                DRESS CODE
+        SECCIÓN: DRESS CODE (EDITORIAL)
 ==================================================*/
-.horizontal-card { display: flex; align-items: center; gap: 50px; max-width: 800px; padding: 50px; }
-.icon-side { width: 100px; height: 100px; border-radius: 50%; background: #fdfbf7; border: 1px solid rgba(212,175,55,0.2); display: flex; justify-content: center; align-items: center; flex-shrink: 0; box-shadow: inset 0 0 20px rgba(212,175,55,0.05); }
-.icon-side i { width: 40px; height: 40px; }
-.text-side p { margin-top: 15px; }
+.dresscode-gallery {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-top: 25px;
+}
+
+.dress-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.dress-image {
+    width: 100%;
+    aspect-ratio: 3/4; /* Proporción clásica de retrato en revistas */
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 25px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+    position: relative;
+}
+
+/* Marco interior translúcido premium */
+.dress-image::after {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border: 1px solid rgba(255,255,255,0.5);
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.dress-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 1.5s ease;
+    /* Filtro fotográfico sutil para homogeneizar paleta de colores */
+    filter: sepia(15%) contrast(1.05) brightness(0.95);
+}
+
+.dress-item:hover .dress-image img {
+    transform: scale(1.05);
+}
+
+.dress-caption {
+    margin-top: 5px;
+}
+
+.dress-caption h4 {
+    font-size: 1.4rem;
+    margin-bottom: 6px;
+    letter-spacing: 4px;
+    color: #1a1917;
+    text-transform: uppercase;
+}
+
+.dress-caption span {
+    color: var(--gray);
+    font-size: 1.1rem;
+    font-style: italic;
+    font-family: 'Cormorant Garamond', serif;
+    letter-spacing: 1px;
+}
 
 /*==================================================
                 UBICACIÓN
@@ -251,8 +340,7 @@ main.show { opacity:1; }
 .location-wrapper { position: relative; max-width: 900px; margin: auto; display: flex; align-items: center; }
 .location-info { width: 380px; position: relative; left: 40px; z-index: 2; padding: 45px; }
 .info-list { display: flex; flex-direction: column; gap: 20px; margin: 30px 0; text-align: left; }
-.info-item { display: flex; align-items: flex-start; gap: 15px; }
-.info-item i { margin-top: 3px; }
+.info-item { display: flex; align-items: center; gap: 18px; } /* Centrado perfecto con icon-box */
 .info-item strong { display: block; color: #1a1917; font-weight: 500; font-size: 1.05rem; }
 .info-item span { color: var(--gray); font-size: .95rem; }
 .map-card { width: calc(100% - 340px); height: 450px; padding: 8px; z-index: 1; }
@@ -282,7 +370,6 @@ main.show { opacity:1; }
 .features-list { list-style: none; margin-top: 30px; display: flex; flex-direction: column; gap: 20px; }
 .features-list li { display: flex; align-items: center; gap: 18px; color: #2a2825; font-size: 1.05rem; padding-bottom: 20px; border-bottom: 1px solid rgba(0,0,0,0.04); }
 .features-list li:last-child { border-bottom: none; padding-bottom: 0; }
-.features-list i { color: var(--gold); width: 24px; height: 24px; }
 
 /*==================================================
                 CTA FINAL
@@ -290,7 +377,7 @@ main.show { opacity:1; }
 .final-cta { padding-bottom: 120px; }
 .cta-wrapper { text-align: center; max-width: 700px; margin: auto; }
 .support-avatar { width: 60px; height: 60px; background: var(--gold); color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 30px; box-shadow: 0 10px 20px rgba(212,175,55,0.3); }
-.support-avatar i { color: #fff; }
+.support-avatar i { color: #fff; margin: 0; display: block; }
 .cta-wrapper h2 { font-size: 3rem; margin-bottom: 25px; line-height: 1.2; }
 .final-message { margin-bottom: 40px; font-size: 1.1rem; color: var(--gray); }
 .pulse-btn { animation: pulseSlight 2s infinite; }
@@ -328,7 +415,6 @@ footer small { color: #999; font-size: .85rem; }
     .location-wrapper { flex-direction: column; }
     .location-info { width: 100%; left: 0; top: 40px; padding: 40px; text-align: center; }
     .info-list { align-items: center; text-align: center; }
-    .info-item { flex-direction: column; gap: 8px; }
     .map-card { width: 100%; height: 400px; padding: 6px; }
     .map-card iframe { padding-top: 60px; } /* Espacio para la tarjeta sobrepuesta */
 }
@@ -350,7 +436,9 @@ footer small { color: #999; font-size: .85rem; }
     .countdown-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
     .time-box span { font-size: 2.4rem; }
 
-    .horizontal-card { flex-direction: column; text-align: center; gap: 25px; padding: 40px 25px; }
+    /* Responsive de Galería Fotográfica */
+    .dresscode-gallery { grid-template-columns: 1fr; gap: 50px; }
+    .dress-image { aspect-ratio: 4/5; max-width: 320px; margin: 0 auto 20px; }
     
     .map-card iframe { padding-top: 80px; }
     
