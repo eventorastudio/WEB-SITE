@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Demo Premium | Eventora Studio</title>
+
+    <meta name="description"
+        content="Descubre la experiencia exclusiva del Paquete Premium de Eventora Studio.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="demo.css">
+
+</head>
+
+<body>
+
+    <!--======================================
+                LOADER
+    =======================================-->
+    <div id="loader">
+        <div class="loader-logo">
+            <span>EVENTORA</span>
+            <small>PREMIUM</small>
+        </div>
+    </div>
+
+    <!--======================================
+            BARRA DE PROGRESO
+    =======================================-->
+    <div id="progress-bar"></div>
+
+    <!--======================================
+            BOTÓN DE MÚSICA
+    =======================================-->
+    <button id="musicButton" aria-label="Música">
+        <i data-lucide="music-2"></i>
+    </button>
+
+    <audio id="backgroundMusic" loop>
+        <source src="assets/audio/music.mp3" type="audio/mpeg">
+    </audio>
+
+    <!--====================================
+            PORTADA / SOBRE PREMIUM
+    =====================================-->
+    <section id="envelope-screen">
+        <div class="hero-glow"></div>
+        <div class="envelope-wrapper">
+            <span class="demo-badge">✦ PAQUETE PREMIUM</span>
+            <h1>Una invitación para<br>un momento inolvidable</h1>
+            <p class="demo-description">Descubre la experiencia digital exclusiva que recibirán tus invitados desde el primer instante.</p>
+            <div class="tap-container">
+                <p class="tap-text">Toca el sobre para abrir</p>
+                <div class="tap-arrow">↓</div>
+            </div>
+            <div id="envelope">
+                <div class="envelope-back"></div>
+                <div class="letter"></div>
+                <div class="envelope-front">
+                    <div class="envelope-title">
+                        <span class="line"></span>
+                        <span class="title">INVITACIÓN</span>
+                        <span class="line"></span>
+                    </div>
+                </div>
+                <div class="envelope-top"></div>
+                <div class="gold-seal">
+                    <span>ES</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!--======================================
+            CONTENIDO PRINCIPAL
+    =======================================-->
+    <main id="invitation" class="hidden">
+
+        <!--==================================
+                    HERO
+        ===================================-->
+        <section class="hero">
+            <div class="hero-overlay"></div>
+            <div class="hero-content reveal">
+                <span class="hero-tag">NUESTRA BODA</span>
+                <h2>María <span>&</span> Fernando</h2>
+                <div class="divider">
+                    <i data-lucide="heart"></i>
+                </div>
+                <p class="hero-subtitle">Nos llena de alegría compartir este momento contigo.</p>
+                <div class="hero-date">15 NOVIEMBRE 2027</div>
+            </div>
+            
+            <div class="scroll-indicator reveal">
+                <div class="mouse"></div>
+                <span>Desliza para descubrir</span>
+            </div>
+        </section>
+
+        <!--==================================
+                FOTOGRAFÍA PRINCIPAL
+        ===================================-->
+        <section class="section photo-fullscreen">
+            <div class="container">
+                <div class="premium-image-wrapper reveal">
+                    <img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=2000&auto=format&fit=crop" alt="Nosotros" class="parallax-img">
+                </div>
+            </div>
+        </section>
+
+        <!--==================================
+                BIENVENIDA
+        ===================================-->
+        <section class="section welcome" style="padding-bottom: 35px;">
+            <div class="container">
+                <div class="premium-card hover-elevate reveal">
+                    <div class="welcome-text text-center">
+                        <span class="section-badge">BIENVENIDOS</span>
+                        <h3>Nos casamos</h3>
+                        <p style="max-width: 600px; margin: 0 auto;">Gracias por acompañarnos en uno de los días más importantes de nuestras vidas. Tu presencia hará este momento <i>aún más especial</i>.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!--==================================
+                NUESTRA HISTORIA (VIDEO PREMIUM)
+        ===================================-->
+        <section class="section video-story" style="padding-top: 35px; padding-bottom: 35px;">
+            <div class="container">
+                
+                <div class="text-center reveal" style="margin-bottom: 40px;">
+                    <span class="section-badge">Nuestra Historia</span>
+                    <h3>Un pequeño vistazo</h3>
+                    <p style="max-width: 550px; margin: auto; color: var(--gray);">Antes de celebrar este gran día, queremos compartir contigo un momento muy especial para nosotros.</p>
+                    <div class="divider small"><i data-lucide="film"></i></div>
+                </div>
+
+                <div class="premium-video-card reveal" id="videoContainer">
+                    <img src="https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=1200&auto=format&fit=crop" alt="Nuestra Historia" class="video-cover" id="videoCover">
+                    <div class="video-overlay"></div>
+                    <button class="play-button" id="playBtn" aria-label="Reproducir video">
+                        <i data-lucide="play" fill="currentColor"></i>
+                    </button>
+                    <video id="coupleVideo" class="custom-video" controls playsinline preload="metadata">
+                        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+                        Tu navegador no soporta la etiqueta de video.
+                    </video>
+                </div>
+
+            </div>
+        </section>
+
+        <!--==================================
+                CUENTA REGRESIVA
+        ===================================-->
+        <section class="section countdown" style="padding-top: 35px;">
+            <div class="container">
+                <div class="premium-card hover-elevate reveal">
+                    <div class="countdown-wrapper text-center" style="margin-top: 0;">
+                        <h4 class="editorial-title" style="font-size: 2.2rem; margin-bottom: 8px;">Falta muy poco</h4>
+                        <p style="margin-bottom: 30px;">Para nuestro gran día</p>
+                        
+                        <div class="countdown-grid">
+                            <div class="time-box">
+                                <span id="days">00</span>
+                                <small>Días</small>
+                            </div>
+                            <div class="time-box">
+                                <span id="hours">00</span>
+                                <small>Horas</small>
+                            </div>
+                            <div class="time-box">
+                                <span id="minutes">00</span>
+                                <small>Minutos</small>
+                            </div>
+                            <div class="time-box">
+                                <span id="seconds">00</span>
+                                <small>Segundos</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!--==================================
+                GALERÍA DE FOTOGRAFÍAS
+        ===================================-->
+        <section class="section photo-gallery">
+            <div class="container">
+                <div class="text-center reveal" style="margin-bottom: 40px;">
+                    <span class="section-badge">Memorias</span>
+                    <h3>Nuestros Momentos</h3>
+                    <div class="divider small"><i data-lucide="camera"></i></div>
+                </div>
+
+                <div class="premium-gallery reveal">
+                    <div class="premium-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1520854221256-17451cc331bf?q=80&w=800&auto=format&fit=crop" alt="Recuerdo 1" class="parallax-img">
+                    </div>
+                    <div class="premium-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=800&auto=format&fit=crop" alt="Recuerdo 2" class="parallax-img">
+                    </div>
+                    <div class="premium-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1594938291221-94f18cbb5660?q=80&w=800&auto=format&fit=crop" alt="Recuerdo 3" class="parallax-img">
+                    </div>
+                    <div class="premium-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1606800052052-a08af7148866?q=80&w=800&auto=format&fit=crop" alt="Recuerdo 4" class="parallax-img">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!--==================================
+                DRESS CODE EDITORIAL
+        ===================================-->
+        <section class="section dresscode">
+            <div class="container">
+                <div class="premium-card hover-elevate reveal">
+                    
+                    <div class="text-center" style="margin-bottom: 40px;">
+                        <span class="section-badge">DRESS CODE</span>
+                        <h3>Formal Elegante</h3>
+                        <p>Nos encantaría que nos acompañes con tu mejor atuendo para mantener la armonía estética de la celebración.</p>
+                        <div class="divider small"><i data-lucide="gem"></i></div>
+                    </div>
+
+                    <div class="dresscode-gallery">
+                        <!-- DAMAS -->
+                        <div class="dress-item">
+                            <div class="dress-image">
+                                <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=800&auto=format&fit=crop" alt="Vestido Largo Damas">
+                            </div>
+                            <div class="dress-caption">
+                                <h4>Damas</h4>
+                                <span>Vestido Largo</span>
+                            </div>
+                        </div>
+
+                        <!-- CABALLEROS -->
+                        <div class="dress-item">
+                            <div class="dress-image">
+                                <img src="https://images.unsplash.com/photo-1594938291221-94f18cbb5660?q=80&w=800&auto=format&fit=crop" alt="Traje Formal Caballeros">
+                            </div>
+                            <div class="dress-caption">
+                                <h4>Caballeros</h4>
+                                <span>Traje Formal</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!--==================================
+                UBICACIÓN REDISEÑADA
+        ===================================-->
+        <section class="section location">
+            <div class="container">
+                <div class="premium-card location-card hover-elevate reveal">
+                    <div class="location-info">
+                        <span class="section-badge">DÓNDE Y CUÁNDO</span>
+                        <h3>La Celebración</h3>
+                        <div class="info-list">
+                            <div class="info-item">
+                                <div class="icon-box"><i data-lucide="map-pin"></i></div>
+                                <div>
+                                    <strong>Quinta San José</strong>
+                                    <span>Saltillo, Coahuila</span>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div class="icon-box"><i data-lucide="clock"></i></div>
+                                <div>
+                                    <strong>Recepción</strong>
+                                    <span>18:00 hrs</span>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="https://maps.google.com" target="_blank" class="primary-button btn-premium" style="margin-top: 20px;">
+                            Ver indicaciones
+                        </a>
+                    </div>
+                    <div class="location-map">
+                        <iframe src="https://www.google.com/maps?q=Saltillo&output=embed" loading="lazy" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!--==================================
+                MESA DE REGALOS (PREMIUM)
+        ===================================-->
+        <section class="section registry">
+            <div class="container">
+                
+                <div class="text-center reveal" style="margin-bottom: 40px;">
+                    <span class="section-badge">Mesa de Regalos</span>
+                    <h3>Detalles que suman</h3>
+                    <p style="max-width: 550px; margin: auto; color: var(--gray);">Su presencia es nuestro mayor regalo, pero si desean tener un detalle con nosotros, les dejamos algunas sugerencias.</p>
+                    <div class="divider small"><i data-lucide="gift"></i></div>
+                </div>
+
+                <div class="registry-grid reveal">
+                    
+                    <div class="premium-card hover-elevate registry-card">
+                        <div class="icon-box"><i data-lucide="shopping-bag"></i></div>
+                        <h4>Amazon</h4>
+                        <p>Mesa de regalos online</p>
+                        <a href="#" class="primary-button btn-premium full-width">Ver mesa</a>
+                    </div>
+
+                    <div class="premium-card hover-elevate registry-card">
+                        <div class="icon-box"><i data-lucide="shopping-bag"></i></div>
+                        <h4>Liverpool</h4>
+                        <p>Evento: 123456</p>
+                        <a href="#" class="primary-button btn-premium full-width">Ver mesa</a>
+                    </div>
+
+                    <div class="premium-card hover-elevate registry-card">
+                        <div class="icon-box"><i data-lucide="shopping-bag"></i></div>
+                        <h4>Palacio de Hierro</h4>
+                        <p>Evento: 654321</p>
+                        <a href="#" class="primary-button btn-premium full-width">Ver mesa</a>
+                    </div>
+
+                    <div class="premium-card hover-elevate registry-card">
+                        <div class="icon-box"><i data-lucide="credit-card"></i></div>
+                        <h4>Transferencia</h4>
+                        <p>Datos bancarios</p>
+                        <button class="primary-button btn-premium full-width">Ver datos</button>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!--==================================
+                CÓDIGO QR (PREMIUM)
+        ===================================-->
+        <section class="section qr-code">
+            <div class="container">
+                <div class="premium-card hover-elevate text-center reveal" style="max-width: 550px;">
+                    <span class="section-badge">Guarda y Comparte</span>
+                    <h3>Código QR</h3>
+                    <p style="margin-bottom: 30px;">Guarda nuestra invitación en tu dispositivo o compártela fácilmente escaneando este código.</p>
+                    
+                    <div class="qr-wrapper">
+                        <!-- Imagen QR (Sustituible) -->
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://eventora.studio" alt="Código QR de la invitación">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!--==================================
+                    RSVP
+        ===================================-->
+        <section class="section rsvp">
+            <div class="container">
+                <div class="premium-card hover-elevate form-card reveal">
+                    <div class="rsvp-header">
+                        <span class="section-badge">RSVP</span>
+                        <h3>Confirmación</h3>
+                        <p>Por favor, confírmanos tu asistencia antes del 1 de Noviembre.</p>
+                    </div>
+                    
+                    <form id="rsvpForm">
+                        <div class="input-group">
+                            <input type="text" placeholder="Nombre completo" required>
+                        </div>
+                        
+                        <div class="options">
+                            <label class="custom-radio">
+                                <input type="radio" name="attendance" value="yes" required>
+                                <span class="radio-mark"></span>
+                                Sí, asistiré con gusto
+                            </label>
+                            <label class="custom-radio">
+                                <input type="radio" name="attendance" value="no">
+                                <span class="radio-mark"></span>
+                                No podré asistir
+                            </label>
+                        </div>
+                        <button type="submit" class="primary-button full-width">Enviar Confirmación</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!--==================================
+                RETRATO FINAL
+        ===================================-->
+        <section class="section photo-portrait">
+            <div class="container" style="max-width: 650px;">
+                <div class="premium-image-wrapper reveal">
+                    <img src="https://images.unsplash.com/photo-1606800052052-a08af7148866?q=80&w=1000&auto=format&fit=crop" alt="Acompáñanos" class="parallax-img">
+                </div>
+            </div>
+        </section>
+
+        <!--==================================
+            FUNCIONES PREMIUM INCLUIDAS
+        ===================================-->
+        <section class="section features">
+            <div class="container">
+                <div class="premium-card reveal">
+                    <div class="text-center">
+                        <span class="section-badge">TU INVITACIÓN</span>
+                        <h3>Experiencia Premium</h3>
+                        <p>Exclusividad, funcionalidad y lujo en cada detalle.</p>
+                        <div class="divider small"><i data-lucide="star"></i></div>
+                    </div>
+                    
+                    <div class="features-grid">
+                        <ul class="features-list">
+                            <li><div class="icon-box"><i data-lucide="film"></i></div><span>Video de bienvenida inmersivo</span></li>
+                            <li><div class="icon-box"><i data-lucide="camera"></i></div><span>Galería fotográfica interactiva</span></li>
+                            <li><div class="icon-box"><i data-lucide="gift"></i></div><span>Mesa de regalos multicanal</span></li>
+                            <li><div class="icon-box"><i data-lucide="qr-code"></i></div><span>Código QR personalizado</span></li>
+                        </ul>
+                        <ul class="features-list">
+                            <li><div class="icon-box"><i data-lucide="timer"></i></div><span>Cuenta regresiva en tiempo real</span></li>
+                            <li><div class="icon-box"><i data-lucide="map"></i></div><span>Ubicación interactiva y GPS</span></li>
+                            <li><div class="icon-box"><i data-lucide="mail-check"></i></div><span>Confirmación RSVP integrada</span></li>
+                            <li><div class="icon-box"><i data-lucide="smartphone"></i></div><span>Diseño de alta gama responsive</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!--==================================
+                ATENCIÓN & CTA FINAL
+        ===================================-->
+        <section class="section final-cta">
+            <div class="container">
+                <div class="cta-wrapper reveal">
+                    <div class="support-avatar">
+                        <i data-lucide="sparkle"></i>
+                    </div>
+                    <span class="demo-badge">EVENTORA STUDIO PREMIUM</span>
+                    <h2>Cada historia es única.<br><i>Tu invitación también debería serlo.</i></h2>
+                    <p class="final-message">Imagina este mismo diseño de lujo, pero con tus colores, tus tipografías, tus fotografías y tu esencia. Nuestro equipo te acompaña paso a paso para lograrlo.</p>
+                    
+                    <a href="https://wa.me/5215638830691?text=Hola,%20me%20interesa%20el%20Paquete%20Premium." class="primary-button btn-premium pulse-btn">
+                        Crear mi invitación Premium
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!--==================================
+                    FOOTER
+        ===================================-->
+        <footer>
+            <div class="footer-divider"></div>
+            <p>© 2026 Eventora Studio</p>
+            <small>Demostración interactiva del Paquete Premium</small>
+        </footer>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+    </script>
+    <script src="demo.js"></script>
+
+</body>
+
+</html>
