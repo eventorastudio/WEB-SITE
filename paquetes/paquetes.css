@@ -242,15 +242,27 @@
 
 .package-badge{
 
-    display:flex;
-
-    justify-content:center;
+    display:inline-flex;
 
     align-items:center;
 
+    justify-content:center;
+
     gap:8px;
 
-    margin:16px 0 24px;
+    margin:0 auto 20px;
+
+}
+
+.package-content{
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    text-align:center;
 
 }
 
