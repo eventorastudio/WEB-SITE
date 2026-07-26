@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Demo Esencial | Eventora Studio</title>
+
+    <meta name="description"
+        content="Descubre la experiencia del Paquete Esencial de Eventora Studio.">
+
+    <!-- Google Fonts -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+
+    <!-- Lucide -->
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- CSS -->
+
+    <link rel="stylesheet" href="demo.css">
+
+</head>
+
+<body>
+
+    <!--======================================
+                LOADER
+    =======================================-->
+
+    <div id="loader">
+
+        <div class="loader-logo">
+
+            <span>EVENTORA</span>
+            <small>STUDIO</small>
+
+        </div>
+
+    </div>
+
+    <!--======================================
+            BARRA DE PROGRESO
+    =======================================-->
+
+    <div id="progress-bar"></div>
+
+    <!--======================================
+            BOTÓN DE MÚSICA
+    =======================================-->
+
+    <button id="musicButton" aria-label="Música">
+
+        <i data-lucide="music-2"></i>
+
+    </button>
+
+    <!--======================================
+                MÚSICA
+    =======================================-->
+
+    <audio id="backgroundMusic" loop>
+
+        <source src="assets/audio/music.mp3" type="audio/mpeg">
+
+    </audio>
+
+    <!--======================================
+                SOBRE
+    =======================================-->
+
+    <section id="envelope-screen">
+
+        <div class="envelope-wrapper">
+
+            <p class="demo-badge">
+
+                ✨ DEMO INTERACTIVA
+
+            </p>
+
+            <h1>
+
+                EVENTORA STUDIO
+
+            </h1>
+
+            <p class="demo-description">
+
+                Descubre la experiencia que
+                recibirán tus invitados.
+
+            </p>
+
+            <div id="envelope">
+
+                <div class="envelope-back"></div>
+
+                <div class="letter">
+
+                    <span>Invitación</span>
+
+                </div>
+
+                <div class="envelope-front"></div>
+
+                <div class="envelope-top"></div>
+
+            </div>
+
+            <p class="tap-text">
+
+                Toca el sobre para abrir
+
+            </p>
+
+            <div class="tap-arrow">
+
+                ↓
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!--======================================
+            CONTENIDO
+    =======================================-->
+
+    <main id="invitation" class="hidden">
+
+        <!--==================================
+                    HERO
+        ===================================-->
+
+        <section class="hero">
+
+            <div class="hero-overlay"></div>
+
+            <div class="hero-content">
+
+                <span class="hero-tag">
+
+                    EVENTORA STUDIO
+
+                </span>
+
+                <h2>
+
+                    María
+
+                    <span>&</span>
+
+                    Fernando
+
+                </h2>
+
+                <p>
+
+                    Nos llena de alegría compartir
+                    este momento contigo.
+
+                </p>
+
+                <div class="hero-date">
+
+                    15 NOVIEMBRE 2027
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!--==================================
+                BIENVENIDA
+        ===================================-->
+
+        <section class="welcome section reveal">
+        <section class="welcome section">
+
+            <div class="container">
+
+                <span class="section-badge">
+
+                    Experiencia incluida
+
+                </span>
+
+                <h3>
+
+                    Bienvenido
+
+                </h3>
+
+                <p>
+
+                    Gracias por acompañarnos en uno
+                    de los días más importantes de
+                    nuestras vidas.
+
+                    Tu presencia hará este momento
+                    aún más especial.
+
+                </p>
+
+            </div>
+
+        </section>
+
+        <!--==================================
+            CUENTA REGRESIVA
+        ===================================-->
+
+        <section class="countdown section reveal">
+        <section class="countdown section">
+
+            <div class="container">
+
+                <span class="feature-tag">
+
+                    ⏳ Cuenta regresiva incluida
+
+                </span>
+
+                <h3>
+
+                    Falta muy poco...
+
+                </h3>
+
+                <div class="countdown-grid">
+
+                    <div>
+
+                        <span id="days">00</span>
+
+                        <small>Días</small>
+
+                    </div>
+
+                    <div>
+
+                        <span id="hours">00</span>
+
+                        <small>Horas</small>
+
+                    </div>
+
+                    <div>
+
+                        <span id="minutes">00</span>
+
+                        <small>Min</small>
+
+                    </div>
+
+                    <div>
+
+                        <span id="seconds">00</span>
+
+                        <small>Seg</small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+                <!--==================================
+                DRESS CODE
+        ===================================-->
+
+        <section class="dresscode section reveal"></section>
+        <section class="dresscode section">
+
+            <div class="container">
+
+                <span class="feature-tag">
+
+                    👗 Dress Code incluido
+
+                </span>
+
+                <h3>
+
+                    Dress Code
+
+                </h3>
+
+                <p>
+
+                    Formal Elegante
+
+                </p>
+
+                <div class="dress-card">
+
+                    <i data-lucide="sparkles"></i>
+
+                    <p>
+
+                        Te invitamos a vestir en tonos
+                        claros y elegantes para mantener
+                        la armonía del evento.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!--==================================
+                UBICACIÓN
+        ===================================-->
+
+        <section class="location section reveal"></section>
+        <section class="location section">
+
+            <div class="container">
+
+                <span class="feature-tag">
+
+                    📍 Google Maps incluido
+
+                </span>
+
+                <h3>
+
+                    Ubicación
+
+                </h3>
+
+                <p>
+
+                    Quinta San José
+
+                    <br>
+
+                    Saltillo, Coahuila
+
+                </p>
+
+                <div class="map">
+
+                    <iframe
+                        src="https://www.google.com/maps?q=Saltillo&output=embed"
+                        loading="lazy"
+                        allowfullscreen>
+
+                    </iframe>
+
+                </div>
+
+                <a href="#"
+                    class="primary-button">
+
+                    <i data-lucide="map-pinned"></i>
+
+                    Ver ubicación
+
+                </a>
+
+            </div>
+
+        </section>
+
+        <!--==================================
+                    RSVP
+        ===================================-->
+
+        <section class="rsvp section reveal"></section>
+        <section class="rsvp section">
+
+            <div class="container">
+
+                <span class="feature-tag">
+
+                    ✅ Confirmación RSVP incluida
+
+                </span>
+
+                <h3>
+
+                    Confirma tu asistencia
+
+                </h3>
+
+                <p>
+
+                    Nos ayudará mucho saber si podrás
+                    acompañarnos.
+
+                </p>
+
+                <form id="rsvpForm">
+
+                    <input
+                        type="text"
+                        placeholder="Tu nombre">
+
+                    <div class="options">
+
+                        <label>
+
+                            <input
+                                type="radio"
+                                name="attendance">
+
+                            Sí asistiré
+
+                        </label>
+
+                        <label>
+
+                            <input
+                                type="radio"
+                                name="attendance">
+
+                            No podré asistir
+
+                        </label>
+
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="primary-button">
+
+                        Confirmar asistencia
+
+                    </button>
+
+                </form>
+
+            </div>
+
+        </section>
+
+        <!--==================================
+                COMPATIBILIDAD
+        ===================================-->
+
+        <section class="devices section reveal">
+        <section class="devices section">
+
+            <div class="container">
+
+                <span class="feature-tag">
+
+                    📱 Compatible con cualquier dispositivo
+
+                </span>
+
+                <div class="devices-grid">
+
+                    <div>
+
+                        <i data-lucide="smartphone"></i>
+
+                        <span>Celular</span>
+
+                    </div>
+
+                    <div>
+
+                        <i data-lucide="tablet"></i>
+
+                        <span>Tablet</span>
+
+                    </div>
+
+                    <div>
+
+                        <i data-lucide="monitor"></i>
+
+                        <span>Computadora</span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!--==================================
+                ATENCIÓN
+        ===================================-->
+
+        <section class="support section reveal"></section>
+        <section class="support section">
+
+            <div class="container">
+
+                <span class="feature-tag">
+
+                    💬 Atención personalizada
+
+                </span>
+
+                <h3>
+
+                    Siempre contigo
+
+                </h3>
+
+                <p>
+
+                    Desde el primer mensaje hasta la
+                    entrega final, nuestro equipo estará
+                    disponible para ayudarte a crear una
+                    invitación única.
+
+                </p>
+
+            </div>
+
+        </section>
+
+        <!--==================================
+                CTA FINAL
+        ===================================-->
+
+        <section class="final-cta reveal"></section>
+        <section class="final-cta">
+
+            <div class="container">
+
+                <span class="demo-badge">
+
+                    ✨ EVENTORA STUDIO
+
+                </span>
+
+                <h2>
+
+                    ¿Te imaginas esta invitación...
+
+                    <br>
+
+                    completamente personalizada?
+
+                </h2>
+
+                <p>
+
+                    Con tus colores.
+
+                    <br>
+
+                    Tus fotografías.
+
+                    <br>
+
+                    Tu historia.
+
+                    <br>
+
+                    Tu música favorita.
+
+                </p>
+
+                <p class="final-message">
+
+                    Cada invitación que diseñamos es
+                    única. La tuya también puede serlo.
+
+                </p>
+
+                <a
+                    href="https://wa.me/52XXXXXXXXXX"
+                    class="primary-button">
+
+                    Crear mi invitación
+
+                </a>
+
+            </div>
+
+        </section>
+
+        <!--==================================
+                    FOOTER
+        ===================================-->
+
+        <footer>
+
+            <p>
+
+                © 2026 Eventora Studio
+
+            </p>
+
+            <small>
+
+                Esta es una demostración interactiva
+                del Paquete Esencial.
+
+            </small>
+
+        </footer>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+    </script>
+
+    <script src="demo.js"></script>
+
+</body>
+
+</html>
+
