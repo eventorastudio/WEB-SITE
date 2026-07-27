@@ -139,12 +139,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     const rect = img.parentElement.getBoundingClientRect();
                     const windowHeight = window.innerHeight;
                     
-                    // Solo animar si el contenedor es visible en la pantalla
                     if (rect.top <= windowHeight && rect.bottom >= 0) {
                         const scrollPercent = (windowHeight - rect.top) / (windowHeight + rect.height);
-                        // Limitar la traslación vertical entre -25px y 25px
                         const yOffset = (scrollPercent - 0.5) * -50; 
-                        
                         img.style.transform = `scale(1.15) translateY(${yOffset}px)`;
                     }
                 });
@@ -153,9 +150,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /*=====================================
-            CUENTA REGRESIVA
+            CUENTA REGRESIVA DINÁMICA
     =====================================*/
     const targetDate = new Date("Nov 15, 2027 18:00:00").getTime();
+    
+    // Función para actualizar y animar cada número individualmente si cambia
+    const updateTimeElement = (id, newValue) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (el.textContent !== newValue) {
+            el.textContent = newValue;
+            // Reinicia la animación
+            el.classList.remove("pop");
+            void el.offsetWidth; // Dispara reflow
+            el.classList.add("pop");
+        }
+    };
 
     function updateCountdown() {
         const now = new Date().getTime();
@@ -166,10 +176,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-        document.getElementById("days").textContent = String(days).padStart(2, "0");
-        document.getElementById("hours").textContent = String(hours).padStart(2, "0");
-        document.getElementById("minutes").textContent = String(minutes).padStart(2, "0");
-        document.getElementById("seconds").textContent = String(seconds).padStart(2, "0");
+        updateTimeElement("days", String(days).padStart(2, "0"));
+        updateTimeElement("hours", String(hours).padStart(2, "0"));
+        updateTimeElement("minutes", String(minutes).padStart(2, "0"));
+        updateTimeElement("seconds", String(seconds).padStart(2, "0"));
     }
 
     updateCountdown();

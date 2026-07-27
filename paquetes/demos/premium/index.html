@@ -49,7 +49,7 @@
     </button>
 
     <audio id="backgroundMusic" loop>
-        <source src="esencial.mp3" type="audio/mpeg">
+        <source src="assets/audio/music.mp3" type="audio/mpeg">
     </audio>
 
     <!--====================================
@@ -89,18 +89,26 @@
     <main id="invitation" class="hidden">
 
         <!--==================================
-                    HERO
+                HERO EDITORIAL DE LUJO
         ===================================-->
         <section class="hero">
             <div class="hero-overlay"></div>
-            <div class="hero-content reveal">
-                <span class="hero-tag">NUESTRA BODA</span>
+            
+            <div class="hero-editorial-frame reveal">
+                <span class="hero-tag">CELEBREMOS EL AMOR</span>
                 <h2>María <span>&</span> Fernando</h2>
+                
                 <div class="divider">
                     <i data-lucide="heart"></i>
                 </div>
-                <p class="hero-subtitle">Nos llena de alegría compartir este momento contigo.</p>
-                <div class="hero-date">15 NOVIEMBRE 2027</div>
+                
+                <p class="hero-subtitle">Nos llena de alegría compartir el inicio de nuestro para siempre contigo.</p>
+                
+                <div class="hero-details">
+                    <span class="detail-item">15 NOVIEMBRE 2027</span>
+                    <span class="detail-dot">✦</span>
+                    <span class="detail-item">SALTILLO, COAHUILA</span>
+                </div>
             </div>
             
             <div class="scroll-indicator reveal">
@@ -155,7 +163,7 @@
                         <i data-lucide="play" fill="currentColor"></i>
                     </button>
                     <video id="coupleVideo" class="custom-video" controls playsinline preload="metadata">
-                        <source src="Esencial.mp4" type="video/mp4">
+                        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
                         Tu navegador no soporta la etiqueta de video.
                     </video>
                 </div>
@@ -164,32 +172,36 @@
         </section>
 
         <!--==================================
-                CUENTA REGRESIVA
+            CUENTA REGRESIVA DINÁMICA
         ===================================-->
         <section class="section countdown" style="padding-top: 35px;">
             <div class="container">
-                <div class="premium-card hover-elevate reveal">
-                    <div class="countdown-wrapper text-center" style="margin-top: 0;">
-                        <h4 class="editorial-title" style="font-size: 2.2rem; margin-bottom: 8px;">Falta muy poco</h4>
-                        <p style="margin-bottom: 30px;">Para nuestro gran día</p>
-                        
-                        <div class="countdown-grid">
-                            <div class="time-box">
-                                <span id="days">00</span>
-                                <small>Días</small>
-                            </div>
-                            <div class="time-box">
-                                <span id="hours">00</span>
-                                <small>Horas</small>
-                            </div>
-                            <div class="time-box">
-                                <span id="minutes">00</span>
-                                <small>Minutos</small>
-                            </div>
-                            <div class="time-box">
-                                <span id="seconds">00</span>
-                                <small>Segundos</small>
-                            </div>
+                <div class="premium-card countdown-master-card hover-elevate reveal">
+                    <div class="countdown-header text-center">
+                        <span class="section-badge">EL GRAN DÍA</span>
+                        <h3 class="editorial-title">Falta muy poco</h3>
+                        <div class="divider small" style="margin-bottom: 0;"><i data-lucide="clock"></i></div>
+                    </div>
+                    
+                    <div class="countdown-premium-grid">
+                        <div class="time-block">
+                            <span id="days" class="number">00</span>
+                            <small class="label">Días</small>
+                        </div>
+                        <span class="separator">:</span>
+                        <div class="time-block">
+                            <span id="hours" class="number">00</span>
+                            <small class="label">Horas</small>
+                        </div>
+                        <span class="separator">:</span>
+                        <div class="time-block">
+                            <span id="minutes" class="number">00</span>
+                            <small class="label">Min</small>
+                        </div>
+                        <span class="separator">:</span>
+                        <div class="time-block">
+                            <span id="seconds" class="number">00</span>
+                            <small class="label">Seg</small>
                         </div>
                     </div>
                 </div>
@@ -209,16 +221,16 @@
 
                 <div class="premium-gallery reveal">
                     <div class="premium-image-wrapper">
-                        <img src="https://images.unsplash.com/photo-1607861884586-c7cfaed16290?q=80&w=687&auto=format&fit=crop" alt="Recuerdo 1" class="parallax-img">
+                        <img src="https://images.unsplash.com/photo-1520854221256-17451cc331bf?q=80&w=800&auto=format&fit=crop" alt="Recuerdo 1" class="parallax-img">
                     </div>
                     <div class="premium-image-wrapper">
-                        <img src="https://images.unsplash.com/photo-1481653125770-b78c206c59d4?q=80&w=1170&auto=format&fit=crop" alt="Recuerdo 2" class="parallax-img">
+                        <img src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=800&auto=format&fit=crop" alt="Recuerdo 2" class="parallax-img">
                     </div>
                     <div class="premium-image-wrapper">
-                        <img src="https://images.unsplash.com/photo-1583939411023-14783179e581?q=80&w=1170&auto=format&fit=crop" alt="Recuerdo 3" class="parallax-img">
+                        <img src="https://images.unsplash.com/photo-1594938291221-94f18cbb5660?q=80&w=800&auto=format&fit=crop" alt="Recuerdo 3" class="parallax-img">
                     </div>
                     <div class="premium-image-wrapper">
-                        <img src="https://images.unsplash.com/photo-1550784718-990c6de52adf?q=80&w=684&auto=format&fit=crop" alt="Recuerdo 4" class="parallax-img">
+                        <img src="https://images.unsplash.com/photo-1606800052052-a08af7148866?q=80&w=800&auto=format&fit=crop" alt="Recuerdo 4" class="parallax-img">
                     </div>
                 </div>
             </div>
@@ -321,21 +333,21 @@
                         <div class="icon-box"><i data-lucide="shopping-bag"></i></div>
                         <h4>Amazon</h4>
                         <p>Mesa de regalos online</p>
-                        <a href="https://www.amazon.com.mx/homepage.html" class="primary-button btn-premium full-width">Ver mesa</a>
+                        <a href="#" class="primary-button btn-premium full-width">Ver mesa</a>
                     </div>
 
                     <div class="premium-card hover-elevate registry-card">
                         <div class="icon-box"><i data-lucide="shopping-bag"></i></div>
                         <h4>Liverpool</h4>
                         <p>Evento: 123456</p>
-                        <a href="https://www.liverpool.com.mx/" class="primary-button btn-premium full-width">Ver mesa</a>
+                        <a href="#" class="primary-button btn-premium full-width">Ver mesa</a>
                     </div>
 
                     <div class="premium-card hover-elevate registry-card">
                         <div class="icon-box"><i data-lucide="shopping-bag"></i></div>
                         <h4>Palacio de Hierro</h4>
                         <p>Evento: 654321</p>
-                        <a href="https://www.palaciodehierro.com/" class="primary-button btn-premium full-width">Ver mesa</a>
+                        <a href="#" class="primary-button btn-premium full-width">Ver mesa</a>
                     </div>
 
                     <div class="premium-card hover-elevate registry-card">
@@ -435,7 +447,7 @@
                             <li><div class="icon-box"><i data-lucide="qr-code"></i></div><span>Código QR personalizado</span></li>
                         </ul>
                         <ul class="features-list">
-                            <li><div class="icon-box"><i data-lucide="timer"></i></div><span>Cuenta regresiva en tiempo real</span></li>
+                            <li><div class="icon-box"><i data-lucide="timer"></i></div><span>Cuenta regresiva dinámica</span></li>
                             <li><div class="icon-box"><i data-lucide="map"></i></div><span>Ubicación interactiva y GPS</span></li>
                             <li><div class="icon-box"><i data-lucide="mail-check"></i></div><span>Confirmación RSVP integrada</span></li>
                             <li><div class="icon-box"><i data-lucide="smartphone"></i></div><span>Diseño de alta gama responsive</span></li>
