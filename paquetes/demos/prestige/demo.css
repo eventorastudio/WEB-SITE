@@ -198,7 +198,7 @@ i { font-style: italic; color: var(--gold); }
 
 /* Sistema Físico del Sobre - Restaurado Lógica Esencial para prevenir Glitches */
 #envelope { 
-    position: relative; width: 420px; height: 285px; margin: auto; cursor: pointer; perspective: 1500px; 
+    position: relative; width: 440px; height: 290px; margin: auto; cursor: pointer; perspective: 1800px; 
     animation: premiumFloat 7s cubic-bezier(0.4, 0, 0.2, 1) infinite; 
     box-shadow: 0 45px 65px -15px rgba(0,0,0,0.15), 0 15px 30px -10px rgba(0,0,0,0.12); border-radius: 6px; 
 }
@@ -289,17 +289,76 @@ main.show { opacity:1; }
 .premium-video-card.playing .play-button { transform: translate(-50%, -50%) scale(0.8); }
 
 /*==================================================
-        CUENTA REGRESIVA DINÁMICA
+        CUENTA REGRESIVA DINÁMICA (PRESTIGE)
 ==================================================*/
-.countdown-master-card { max-width: 850px; text-align: center; }
-.countdown-premium-grid { display: flex; justify-content: center; align-items: center; gap: 25px; margin-top: 30px; }
-.time-block { display: flex; flex-direction: column; align-items: center; min-width: 90px; }
-.time-block .number { font-family: 'Cormorant Garamond', serif; font-size: 4.5rem; color: #1a1917; line-height: 1; text-shadow: 2px 2px 5px rgba(0,0,0,0.06); display: block; }
-.time-block .label { font-size: .8rem; text-transform: uppercase; letter-spacing: 3px; color: var(--gold); font-weight: 600; margin-top: 8px; }
-.separator { font-family: 'Cormorant Garamond', serif; font-size: 3rem; color: var(--gold); margin-top: -20px; animation: pulseOpacity 2s infinite; opacity: 0.8; }
-@keyframes pulseOpacity { 0%, 100% { opacity: 0.8; } 50% { opacity: 0.3; } }
-.pop { animation: popScale 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
-@keyframes popScale { 0% { transform: scale(1); } 40% { transform: scale(1.15); color: var(--gold); } 100% { transform: scale(1); color: #1a1917; } }
+.countdown-prestige-grid {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.time-card {
+    flex: 1;
+    min-width: 130px;
+    max-width: 180px;
+    background: linear-gradient(160deg, #ffffff 0%, #fcfbf9 100%);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.05), inset 0 0 0 1px rgba(212,175,55,0.15);
+    padding: 35px 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.6s ease;
+}
+
+.time-card::before {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px; right: 2px; height: 50%;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.9), transparent);
+    border-radius: 18px 18px 0 0;
+    pointer-events: none;
+}
+
+@media (min-width: 769px) {
+    .time-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 35px 60px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(212,175,55,0.3);
+    }
+}
+
+.time-card .number {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 4.5rem;
+    color: #1a1917;
+    line-height: 1;
+    font-weight: 400;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.04);
+    display: block;
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), color 0.4s ease;
+}
+
+.time-card .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    color: var(--gold);
+    font-weight: 600;
+    margin-top: 15px;
+}
+
+.pop { animation: prestigePopScale 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+@keyframes prestigePopScale { 
+    0% { transform: scale(1); opacity: 0.8; } 
+    50% { transform: scale(1.08); color: var(--gold); opacity: 1; text-shadow: 0 5px 15px rgba(212,175,55,0.3); } 
+    100% { transform: scale(1); color: #1a1917; opacity: 1; } 
+}
 
 /*==================================================
         SISTEMA DE GALERÍAS Y FOTOGRAFÍAS
@@ -328,9 +387,9 @@ main.show { opacity:1; }
 /*==================================================
         ITINERARIO PRESTIGE
 ==================================================*/
-.itinerary-grid { display: flex; flex-direction: column; gap: 30px; max-width: 600px; margin: 0 auto; }
-.location-itinerary-card { padding: 40px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 15px; position: relative; }
-.time-badge { position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%); background: #1a1917; color: #fff; padding: 6px 20px; border-radius: 999px; font-weight: 600; font-size: 0.85rem; letter-spacing: 2px; }
+.itinerary-grid { display: flex; flex-direction: column; gap: 40px; max-width: 600px; margin: 0 auto; padding-top: 20px;}
+.location-itinerary-card { padding: 40px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 15px; position: relative; overflow: visible !important; margin-top: 20px; }
+.time-badge { position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%); background: #1a1917; color: #fff; padding: 6px 20px; border-radius: 999px; font-weight: 600; font-size: 0.85rem; letter-spacing: 2px; z-index: 10; box-shadow: 0 10px 20px rgba(0,0,0,0.15); border: 1px solid rgba(212,175,55,0.3); }
 .location-itinerary-card h4 { font-size: 1.8rem; margin: 10px 0; }
 .info-list.compact { margin: 10px 0; }
 .info-list.compact .info-item { justify-content: center; text-align: center; }
@@ -362,11 +421,10 @@ main.show { opacity:1; }
 .assigned-passes { flex: 1; display: flex; flex-direction: column; gap: 15px; justify-content: center; }
 .pass-ticket { display: flex; align-items: center; background: linear-gradient(to right, #ffffff, #fdfcf9); border: 1px solid rgba(212,175,55,0.2); border-radius: 12px; padding: 15px 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
 .ticket-icon { width: 40px; height: 40px; border-radius: 50%; background: #fbfaf8; display: flex; align-items: center; justify-content: center; margin-right: 15px; color: var(--gold); border: 1px solid rgba(212,175,55,0.2); }
-.ticket-info { flex: 1; text-align: left; }
-.ticket-info strong { display: block; font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: #1a1917; }
-.ticket-info span { font-size: 0.85rem; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; }
+.ticket-info { flex: 1; text-align: left; display: flex; flex-direction: column; justify-content: center; }
+.ticket-info strong { display: block; font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: #1a1917; line-height: 1.3;}
+.ticket-info span { font-size: 0.85rem; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; display: block; line-height: 1.3;}
 .ticket-status { font-size: 0.75rem; font-weight: 600; color: #2e7d32; background: #e8f5e9; padding: 4px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 1px; }
-
 
 /*==================================================
         SERVICIOS PRESTIGE EXCLUSIVOS
@@ -430,7 +488,6 @@ footer small { color: #999; font-size: .85rem; }
     .envelope-wrapper h1 { font-size: 2.8rem; }
     .gold-seal { width: 60px; height: 60px; font-size: 1.3rem; }
     
-    /* Adaptación animación a tamaño móvil */
     .letter { height: 160px; }
     #envelope.open .letter { transform: translateX(-50%) translateY(-110px); }
 
@@ -441,10 +498,11 @@ footer small { color: #999; font-size: .85rem; }
     .premium-gallery::-webkit-scrollbar { display: none; }
     .premium-gallery .premium-image-wrapper { min-width: 75%; scroll-snap-align: center; }
 
-    .countdown-premium-grid { gap: 10px; margin-top: 20px; }
-    .time-block { min-width: 60px; }
-    .time-block .number { font-size: 3rem; }
-    .separator { font-size: 2rem; margin-top: -15px; }
+    /* Responsive Contador Prestige */
+    .countdown-prestige-grid { gap: 15px; }
+    .time-card { min-width: calc(50% - 10px); padding: 25px 10px; border-radius: 16px; }
+    .time-card .number { font-size: 3.5rem; }
+    .time-card .label { font-size: 0.65rem; letter-spacing: 2px; margin-top: 10px; }
 
     .dresscode-gallery { grid-template-columns: 1fr; gap: 50px; }
     .dress-image { aspect-ratio: 4/5; max-width: 320px; margin: 0 auto 20px; }
@@ -473,7 +531,6 @@ footer small { color: #999; font-size: .85rem; }
     .letter { height: 145px; }
     #envelope.open .letter { transform: translateX(-50%) translateY(-100px); }
     
-    .time-block { min-width: 50px; }
-    .time-block .number { font-size: 2.4rem; }
-    .separator { font-size: 1.5rem; margin-top: -10px; }
+    .time-card { min-width: calc(50% - 10px); }
+    .time-card .number { font-size: 3rem; }
 }
