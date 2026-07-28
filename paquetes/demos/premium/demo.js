@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const musicButton = document.getElementById("musicButton");
     const music = document.getElementById("backgroundMusic");
     const progressBar = document.getElementById("progress-bar");
+    const rsvpForm = document.getElementById("rsvpForm");
 
     /*=====================================
           BLOQUEO DE SCROLL (UX FIX)
@@ -208,4 +209,26 @@ document.addEventListener("DOMContentLoaded", () => {
         progressBar.style.width = progress + "%";
     });
 
+    /*=====================================
+            RSVP PREMIUM (SELECCIÓN DE PASES)
+    =====================================*/
+    if (rsvpForm) {
+        rsvpForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            
+            const passSelectorContainer = rsvpForm.closest('.premium-card');
+            
+            passSelectorContainer.innerHTML = `
+                <div style="text-align:center; padding:30px 10px; animation: fadeIn 1s ease;">
+                    <i data-lucide="ticket-check" style="width: 50px; height: 50px; color: var(--gold); margin-bottom: 20px;"></i>
+                    <h3 style="font-family:'Cormorant Garamond'; font-size: 2.5rem; margin-bottom:15px; color:#1a1917;">¡Pases Confirmados!</h3>
+                    <p style="color:var(--gray); font-size: 1.05rem; line-height: 1.7;">
+                        Esta es una demostración interactiva.<br><br>
+                        En un escenario real, tu selección de pases se registraría automáticamente en el panel de control del anfitrión.
+                    </p>
+                </div>
+            `;
+            lucide.createIcons(); 
+        });
+    }
 });

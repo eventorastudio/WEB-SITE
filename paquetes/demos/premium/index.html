@@ -390,66 +390,44 @@
         </section>
 
         <!--==================================
-            GESTIÓN DE INVITADOS (RSVP PREMIUM)
+            SELECCIÓN DE PASES (NUEVO RSVP)
         ===================================-->
-        <section class="section guest-management">
+        <section class="section pass-selection">
             <div class="container">
-                <div class="premium-card form-card reveal">
-                    <div class="rsvp-header">
-                        <span class="section-badge">GESTIÓN VIP</span>
-                        <h3>Control de Accesos</h3>
-                        <p>Olvídate de perseguir confirmaciones. Nosotros organizamos tu lista de invitados y automatizamos la creación de pases digitales individuales con toda la información necesaria.</p>
+                <div class="premium-card hover-elevate form-card reveal">
+                    <div class="rsvp-header text-center">
+                        <span class="section-badge">SELECCIÓN DE PASES</span>
+                        <h3>Confirma tu asistencia</h3>
+                        <p style="max-width: 550px; margin: 0 auto; color: var(--gray);">Los anfitriones han autorizado hasta <strong>4 pases</strong> para tu invitación. Selecciona únicamente los que utilizarás para acompañarnos en este día tan especial.</p>
                         <div class="divider small"><i data-lucide="ticket"></i></div>
                     </div>
                     
-                    <div class="vip-passes-demo">
+                    <form id="rsvpForm">
+                        <div class="passes-selector">
+                            <label class="pass-option">
+                                <input type="radio" name="pass_count" value="1" required>
+                                <span class="pass-box">1 Pase</span>
+                            </label>
+                            <label class="pass-option">
+                                <input type="radio" name="pass_count" value="2">
+                                <span class="pass-box">2 Pases</span>
+                            </label>
+                            <label class="pass-option">
+                                <input type="radio" name="pass_count" value="3">
+                                <span class="pass-box">3 Pases</span>
+                            </label>
+                            <label class="pass-option">
+                                <input type="radio" name="pass_count" value="4">
+                                <span class="pass-box">4 Pases</span>
+                            </label>
+                        </div>
                         
-                        <!-- Pase Ejemplo 1 -->
-                        <div class="vip-pass hover-elevate">
-                            <div class="pass-content">
-                                <span class="pass-number">Pase #014</span>
-                                <h4 class="pass-name">Familia García</h4>
-                                <div class="pass-details-row">
-                                    <div class="info-text">
-                                        <span><i data-lucide="users"></i> 2 Personas</span>
-                                    </div>
-                                    <div class="info-text">
-                                        <span><i data-lucide="utensils"></i> Mesa 08</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="pass-stub">
-                                <i data-lucide="check-circle"></i>
-                                <span>VIP</span>
-                            </div>
+                        <div style="margin-top: 40px;">
+                            <button type="submit" class="primary-button btn-premium full-width" style="max-width: 400px; margin: 0 auto;">
+                                Confirmar selección
+                            </button>
                         </div>
-
-                        <!-- Pase Ejemplo 2 -->
-                        <div class="vip-pass hover-elevate">
-                            <div class="pass-content">
-                                <span class="pass-number">Pase #082</span>
-                                <h4 class="pass-name">Luis Pérez</h4>
-                                <div class="pass-details-row">
-                                    <div class="info-text">
-                                        <span><i data-lucide="user"></i> 1 Persona</span>
-                                    </div>
-                                    <div class="info-text">
-                                        <span><i data-lucide="utensils"></i> Mesa 03</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="pass-stub">
-                                <i data-lucide="check-circle"></i>
-                                <span>VIP</span>
-                            </div>
-                        </div>
-
-                    </div>
-                    
-                    <div class="rsvp-footer" style="margin-top: 30px;">
-                        <p style="font-size: 0.95rem; color: var(--gray);">Cada invitado recibe su código único integrado en la invitación, permitiéndote tener el control total de accesos y menús desde tu panel privado.</p>
-                    </div>
-
+                    </form>
                 </div>
             </div>
         </section>
@@ -508,7 +486,7 @@
                             </li>
                             <li>
                                 <div class="icon-box"><i data-lucide="ticket"></i></div>
-                                <div class="info-text"><span>Gestión de pases VIP automatizada</span></div>
+                                <div class="info-text"><span>Control de accesos y pases</span></div>
                             </li>
                             <li>
                                 <div class="icon-box"><i data-lucide="smartphone"></i></div>
