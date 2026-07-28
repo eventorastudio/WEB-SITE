@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 invitation.classList.add("show");
                 musicButton.classList.add("show");
             });
-        }, 3600); // Ajustado al nuevo tiempo de animación del sobre
+        }, 3600); // Sincronizado con la nueva animación de lujo
         
         setTimeout(() => {
             music.play().catch(() => {});
@@ -104,7 +104,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const videoCover = document.getElementById("videoCover");
 
     if (playBtn && coupleVideo && videoContainer) {
-        
         const playVideo = () => {
             videoContainer.classList.add("playing");
             coupleVideo.play();
@@ -118,9 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         playBtn.addEventListener("click", playVideo);
-        if (videoCover) {
-            videoCover.addEventListener("click", playVideo);
-        }
+        if (videoCover) videoCover.addEventListener("click", playVideo);
 
         coupleVideo.addEventListener("ended", () => {
             videoContainer.classList.remove("playing");
@@ -159,7 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (el.textContent !== newValue) {
             el.textContent = newValue;
             el.classList.remove("pop");
-            void el.offsetWidth; // Dispara reflow nativo para resetear animación
+            void el.offsetWidth; // Dispara reflow
             el.classList.add("pop");
         }
     };
@@ -183,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setInterval(updateCountdown, 1000);
 
     /*=====================================
-            REVEAL SCROLL PREMIUM
+            REVEAL SCROLL
     =====================================*/
     const reveals = document.querySelectorAll(".reveal");
     const observer = new IntersectionObserver(entries => {

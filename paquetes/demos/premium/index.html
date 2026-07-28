@@ -244,7 +244,7 @@
         ===================================-->
         <section class="section dresscode">
             <div class="container">
-                <div class="premium-card reveal">
+                <div class="premium-card hover-elevate reveal">
                     
                     <div class="text-center" style="margin-bottom: 40px;">
                         <span class="section-badge">DRESS CODE</span>
@@ -282,44 +282,42 @@
         </section>
 
         <!--==================================
-                UBICACIÓN FULL-BLEED
+                UBICACIÓN (DOS COLUMNAS)
         ===================================-->
         <section class="section location">
             <div class="container">
                 <div class="premium-card location-card hover-elevate reveal">
                     
-                    <!-- Capa Base: Mapa -->
-                    <div class="location-map-bg">
-                        <iframe src="https://www.google.com/maps?q=Saltillo&output=embed" loading="lazy" allowfullscreen></iframe>
-                    </div>
-
-                    <!-- Capa Flotante: Info -->
-                    <div class="location-content">
-                        <div class="location-glass-panel">
-                            <span class="section-badge" style="background: rgba(255,255,255,0.8);">DÓNDE Y CUÁNDO</span>
-                            <h3>La Celebración</h3>
-                            
-                            <div class="info-list">
-                                <div class="info-item">
-                                    <div class="icon-box"><i data-lucide="map-pin"></i></div>
-                                    <div class="info-text">
-                                        <strong>Quinta San José</strong>
-                                        <span>Saltillo, Coahuila</span>
-                                    </div>
-                                </div>
-                                <div class="info-item">
-                                    <div class="icon-box"><i data-lucide="clock"></i></div>
-                                    <div class="info-text">
-                                        <strong>Recepción</strong>
-                                        <span>18:00 hrs</span>
-                                    </div>
+                    <!-- Columna Izquierda: Información -->
+                    <div class="location-info">
+                        <span class="section-badge">DÓNDE Y CUÁNDO</span>
+                        <h3>La Celebración</h3>
+                        
+                        <div class="info-list">
+                            <div class="info-item">
+                                <div class="icon-box"><i data-lucide="map-pin"></i></div>
+                                <div class="info-text">
+                                    <strong>Quinta San José</strong>
+                                    <span>Saltillo, Coahuila</span>
                                 </div>
                             </div>
-                            
-                            <a href="https://maps.google.com" target="_blank" class="primary-button btn-premium full-width" style="margin-top: 10px;">
-                                Ver indicaciones
-                            </a>
+                            <div class="info-item">
+                                <div class="icon-box"><i data-lucide="clock"></i></div>
+                                <div class="info-text">
+                                    <strong>Recepción</strong>
+                                    <span>18:00 hrs</span>
+                                </div>
+                            </div>
                         </div>
+                        
+                        <a href="https://maps.google.com" target="_blank" class="primary-button btn-premium" style="margin-top: 20px;">
+                            Ver indicaciones
+                        </a>
+                    </div>
+
+                    <!-- Columna Derecha: Mapa -->
+                    <div class="location-map">
+                        <iframe src="https://www.google.com/maps?q=Saltillo&output=embed" loading="lazy" allowfullscreen></iframe>
                     </div>
                     
                 </div>
@@ -385,7 +383,6 @@
                     <p style="margin-bottom: 30px;">Guarda nuestra invitación en tu dispositivo o compártela fácilmente escaneando este código.</p>
                     
                     <div class="qr-wrapper">
-                        <!-- Imagen QR (Sustituible) -->
                         <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://eventora.studio" alt="Código QR de la invitación">
                     </div>
                 </div>
@@ -413,8 +410,12 @@
                                 <span class="pass-number">Pase #014</span>
                                 <h4 class="pass-name">Familia García</h4>
                                 <div class="pass-details-row">
-                                    <span><i data-lucide="users"></i> 2 Personas</span>
-                                    <span><i data-lucide="utensils"></i> Mesa 08</span>
+                                    <div class="info-text">
+                                        <span><i data-lucide="users"></i> 2 Personas</span>
+                                    </div>
+                                    <div class="info-text">
+                                        <span><i data-lucide="utensils"></i> Mesa 08</span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="pass-stub">
@@ -429,8 +430,12 @@
                                 <span class="pass-number">Pase #082</span>
                                 <h4 class="pass-name">Luis Pérez</h4>
                                 <div class="pass-details-row">
-                                    <span><i data-lucide="user"></i> 1 Persona</span>
-                                    <span><i data-lucide="utensils"></i> Mesa 03</span>
+                                    <div class="info-text">
+                                        <span><i data-lucide="user"></i> 1 Persona</span>
+                                    </div>
+                                    <div class="info-text">
+                                        <span><i data-lucide="utensils"></i> Mesa 03</span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="pass-stub">
