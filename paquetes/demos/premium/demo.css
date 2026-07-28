@@ -100,6 +100,7 @@ h1, h2, h3, h4, .editorial-title {
 i { font-style: italic; color: var(--gold); }
 .text-center { text-align: center; }
 
+/* Divisores Elegantes */
 .divider {
     display: flex;
     align-items: center;
@@ -115,6 +116,7 @@ i { font-style: italic; color: var(--gold); }
     background: linear-gradient(90deg, transparent, var(--gold-light), transparent);
 }
 .divider i { color: var(--gold); width: 16px; height: 16px; margin: 0; }
+
 .divider.small { margin: 20px auto; }
 .divider.small::before, .divider.small::after { width: 30px; }
 
@@ -502,10 +504,9 @@ main.show { opacity:1; }
                 FUNCIONES INCLUIDAS
 ==================================================*/
 .features .premium-card { max-width: 900px; padding: 60px; }
-.features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px; }
-.features-list { list-style: none; display: flex; flex-direction: column; gap: 20px; }
-.features-list li { display: flex; align-items: center; gap: 18px; padding-bottom: 20px; border-bottom: 1px solid rgba(0,0,0,0.04); }
-.features-list li:last-child { border-bottom: none; padding-bottom: 0; }
+.features-list { display: grid; grid-template-columns: 1fr 1fr; column-gap: 40px; row-gap: 20px; margin-top: 40px; list-style: none; }
+.features-list li { display: flex; align-items: center; gap: 18px; padding-bottom: 20px; border-bottom: 1px solid rgba(0,0,0,0.04); color: #2a2825; font-size: 1.05rem; }
+.features-list li:nth-last-child(-n+2) { border-bottom: none; padding-bottom: 0; }
 
 /*==================================================
                 CTA FINAL
@@ -540,7 +541,7 @@ footer small { color: #999; font-size: .85rem; }
     .hero h2 { font-size:5.5rem; }
     .hero h2 span { font-size: 3.5rem; }
     .premium-gallery { grid-template-columns: repeat(2, 1fr); gap: 20px; }
-    .features-grid { gap: 20px; }
+    .features-list { column-gap: 20px; }
 }
 
 @media (max-width:768px){
@@ -559,7 +560,7 @@ footer small { color: #999; font-size: .85rem; }
     #envelope { width: 330px; height: 220px; }
     .envelope-wrapper h1 { font-size: 2.8rem; }
     .gold-seal { width: 65px; height: 65px; font-size: 1.4rem; }
-    #envelope.open .letter { animation: premiumLetterExtractMobile 2.0s 1.4s forwards cubic-bezier(0.22, 1, 0.36, 1); }
+    #envelope.open .letter { animation: premiumLetterExtractMobile 2.2s 1.2s forwards cubic-bezier(0.22, 1, 0.36, 1); }
     @keyframes premiumLetterExtractMobile { 0% { transform: translateX(-50%) translateY(0); } 30%, 50% { transform: translateX(-50%) translateY(-25%); } 100% { transform: translateX(-50%) translateY(-130%); opacity: 0; } }
 
     .play-button { width: 60px; height: 60px; }
@@ -583,11 +584,13 @@ footer small { color: #999; font-size: .85rem; }
     .location-map { min-height: 350px; width: 100%; position: relative; border-radius: 16px; overflow: hidden; }
     
     .registry-grid { grid-template-columns: 1fr; gap: 20px; }
-    
-    .features .premium-card { padding: 35px 20px; }
-    .features-grid { grid-template-columns: 1fr; gap: 0; }
 
-    .features-list li { font-size: .95rem; align-items: flex-start; }
+    .features .premium-card { padding: 35px 20px; }
+    .features-list { grid-template-columns: 1fr; margin-top: 30px; }
+    .features-list li { font-size: .95rem; align-items: center; }
+    .features-list li:nth-last-child(-n+2) { border-bottom: 1px solid rgba(0,0,0,0.04); padding-bottom: 20px; }
+    .features-list li:last-child { border-bottom: none !important; padding-bottom: 0 !important; }
+
     .cta-wrapper h2 { font-size: 2.3rem; }
 }
 
@@ -601,7 +604,7 @@ footer small { color: #999; font-size: .85rem; }
     .section h3 { font-size: 2.1rem; }
     #envelope { width: 290px; height: 195px; }
     .gold-seal { width: 58px; height: 58px; font-size: 1.2rem; }
-    #envelope.open .letter { animation: premiumLetterExtractSmall 2.0s 1.4s forwards cubic-bezier(0.22, 1, 0.36, 1); }
+    #envelope.open .letter { animation: premiumLetterExtractSmall 2.2s 1.2s forwards cubic-bezier(0.22, 1, 0.36, 1); }
     @keyframes premiumLetterExtractSmall { 0% { transform: translateX(-50%) translateY(0); } 30%, 50% { transform: translateX(-50%) translateY(-25%); } 100% { transform: translateX(-50%) translateY(-110%); opacity: 0; } }
     
     .time-block { min-width: 50px; }
