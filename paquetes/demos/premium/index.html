@@ -65,6 +65,8 @@
                 <p class="tap-text">Toca el sobre para abrir</p>
                 <div class="tap-arrow">↓</div>
             </div>
+            
+            <!-- Estructura 3D Estricta -->
             <div id="envelope">
                 <div class="envelope-back"></div>
                 <div class="letter"></div>
@@ -80,6 +82,7 @@
                     <span>ES</span>
                 </div>
             </div>
+            
         </div>
     </section>
 
@@ -241,7 +244,7 @@
         ===================================-->
         <section class="section dresscode">
             <div class="container">
-                <div class="premium-card hover-elevate reveal">
+                <div class="premium-card reveal">
                     
                     <div class="text-center" style="margin-bottom: 40px;">
                         <span class="section-badge">DRESS CODE</span>
@@ -255,10 +258,10 @@
                         <div class="dress-item">
                             <div class="dress-image">
                                 <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=800&auto=format&fit=crop" alt="Vestido Largo Damas">
-                            </div>
-                            <div class="dress-caption">
-                                <h4>Damas</h4>
-                                <span>Vestido Largo</span>
+                                <div class="dress-glass-caption">
+                                    <h4>Damas</h4>
+                                    <span>Vestido Largo</span>
+                                </div>
                             </div>
                         </div>
 
@@ -266,10 +269,10 @@
                         <div class="dress-item">
                             <div class="dress-image">
                                 <img src="https://images.unsplash.com/photo-1594938291221-94f18cbb5660?q=80&w=800&auto=format&fit=crop" alt="Traje Formal Caballeros">
-                            </div>
-                            <div class="dress-caption">
-                                <h4>Caballeros</h4>
-                                <span>Traje Formal</span>
+                                <div class="dress-glass-caption">
+                                    <h4>Caballeros</h4>
+                                    <span>Traje Formal</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -279,37 +282,46 @@
         </section>
 
         <!--==================================
-                UBICACIÓN REDISEÑADA
+                UBICACIÓN FULL-BLEED
         ===================================-->
         <section class="section location">
             <div class="container">
                 <div class="premium-card location-card hover-elevate reveal">
-                    <div class="location-info">
-                        <span class="section-badge">DÓNDE Y CUÁNDO</span>
-                        <h3>La Celebración</h3>
-                        <div class="info-list">
-                            <div class="info-item">
-                                <div class="icon-box"><i data-lucide="map-pin"></i></div>
-                                <div>
-                                    <strong>Quinta San José</strong>
-                                    <span>Saltillo, Coahuila</span>
-                                </div>
-                            </div>
-                            <div class="info-item">
-                                <div class="icon-box"><i data-lucide="clock"></i></div>
-                                <div>
-                                    <strong>Recepción</strong>
-                                    <span>18:00 hrs</span>
-                                </div>
-                            </div>
-                        </div>
-                        <a href="https://maps.google.com" target="_blank" class="primary-button btn-premium" style="margin-top: 20px;">
-                            Ver indicaciones
-                        </a>
-                    </div>
-                    <div class="location-map">
+                    
+                    <!-- Capa Base: Mapa -->
+                    <div class="location-map-bg">
                         <iframe src="https://www.google.com/maps?q=Saltillo&output=embed" loading="lazy" allowfullscreen></iframe>
                     </div>
+
+                    <!-- Capa Flotante: Info -->
+                    <div class="location-content">
+                        <div class="location-glass-panel">
+                            <span class="section-badge" style="background: rgba(255,255,255,0.8);">DÓNDE Y CUÁNDO</span>
+                            <h3>La Celebración</h3>
+                            
+                            <div class="info-list">
+                                <div class="info-item">
+                                    <div class="icon-box"><i data-lucide="map-pin"></i></div>
+                                    <div class="info-text">
+                                        <strong>Quinta San José</strong>
+                                        <span>Saltillo, Coahuila</span>
+                                    </div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="icon-box"><i data-lucide="clock"></i></div>
+                                    <div class="info-text">
+                                        <strong>Recepción</strong>
+                                        <span>18:00 hrs</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <a href="https://maps.google.com" target="_blank" class="primary-button btn-premium full-width" style="margin-top: 10px;">
+                                Ver indicaciones
+                            </a>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
         </section>
@@ -381,36 +393,58 @@
         </section>
 
         <!--==================================
-                    RSVP
+            GESTIÓN DE INVITADOS (RSVP PREMIUM)
         ===================================-->
-        <section class="section rsvp">
+        <section class="section guest-management">
             <div class="container">
-                <div class="premium-card hover-elevate form-card reveal">
+                <div class="premium-card form-card reveal">
                     <div class="rsvp-header">
-                        <span class="section-badge">RSVP</span>
-                        <h3>Confirmación</h3>
-                        <p>Por favor, confírmanos tu asistencia antes del 1 de Noviembre.</p>
+                        <span class="section-badge">GESTIÓN VIP</span>
+                        <h3>Control de Accesos</h3>
+                        <p>Olvídate de perseguir confirmaciones. Nosotros organizamos tu lista de invitados y automatizamos la creación de pases digitales individuales con toda la información necesaria.</p>
+                        <div class="divider small"><i data-lucide="ticket"></i></div>
                     </div>
                     
-                    <form id="rsvpForm">
-                        <div class="input-group">
-                            <input type="text" placeholder="Nombre completo" required>
-                        </div>
+                    <div class="vip-passes-demo">
                         
-                        <div class="options">
-                            <label class="custom-radio">
-                                <input type="radio" name="attendance" value="yes" required>
-                                <span class="radio-mark"></span>
-                                Sí, asistiré con gusto
-                            </label>
-                            <label class="custom-radio">
-                                <input type="radio" name="attendance" value="no">
-                                <span class="radio-mark"></span>
-                                No podré asistir
-                            </label>
+                        <!-- Pase Ejemplo 1 -->
+                        <div class="vip-pass hover-elevate">
+                            <div class="pass-content">
+                                <span class="pass-number">Pase #014</span>
+                                <h4 class="pass-name">Familia García</h4>
+                                <div class="pass-details-row">
+                                    <span><i data-lucide="users"></i> 2 Personas</span>
+                                    <span><i data-lucide="utensils"></i> Mesa 08</span>
+                                </div>
+                            </div>
+                            <div class="pass-stub">
+                                <i data-lucide="check-circle"></i>
+                                <span>VIP</span>
+                            </div>
                         </div>
-                        <button type="submit" class="primary-button full-width">Enviar Confirmación</button>
-                    </form>
+
+                        <!-- Pase Ejemplo 2 -->
+                        <div class="vip-pass hover-elevate">
+                            <div class="pass-content">
+                                <span class="pass-number">Pase #082</span>
+                                <h4 class="pass-name">Luis Pérez</h4>
+                                <div class="pass-details-row">
+                                    <span><i data-lucide="user"></i> 1 Persona</span>
+                                    <span><i data-lucide="utensils"></i> Mesa 03</span>
+                                </div>
+                            </div>
+                            <div class="pass-stub">
+                                <i data-lucide="check-circle"></i>
+                                <span>VIP</span>
+                            </div>
+                        </div>
+
+                    </div>
+                    
+                    <div class="rsvp-footer" style="margin-top: 30px;">
+                        <p style="font-size: 0.95rem; color: var(--gray);">Cada invitado recibe su código único integrado en la invitación, permitiéndote tener el control total de accesos y menús desde tu panel privado.</p>
+                    </div>
+
                 </div>
             </div>
         </section>
@@ -441,16 +475,40 @@
                     
                     <div class="features-grid">
                         <ul class="features-list">
-                            <li><div class="icon-box"><i data-lucide="film"></i></div><span>Video de bienvenida inmersivo</span></li>
-                            <li><div class="icon-box"><i data-lucide="camera"></i></div><span>Galería fotográfica interactiva</span></li>
-                            <li><div class="icon-box"><i data-lucide="gift"></i></div><span>Mesa de regalos multicanal</span></li>
-                            <li><div class="icon-box"><i data-lucide="qr-code"></i></div><span>Código QR personalizado</span></li>
+                            <li>
+                                <div class="icon-box"><i data-lucide="film"></i></div>
+                                <div class="info-text"><span>Video de bienvenida inmersivo</span></div>
+                            </li>
+                            <li>
+                                <div class="icon-box"><i data-lucide="camera"></i></div>
+                                <div class="info-text"><span>Galería fotográfica interactiva</span></div>
+                            </li>
+                            <li>
+                                <div class="icon-box"><i data-lucide="gift"></i></div>
+                                <div class="info-text"><span>Mesa de regalos multicanal</span></div>
+                            </li>
+                            <li>
+                                <div class="icon-box"><i data-lucide="qr-code"></i></div>
+                                <div class="info-text"><span>Código QR personalizado</span></div>
+                            </li>
                         </ul>
                         <ul class="features-list">
-                            <li><div class="icon-box"><i data-lucide="timer"></i></div><span>Cuenta regresiva dinámica</span></li>
-                            <li><div class="icon-box"><i data-lucide="map"></i></div><span>Ubicación interactiva y GPS</span></li>
-                            <li><div class="icon-box"><i data-lucide="mail-check"></i></div><span>Confirmación RSVP integrada</span></li>
-                            <li><div class="icon-box"><i data-lucide="smartphone"></i></div><span>Diseño de alta gama responsive</span></li>
+                            <li>
+                                <div class="icon-box"><i data-lucide="timer"></i></div>
+                                <div class="info-text"><span>Cuenta regresiva dinámica</span></div>
+                            </li>
+                            <li>
+                                <div class="icon-box"><i data-lucide="map"></i></div>
+                                <div class="info-text"><span>Ubicación interactiva y GPS</span></div>
+                            </li>
+                            <li>
+                                <div class="icon-box"><i data-lucide="ticket"></i></div>
+                                <div class="info-text"><span>Gestión de pases VIP automatizada</span></div>
+                            </li>
+                            <li>
+                                <div class="icon-box"><i data-lucide="smartphone"></i></div>
+                                <div class="info-text"><span>Diseño de alta gama responsive</span></div>
+                            </li>
                         </ul>
                     </div>
                 </div>

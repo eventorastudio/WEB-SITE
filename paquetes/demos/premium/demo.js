@@ -16,7 +16,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const musicButton = document.getElementById("musicButton");
     const music = document.getElementById("backgroundMusic");
     const progressBar = document.getElementById("progress-bar");
-    const rsvpForm = document.getElementById("rsvpForm");
 
     /*=====================================
           BLOQUEO DE SCROLL (UX FIX)
@@ -72,11 +71,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 invitation.classList.add("show");
                 musicButton.classList.add("show");
             });
-        }, 3300);
+        }, 3600); // Ajustado al nuevo tiempo de animación del sobre
         
         setTimeout(() => {
             music.play().catch(() => {});
-        }, 2400);
+        }, 2600);
     });
 
     /*=====================================
@@ -154,15 +153,13 @@ document.addEventListener("DOMContentLoaded", () => {
     =====================================*/
     const targetDate = new Date("Nov 15, 2027 18:00:00").getTime();
     
-    // Función para actualizar y animar cada número individualmente si cambia
     const updateTimeElement = (id, newValue) => {
         const el = document.getElementById(id);
         if (!el) return;
         if (el.textContent !== newValue) {
             el.textContent = newValue;
-            // Reinicia la animación
             el.classList.remove("pop");
-            void el.offsetWidth; // Dispara reflow
+            void el.offsetWidth; // Dispara reflow nativo para resetear animación
             el.classList.add("pop");
         }
     };
@@ -186,7 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setInterval(updateCountdown, 1000);
 
     /*=====================================
-            REVEAL SCROLL (CON BLUR)
+            REVEAL SCROLL PREMIUM
     =====================================*/
     const reveals = document.querySelectorAll(".reveal");
     const observer = new IntersectionObserver(entries => {
@@ -195,7 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 entry.target.classList.add("active");
             }
         });
-    }, { threshold: .15 });
+    }, { threshold: .12 });
 
     reveals.forEach(section => {
         observer.observe(section);
@@ -211,24 +208,4 @@ document.addEventListener("DOMContentLoaded", () => {
         progressBar.style.width = progress + "%";
     });
 
-    /*=====================================
-                RSVP
-    =====================================*/
-    if (rsvpForm) {
-        rsvpForm.addEventListener("submit", (e) => {
-            e.preventDefault();
-            
-            rsvpForm.innerHTML = `
-                <div style="text-align:center; padding:30px 10px; animation: fadeIn 1s ease;">
-                    <i data-lucide="mail-check" style="width: 50px; height: 50px; color: var(--gold); margin-bottom: 20px;"></i>
-                    <h3 style="font-family:'Cormorant Garamond'; font-size: 2.5rem; margin-bottom:15px; color:#1a1917;">¡Gracias!</h3>
-                    <p style="color:var(--gray); font-size: 1.05rem; line-height: 1.7;">
-                        Esta es una demostración interactiva.<br><br>
-                        En un escenario real, tu confirmación se enviaría directamente al panel del anfitrión.
-                    </p>
-                </div>
-            `;
-            lucide.createIcons(); 
-        });
-    }
 });
