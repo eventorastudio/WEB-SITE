@@ -216,7 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
         rsvpForm.addEventListener("submit", (e) => {
             e.preventDefault();
             
-            const passSelectorContainer = rsvpForm.closest('.premium-card');
+            const passSelectorContainer = rsvpForm.closest('.form-card');
             
             passSelectorContainer.innerHTML = `
                 <div style="text-align:center; padding:30px 10px; animation: fadeIn 1s ease;">

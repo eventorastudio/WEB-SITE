@@ -67,8 +67,11 @@
             </div>
             
             <div id="envelope">
-                <div class="envelope-back"></div>
+                <!-- Carta (Oculta hasta abrir) -->
                 <div class="letter"></div>
+                <!-- Parte Trasera -->
+                <div class="envelope-back"></div>
+                <!-- Frente del Sobre -->
                 <div class="envelope-front">
                     <div class="envelope-title">
                         <span class="line"></span>
@@ -76,7 +79,9 @@
                         <span class="line"></span>
                     </div>
                 </div>
+                <!-- Solapa Superior -->
                 <div class="envelope-top"></div>
+                <!-- Sello -->
                 <div class="gold-seal">
                     <span>ES</span>
                 </div>
@@ -372,37 +377,37 @@
         </section>
 
         <!--==================================
-                CÓDIGO QR (PREMIUM)
-        ===================================-->
-        <section class="section qr-code">
-            <div class="container">
-                <div class="premium-card hover-elevate text-center reveal" style="max-width: 550px;">
-                    <span class="section-badge">Guarda y Comparte</span>
-                    <h3>Código QR</h3>
-                    <p style="margin-bottom: 30px;">Guarda nuestra invitación en tu dispositivo o compártela fácilmente escaneando este código.</p>
-                    
-                    <div class="qr-wrapper">
-                        <!-- Imagen QR (Sustituible) -->
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://eventora.studio" alt="Código QR de la invitación">
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!--==================================
-            SELECCIÓN DE PASES (NUEVO RSVP)
+            SELECCIÓN DE PASES (REDISEÑO RSVP)
         ===================================-->
         <section class="section pass-selection">
             <div class="container">
+                
+                <!-- Tarjeta Introductoria -->
+                <div class="premium-card hover-elevate intro-pass-card text-center reveal" style="max-width: 650px; margin-bottom: 30px; padding: 40px;">
+                    <div class="icon-box" style="margin: 0 auto 20px;"><i data-lucide="ticket"></i></div>
+                    <h4 style="font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; margin-bottom: 15px;">Invitación personalizada</h4>
+                    <p style="color: var(--gray); font-size: 1rem; line-height: 1.7;">
+                        Los anfitriones han reservado hasta <strong>4 pases</strong> para esta invitación. <br><br>
+                        Por favor escribe tu nombre y selecciona únicamente los pases que utilizarás para acompañarnos en este día tan especial.
+                    </p>
+                </div>
+
+                <!-- Formulario de Confirmación -->
                 <div class="premium-card hover-elevate form-card reveal">
                     <div class="rsvp-header text-center">
-                        <span class="section-badge">SELECCIÓN DE PASES</span>
+                        <span class="section-badge">CONFIRMACIÓN</span>
                         <h3>Confirma tu asistencia</h3>
-                        <p style="max-width: 550px; margin: 0 auto; color: var(--gray);">Los anfitriones han autorizado hasta <strong>4 pases</strong> para tu invitación. Selecciona únicamente los que utilizarás para acompañarnos en este día tan especial.</p>
-                        <div class="divider small"><i data-lucide="ticket"></i></div>
+                        <div class="divider small"><i data-lucide="mail"></i></div>
                     </div>
                     
                     <form id="rsvpForm">
+                        <!-- Input Elegante de Nombre -->
+                        <div class="premium-input-group">
+                            <input type="text" id="guestName" placeholder=" " required>
+                            <label for="guestName">Nombre del invitado</label>
+                        </div>
+                        
+                        <!-- Selector de Pases -->
                         <div class="passes-selector">
                             <label class="pass-option">
                                 <input type="radio" name="pass_count" value="1" required>
@@ -422,9 +427,10 @@
                             </label>
                         </div>
                         
+                        <!-- Botón Confirmar -->
                         <div style="margin-top: 40px;">
                             <button type="submit" class="primary-button btn-premium full-width" style="max-width: 400px; margin: 0 auto;">
-                                Confirmar selección
+                                Confirmar asistencia
                             </button>
                         </div>
                     </form>
@@ -470,10 +476,6 @@
                                 <div class="icon-box"><i data-lucide="gift"></i></div>
                                 <div class="info-text"><span>Mesa de regalos multicanal</span></div>
                             </li>
-                            <li>
-                                <div class="icon-box"><i data-lucide="qr-code"></i></div>
-                                <div class="info-text"><span>Código QR personalizado</span></div>
-                            </li>
                         </ul>
                         <ul class="features-list">
                             <li>
@@ -486,11 +488,7 @@
                             </li>
                             <li>
                                 <div class="icon-box"><i data-lucide="ticket"></i></div>
-                                <div class="info-text"><span>Control de accesos y pases</span></div>
-                            </li>
-                            <li>
-                                <div class="icon-box"><i data-lucide="smartphone"></i></div>
-                                <div class="info-text"><span>Diseño de alta gama responsive</span></div>
+                                <div class="info-text"><span>Selección interactiva de pases</span></div>
                             </li>
                         </ul>
                     </div>
