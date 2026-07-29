@@ -139,7 +139,7 @@
                     <span class="section-badge">INVITACIÓN PERSONALIZADA</span>
                     
                     <p style="color: var(--gray); font-size: 1.05rem; margin-top: 15px; margin-bottom: 5px;">
-                        Esta invitación ha sido diseñada exclusivamente para:
+                        Con mucho cariño, hemos preparado esta invitación especialmente para ti.
                     </p>
                     
                     <h3 style="font-size: 3.5rem; color: var(--gold); font-style: italic; margin-bottom: 25px;">
@@ -149,7 +149,7 @@
                     <div class="divider small"><i data-lucide="sparkles"></i></div>
                     
                     <p style="max-width: 600px; margin: 0 auto;">
-                        Nos llena de alegría compartir este momento contigo. Tu presencia hará que el día más importante de nuestras vidas sea verdaderamente inolvidable.
+                        Es un honor contar con tu presencia en este día tan especial. Tu compañía hará que el inicio de nuestro para siempre sea verdaderamente inolvidable.
                     </p>
                 </div>
             </div>
@@ -466,7 +466,7 @@
                             <p class="qr-caption">Luis Pablo García</p>
                         </div>
 
-                        <!-- Lista de Pases Asignados -->
+                        <!-- Lista de Pases Asignados (No seleccionables) -->
                         <div class="assigned-passes">
                             <h4 class="editorial-title" style="font-size: 1.5rem; margin-bottom: 20px;">Pases Asignados:</h4>
                             
@@ -490,10 +490,18 @@
                         </div>
                     </div>
 
-                    <div style="margin-top: 40px;">
-                        <button class="primary-button btn-premium full-width" style="max-width: 400px; margin: 0 auto;">
+                    <div id="rsvpActionContainer" style="margin-top: 40px; display: flex; flex-direction: column; gap: 15px; align-items: center;">
+                        <button id="btnConfirm" class="primary-button btn-premium full-width" style="max-width: 400px;">
                             Confirmar mi asistencia
                         </button>
+                        <button id="btnDecline" class="secondary-button full-width" style="max-width: 400px;">
+                            No asistiré
+                        </button>
+                    </div>
+
+                    <!-- Mensaje de Confirmación (Oculto inicialmente) -->
+                    <div id="rsvpMessageContainer" style="display: none; margin-top: 40px; text-align: center; animation: fadeIn 0.8s ease;">
+                        <!-- Contenido dinámico desde JS -->
                     </div>
 
                 </div>

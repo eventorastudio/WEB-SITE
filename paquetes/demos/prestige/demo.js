@@ -16,7 +16,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const musicButton = document.getElementById("musicButton");
     const music = document.getElementById("backgroundMusic");
     const progressBar = document.getElementById("progress-bar");
-    const confirmButton = document.querySelector('.section.vip-access .primary-button');
+    const btnConfirm = document.getElementById("btnConfirm");
+    const btnDecline = document.getElementById("btnDecline");
+    const rsvpActionContainer = document.getElementById("rsvpActionContainer");
+    const rsvpMessageContainer = document.getElementById("rsvpMessageContainer");
     const floatingMenu = document.getElementById("floating-menu");
 
     /*=====================================
@@ -161,7 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (el.textContent !== newValue) {
             el.textContent = newValue;
             el.classList.remove("pop");
-            void el.offsetWidth; // Dispara reflow nativo
+            void el.offsetWidth;
             el.classList.add("pop");
         }
     };
@@ -201,7 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     /*=====================================
-            BARRA SUPERIOR & MENÚ FLOTANTE
+            BARRA SUPERIOR Y MENÚ FLOTANTE
     =====================================*/
     window.addEventListener("scroll", () => {
         const scrollTop = document.documentElement.scrollTop;
@@ -209,7 +212,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const progress = (scrollTop / height) * 100;
         progressBar.style.width = progress + "%";
 
-        // Muestra el menú flotante solo después de pasar el hero y si el sobre está abierto
         if (opened && scrollTop > window.innerHeight * 0.5) {
             floatingMenu.classList.add("show");
         } else {
@@ -220,23 +222,37 @@ document.addEventListener("DOMContentLoaded", () => {
     /*=====================================
             CONFIRMACIÓN PASES VIP (PRESTIGE)
     =====================================*/
-    if (confirmButton) {
-        confirmButton.addEventListener("click", (e) => {
+    if (btnConfirm && btnDecline && rsvpActionContainer && rsvpMessageContainer) {
+        btnConfirm.addEventListener("click", (e) => {
             e.preventDefault();
-            
-            const vipContainer = confirmButton.closest('.form-card');
-            
-            vipContainer.innerHTML = `
-                <div style="text-align:center; padding:40px 10px; animation: fadeIn 1s ease;">
-                    <i data-lucide="check-circle-2" style="width: 60px; height: 60px; color: var(--gold); margin-bottom: 25px;"></i>
-                    <h3 style="font-family:'Cormorant Garamond'; font-size: 2.8rem; margin-bottom:15px; color:#1a1917;">¡Accesos Confirmados!</h3>
-                    <p style="color:var(--gray); font-size: 1.1rem; line-height: 1.8; max-width: 500px; margin: 0 auto;">
-                        Tus pases han sido registrados exitosamente. Te esperamos para celebrar este gran día.<br><br>
-                        <span style="font-size: 0.9rem; font-style: italic;">*Demostración interactiva del Paquete Prestige*</span>
-                    </p>
+            rsvpActionContainer.style.display = "none";
+            rsvpMessageContainer.style.display = "block";
+            rsvpMessageContainer.innerHTML = `
+                <div style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; color: #2e7d32; font-weight: 600; font-size: 1.1rem;">
+                    <i data-lucide="check-circle-2" style="width: 24px; height: 24px;"></i>
+                    Asistencia confirmada
                 </div>
+                <p style="color:var(--gray); font-size: 0.95rem; margin-top: 10px;">
+                    Nos llena de emoción saber que nos acompañarás. ¡Nos vemos muy pronto!
+                </p>
             `;
-            lucide.createIcons(); 
+            lucide.createIcons();
+        });
+
+        btnDecline.addEventListener("click", (e) => {
+            e.preventDefault();
+            rsvpActionContainer.style.display = "none";
+            rsvpMessageContainer.style.display = "block";
+            rsvpMessageContainer.innerHTML = `
+                <div style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; color: var(--gray); font-weight: 600; font-size: 1.1rem;">
+                    <i data-lucide="info" style="width: 24px; height: 24px;"></i>
+                    Asistencia declinada
+                </div>
+                <p style="color:var(--gray); font-size: 0.95rem; margin-top: 10px;">
+                    Lamentamos que no puedas acompañarnos. Gracias por avisarnos.
+                </p>
+            `;
+            lucide.createIcons();
         });
     }
 });

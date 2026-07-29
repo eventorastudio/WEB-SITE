@@ -160,6 +160,18 @@ i { font-style: italic; color: var(--gold); }
 .btn-premium:hover { color: #fff; border-color: var(--gold); box-shadow: 0 10px 25px rgba(212,175,55,0.3); }
 .btn-premium:hover::before { transform: scaleX(1); transform-origin: left; }
 
+.secondary-button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    background: transparent; color: var(--gray);
+    padding: 14px 40px; border-radius: 999px; text-decoration: none; font-family: 'Poppins', sans-serif;
+    font-weight: 500; letter-spacing: 1px; font-size: .9rem; transition: var(--transition);
+    border: 1px solid rgba(0,0,0,0.1); cursor: pointer;
+}
+.secondary-button:hover {
+    background: rgba(0,0,0,0.03); color: #1a1917; border-color: rgba(0,0,0,0.2);
+}
+.secondary-button.full-width { width: 100%; }
+
 /*==================================================
                 LOADER & BARS
 ==================================================*/
@@ -196,9 +208,9 @@ i { font-style: italic; color: var(--gold); }
 .tap-arrow { margin-top: 8px; font-size: 1.2rem; color: #a89468; animation: premiumBounce 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
 @keyframes premiumBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
 
-/* Sistema Físico del Sobre - Restaurado Lógica Esencial para prevenir Glitches */
+/* Sistema Físico del Sobre - Lógica Esencial Restablecida */
 #envelope { 
-    position: relative; width: 440px; height: 290px; margin: auto; cursor: pointer; perspective: 1800px; 
+    position: relative; width: 420px; height: 285px; margin: auto; cursor: pointer; perspective: 1500px; 
     animation: premiumFloat 7s cubic-bezier(0.4, 0, 0.2, 1) infinite; 
     box-shadow: 0 45px 65px -15px rgba(0,0,0,0.15), 0 15px 30px -10px rgba(0,0,0,0.12); border-radius: 6px; 
 }
@@ -382,13 +394,18 @@ main.show { opacity:1; }
 .qr-wrapper img { width: 180px; height: 180px; display: block; border-radius: 8px; margin-bottom: 15px; }
 .qr-caption { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 600; color: #1a1917; }
 
-.assigned-passes { flex: 1; display: flex; flex-direction: column; gap: 15px; justify-content: center; }
+.assigned-passes { flex: 1; display: flex; flex-direction: column; gap: 15px; justify-content: center; width: 100%;}
 .pass-ticket { display: flex; align-items: center; background: linear-gradient(to right, #ffffff, #fdfcf9); border: 1px solid rgba(212,175,55,0.2); border-radius: 12px; padding: 15px 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
 .ticket-icon { width: 40px; height: 40px; border-radius: 50%; background: #fbfaf8; display: flex; align-items: center; justify-content: center; margin-right: 15px; color: var(--gold); border: 1px solid rgba(212,175,55,0.2); }
 .ticket-info { flex: 1; text-align: left; display: flex; flex-direction: column; justify-content: center; }
 .ticket-info strong { display: block; font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: #1a1917; line-height: 1.3;}
 .ticket-info span { font-size: 0.85rem; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; display: block; line-height: 1.3;}
 .ticket-status { font-size: 0.75rem; font-weight: 600; color: #2e7d32; background: #e8f5e9; padding: 4px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 1px; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
 /*==================================================
         SERVICIOS PRESTIGE EXCLUSIVOS
