@@ -104,7 +104,6 @@ h1, h2, h3, h4, .editorial-title {
 i { font-style: italic; color: var(--gold); }
 .text-center { text-align: center; }
 
-/* Divisores Elegantes */
 .divider {
     display: flex; align-items: center; justify-content: center; margin: 25px auto; gap: 15px; opacity: 0.8;
 }
@@ -193,75 +192,134 @@ i { font-style: italic; color: var(--gold); }
 #musicButton:hover { transform:scale(1.08); background: var(--gold); }
 
 /*==================================================
-            ENVELOPE SCREEN (LUJO EXTREMO)
+            SOBRE PRESTIGE (ARQUITECTURA NUEVA)
 ==================================================*/
-#envelope-screen { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; overflow: hidden; padding: 100px 20px; background: radial-gradient(circle at 50% 30%, #f9f6f0 0%, #ede6d6 50%, #d4c5ab 100%); z-index: 9000; transition: opacity 1.2s ease, visibility 1.2s ease; }
-#envelope-screen::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle at 20% 30%, rgba(212,175,55,0.15) 0%, transparent 5px), radial-gradient(circle at 80% 25%, rgba(212,175,55,0.12) 0%, transparent 6px), radial-gradient(circle at 25% 80%, rgba(212,175,55,0.1) 0%, transparent 4px), radial-gradient(circle at 75% 70%, rgba(212,175,55,0.18) 0%, transparent 7px); filter: blur(3px); z-index: 1; opacity: 0.9; }
-.hero-glow { position: absolute; width: 650px; height: 650px; border-radius: 50%; background: radial-gradient(circle, rgba(222, 185, 85, 0.15) 0%, rgba(212, 175, 55, 0) 70%); filter: blur(60px); z-index: 0; top: 50%; left: 50%; transform: translate(-50%, -50%); animation: premiumGlowPulse 5s ease-in-out infinite alternate; }
-@keyframes premiumGlowPulse { 0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.6; } 100% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; } }
+#lux-envelope-screen {
+    position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; 
+    overflow: hidden; padding: 20px; 
+    background: radial-gradient(circle at 50% 30%, #fcfbf8 0%, #eee8dd 60%, #dcd1be 100%); 
+    z-index: 9000; transition: opacity 1.2s ease, visibility 1.2s ease;
+}
+#lux-envelope-screen.hide {
+    opacity: 0; visibility: hidden; pointer-events: none;
+}
+.lux-glow {
+    position: absolute; width: 700px; height: 700px; border-radius: 50%; 
+    background: radial-gradient(circle, rgba(212, 175, 55, 0.12) 0%, transparent 70%); 
+    filter: blur(60px); z-index: 0; 
+    animation: luxPulse 5s ease-in-out infinite alternate;
+}
+@keyframes luxPulse { 0% { transform: scale(0.9); opacity: 0.6; } 100% { transform: scale(1.1); opacity: 1; } }
 
-.envelope-wrapper { position: relative; z-index: 2; text-align: center; max-width: 800px; width: 100%; display: flex; flex-direction: column; align-items: center; }
-.envelope-wrapper h1 { font-size: 4.2rem; line-height: 1.1; margin-bottom: 20px; color: #2c2925; text-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-.demo-description { max-width: 580px; margin: auto; color: #5a5449; font-size: 1.1rem; line-height: 1.7; margin-bottom: 30px; }
-.tap-container { margin-bottom: 35px; display: flex; flex-direction: column; align-items: center; }
-.tap-text { color: #7d7260; font-size: .95rem; letter-spacing: 3px; text-transform: uppercase; font-weight: 500; }
-.tap-arrow { margin-top: 8px; font-size: 1.2rem; color: #a89468; animation: premiumBounce 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+.lux-content-wrapper {
+    position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; width: 100%; text-align: center;
+}
+.lux-content-wrapper h1 {
+    font-family: 'Cormorant Garamond', serif; font-size: clamp(2.5rem, 5vw, 4rem); color: #1a1917; margin: 15px 0; line-height: 1.1; text-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.lux-description {
+    max-width: 550px; color: var(--gray); font-size: 1.1rem; line-height: 1.6; margin-bottom: 30px;
+}
+.lux-hint {
+    display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 30px; color: #7d7260; font-size: 0.95rem; letter-spacing: 3px; text-transform: uppercase; font-weight: 500;
+}
+.lux-arrow { font-size: 1.2rem; color: var(--gold); animation: premiumBounce 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
 @keyframes premiumBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
 
-/* Sistema Físico de Capas Base - Arquitectura Hiperrealista */
-#envelope { 
-    position: relative; width: 440px; height: 290px; margin: auto; cursor: pointer; perspective: 2500px;
-    animation: premiumFloat 7s cubic-bezier(0.4, 0, 0.2, 1) infinite; 
-    box-shadow: 0 50px 70px -15px rgba(0,0,0,0.18), 0 20px 40px -10px rgba(0,0,0,0.12); border-radius: 6px; 
+/* Contenedor del Sobre */
+.lux-envelope {
+    position: relative;
+    width: 90%; max-width: 440px; aspect-ratio: 1.5;
+    margin: 0 auto; cursor: pointer;
+    perspective: 2500px; /* Perspectiva necesaria para la solapa */
+    box-shadow: 0 45px 65px -15px rgba(0,0,0,0.18), 0 15px 30px -10px rgba(0,0,0,0.12);
+    border-radius: 6px;
+    animation: luxFloat 7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
-@keyframes premiumFloat { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-12px) rotate(1.5deg); } }
+@keyframes luxFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
 
-/* Capas 2D Tradicionales - Sistema Geométrico Anti-Glitch */
-.envelope-back { position: absolute; inset: 0; background: linear-gradient(180deg, #ebe5d9 0%, #d8cdb8 100%); border-radius: 6px; z-index: 10; box-shadow: inset 0 20px 40px rgba(0,0,0,0.2), inset 0 -10px 20px rgba(0,0,0,0.1); }
-.envelope-back::before, .envelope-front::after, .envelope-top::after { content: ""; position: absolute; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; border-radius: inherit; }
-
-/* Carta con Impresión Física */
-.letter { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); width: 86%; height: 88%; background: #fdfbf7; border-radius: 4px; z-index: 20; box-shadow: 0 15px 35px rgba(0,0,0,0.25); display: flex; align-items: stretch; justify-content: stretch; padding: 12px; }
-.letter-foil-border { flex: 1; border: 1px solid rgba(212,175,55,0.6); box-shadow: inset 0 0 0 4px #fdfbf7, inset 0 0 0 5px rgba(212,175,55,0.2); position: relative; }
-.letter-foil-border::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(120deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 100%), url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E"); pointer-events: none; }
-
-.letter-content { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
-.letter-intro { font-family: 'Poppins', sans-serif; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 4px; color: #8c8273; font-weight: 500; display: block; line-height: 1.4; }
-.letter-names { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; line-height: 1; color: var(--gold); font-weight: 600; margin: 15px 0; text-shadow: 1px 1px 0px rgba(255,255,255,0.8); }
-.letter-names span { display: block; }
-.letter-names .ampersand { font-size: 1.5rem; margin: 5px 0; font-style: italic; color: #a88b32; font-weight: 400; }
-.letter-details { display: flex; flex-direction: column; align-items: center; gap: 6px; font-family: 'Poppins', sans-serif; font-size: 0.6rem; letter-spacing: 3px; color: #5a5449; font-weight: 500; }
-.letter-details .letter-dot { color: var(--gold); font-size: 0.4rem; }
-
-/* El Slit Geométrico que evita glitches */
-.envelope-front { position: absolute; inset: 0; z-index: 30; background: linear-gradient(to top, #e6dfcc 0%, #f4f1ea 100%); border-radius: 6px; clip-path: polygon(0 0, 5% 0, 5% 20%, 50% 55%, 95% 20%, 95% 0, 100% 0, 100% 100%, 0 100%); box-shadow: inset 0 0 30px rgba(0,0,0,0.05); }
-.envelope-front::before { content: ""; position: absolute; inset: 0; background: linear-gradient(118deg, transparent 49%, rgba(0,0,0,0.06) 50%, transparent 51%), linear-gradient(-118deg, transparent 49%, rgba(0,0,0,0.06) 50%, transparent 51%); pointer-events: none; }
-
-.envelope-emboss { position: absolute; top: 76%; left: 50%; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 15px; width: 80%; justify-content: center; z-index: 1; }
-.envelope-emboss .title { color: #e3decb; font-family: 'Cormorant Garamond', serif; font-size: 1.35rem; letter-spacing: 6px; font-weight: 600; text-shadow: 1px 1px 1px rgba(255,255,255,0.9), -1px -1px 1px rgba(0,0,0,0.15); }
-.envelope-emboss .line { flex: 1; height: 1px; background: rgba(0,0,0,0.08); box-shadow: 0 1px 0 rgba(255,255,255,0.8); }
-
-.envelope-top { position: absolute; left: 0; top: 0; width: 100%; height: 60%; background: linear-gradient(to bottom, #f2efe7 0%, #ded6c2 100%); clip-path: polygon(0 0, 100% 0, 100% 22%, 50% 100%, 0 22%); transform-origin: top; z-index: 40; filter: drop-shadow(0 15px 15px rgba(0,0,0,0.25)); }
-
-.gold-seal { position: absolute; left: 50%; top: 56%; transform: translate(-50%, -50%); width: 76px; height: 76px; border-radius: 52% 48% 51% 49% / 50% 49% 51% 50%; background: radial-gradient(circle at 35% 30%, #f7d570 0%, #c19218 45%, #7a5908 100%); box-shadow: inset 0 0 10px rgba(255,255,255,0.6), inset 0 0 20px rgba(0,0,0,0.4), 0 10px 20px rgba(0,0,0,0.3), 0 20px 40px rgba(212,175,55,0.35); display: flex; justify-content: center; align-items: center; color: #fdf5d3; font-family: 'Cormorant Garamond', serif; font-size: 1.7rem; font-weight: 700; letter-spacing: 2px; z-index: 50; border: 1px solid rgba(255,255,255,0.4); text-shadow: -1px -1px 2px rgba(0,0,0,0.6), 1px 1px 2px rgba(255,255,255,0.5); }
-
-/* Animación Realista Flawless */
-#envelope.open .gold-seal { animation: premiumSealBreak 1.2s forwards cubic-bezier(0.25, 1, 0.5, 1); }
-@keyframes premiumSealBreak { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 15% { transform: translate(-50%, -49%) scale(0.92); opacity: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.2); } 25% { transform: translate(-50%, -44%) scale(0.95); opacity: 1; } 60% { transform: translate(-50%, 40px) scale(0.9); opacity: 0; } 100% { transform: translate(-50%, 40px) scale(0.9); opacity: 0; visibility: hidden; } }
-
-#envelope.open .envelope-top { animation: premiumFlapOpen 1.2s 0.8s forwards cubic-bezier(0.25, 1, 0.5, 1); }
-@keyframes premiumFlapOpen { 0% { transform: rotateX(0deg); z-index: 40; } 49% { z-index: 40; } 50% { transform: rotateX(90deg); z-index: 5; } 100% { transform: rotateX(180deg); z-index: 5; } }
-
-#envelope.open .letter { animation: premiumLetterExtract 2.8s 1.8s forwards cubic-bezier(0.25, 1, 0.5, 1); }
-@keyframes premiumLetterExtract { 
-    0% { transform: translateX(-50%) translateY(0) rotateZ(0deg); } 
-    30% { transform: translateX(-50%) translateY(-40px) rotateZ(2deg); } 
-    60% { transform: translateX(-50%) translateY(-190px) rotateZ(-1deg); } 
-    85% { transform: translateX(-50%) translateY(-185px) rotateZ(0deg); } 
-    100% { transform: translateX(-50%) translateY(-180px) rotateZ(0deg); } 
+/* Textura compartida (Papel Fino) */
+.lux-paper {
+    background-color: #fdfcf9;
+    background-image: 
+        linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 100%),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
 }
 
-#envelope-screen.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+/* 1. Fondo del Sobre */
+.lux-back {
+    position: absolute; inset: 0; border-radius: 6px; z-index: 1;
+    box-shadow: inset 0 25px 50px rgba(0,0,0,0.08); /* Profundidad interna */
+}
+
+/* 2. La Carta Física */
+.lux-letter {
+    position: absolute; 
+    left: 4%; right: 4%; bottom: 8px; top: 12px; /* Se ajusta dinámicamente */
+    border-radius: 4px; z-index: 2;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.12), inset 0 0 0 1px rgba(212,175,55,0.15);
+    display: flex; flex-direction: column; align-items: stretch; justify-content: stretch;
+    padding: 12px;
+}
+/* Borde Foil Dorado Interno */
+.lux-letter-border {
+    flex: 1; border: 1px solid rgba(212,175,55,0.6); position: relative;
+    box-shadow: inset 0 0 0 4px #fdfcf9, inset 0 0 0 5px rgba(212,175,55,0.2);
+    /* Posicionamos el contenido empujándolo hacia abajo para que se oculte bajo el frente del sobre */
+    padding-top: 45%; 
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+}
+.lux-letter-border::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background-image: linear-gradient(120deg, rgba(255,255,255,0.8) 0%, transparent 100%);
+}
+/* Contenido impreso en la carta */
+.lux-letter-content { position: relative; z-index: 1; }
+.lux-intro { font-family: 'Poppins', sans-serif; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 4px; color: #8c8273; font-weight: 500; display: block; line-height: 1.4; margin-bottom: 12px;}
+.lux-names { text-align: center; color: var(--gold); }
+.lux-names span { display: block; font-family: 'Cormorant Garamond', serif; font-size: clamp(2.2rem, 5vw, 2.8rem); letter-spacing: 6px; line-height: 1; font-weight: 600; text-shadow: 1px 1px 0 rgba(255,255,255,0.8); }
+.lux-names .lux-amp { font-size: 1.8rem; font-style: italic; margin: 10px 0; color: #a88b32; font-weight: 400; }
+.lux-details { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 15px; font-family: 'Poppins', sans-serif; font-size: 0.6rem; letter-spacing: 3px; color: #5a5449; font-weight: 500; }
+.lux-details .lux-dot { color: var(--gold); font-size: 0.4rem; }
+
+/* 3. Frente del Sobre (Slit Geométrico) */
+.lux-front {
+    position: absolute; inset: 0; border-radius: 6px; z-index: 3;
+    /* La hendidura en V, bajando hasta el 45% */
+    clip-path: polygon(0 0, 50% 45%, 100% 0, 100% 100%, 0 100%);
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.05); /* Sombra interna para el grosor */
+    border-top: 1px solid rgba(212,175,55,0.25); /* Reflejo del borde */
+}
+/* Líneas sutiles de pliegue */
+.lux-front::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(118deg, transparent 49.5%, rgba(0,0,0,0.04) 50%, transparent 50.5%),
+                linear-gradient(-118deg, transparent 49.5%, rgba(0,0,0,0.04) 50%, transparent 50.5%);
+}
+
+/* 4. Solapa Superior */
+.lux-flap {
+    position: absolute; top: 0; left: 0; right: 0; height: 60%;
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    transform-origin: top; z-index: 4;
+}
+
+/* ANIMACIÓN: El sistema z-index dinámico evita glitches en iOS y Chrome */
+.lux-envelope.is-open .lux-flap { animation: luxFlapOpen 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+@keyframes luxFlapOpen {
+    0% { transform: rotateX(0deg); z-index: 4; }
+    49% { z-index: 4; }
+    50% { transform: rotateX(90deg); z-index: 0; } /* Se esconde detrás de la carta (z:0 < z:2) */
+    100% { transform: rotateX(180deg); z-index: 0; }
+}
+
+/* La carta sale y revela los nombres naturalmente */
+.lux-envelope.is-open .lux-letter { animation: luxLetterOut 2.2s 0.8s cubic-bezier(0.34, 1.2, 0.64, 1) forwards; }
+@keyframes luxLetterOut {
+    0% { transform: translateY(0) rotate(0deg); }
+    40% { transform: translateY(-30%) rotate(1.5deg); } /* Sale con ligera inclinación física */
+    100% { transform: translateY(-55%) rotate(0deg); } /* Se detiene a la mitad, los nombres ahora están arriba del V-notch */
+}
 
 /*==================================================
                 ESTRUCTURA PRINCIPAL
@@ -327,21 +385,9 @@ main.show { opacity:1; }
 /*==================================================
         CUENTA REGRESIVA DINÁMICA (PRESTIGE)
 ==================================================*/
-.countdown-prestige-grid {
-    display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; max-width: 800px; margin: 0 auto;
-}
-.time-card {
-    flex: 1; min-width: 130px; max-width: 180px;
-    background: linear-gradient(160deg, #ffffff 0%, #fcfbf9 100%);
-    border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.05), inset 0 0 0 1px rgba(212,175,55,0.15);
-    padding: 35px 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;
-    transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.6s ease;
-}
-.time-card::before {
-    content: ''; position: absolute; top: 2px; left: 2px; right: 2px; height: 50%;
-    background: linear-gradient(to bottom, rgba(255,255,255,0.9), transparent);
-    border-radius: 18px 18px 0 0; pointer-events: none;
-}
+.countdown-prestige-grid { display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; max-width: 800px; margin: 0 auto; }
+.time-card { flex: 1; min-width: 130px; max-width: 180px; background: linear-gradient(160deg, #ffffff 0%, #fcfbf9 100%); border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.05), inset 0 0 0 1px rgba(212,175,55,0.15); padding: 35px 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.6s ease; }
+.time-card::before { content: ''; position: absolute; top: 2px; left: 2px; right: 2px; height: 50%; background: linear-gradient(to bottom, rgba(255,255,255,0.9), transparent); border-radius: 18px 18px 0 0; pointer-events: none; }
 @media (min-width: 769px) { .time-card:hover { transform: translateY(-8px); box-shadow: 0 35px 60px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(212,175,55,0.3); } }
 .time-card .number { font-family: 'Cormorant Garamond', serif; font-size: 4.5rem; color: #1a1917; line-height: 1; font-weight: 400; text-shadow: 2px 2px 8px rgba(0,0,0,0.04); display: block; transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), color 0.4s ease; }
 .time-card .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 4px; color: var(--gold); font-weight: 600; margin-top: 15px; }
@@ -407,12 +453,8 @@ main.show { opacity:1; }
 ==================================================*/
 .form-card { max-width: 800px; text-align: center; }
 .rsvp-header { margin-bottom: 40px; }
-
 .vip-access-container { display: flex; flex-direction: column; align-items: center; gap: 40px; margin-top: 30px; }
-
-@media (min-width: 769px) {
-    .vip-access-container { flex-direction: row; justify-content: center; align-items: stretch; text-align: left; }
-}
+@media (min-width: 769px) { .vip-access-container { flex-direction: row; justify-content: center; align-items: stretch; text-align: left; } }
 
 .qr-wrapper { display: flex; flex-direction: column; align-items: center; padding: 25px; background: #ffffff; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.06); border: 1px solid rgba(212,175,55,0.2); }
 .qr-wrapper img { width: 180px; height: 180px; display: block; border-radius: 8px; margin-bottom: 15px; }
@@ -425,11 +467,7 @@ main.show { opacity:1; }
 .ticket-info strong { display: block; font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: #1a1917; line-height: 1.3;}
 .ticket-info span { font-size: 0.85rem; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; display: block; line-height: 1.3;}
 .ticket-status { font-size: 0.75rem; font-weight: 600; color: #2e7d32; background: #e8f5e9; padding: 4px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 1px; }
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 /*==================================================
         SERVICIOS PRESTIGE EXCLUSIVOS
@@ -462,64 +500,14 @@ footer small { color: #999; font-size: .85rem; }
 /*==================================================
             MENÚ FLOTANTE PRESTIGE
 ==================================================*/
-.floating-menu {
-    position: fixed;
-    bottom: 40px;
-    left: 50%;
-    transform: translate(-50%, 100px) scale(0.9);
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: saturate(180%) blur(20px);
-    -webkit-backdrop-filter: saturate(180%) blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05), inset 0 0 0 1px rgba(212,175,55,0.1);
-    border-radius: 999px;
-    padding: 5px 25px;
-    z-index: 9999;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-}
-.floating-menu.show {
-    transform: translate(-50%, 0) scale(1);
-    opacity: 1;
-    visibility: visible;
-}
-.floating-menu ul {
-    display: flex;
-    list-style: none;
-    gap: 30px;
-    align-items: center;
-    margin: 0;
-}
-.floating-menu a {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    color: #66635e;
-    padding: 10px 5px;
-    gap: 6px;
-    transition: all 0.3s ease;
-}
-.floating-menu a:hover {
-    color: var(--gold);
-}
-.floating-menu a i {
-    width: 22px;
-    height: 22px;
-    transition: transform 0.3s ease;
-}
-.floating-menu a:hover i {
-    transform: translateY(-2px) scale(1.1);
-}
-.floating-menu a span {
-    font-size: 0.65rem;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    font-weight: 500;
-    font-family: 'Poppins', sans-serif;
-}
+.floating-menu { position: fixed; bottom: 40px; left: 50%; transform: translate(-50%, 100px) scale(0.9); background: rgba(255, 255, 255, 0.75); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 20px 40px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05), inset 0 0 0 1px rgba(212,175,55,0.1); border-radius: 999px; padding: 5px 25px; z-index: 9999; opacity: 0; visibility: hidden; transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
+.floating-menu.show { transform: translate(-50%, 0) scale(1); opacity: 1; visibility: visible; }
+.floating-menu ul { display: flex; list-style: none; gap: 30px; align-items: center; margin: 0; }
+.floating-menu a { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: #66635e; padding: 10px 5px; gap: 6px; transition: all 0.3s ease; }
+.floating-menu a:hover { color: var(--gold); }
+.floating-menu a i { width: 22px; height: 22px; transition: transform 0.3s ease; }
+.floating-menu a:hover i { transform: translateY(-2px) scale(1.1); }
+.floating-menu a span { font-size: 0.65rem; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 500; font-family: 'Poppins', sans-serif; }
 
 /*==================================================
             ANIMACIONES REVEAL PREMIUM
@@ -551,12 +539,10 @@ footer small { color: #999; font-size: .85rem; }
 
     .section h3 { font-size: 2.4rem; }
     
-    #envelope { width: 300px; height: 200px; }
-    .envelope-wrapper h1 { font-size: 2.8rem; }
-    .gold-seal { width: 60px; height: 60px; font-size: 1.3rem; }
-    
-    .letter { height: 160px; }
-    #envelope.open .letter { transform: translateX(-50%) translateY(-110px); }
+    .lux-envelope { max-width: 320px; }
+    .lux-content-wrapper h1 { font-size: 2.8rem; }
+    .lux-names span { font-size: 2.2rem; }
+    @keyframes luxLetterOut { 0% { transform: translateY(0) rotate(0deg); } 40% { transform: translateY(-25%) rotate(1.5deg); } 100% { transform: translateY(-45%) rotate(0deg); } }
 
     .play-button { width: 60px; height: 60px; }
     .play-button i { width: 24px; height: 24px; margin-left: 3px; }
@@ -587,51 +573,27 @@ footer small { color: #999; font-size: .85rem; }
 
     .cta-wrapper h2 { font-size: 2.3rem; }
 
-    .floating-menu {
-        bottom: 25px;
-        padding: 5px 15px;
-        width: calc(100% - 40px);
-        max-width: 400px;
-    }
-    .floating-menu ul {
-        justify-content: space-between;
-        gap: 0;
-        width: 100%;
-    }
-    .floating-menu a span {
-        font-size: 0.5rem;
-        letter-spacing: 0.5px;
-    }
-    .floating-menu a i {
-        width: 20px;
-        height: 20px;
-    }
+    .floating-menu { bottom: 25px; padding: 5px 15px; width: calc(100% - 40px); max-width: 400px; }
+    .floating-menu ul { justify-content: space-between; gap: 0; width: 100%; }
+    .floating-menu a span { font-size: 0.5rem; letter-spacing: 0.5px; }
+    .floating-menu a i { width: 20px; height: 20px; }
 }
 
 @media (hover:none){
-    .primary-button:active, #envelope:active { transform:scale(.97); }
+    .primary-button:active { transform:scale(.97); }
     #musicButton:active { transform:scale(.94); }
 }
 
 @media (max-width:390px){
     .hero h2 { font-size: 3rem; }
     .section h3 { font-size: 2.1rem; }
-    #envelope { width: 270px; height: 180px; }
-    .gold-seal { width: 55px; height: 55px; font-size: 1.2rem; }
-    .letter { height: 145px; }
-    #envelope.open .letter { transform: translateX(-50%) translateY(-100px); }
+    
+    .lux-envelope { max-width: 280px; }
     
     .time-card { min-width: calc(50% - 10px); }
-    .time-card .number { font-size: 2.4rem; }
+    .time-card .number { font-size: 3rem; }
 
-    .floating-menu a span {
-        display: none;
-    }
-    .floating-menu a i {
-        width: 22px;
-        height: 22px;
-    }
-    .floating-menu a {
-        padding: 12px 10px;
-    }
+    .floating-menu a span { display: none; }
+    .floating-menu a i { width: 22px; height: 22px; }
+    .floating-menu a { padding: 12px 10px; }
 }

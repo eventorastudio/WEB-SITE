@@ -53,63 +53,45 @@
     </audio>
 
     <!--====================================
-            PORTADA / SOBRE PRESTIGE (HIPERREALISTA)
+            PORTADA / SOBRE PRESTIGE (NUEVO Y FÍSICO)
     =====================================-->
-    <section id="envelope-screen">
-        <div class="hero-glow"></div>
-        <div class="envelope-wrapper">
+    <section id="lux-envelope-screen">
+        <div class="lux-glow"></div>
+        
+        <div class="lux-content-wrapper">
             <span class="demo-badge">✦ PAQUETE PRESTIGE</span>
-            <h1>Una invitación para<br>un momento inolvidable</h1>
-            <p class="demo-description">Descubre nuestra experiencia de lujo diseñada exclusivamente para sorprender a cada uno de tus invitados.</p>
-            <div class="tap-container">
-                <p class="tap-text">Toca el sobre para abrir</p>
-                <div class="tap-arrow">↓</div>
-            </div>
+            <h1>Experiencia Exclusiva</h1>
+            <p class="lux-description">Toca el sobre para descubrir la máxima expresión de elegancia.</p>
             
-            <div id="envelope">
+            <div class="lux-envelope" id="lux-envelope">
                 
-                <!-- 1. Fondo interior del sobre -->
-                <div class="envelope-back"></div>
+                <!-- 1. Fondo del sobre -->
+                <div class="lux-back lux-paper"></div>
                 
-                <!-- 2. Carta con contenido impreso -->
-                <div class="letter">
-                    <div class="letter-foil-border">
-                        <div class="letter-content text-center">
-                            <span class="letter-intro">Con mucho cariño,</span><br>
-                            <span class="letter-intro">nos complace invitarte</span>
-                            <div class="letter-names">
-                                <span>María</span>
-                                <span class="ampersand">&</span>
-                                <span>Fernando</span>
-                            </div>
-                            <div class="letter-details">
-                                <span>15 NOVIEMBRE 2027</span>
-                                <span class="letter-dot">✦</span>
-                                <span>SALTILLO, COAHUILA</span>
-                            </div>
+                <!-- 2. Carta Física -->
+                <div class="lux-letter lux-paper">
+                    <div class="lux-letter-border">
+                        <!-- El texto está posicionado físicamente abajo para revelarse al salir -->
+                        <div class="lux-names">
+                            <span>MARÍA</span>
+                            <span class="lux-amp">&</span>
+                            <span>FERNANDO</span>
                         </div>
                     </div>
                 </div>
-
+                
                 <!-- 3. Frente del sobre (Cubre la carta) -->
-                <div class="envelope-front">
-                    <div class="envelope-emboss">
-                        <span class="line"></span>
-                        <span class="title">INVITACIÓN</span>
-                        <span class="line"></span>
-                    </div>
-                </div>
+                <div class="lux-front lux-paper"></div>
                 
                 <!-- 4. Solapa superior -->
-                <div class="envelope-top"></div>
-                
-                <!-- 5. Sello de cera -->
-                <div class="gold-seal">
-                    <span>ES</span>
-                </div>
+                <div class="lux-flap lux-paper"></div>
 
             </div>
             
+            <div class="lux-hint">
+                <p>Toca para abrir</p>
+                <div class="lux-arrow">↓</div>
+            </div>
         </div>
     </section>
 
@@ -171,7 +153,7 @@
                     </p>
                     
                     <h3 style="font-size: 3.5rem; color: var(--gold); font-style: italic; margin-bottom: 25px;">
-                        Luis Pablo García
+                        Andrea Téllez
                     </h3>
                     
                     <div class="divider small"><i data-lucide="sparkles"></i></div>
@@ -490,8 +472,8 @@
                     <div class="vip-access-container">
                         <!-- Código QR Central -->
                         <div class="qr-wrapper">
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://eventora.studio/prestige/LuisPablo" alt="Tu Código de Acceso VIP">
-                            <p class="qr-caption">Luis Pablo García</p>
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://eventora.studio/prestige/AndreaTellez" alt="Tu Código de Acceso VIP">
+                            <p class="qr-caption">Andrea Téllez</p>
                         </div>
 
                         <!-- Lista de Pases Asignados -->
@@ -502,7 +484,7 @@
                                 <div class="ticket-icon"><i data-lucide="user-check"></i></div>
                                 <div class="ticket-info">
                                     <strong>Pase Principal</strong>
-                                    <span>Luis Pablo García</span>
+                                    <span>Andrea Téllez</span>
                                 </div>
                                 <div class="ticket-status">Autorizado</div>
                             </div>

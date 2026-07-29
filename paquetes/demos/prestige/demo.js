@@ -10,8 +10,8 @@ document.addEventListener("DOMContentLoaded", () => {
     =====================================*/
 
     const loader = document.getElementById("loader");
-    const envelope = document.getElementById("envelope");
-    const envelopeScreen = document.getElementById("envelope-screen");
+    const luxEnvelope = document.getElementById("lux-envelope");
+    const envelopeScreen = document.getElementById("lux-envelope-screen");
     const invitation = document.getElementById("invitation");
     const musicButton = document.getElementById("musicButton");
     const music = document.getElementById("backgroundMusic");
@@ -49,36 +49,39 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 1200);
 
     /*=====================================
-            ABRIR INVITACIÓN (PRESTIGE)
+            ABRIR INVITACIÓN (HIPERREALISTA)
     =====================================*/
     let opened = false;
 
-    envelope.addEventListener("click", () => {
-        if (opened) return;
-        opened = true;
-        envelope.classList.add("open");
+    if (luxEnvelope) {
+        luxEnvelope.addEventListener("click", () => {
+            if (opened) return;
+            opened = true;
+            luxEnvelope.classList.add("is-open");
 
-        if (navigator.vibrate) navigator.vibrate(20);
+            if (navigator.vibrate) navigator.vibrate(20);
 
-        setTimeout(() => {
-            envelopeScreen.classList.add("hide");
-            invitation.classList.remove("hidden");
+            // Ajustado al tiempo de la nueva cinemática física (Flap 1.2s + Espera + Carta 2.2s + Pausa)
+            setTimeout(() => {
+                envelopeScreen.classList.add("hide");
+                invitation.classList.remove("hidden");
+                
+                document.documentElement.style.scrollBehavior = "auto";
+                window.scrollTo(0, 0);
+                document.documentElement.style.scrollBehavior = "";
+                document.body.classList.remove("no-scroll");
+
+                requestAnimationFrame(() => {
+                    invitation.classList.add("show");
+                    musicButton.classList.add("show");
+                });
+            }, 5500); 
             
-            document.documentElement.style.scrollBehavior = "auto";
-            window.scrollTo(0, 0);
-            document.documentElement.style.scrollBehavior = "";
-            document.body.classList.remove("no-scroll");
-
-            requestAnimationFrame(() => {
-                invitation.classList.add("show");
-                musicButton.classList.add("show");
-            });
-        }, 4600); // Ajustado para la nueva animación realista
-        
-        setTimeout(() => {
-            music.play().catch(() => {});
-        }, 3000);
-    });
+            setTimeout(() => {
+                music.play().catch(() => {});
+            }, 3500);
+        });
+    }
 
     /*=====================================
                 MÚSICA
