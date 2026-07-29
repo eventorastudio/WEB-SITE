@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (navigator.vibrate) navigator.vibrate(20);
 
-            // Ajustado al tiempo de la nueva cinemática física (Flap 1.2s + Espera + Carta 2.2s + Pausa de lectura dramática)
+            // Ajustado al tiempo exacto de la cinemática
             setTimeout(() => {
                 envelopeScreen.classList.add("hide");
                 invitation.classList.remove("hidden");
@@ -78,12 +78,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     invitation.classList.add("show");
                     musicButton.classList.add("show");
                 });
-            }, 6000); 
+            }, 4800); 
             
-            // La música comienza suavemente mientras se saca la invitación
             setTimeout(() => {
                 music.play().catch(() => {});
-            }, 3500);
+            }, 2500);
         });
     }
 
@@ -168,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (el.textContent !== newValue) {
             el.textContent = newValue;
             el.classList.remove("pop");
-            void el.offsetWidth; // Dispara reflow nativo
+            void el.offsetWidth;
             el.classList.add("pop");
         }
     };
@@ -226,8 +225,8 @@ document.addEventListener("DOMContentLoaded", () => {
     /*=====================================
             CONFIRMACIÓN PASES VIP (PRESTIGE)
     =====================================*/
-    if (confirmButton && declineButton && rsvpActionContainer && rsvpMessageContainer) {
-        confirmButton.addEventListener("click", (e) => {
+    if (btnConfirm && btnDecline && rsvpActionContainer && rsvpMessageContainer) {
+        btnConfirm.addEventListener("click", (e) => {
             e.preventDefault();
             rsvpActionContainer.style.display = "none";
             rsvpMessageContainer.style.display = "block";
@@ -243,7 +242,7 @@ document.addEventListener("DOMContentLoaded", () => {
             lucide.createIcons();
         });
 
-        declineButton.addEventListener("click", (e) => {
+        btnDecline.addEventListener("click", (e) => {
             e.preventDefault();
             rsvpActionContainer.style.display = "none";
             rsvpMessageContainer.style.display = "block";
