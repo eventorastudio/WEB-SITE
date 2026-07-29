@@ -196,9 +196,9 @@ i { font-style: italic; color: var(--gold); }
 .tap-arrow { margin-top: 8px; font-size: 1.2rem; color: #a89468; animation: premiumBounce 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
 @keyframes premiumBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
 
-/* Sistema Físico del Sobre - Restaurado Lógica Esencial para prevenir Glitches */
+/* Sistema Físico del Sobre */
 #envelope { 
-    position: relative; width: 440px; height: 290px; margin: auto; cursor: pointer; perspective: 1800px; 
+    position: relative; width: 420px; height: 285px; margin: auto; cursor: pointer; perspective: 1500px; 
     animation: premiumFloat 7s cubic-bezier(0.4, 0, 0.2, 1) infinite; 
     box-shadow: 0 45px 65px -15px rgba(0,0,0,0.15), 0 15px 30px -10px rgba(0,0,0,0.12); border-radius: 6px; 
 }
@@ -216,7 +216,7 @@ i { font-style: italic; color: var(--gold); }
 
 .envelope-title { position: absolute; top: 76%; left: 50%; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 15px; width: 80%; justify-content: center; z-index: 1; }
 .envelope-title .title { color: #e3decb; font-family: 'Cormorant Garamond', serif; font-size: 1.35rem; letter-spacing: 6px; font-weight: 600; text-shadow: 1px 1px 1px rgba(255,255,255,0.9), -1px -1px 1px rgba(0,0,0,0.15); }
-.envelope-title .line { flex: 1; height: 1px; background: rgba(0,0,0,0.08); box-shadow: 0 1px 0 rgba(255,255,255,0.8); }
+.envelope-title .line { flex: 1; height: 1px; background: rgba(0,0,0,0.08); box-shadow: 0 1px 0 rgba(255,255,255,0.6); }
 
 .gold-seal { position: absolute; left: 50%; top: 48%; transform: translate(-50%, -50%); width: 76px; height: 76px; border-radius: 52% 48% 51% 49% / 50% 49% 51% 50%; background: radial-gradient(circle at 35% 30%, #f7d570 0%, #c19218 45%, #7a5908 100%); box-shadow: inset 0 0 10px rgba(255,255,255,0.5), inset 0 0 18px rgba(0,0,0,0.3), 0 8px 15px rgba(0,0,0,0.25), 0 15px 30px rgba(212,175,55,0.25); display: flex; justify-content: center; align-items: center; color: #fdf5d3; font-family: 'Cormorant Garamond', serif; font-size: 1.7rem; font-weight: 700; letter-spacing: 2px; z-index: 10; border: 1px solid rgba(255,255,255,0.4); text-shadow: -1px -1px 2px rgba(0,0,0,0.6), 1px 1px 2px rgba(255,255,255,0.5); }
 
@@ -292,73 +292,25 @@ main.show { opacity:1; }
         CUENTA REGRESIVA DINÁMICA (PRESTIGE)
 ==================================================*/
 .countdown-prestige-grid {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    flex-wrap: wrap;
-    max-width: 800px;
-    margin: 0 auto;
+    display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; max-width: 800px; margin: 0 auto;
 }
-
 .time-card {
-    flex: 1;
-    min-width: 130px;
-    max-width: 180px;
+    flex: 1; min-width: 130px; max-width: 180px;
     background: linear-gradient(160deg, #ffffff 0%, #fcfbf9 100%);
-    border-radius: 20px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.05), inset 0 0 0 1px rgba(212,175,55,0.15);
-    padding: 35px 15px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
+    border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.05), inset 0 0 0 1px rgba(212,175,55,0.15);
+    padding: 35px 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;
     transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.6s ease;
 }
-
 .time-card::before {
-    content: '';
-    position: absolute;
-    top: 2px; left: 2px; right: 2px; height: 50%;
+    content: ''; position: absolute; top: 2px; left: 2px; right: 2px; height: 50%;
     background: linear-gradient(to bottom, rgba(255,255,255,0.9), transparent);
-    border-radius: 18px 18px 0 0;
-    pointer-events: none;
+    border-radius: 18px 18px 0 0; pointer-events: none;
 }
-
-@media (min-width: 769px) {
-    .time-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 35px 60px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(212,175,55,0.3);
-    }
-}
-
-.time-card .number {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 4.5rem;
-    color: #1a1917;
-    line-height: 1;
-    font-weight: 400;
-    text-shadow: 2px 2px 8px rgba(0,0,0,0.04);
-    display: block;
-    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), color 0.4s ease;
-}
-
-.time-card .label {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 4px;
-    color: var(--gold);
-    font-weight: 600;
-    margin-top: 15px;
-}
-
+@media (min-width: 769px) { .time-card:hover { transform: translateY(-8px); box-shadow: 0 35px 60px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(212,175,55,0.3); } }
+.time-card .number { font-family: 'Cormorant Garamond', serif; font-size: 4.5rem; color: #1a1917; line-height: 1; font-weight: 400; text-shadow: 2px 2px 8px rgba(0,0,0,0.04); display: block; transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), color 0.4s ease; }
+.time-card .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 4px; color: var(--gold); font-weight: 600; margin-top: 15px; }
 .pop { animation: prestigePopScale 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
-@keyframes prestigePopScale { 
-    0% { transform: scale(1); opacity: 0.8; } 
-    50% { transform: scale(1.08); color: var(--gold); opacity: 1; text-shadow: 0 5px 15px rgba(212,175,55,0.3); } 
-    100% { transform: scale(1); color: #1a1917; opacity: 1; } 
-}
+@keyframes prestigePopScale { 0% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.08); color: var(--gold); opacity: 1; text-shadow: 0 5px 15px rgba(212,175,55,0.3); } 100% { transform: scale(1); color: #1a1917; opacity: 1; } }
 
 /*==================================================
         SISTEMA DE GALERÍAS Y FOTOGRAFÍAS
@@ -385,22 +337,34 @@ main.show { opacity:1; }
 .dress-glass-caption span { font-size: 0.95rem; color: var(--gray); font-style: italic; }
 
 /*==================================================
-        ITINERARIO PRESTIGE
+        ITINERARIO PRESTIGE EDITORIAL
 ==================================================*/
 .itinerary-grid { display: flex; flex-direction: column; gap: 40px; max-width: 600px; margin: 0 auto; padding-top: 20px;}
-.location-itinerary-card { padding: 40px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 15px; position: relative; overflow: visible !important; margin-top: 20px; }
-.time-badge { position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%); background: #1a1917; color: #fff; padding: 6px 20px; border-radius: 999px; font-weight: 600; font-size: 0.85rem; letter-spacing: 2px; z-index: 10; box-shadow: 0 10px 20px rgba(0,0,0,0.15); border: 1px solid rgba(212,175,55,0.3); }
-.location-itinerary-card h4 { font-size: 1.8rem; margin: 10px 0; }
+.itinerary-prestige-card { padding: 0 !important; display: flex; flex-direction: column; overflow: visible !important; margin-top: 20px;}
+.itinerary-image-wrapper { position: relative; width: 100%; height: 240px; overflow: hidden; border-radius: 20px 20px 0 0; }
+.itinerary-image-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.itinerary-prestige-card:hover .itinerary-image-wrapper img { transform: scale(1.08); }
+.itinerary-image-wrapper .image-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 40%, rgba(0,0,0,0.1) 100%); z-index: 1; pointer-events: none; }
+.time-badge-premium { position: absolute; top: 20px; left: 20px; background: rgba(26, 25, 23, 0.85); backdrop-filter: blur(8px); color: #fff; padding: 8px 20px; border-radius: 999px; font-weight: 600; font-size: 0.85rem; letter-spacing: 2px; z-index: 2; border: 1px solid rgba(212,175,55,0.4); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+.itinerary-content { padding: 40px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 15px; position: relative; }
+.itinerary-icon { margin-top: -70px; margin-bottom: 10px; position: relative; z-index: 3; background: #fdfcf9; box-shadow: 0 10px 25px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(212,175,55,0.2); }
 .info-list.compact { margin: 10px 0; }
 .info-list.compact .info-item { justify-content: center; text-align: center; }
 
 /*==================================================
-        MESA DE REGALOS 
+        MESA DE REGALOS PRESTIGE EDITORIAL
 ==================================================*/
 .registry-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; max-width: 900px; margin: 0 auto; }
-.registry-card { padding: 45px 30px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 15px; }
-.registry-card h4 { font-size: 1.6rem; letter-spacing: 2px; }
-.registry-card p { font-size: .95rem; margin-bottom: 10px; }
+.registry-prestige-card { padding: 0 !important; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+.registry-image-wrapper { position: relative; width: 100%; height: 180px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.registry-image-wrapper img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 1.5s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 0; }
+.registry-prestige-card:hover .registry-image-wrapper img { transform: scale(1.08); }
+.registry-image-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.2); z-index: 1; transition: background 0.5s ease; }
+.registry-prestige-card:hover .registry-image-overlay { background: rgba(0,0,0,0.3); }
+.registry-image-wrapper .icon-box { position: relative; z-index: 2; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 56px; height: 56px; }
+.registry-content { padding: 35px 30px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 15px; flex: 1; }
+.registry-content h4 { font-size: 1.6rem; letter-spacing: 2px; margin: 0;}
+.registry-content p { font-size: .95rem; margin-bottom: 10px; color: var(--gray); }
 
 /*==================================================
         ACCESO VIP (PASES ASIGNADOS)
@@ -498,7 +462,6 @@ footer small { color: #999; font-size: .85rem; }
     .premium-gallery::-webkit-scrollbar { display: none; }
     .premium-gallery .premium-image-wrapper { min-width: 75%; scroll-snap-align: center; }
 
-    /* Responsive Contador Prestige */
     .countdown-prestige-grid { gap: 15px; }
     .time-card { min-width: calc(50% - 10px); padding: 25px 10px; border-radius: 16px; }
     .time-card .number { font-size: 3.5rem; }
@@ -507,7 +470,11 @@ footer small { color: #999; font-size: .85rem; }
     .dresscode-gallery { grid-template-columns: 1fr; gap: 50px; }
     .dress-image { aspect-ratio: 4/5; max-width: 320px; margin: 0 auto 20px; }
     
+    .itinerary-prestige-card { padding: 0 !important; }
+    .itinerary-content { padding: 30px 20px; }
+    
     .registry-grid { grid-template-columns: 1fr; gap: 20px; }
+    .registry-prestige-card { padding: 0 !important; }
     
     .vip-access-container { flex-direction: column; align-items: center; text-align: center; }
     .assigned-passes { width: 100%; }

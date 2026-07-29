@@ -160,7 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (el.textContent !== newValue) {
             el.textContent = newValue;
             el.classList.remove("pop");
-            void el.offsetWidth; // Dispara reflow nativo
+            void el.offsetWidth;
             el.classList.add("pop");
         }
     };
