@@ -1,0 +1,224 @@
+/*=========================================
+        EVENTORA STUDIO
+        PANEL DE CONTROL PRESTIGE
+=========================================*/
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    /*=====================================
+            BASE DE DATOS DEMO
+    =====================================*/
+    // Estado inicial ficticio para demostrar funcionalidad
+    let guestsData = [
+        { id: "PRE-001", name: "Luis Pablo García", table: 15, passes: 2, status: "pending", time: null },
+        { id: "PRE-002", name: "Familia Cárdenas", table: 3, passes: 4, status: "arrived", time: "18:45" },
+        { id: "PRE-003", name: "Ana Sofía Herrera", table: 8, passes: 1, status: "declined", time: null },
+        { id: "PRE-004", name: "Roberto Gómez", table: 12, passes: 2, status: "pending", time: null },
+        { id: "PRE-005", name: "Carlos de la Garza", table: 5, passes: 3, status: "arrived", time: "19:10" },
+        { id: "PRE-006", name: "Valeria Moncada", table: 15, passes: 1, status: "pending", time: null }
+    ];
+
+    // Offsets fijos para que los números globales se vean impresionantes
+    const BASE_TOTAL = 180;
+    const BASE_ARRIVED = 126;
+    const BASE_DECLINED = 9;
+
+    /*=====================================
+            ELEMENTOS DEL DOM
+    =====================================*/
+    const loader = document.getElementById("loader");
+    const guestsListEl = document.getElementById("guestsList");
+    const searchInput = document.getElementById("searchInput");
+    
+    // Stats
+    const elTotal = document.getElementById("stat-total");
+    const elArrived = document.getElementById("stat-arrived");
+    const elPending = document.getElementById("stat-pending");
+    const elDeclined = document.getElementById("stat-declined");
+    const elProgressBar = document.getElementById("progress-bar");
+    const elProgressText = document.getElementById("progress-text");
+
+    // QR Modal
+    const btnOpenScanner = document.getElementById("openScannerBtn");
+    const btnCloseScanner = document.getElementById("closeScannerBtn");
+    const qrModal = document.getElementById("qrModal");
+    const scannerAlert = document.getElementById("scannerAlert");
+    const alertIcon = document.getElementById("alertIcon");
+    const alertTitle = document.getElementById("alertTitle");
+    const alertMessage = document.getElementById("alertMessage");
+    const scannerViewfinder = document.getElementById("scannerViewfinder");
+
+    /*=====================================
+            INICIALIZACIÓN
+    =====================================*/
+    setTimeout(() => {
+        loader.style.opacity = "0";
+        loader.style.visibility = "hidden";
+        updateDashboard();
+    }, 1000);
+
+    /*=====================================
+            LÓGICA DEL PANEL
+    =====================================*/
+    
+    function updateDashboard(filterText = "") {
+        renderGuests(filterText);
+        updateStatistics();
+    }
+
+    function renderGuests(filterText) {
+        guestsListEl.innerHTML = "";
+
+        const filteredGuests = guestsData.filter(guest => 
+            guest.name.toLowerCase().includes(filterText.toLowerCase())
+        );
+
+        if (filteredGuests.length === 0) {
+            guestsListEl.innerHTML = `<p style="color: var(--gray); grid-column: 1/-1; text-align:center; padding: 40px;">No se encontraron invitados.</p>`;
+            return;
+        }
+
+        filteredGuests.forEach(guest => {
+            const card = document.createElement("article");
+            card.className = `guest-card status-${guest.status}`;
+
+            // Contenido dinámico según el estado
+            let statusBadge = "";
+            let actionHtml = "";
+
+            if (guest.status === "pending") {
+                statusBadge = `<div class="status-badge pending"><span>🟡</span> Pendiente</div>`;
+                actionHtml = `<button class="check-in-btn" onclick="registerArrival('${guest.id}')">Registrar llegada</button>`;
+            } else if (guest.status === "arrived") {
+                statusBadge = `<div class="status-badge arrived"><i data-lucide="check-circle-2"></i> Llegó</div>`;
+                actionHtml = `<span class="time-stamp">${guest.time} hrs</span>`;
+            } else if (guest.status === "declined") {
+                statusBadge = `<div class="status-badge declined"><i data-lucide="x-circle"></i> No asistirá</div>`;
+            }
+
+            card.innerHTML = `
+                <div class="guest-header">
+                    <h3 class="guest-name">${guest.name}</h3>
+                    <div class="guest-info-row">
+                        <span><i data-lucide="utensils"></i> Mesa ${guest.table}</span>
+                        <span><i data-lucide="users"></i> ${guest.passes} pases</span>
+                    </div>
+                </div>
+                <div class="guest-actions">
+                    ${statusBadge}
+                    ${actionHtml}
+                </div>
+            `;
+            guestsListEl.appendChild(card);
+        });
+
+        lucide.createIcons();
+    }
+
+    function updateStatistics() {
+        // Calculamos los totales dinámicos sumando los fijos + los del array
+        let dynamicArrived = guestsData.filter(g => g.status === "arrived").length;
+        let dynamicPending = guestsData.filter(g => g.status === "pending").length;
+        let dynamicDeclined = guestsData.filter(g => g.status === "declined").length;
+
+        let totalGuests = BASE_TOTAL + guestsData.length;
+        let totalArrived = BASE_ARRIVED + dynamicArrived;
+        let totalDeclined = BASE_DECLINED + dynamicDeclined;
+        // Los pendientes son el total menos los que ya respondieron (llegaron o declinaron)
+        let totalPending = totalGuests - totalArrived - totalDeclined; 
+
+        // Actualizar UI
+        elTotal.textContent = totalGuests;
+        elArrived.textContent = totalArrived;
+        elPending.textContent = totalPending;
+        elDeclined.textContent = totalDeclined;
+
+        // Calcular porcentaje de asistencia (sobre los que confirmaron o estaban pendientes)
+        let totalExpected = totalGuests - totalDeclined;
+        let percentage = Math.round((totalArrived / totalExpected) * 100);
+        
+        if (percentage > 100) percentage = 100;
+
+        elProgressBar.style.width = `${percentage}%`;
+        elProgressText.textContent = `${percentage}%`;
+    }
+
+    // Exponer función al window para poder usarla en el onclick de HTML inyectado
+    window.registerArrival = (guestId) => {
+        const guestIndex = guestsData.findIndex(g => g.id === guestId);
+        if (guestIndex > -1) {
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            guestsData[guestIndex].status = "arrived";
+            guestsData[guestIndex].time = timeStr;
+            
+            updateDashboard(searchInput.value);
+        }
+    };
+
+    /*=====================================
+            EVENTOS DE BÚSQUEDA
+    =====================================*/
+    searchInput.addEventListener("input", (e) => {
+        updateDashboard(e.target.value);
+    });
+
+    /*=====================================
+            SIMULACIÓN ESCÁNER QR
+    =====================================*/
+    btnOpenScanner.addEventListener("click", () => {
+        // Resetear modal
+        scannerAlert.classList.remove("show");
+        scannerAlert.classList.add("hidden");
+        scannerViewfinder.style.opacity = "1";
+        
+        qrModal.classList.add("active");
+        document.body.style.overflow = "hidden"; // Bloquea el scroll del fondo
+
+        // Simula la detección de un código QR después de 2 segundos
+        setTimeout(() => {
+            simulateQRScan();
+        }, 2000);
+    });
+
+    btnCloseScanner.addEventListener("click", () => {
+        qrModal.classList.remove("active");
+        document.body.style.overflow = "";
+    });
+
+    function simulateQRScan() {
+        // Buscamos a Luis Pablo para la simulación
+        const luisPablo = guestsData.find(g => g.name === "Luis Pablo García");
+        
+        scannerViewfinder.style.opacity = "0"; // Esconde el visor
+        scannerAlert.classList.remove("hidden", "alert-success", "alert-error");
+        
+        setTimeout(() => {
+            if (luisPablo.status === "pending") {
+                // Registrar llegada exitosa
+                window.registerArrival(luisPablo.id);
+                
+                scannerAlert.classList.add("alert-success");
+                alertIcon.innerHTML = `<i data-lucide="check"></i>`;
+                alertTitle.textContent = "Acceso Autorizado";
+                alertMessage.innerHTML = `<strong>${luisPablo.name}</strong><br>Mesa ${luisPablo.table} • ${luisPablo.passes} pases`;
+            } else {
+                // Ya estaba registrado
+                scannerAlert.classList.add("alert-error");
+                alertIcon.innerHTML = `<i data-lucide="x"></i>`;
+                alertTitle.textContent = "QR ya utilizado";
+                alertMessage.innerHTML = `Este invitado ya registró su entrada.<br>Hora de registro: <strong>${luisPablo.time} hrs</strong>`;
+            }
+
+            scannerAlert.classList.add("show");
+            lucide.createIcons();
+
+            // Cerrar el modal automáticamente después de mostrar el mensaje
+            setTimeout(() => {
+                btnCloseScanner.click();
+            }, 3000);
+
+        }, 300);
+    }
+});

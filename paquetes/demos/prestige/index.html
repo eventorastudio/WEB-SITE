@@ -337,7 +337,7 @@
                     <!-- Ceremonia -->
                     <div class="premium-card hover-elevate itinerary-prestige-card reveal">
                         <div class="itinerary-image-wrapper">
-                            <img src="https://images.unsplash.com/photo-1490758966275-7ca4b329fbb1?q=80&w=687&auto=format&fit=crop" alt="Ceremonia Religiosa">
+                            <img src="https://images.unsplash.com/photo-1548625361-ec8530182b8c?q=80&w=1000&auto=format&fit=crop" alt="Ceremonia Religiosa">
                             <div class="image-overlay"></div>
                             <div class="time-badge-premium">17:00 hrs</div>
                         </div>
@@ -447,7 +447,7 @@
 
                     <div class="premium-card hover-elevate registry-prestige-card">
                         <div class="registry-image-wrapper">
-                            <img src="https://images.seeklogo.com/logo-png/37/1/spei-logo-png_seeklogo-370931.png" alt="Palacio de Hierro">
+                            <img src="https://images.unsplash.com/photo-1580828343064-fde4cad202d5?q=80&w=800&auto=format&fit=crop" alt="Palacio de Hierro">
                             <div class="registry-image-overlay"></div>
                             <div class="icon-box large"><i data-lucide="shopping-bag"></i></div>
                         </div>
@@ -460,7 +460,7 @@
 
                     <div class="premium-card hover-elevate registry-prestige-card">
                         <div class="registry-image-wrapper">
-                            <img src="https://images.seeklogo.com/logo-png/37/1/spei-logo-png_seeklogo-370931.png" alt="Transferencia Bancaria">
+                            <img src="https://images.unsplash.com/photo-1580519542036-ed47f3caeb51?q=80&w=800&auto=format&fit=crop" alt="Transferencia Bancaria">
                             <div class="registry-image-overlay"></div>
                             <div class="icon-box large"><i data-lucide="credit-card"></i></div>
                         </div>
@@ -477,64 +477,133 @@
         </section>
 
         <!--==================================
-            CÓDIGO QR Y PASES ASIGNADOS 
+            SISTEMA DUAL DE ACCESOS (PRESTIGE)
         ===================================-->
         <section class="section vip-access" id="confirmacion">
             <div class="container">
-                <div class="premium-card hover-elevate form-card reveal">
+                <div class="premium-card hover-elevate form-card reveal" style="padding-top: 60px;">
                     
                     <div class="rsvp-header text-center">
-                        <span class="section-badge">TUS PASES</span>
+                        
+                        <!-- Badge Dinámico -->
+                        <div class="access-badge-container">
+                            <span class="section-badge dynamic-badge" id="accessBadge">
+                                ✨ Acceso Digital
+                            </span>
+                        </div>
+
                         <h3>Acceso Exclusivo</h3>
-                        <p style="max-width: 550px; margin: 0 auto; color: var(--gray);">
-                            Esta invitación es personal e intransferible. Por favor, presenta el siguiente código QR en recepción el día del evento.
+                        
+                        <!-- Segmented Control Estilo iOS -->
+                        <div class="segmented-control-wrapper">
+                            <div class="segmented-control">
+                                <input type="radio" name="access_type" id="tab-qr" checked>
+                                <input type="radio" name="access_type" id="tab-printed">
+                                
+                                <div class="segmented-slider"></div>
+                                
+                                <label for="tab-qr" class="segment-label">
+                                    <i data-lucide="smartphone"></i> Código QR
+                                </label>
+                                <label for="tab-printed" class="segment-label">
+                                    <i data-lucide="ticket"></i> Pase Impreso
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Descripción Dinámica -->
+                        <p class="access-description" id="accessDescription">
+                            Presenta tu código QR el día del evento para registrar tu ingreso.
                         </p>
-                        <div class="divider small"><i data-lucide="qr-code"></i></div>
+                        <div class="divider small"><i data-lucide="qr-code" id="accessDividerIcon"></i></div>
                     </div>
 
-                    <div class="vip-access-container">
-                        <!-- Código QR Central -->
-                        <div class="qr-wrapper">
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://eventora.studio/prestige/AndreaTellez" alt="Tu Código de Acceso VIP">
-                            <p class="qr-caption">Andrea Téllez</p>
-                        </div>
-
-                        <!-- Lista de Pases Asignados -->
-                        <div class="assigned-passes">
-                            <h4 class="editorial-title" style="font-size: 1.5rem; margin-bottom: 20px;">Pases Asignados:</h4>
-                            
-                            <div class="pass-ticket">
-                                <div class="ticket-icon"><i data-lucide="user-check"></i></div>
-                                <div class="ticket-info">
-                                    <strong>Pase Principal</strong>
-                                    <span>Andrea Téllez</span>
+                    <!-- Wrapper de Vistas -->
+                    <div class="access-views-wrapper">
+                        
+                        <!-- VISTA 1: CÓDIGO QR -->
+                        <div class="access-view active" id="view-qr">
+                            <div class="vip-access-container">
+                                <!-- Código QR Central -->
+                                <div class="qr-wrapper">
+                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://eventora.studio/prestige/LuisPablo" alt="Tu Código de Acceso VIP">
+                                    <p class="qr-caption">Luis Pablo García</p>
+                                    <span class="qr-legend">Presenta este código QR el día del evento para registrar tu acceso.</span>
                                 </div>
-                                <div class="ticket-status">Autorizado</div>
+
+                                <!-- Lista de Pases Asignados -->
+                                <div class="assigned-passes">
+                                    <h4 class="editorial-title" style="font-size: 1.5rem; margin-bottom: 20px;">Pases Asignados:</h4>
+                                    
+                                    <div class="pass-ticket">
+                                        <div class="ticket-icon"><i data-lucide="check"></i></div>
+                                        <div class="ticket-info">
+                                            <strong>Pase Principal</strong>
+                                        </div>
+                                    </div>
+
+                                    <div class="pass-ticket">
+                                        <div class="ticket-icon"><i data-lucide="check"></i></div>
+                                        <div class="ticket-info">
+                                            <strong>Pase Acompañante</strong>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="ticket-state-box">
+                                        Estado: <span id="globalTicketStatus" class="status-badge-inline pending">Pendiente</span>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="pass-ticket">
-                                <div class="ticket-icon"><i data-lucide="user-plus"></i></div>
-                                <div class="ticket-info">
-                                    <strong>Pase Acompañante</strong>
-                                    <span>Asignado</span>
-                                </div>
-                                <div class="ticket-status">Autorizado</div>
+                            <div id="rsvpActionContainer" style="margin-top: 40px; display: flex; flex-direction: column; gap: 15px; align-items: center;">
+                                <button id="btnConfirm" class="primary-button btn-premium full-width" style="max-width: 400px;">
+                                    Confirmar asistencia
+                                </button>
+                                <button id="btnDecline" class="secondary-button full-width" style="max-width: 400px;">
+                                    No asistiré
+                                </button>
+                            </div>
+
+                            <!-- Mensaje de Confirmación en QR (Oculto inicialmente) -->
+                            <div id="rsvpMessageContainer" style="display: none; margin-top: 40px; text-align: center; animation: fadeIn 0.8s ease;">
+                                <!-- JS inyectará el mensaje aquí -->
                             </div>
                         </div>
-                    </div>
 
-                    <div id="rsvpActionContainer" style="margin-top: 40px; display: flex; flex-direction: column; gap: 15px; align-items: center;">
-                        <button id="btnConfirm" class="primary-button btn-premium full-width" style="max-width: 400px;">
-                            Confirmar mi asistencia
-                        </button>
-                        <button id="btnDecline" class="secondary-button full-width" style="max-width: 400px;">
-                            No asistiré
-                        </button>
-                    </div>
+                        <!-- VISTA 2: PASE IMPRESO (VIP TICKET) -->
+                        <div class="access-view" id="view-printed">
+                            <div class="printed-ticket-wrapper">
+                                <div class="printed-ticket">
+                                    <div class="ticket-left">
+                                        <h5 class="ticket-event-name">María <span class="amp">&</span> Fernando</h5>
+                                        <h4 class="ticket-guest-name">LUIS PABLO GARCÍA</h4>
+                                        
+                                        <div class="ticket-details-grid">
+                                            <div class="td-item">
+                                                <span class="td-label">Fecha</span>
+                                                <span class="td-value">15 Nov. 2027</span>
+                                            </div>
+                                            <div class="td-item">
+                                                <span class="td-label">Ubicación</span>
+                                                <span class="td-value">Saltillo, Coah.</span>
+                                            </div>
+                                            <div class="td-item">
+                                                <span class="td-label">Cantidad</span>
+                                                <span class="td-value">2 Invitados</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="ticket-divider"></div>
+                                    <div class="ticket-right">
+                                        <span class="ticket-number-label">Número de Pase</span>
+                                        <span class="ticket-number">#P-000124</span>
+                                        <div class="ticket-status-stamp">AUTORIZADO</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="printed-legend">Este pase deberá presentarse impreso el día del evento para registrar el acceso.</span>
+                        </div>
 
-                    <!-- Mensaje de Confirmación (Oculto inicialmente) -->
-                    <div id="rsvpMessageContainer" style="display: none; margin-top: 40px; text-align: center; animation: fadeIn 0.8s ease;">
-                        <!-- Contenido dinámico desde JS -->
                     </div>
 
                 </div>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control | Prestige</title>
+    <meta name="description" content="Panel privado de control de invitados para el paquete Prestige.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="demo.css">
+</head>
+
+<body>
+
+    <!--======================================
+                LOADER PREMIUM
+    =======================================-->
+    <div id="loader">
+        <div class="loader-logo">
+            <span>EVENTORA</span>
+            <small>PANEL PRESTIGE</small>
+        </div>
+    </div>
+
+    <!--======================================
+            HEADER EDITORIAL
+    =======================================-->
+    <header class="panel-header reveal">
+        <div class="container header-container">
+            <div class="header-titles">
+                <span class="panel-badge">Panel privado de control de invitados</span>
+                <h1>María <span class="ampersand">&</span> Fernando</h1>
+                <div class="header-details">
+                    <span>15 NOVIEMBRE 2027</span>
+                    <span class="dot">✦</span>
+                    <span>SALTILLO, COAHUILA</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!--======================================
+            MAIN DASHBOARD
+    =======================================-->
+    <main class="panel-main reveal" style="animation-delay: 0.2s;">
+        <div class="container">
+            
+            <!-- ESTADÍSTICAS -->
+            <section class="stats-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-number" id="stat-total">0</span>
+                        <span class="stat-label">Invitados</span>
+                    </div>
+                    <div class="stat-card stat-success">
+                        <span class="stat-number" id="stat-arrived">0</span>
+                        <span class="stat-label">Llegaron</span>
+                    </div>
+                    <div class="stat-card stat-warning">
+                        <span class="stat-number" id="stat-pending">0</span>
+                        <span class="stat-label">Pendientes</span>
+                    </div>
+                    <div class="stat-card stat-danger">
+                        <span class="stat-number" id="stat-declined">0</span>
+                        <span class="stat-label">No asistirán</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BARRA DE PROGRESO -->
+            <section class="progress-section">
+                <div class="premium-card progress-card">
+                    <div class="progress-header">
+                        <span class="progress-title">Invitados presentes</span>
+                        <span class="progress-percentage" id="progress-text">0%</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" id="progress-bar"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CONTROLES (BÚSQUEDA Y QR) -->
+            <section class="controls-section">
+                <div class="controls-wrapper">
+                    <div class="search-box">
+                        <i data-lucide="search"></i>
+                        <input type="text" id="searchInput" placeholder="Buscar invitado...">
+                    </div>
+                    <button class="primary-button qr-btn" id="openScannerBtn">
+                        <i data-lucide="camera"></i>
+                        <span>Escanear código QR</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- LISTA DE INVITADOS -->
+            <section class="guests-section">
+                <div class="guests-grid" id="guestsList">
+                    <!-- Las tarjetas se generan dinámicamente con JavaScript -->
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!--======================================
+            MODAL ESCÁNER QR
+    =======================================-->
+    <div class="qr-modal-overlay" id="qrModal">
+        <div class="qr-modal-content">
+            <button class="close-modal-btn" id="closeScannerBtn" aria-label="Cerrar escáner">
+                <i data-lucide="x"></i>
+            </button>
+            
+            <div class="scanner-viewfinder" id="scannerViewfinder">
+                <div class="scanner-corner top-left"></div>
+                <div class="scanner-corner top-right"></div>
+                <div class="scanner-corner bottom-left"></div>
+                <div class="scanner-corner bottom-right"></div>
+                <div class="scanner-laser"></div>
+                <p class="scanner-text">Enfoca el código QR en el centro</p>
+            </div>
+
+            <!-- Alerta de Éxito / Error dentro del Modal -->
+            <div class="scanner-alert hidden" id="scannerAlert">
+                <div class="alert-icon" id="alertIcon"></div>
+                <h4 id="alertTitle">Título</h4>
+                <p id="alertMessage">Mensaje descriptivo</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+    <script src="demo.js"></script>
+</body>
+
+</html>

@@ -113,7 +113,7 @@ i { font-style: italic; color: var(--gold); }
 .divider.small { margin: 20px auto; }
 .divider.small::before, .divider.small::after { width: 30px; }
 
-/* Tarjetas Premium y Hover (LUJO) */
+/* Tarjetas Premium */
 .premium-card {
     background: linear-gradient(160deg, #ffffff 0%, #fdfcf9 100%);
     border-radius: var(--radius);
@@ -269,7 +269,7 @@ i { font-style: italic; color: var(--gold); }
 .lux-envelope.is-open .gold-seal { animation: premiumSealBreak 1.0s forwards cubic-bezier(0.25, 1, 0.5, 1); }
 @keyframes premiumSealBreak { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 15% { transform: translate(-50%, -49%) scale(0.92); opacity: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.3); } 25% { transform: translate(-50%, -44%) scale(0.95); opacity: 1; } 60% { transform: translate(-50%, 40px) scale(0.9); opacity: 0; } 100% { transform: translate(-50%, 40px) scale(0.9); opacity: 0; visibility: hidden; } }
 
-.lux-envelope.is-open .lux-flap { animation: luxFlapOpen 1.2s 0.6s forwards cubic-bezier(0.4, 0, 0.2, 1); }
+.lux-envelope.is-open .lux-flap { animation: luxFlapOpen 1.2s 0.6s forwards cubic-bezier(0.25, 1, 0.5, 1); }
 @keyframes luxFlapOpen {
     0% { transform: rotateX(0deg); z-index: 40; }
     49% { z-index: 40; }
@@ -425,33 +425,78 @@ main.show { opacity:1; }
 .registry-content p { font-size: .95rem; margin-bottom: 10px; color: var(--gray); }
 
 /*==================================================
-        ACCESO VIP (PASES ASIGNADOS)
+        SISTEMA DUAL DE ACCESOS PRESTIGE (NUEVO)
 ==================================================*/
 .form-card { max-width: 800px; text-align: center; }
-.rsvp-header { margin-bottom: 40px; }
+.rsvp-header { margin-bottom: 30px; }
 
-.vip-access-container { display: flex; flex-direction: column; align-items: center; gap: 40px; margin-top: 30px; }
+/* Badge Dinámico */
+.access-badge-container { display: flex; justify-content: center; height: 40px; margin-bottom: 10px; }
+.dynamic-badge { transition: opacity 0.3s ease, transform 0.3s ease; }
 
-@media (min-width: 769px) {
-    .vip-access-container { flex-direction: row; justify-content: center; align-items: stretch; text-align: left; }
-}
+/* Segmented Control iOS Style */
+.segmented-control-wrapper { display: flex; justify-content: center; margin: 25px 0 20px; }
+.segmented-control { position: relative; display: inline-flex; background: #fdfcf9; border: 1px solid rgba(212,175,55,0.3); border-radius: 999px; padding: 6px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02); }
+.segmented-control input { display: none; }
+.segment-label { position: relative; z-index: 2; display: flex; align-items: center; gap: 8px; padding: 12px 25px; font-family: 'Poppins', sans-serif; font-size: 0.9rem; font-weight: 500; color: var(--gray); cursor: pointer; transition: color 0.3s ease; }
+.segment-label i { width: 18px; height: 18px; }
+.segmented-slider { position: absolute; top: 6px; left: 6px; bottom: 6px; width: calc(50% - 6px); background: #fff; border-radius: 999px; box-shadow: 0 4px 10px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(212,175,55,0.2); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1); z-index: 1; }
+#tab-qr:checked ~ .segmented-slider { transform: translateX(0); }
+#tab-printed:checked ~ .segmented-slider { transform: translateX(100%); }
+#tab-qr:checked ~ label[for="tab-qr"], #tab-printed:checked ~ label[for="tab-printed"] { color: var(--dark); }
 
-.qr-wrapper { display: flex; flex-direction: column; align-items: center; padding: 25px; background: #ffffff; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.06); border: 1px solid rgba(212,175,55,0.2); }
+/* Vistas de Acceso */
+.access-description { font-size: 0.95rem; color: var(--gray); transition: opacity 0.3s ease; min-height: 45px;}
+.access-views-wrapper { position: relative; width: 100%; }
+.access-view { display: none; opacity: 0; transform: translateY(10px); animation: fadeViewIn 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+.access-view.active { display: block; }
+@keyframes fadeViewIn { to { opacity: 1; transform: translateY(0); } }
+
+/* VISTA 1: QR */
+.vip-access-container { display: flex; flex-direction: column; align-items: center; gap: 40px; margin-top: 20px; }
+@media (min-width: 769px) { .vip-access-container { flex-direction: row; justify-content: center; align-items: stretch; text-align: left; } }
+.qr-wrapper { display: flex; flex-direction: column; align-items: center; padding: 25px; background: #ffffff; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.06); border: 1px solid rgba(212,175,55,0.2); max-width: 300px; margin: 0 auto;}
 .qr-wrapper img { width: 180px; height: 180px; display: block; border-radius: 8px; margin-bottom: 15px; }
-.qr-caption { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 600; color: #1a1917; }
+.qr-caption { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 600; color: #1a1917; margin-bottom: 15px; }
+.qr-legend { display: block; text-align: center; color: var(--gray); font-size: 0.85rem; font-style: italic; line-height: 1.4;}
 
 .assigned-passes { flex: 1; display: flex; flex-direction: column; gap: 15px; justify-content: center; width: 100%;}
 .pass-ticket { display: flex; align-items: center; background: linear-gradient(to right, #ffffff, #fdfcf9); border: 1px solid rgba(212,175,55,0.2); border-radius: 12px; padding: 15px 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
 .ticket-icon { width: 40px; height: 40px; border-radius: 50%; background: #fbfaf8; display: flex; align-items: center; justify-content: center; margin-right: 15px; color: var(--gold); border: 1px solid rgba(212,175,55,0.2); }
 .ticket-info { flex: 1; text-align: left; display: flex; flex-direction: column; justify-content: center; }
 .ticket-info strong { display: block; font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: #1a1917; line-height: 1.3;}
-.ticket-info span { font-size: 0.85rem; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; display: block; line-height: 1.3;}
-.ticket-status { font-size: 0.75rem; font-weight: 600; color: #2e7d32; background: #e8f5e9; padding: 4px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 1px; }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+/* Estado dinámico QR */
+.ticket-state-box { margin-top: 10px; font-size: 0.9rem; color: var(--gray); text-align: left; display: flex; align-items: center; gap: 10px; }
+.status-badge-inline { font-size: 0.75rem; font-weight: 600; padding: 4px 12px; border-radius: 999px; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s ease; }
+.status-badge-inline.pending { color: #b08e24; background: #fdfaf2; border: 1px solid rgba(212,175,55,0.3); }
+.status-badge-inline.confirmed { color: #2e7d32; background: #e8f5e9; border: 1px solid rgba(46,125,50,0.2); }
+
+/* VISTA 2: PASE IMPRESO VIP */
+.printed-ticket-wrapper { display: flex; justify-content: center; margin: 20px 0; }
+.printed-ticket { display: flex; background: linear-gradient(135deg, #fffdf9, #fcf9f2); border-radius: 16px; border: 1px solid rgba(212,175,55,0.4); box-shadow: 0 20px 40px rgba(0,0,0,0.06), inset 0 0 0 4px #fff, inset 0 0 0 5px rgba(212,175,55,0.15); max-width: 700px; width: 100%; position: relative; overflow: hidden; }
+.printed-ticket::before { content: ''; position: absolute; inset: 0; pointer-events: none; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E"); }
+.ticket-left { flex: 2; padding: 40px; text-align: left; position: relative; z-index: 2;}
+.ticket-right { flex: 1; padding: 40px 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(212,175,55,0.03); position: relative; z-index: 2;}
+.ticket-divider { width: 2px; background: repeating-linear-gradient(to bottom, rgba(212,175,55,0.4) 0, rgba(212,175,55,0.4) 8px, transparent 8px, transparent 16px); position: relative; z-index: 3;}
+.ticket-divider::before { content: ''; position: absolute; width: 30px; height: 30px; border-radius: 50%; left: -14px; top: -16px; background: #fff; border: 1px solid rgba(212,175,55,0.4); border-top-color: transparent; border-left-color: transparent; transform: rotate(-45deg); box-shadow: inset -2px -2px 4px rgba(0,0,0,0.03);}
+.ticket-divider::after { content: ''; position: absolute; width: 30px; height: 30px; border-radius: 50%; left: -14px; bottom: -16px; background: #fdfcf9; border: 1px solid rgba(212,175,55,0.4); border-bottom-color: transparent; border-right-color: transparent; transform: rotate(-45deg); box-shadow: inset 2px 2px 4px rgba(0,0,0,0.03);}
+
+.ticket-event-name { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold); margin-bottom: 10px; font-weight: 600;}
+.ticket-event-name .amp { font-style: italic; font-size: 1.1rem; }
+.ticket-guest-name { font-family: 'Poppins', sans-serif; font-size: 1.8rem; font-weight: 600; color: var(--dark); margin-bottom: 30px; letter-spacing: 1px; }
+.ticket-details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.td-item { display: flex; flex-direction: column; }
+.td-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: var(--gray); margin-bottom: 4px; }
+.td-value { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 600; color: var(--dark); }
+
+.ticket-number-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: var(--gray); margin-bottom: 8px; text-align: center;}
+.ticket-number { font-family: 'Poppins', sans-serif; font-size: 1.4rem; font-weight: 600; color: var(--dark); margin-bottom: 25px; letter-spacing: 1px;}
+.ticket-status-stamp { border: 2px solid var(--gold); color: var(--gold); font-size: 0.9rem; font-weight: 600; letter-spacing: 4px; padding: 8px 20px; border-radius: 4px; text-transform: uppercase; transform: rotate(-5deg); box-shadow: inset 0 0 0 2px rgba(212,175,55,0.2), 0 0 0 2px rgba(212,175,55,0.2); }
+
+.printed-legend { display: block; text-align: center; color: var(--gray); font-size: 0.9rem; margin-top: 10px; font-style: italic; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 /*==================================================
         SERVICIOS PRESTIGE EXCLUSIVOS
@@ -484,64 +529,14 @@ footer small { color: #999; font-size: .85rem; }
 /*==================================================
             MENÚ FLOTANTE PRESTIGE
 ==================================================*/
-.floating-menu {
-    position: fixed;
-    bottom: 40px;
-    left: 50%;
-    transform: translate(-50%, 100px) scale(0.9);
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: saturate(180%) blur(20px);
-    -webkit-backdrop-filter: saturate(180%) blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05), inset 0 0 0 1px rgba(212,175,55,0.1);
-    border-radius: 999px;
-    padding: 5px 25px;
-    z-index: 9999;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-}
-.floating-menu.show {
-    transform: translate(-50%, 0) scale(1);
-    opacity: 1;
-    visibility: visible;
-}
-.floating-menu ul {
-    display: flex;
-    list-style: none;
-    gap: 30px;
-    align-items: center;
-    margin: 0;
-}
-.floating-menu a {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    color: #66635e;
-    padding: 10px 5px;
-    gap: 6px;
-    transition: all 0.3s ease;
-}
-.floating-menu a:hover {
-    color: var(--gold);
-}
-.floating-menu a i {
-    width: 22px;
-    height: 22px;
-    transition: transform 0.3s ease;
-}
-.floating-menu a:hover i {
-    transform: translateY(-2px) scale(1.1);
-}
-.floating-menu a span {
-    font-size: 0.65rem;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    font-weight: 500;
-    font-family: 'Poppins', sans-serif;
-}
+.floating-menu { position: fixed; bottom: 40px; left: 50%; transform: translate(-50%, 100px) scale(0.9); background: rgba(255, 255, 255, 0.75); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 20px 40px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05), inset 0 0 0 1px rgba(212,175,55,0.1); border-radius: 999px; padding: 5px 25px; z-index: 9999; opacity: 0; visibility: hidden; transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
+.floating-menu.show { transform: translate(-50%, 0) scale(1); opacity: 1; visibility: visible; }
+.floating-menu ul { display: flex; list-style: none; gap: 30px; align-items: center; margin: 0; }
+.floating-menu a { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: #66635e; padding: 10px 5px; gap: 6px; transition: all 0.3s ease; }
+.floating-menu a:hover { color: var(--gold); }
+.floating-menu a i { width: 22px; height: 22px; transition: transform 0.3s ease; }
+.floating-menu a:hover i { transform: translateY(-2px) scale(1.1); }
+.floating-menu a span { font-size: 0.65rem; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 500; font-family: 'Poppins', sans-serif; }
 
 /*==================================================
             ANIMACIONES REVEAL PREMIUM
@@ -604,6 +599,13 @@ footer small { color: #999; font-size: .85rem; }
     .pass-ticket { flex-direction: column; text-align: center; gap: 10px; }
     .ticket-icon { margin-right: 0; }
     .ticket-info { text-align: center; }
+    
+    .printed-ticket { flex-direction: column; }
+    .ticket-divider { width: 100%; height: 2px; background: repeating-linear-gradient(to right, rgba(212,175,55,0.4) 0, rgba(212,175,55,0.4) 8px, transparent 8px, transparent 16px); }
+    .ticket-divider::before { left: -16px; top: -14px; border-top-color: rgba(212,175,55,0.4); border-right-color: transparent; border-bottom-color: transparent; border-left-color: rgba(212,175,55,0.4); transform: rotate(45deg); box-shadow: inset 2px 2px 4px rgba(0,0,0,0.03);}
+    .ticket-divider::after { right: -16px; left: auto; top: -14px; border-top-color: rgba(212,175,55,0.4); border-left-color: transparent; border-bottom-color: transparent; border-right-color: rgba(212,175,55,0.4); transform: rotate(-45deg); box-shadow: inset -2px 2px 4px rgba(0,0,0,0.03);}
+    .ticket-right { padding: 30px; }
+    .ticket-guest-name { font-size: 1.5rem; }
 
     .cta-wrapper h2 { font-size: 2.3rem; }
 

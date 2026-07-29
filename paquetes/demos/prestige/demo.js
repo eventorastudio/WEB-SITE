@@ -16,10 +16,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const musicButton = document.getElementById("musicButton");
     const music = document.getElementById("backgroundMusic");
     const progressBar = document.getElementById("progress-bar");
-    const confirmButton = document.getElementById("btnConfirm");
-    const declineButton = document.getElementById("btnDecline");
+    
+    // Elementos del sistema Dual de Accesos
+    const tabQr = document.getElementById("tab-qr");
+    const tabPrinted = document.getElementById("tab-printed");
+    const viewQr = document.getElementById("view-qr");
+    const viewPrinted = document.getElementById("view-printed");
+    const accessBadge = document.getElementById("accessBadge");
+    const accessDescription = document.getElementById("accessDescription");
+    const accessDividerIcon = document.getElementById("accessDividerIcon");
+    
+    // Botones de Confirmación QR
+    const btnConfirm = document.getElementById("btnConfirm");
+    const btnDecline = document.getElementById("btnDecline");
     const rsvpActionContainer = document.getElementById("rsvpActionContainer");
     const rsvpMessageContainer = document.getElementById("rsvpMessageContainer");
+    const globalTicketStatus = document.getElementById("globalTicketStatus");
+    
     const floatingMenu = document.getElementById("floating-menu");
 
     /*=====================================
@@ -111,7 +124,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const videoCover = document.getElementById("videoCover");
 
     if (playBtn && coupleVideo && videoContainer) {
-        
         const playVideo = () => {
             videoContainer.classList.add("playing");
             coupleVideo.play();
@@ -125,9 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         playBtn.addEventListener("click", playVideo);
-        if (videoCover) {
-            videoCover.addEventListener("click", playVideo);
-        }
+        if (videoCover) videoCover.addEventListener("click", playVideo);
 
         coupleVideo.addEventListener("ended", () => {
             videoContainer.classList.remove("playing");
@@ -166,7 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (el.textContent !== newValue) {
             el.textContent = newValue;
             el.classList.remove("pop");
-            void el.offsetWidth;
+            void el.offsetWidth; // Dispara reflow nativo
             el.classList.add("pop");
         }
     };
@@ -222,13 +232,53 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     /*=====================================
-            CONFIRMACIÓN PASES VIP (PRESTIGE)
+            SISTEMA DUAL DE ACCESOS
     =====================================*/
-    if (confirmButton && declineButton && rsvpActionContainer && rsvpMessageContainer) {
-        confirmButton.addEventListener("click", (e) => {
+    function switchAccessView(isPrinted) {
+        // Fade out info
+        accessBadge.style.opacity = 0;
+        accessDescription.style.opacity = 0;
+        
+        setTimeout(() => {
+            if(isPrinted) {
+                accessBadge.innerHTML = '🎟️ Acceso Impreso';
+                accessDescription.textContent = 'Presenta este pase impreso el día del evento para registrar tu ingreso.';
+                accessDividerIcon.setAttribute('data-lucide', 'ticket');
+                viewQr.classList.remove('active');
+                viewPrinted.classList.add('active');
+            } else {
+                accessBadge.innerHTML = '✨ Acceso Digital';
+                accessDescription.textContent = 'Presenta tu código QR el día del evento para registrar tu ingreso.';
+                accessDividerIcon.setAttribute('data-lucide', 'qr-code');
+                viewPrinted.classList.remove('active');
+                viewQr.classList.add('active');
+            }
+            lucide.createIcons();
+            accessBadge.style.opacity = 1;
+            accessDescription.style.opacity = 1;
+        }, 300);
+    }
+
+    if(tabQr && tabPrinted) {
+        tabQr.addEventListener('change', () => switchAccessView(false));
+        tabPrinted.addEventListener('change', () => switchAccessView(true));
+    }
+
+    /*=====================================
+            CONFIRMACIÓN PASES VIP
+    =====================================*/
+    if (btnConfirm && btnDecline && rsvpActionContainer && rsvpMessageContainer) {
+        btnConfirm.addEventListener("click", (e) => {
             e.preventDefault();
             rsvpActionContainer.style.display = "none";
             rsvpMessageContainer.style.display = "block";
+            
+            // Actualizar estado del ticket visible
+            if(globalTicketStatus) {
+                globalTicketStatus.textContent = "Confirmado";
+                globalTicketStatus.className = "status-badge-inline confirmed";
+            }
+
             rsvpMessageContainer.innerHTML = `
                 <div style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; color: #2e7d32; font-weight: 600; font-size: 1.1rem;">
                     <i data-lucide="check-circle-2" style="width: 24px; height: 24px;"></i>
@@ -241,10 +291,18 @@ document.addEventListener("DOMContentLoaded", () => {
             lucide.createIcons();
         });
 
-        declineButton.addEventListener("click", (e) => {
+        btnDecline.addEventListener("click", (e) => {
             e.preventDefault();
             rsvpActionContainer.style.display = "none";
             rsvpMessageContainer.style.display = "block";
+            
+            if(globalTicketStatus) {
+                globalTicketStatus.textContent = "Declinado";
+                globalTicketStatus.style.color = "#c62828";
+                globalTicketStatus.style.background = "#fcf1f1";
+                globalTicketStatus.style.borderColor = "rgba(198,40,40,0.2)";
+            }
+
             rsvpMessageContainer.innerHTML = `
                 <div style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; color: var(--gray); font-weight: 600; font-size: 1.1rem;">
                     <i data-lucide="info" style="width: 24px; height: 24px;"></i>
