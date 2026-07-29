@@ -16,7 +16,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const musicButton = document.getElementById("musicButton");
     const music = document.getElementById("backgroundMusic");
     const progressBar = document.getElementById("progress-bar");
-    const confirmButton = document.querySelector('.section.vip-access .primary-button');
+    const confirmButton = document.getElementById("btnConfirm");
+    const declineButton = document.getElementById("btnDecline");
+    const rsvpActionContainer = document.getElementById("rsvpActionContainer");
+    const rsvpMessageContainer = document.getElementById("rsvpMessageContainer");
     const floatingMenu = document.getElementById("floating-menu");
 
     /*=====================================
@@ -49,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 1200);
 
     /*=====================================
-            ABRIR INVITACIÓN (HIPERREALISTA)
+            ABRIR INVITACIÓN (PRESTIGE)
     =====================================*/
     let opened = false;
 
@@ -61,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (navigator.vibrate) navigator.vibrate(20);
 
-            // Ajustado al tiempo de la nueva cinemática física (Flap 1.2s + Espera + Carta 2.2s + Pausa)
+            // Ajustado al tiempo de la nueva cinemática física (Flap 1.2s + Espera + Carta 2.2s + Pausa de lectura dramática)
             setTimeout(() => {
                 envelopeScreen.classList.add("hide");
                 invitation.classList.remove("hidden");
@@ -75,8 +78,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     invitation.classList.add("show");
                     musicButton.classList.add("show");
                 });
-            }, 5500); 
+            }, 6000); 
             
+            // La música comienza suavemente mientras se saca la invitación
             setTimeout(() => {
                 music.play().catch(() => {});
             }, 3500);
@@ -164,7 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (el.textContent !== newValue) {
             el.textContent = newValue;
             el.classList.remove("pop");
-            void el.offsetWidth;
+            void el.offsetWidth; // Dispara reflow nativo
             el.classList.add("pop");
         }
     };
@@ -222,13 +226,8 @@ document.addEventListener("DOMContentLoaded", () => {
     /*=====================================
             CONFIRMACIÓN PASES VIP (PRESTIGE)
     =====================================*/
-    const btnConfirm = document.getElementById("btnConfirm");
-    const btnDecline = document.getElementById("btnDecline");
-    const rsvpActionContainer = document.getElementById("rsvpActionContainer");
-    const rsvpMessageContainer = document.getElementById("rsvpMessageContainer");
-
-    if (btnConfirm && btnDecline && rsvpActionContainer && rsvpMessageContainer) {
-        btnConfirm.addEventListener("click", (e) => {
+    if (confirmButton && declineButton && rsvpActionContainer && rsvpMessageContainer) {
+        confirmButton.addEventListener("click", (e) => {
             e.preventDefault();
             rsvpActionContainer.style.display = "none";
             rsvpMessageContainer.style.display = "block";
@@ -244,7 +243,7 @@ document.addEventListener("DOMContentLoaded", () => {
             lucide.createIcons();
         });
 
-        btnDecline.addEventListener("click", (e) => {
+        declineButton.addEventListener("click", (e) => {
             e.preventDefault();
             rsvpActionContainer.style.display = "none";
             rsvpMessageContainer.style.display = "block";

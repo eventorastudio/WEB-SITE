@@ -53,7 +53,7 @@
     </audio>
 
     <!--====================================
-            PORTADA / SOBRE PRESTIGE (NUEVO Y FÍSICO)
+            PORTADA / SOBRE PRESTIGE (DORADO 3D)
     =====================================-->
     <section id="lux-envelope-screen">
         <div class="lux-glow"></div>
@@ -61,7 +61,13 @@
         <div class="lux-content-wrapper">
             <span class="demo-badge">✦ PAQUETE PRESTIGE</span>
             <h1>Experiencia Exclusiva</h1>
-            <p class="lux-description">Toca el sobre para descubrir la máxima expresión de elegancia.</p>
+            <p class="lux-description" style="margin-bottom: 10px;">Descubre la máxima expresión de elegancia.</p>
+            
+            <!-- Hint reposicionado ARRIBA del sobre -->
+            <div class="lux-hint">
+                <p>Toca el sobre para abrir</p>
+                <div class="lux-arrow">↓</div>
+            </div>
             
             <div class="lux-envelope" id="lux-envelope">
                 
@@ -69,29 +75,44 @@
                 <div class="lux-back lux-paper"></div>
                 
                 <!-- 2. Carta Física -->
-                <div class="lux-letter lux-paper">
+                <div class="lux-letter">
                     <div class="lux-letter-border">
-                        <!-- El texto está posicionado físicamente abajo para revelarse al salir -->
-                        <div class="lux-names">
-                            <span>MARÍA</span>
-                            <span class="lux-amp">&</span>
-                            <span>FERNANDO</span>
+                        <div class="lux-letter-content">
+                            <span class="lux-intro">Con mucho cariño,</span>
+                            <span class="lux-intro" style="margin-bottom: 12px;">nos complace invitarte</span>
+                            <div class="lux-names">
+                                <span>MARÍA</span>
+                                <span class="lux-amp">&</span>
+                                <span>FERNANDO</span>
+                            </div>
+                            <div class="lux-details">
+                                <span>15 NOVIEMBRE 2027</span>
+                                <span class="lux-dot">✦</span>
+                                <span>SALTILLO, COAHUILA</span>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- 3. Frente del sobre (Cubre la carta) -->
-                <div class="lux-front lux-paper"></div>
+                <div class="lux-front lux-paper">
+                    <div class="envelope-emboss">
+                        <span class="line"></span>
+                        <span class="title">INVITACIÓN</span>
+                        <span class="line"></span>
+                    </div>
+                </div>
                 
                 <!-- 4. Solapa superior -->
                 <div class="lux-flap lux-paper"></div>
 
+                <!-- 5. Sello de cera -->
+                <div class="gold-seal">
+                    <span>ES</span>
+                </div>
+
             </div>
             
-            <div class="lux-hint">
-                <p>Toca para abrir</p>
-                <div class="lux-arrow">↓</div>
-            </div>
         </div>
     </section>
 
@@ -314,7 +335,7 @@
                     <!-- Ceremonia -->
                     <div class="premium-card hover-elevate itinerary-prestige-card reveal">
                         <div class="itinerary-image-wrapper">
-                            <img src="https://images.unsplash.com/photo-1490758966275-7ca4b329fbb1?q=80&w=687&auto=format&fit=crop" alt="Ceremonia Religiosa">
+                            <img src="https://images.unsplash.com/photo-1490758966275-7ca4b329fbb1?q=80&w=687&auto=format&fit=cropc" alt="Ceremonia Religiosa">
                             <div class="image-overlay"></div>
                             <div class="time-badge-premium">17:00 hrs</div>
                         </div>
