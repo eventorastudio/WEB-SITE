@@ -113,7 +113,7 @@ i { font-style: italic; color: var(--gold); }
 .divider.small { margin: 20px auto; }
 .divider.small::before, .divider.small::after { width: 30px; }
 
-/* Tarjetas Premium */
+/* Tarjetas Premium y Hover (LUJO) */
 .premium-card {
     background: linear-gradient(160deg, #ffffff 0%, #fdfcf9 100%);
     border-radius: var(--radius);
@@ -193,7 +193,7 @@ i { font-style: italic; color: var(--gold); }
 #musicButton:hover { transform:scale(1.08); background: var(--gold); }
 
 /*==================================================
-            PORTADA PRESTIGE (SOBRE 3D HIPERREALISTA)
+            PORTADA PRESTIGE (SOBRE 3D DORADO)
 ==================================================*/
 #lux-envelope-screen { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; overflow: hidden; padding: 20px; background: radial-gradient(circle at 50% 30%, #fcfbf8 0%, #eee8dd 60%, #dcd1be 100%); z-index: 9000; transition: opacity 1.2s ease, visibility 1.2s ease; }
 #lux-envelope-screen.hide { opacity: 0; visibility: hidden; pointer-events: none; }
@@ -218,18 +218,19 @@ i { font-style: italic; color: var(--gold); }
 /* Textura Metálica */
 .lux-paper { background-image: linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 100%), url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"); background-blend-mode: multiply; }
 
-/* 1. Fondo */
+/* 1. Fondo del Sobre (Dorado Profundo) */
 .lux-back { position: absolute; inset: 0; border-radius: 6px; z-index: 10; background-color: #aa8123; background-image: linear-gradient(180deg, #967009 0%, #c49923 100%); box-shadow: inset 0 20px 40px rgba(0,0,0,0.5); }
 
-/* 2. Carta Impresa (Confinement Strict) */
+/* 2. Carta Impresa (Confinement Strict - EVITANDO SALIDAS LATERALES EN MOVIL) */
 .lux-letter { 
     position: absolute; left: 4%; right: 4%; bottom: 8px; top: 12px; background-color: #fdfbf7; border-radius: 4px; z-index: 20; 
     box-shadow: 0 15px 35px rgba(0,0,0,0.25); display: flex; flex-direction: column; align-items: stretch; justify-content: stretch; 
     padding: 12px; overflow: hidden; transform: translateY(0) rotateZ(0deg); 
 }
+/* Borde Foil Dorado Interno */
 .lux-letter-border { 
     flex: 1; border: 1px solid rgba(212,175,55,0.6); position: relative; box-shadow: inset 0 0 0 4px #fdfbf7, inset 0 0 0 5px rgba(212,175,55,0.2); 
-    display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0; overflow: hidden; 
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 30px; overflow: hidden; 
 }
 .lux-letter-border::before { content: ''; position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(120deg, rgba(255,255,255,0.8) 0%, transparent 100%); }
 .lux-letter-content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; }
@@ -242,9 +243,9 @@ i { font-style: italic; color: var(--gold); }
 
 /* 3. Frente (Dorado 3D con borde V-notch) */
 .lux-front { 
-    position: absolute; inset: 0; border-radius: 6px; z-index: 30; background-color: #d4af37; background-image: linear-gradient(145deg, #e1bc58 0%, #d4af37 35%, #aa7c11 100%); 
+    position: absolute; inset: 0; border-radius: 6px; z-index: 30; background-color: #d4af37; background-image: linear-gradient(145deg, #e5c365 0%, #d4af37 35%, #aa7c11 100%); 
     clip-path: polygon(0 0, 5% 0, 5% 20%, 50% 55%, 95% 20%, 95% 0, 100% 0, 100% 100%, 0 100%); 
-    box-shadow: inset 0 0 15px rgba(255,255,255,0.4), inset 1px 1px 3px rgba(255,255,255,0.8), inset -2px -2px 5px rgba(0,0,0,0.4), 0 -5px 15px rgba(0,0,0,0.1); border-top: 1px solid rgba(255,255,255,0.8); 
+    box-shadow: inset 0 0 15px rgba(255,255,255,0.4), inset 1px 1px 3px rgba(255,255,255,0.8), inset -2px -2px 5px rgba(0,0,0,0.4), 0 -5px 15px rgba(0,0,0,0.05); border-top: 1px solid rgba(255,255,255,0.8); 
 }
 .lux-front::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(118deg, transparent 49.5%, rgba(0,0,0,0.06) 50%, transparent 50.5%), linear-gradient(-118deg, transparent 49.5%, rgba(0,0,0,0.06) 50%, transparent 50.5%); }
 .envelope-emboss { position: absolute; top: 76%; left: 50%; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 15px; width: 80%; justify-content: center; z-index: 1; }
@@ -264,14 +265,18 @@ i { font-style: italic; color: var(--gold); }
     display: flex; justify-content: center; align-items: center; color: #fdf5d3; font-family: 'Cormorant Garamond', serif; font-size: 1.7rem; font-weight: 700; letter-spacing: 2px; z-index: 50; border: 1px solid rgba(255,255,255,0.5); text-shadow: -1px -1px 2px rgba(0,0,0,0.6), 1px 1px 2px rgba(255,255,255,0.5); 
 }
 
-/* ANIMACIONES DE EXTRACCIÓN (Z-INDEX 2D FIX) */
+/* ANIMACIÓN CINE: Strict Z-indexing */
 .lux-envelope.is-open .gold-seal { animation: premiumSealBreak 1.0s forwards cubic-bezier(0.25, 1, 0.5, 1); }
 @keyframes premiumSealBreak { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 15% { transform: translate(-50%, -49%) scale(0.92); opacity: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.3); } 25% { transform: translate(-50%, -44%) scale(0.95); opacity: 1; } 60% { transform: translate(-50%, 40px) scale(0.9); opacity: 0; } 100% { transform: translate(-50%, 40px) scale(0.9); opacity: 0; visibility: hidden; } }
 
-.lux-envelope.is-open .lux-flap { animation: luxFlapOpen 1.2s 0.6s forwards cubic-bezier(0.25, 1, 0.5, 1); }
-@keyframes luxFlapOpen { 0% { transform: rotateX(0deg); z-index: 40; } 49% { z-index: 40; } 50% { transform: rotateX(90deg); z-index: 15; } 100% { transform: rotateX(180deg); z-index: 15; } }
+.lux-envelope.is-open .lux-flap { animation: luxFlapOpen 1.2s 0.6s forwards cubic-bezier(0.4, 0, 0.2, 1); }
+@keyframes luxFlapOpen {
+    0% { transform: rotateX(0deg); z-index: 40; }
+    49% { z-index: 40; }
+    50% { transform: rotateX(90deg); z-index: 15; }
+    100% { transform: rotateX(180deg); z-index: 15; }
+}
 
-/* Rebote elegante al detenerse y mostrar nombres */
 .lux-envelope.is-open .lux-letter { animation: luxLetterOut 3.5s 1.2s cubic-bezier(0.34, 1.2, 0.64, 1) forwards; }
 @keyframes luxLetterOut { 
     0% { transform: translateY(0) rotateZ(0deg); } 
@@ -568,17 +573,10 @@ footer small { color: #999; font-size: .85rem; }
 
     .section h3 { font-size: 2.4rem; }
     
-    /* Responsive Animación Sobre */
     .lux-envelope { max-width: 320px; }
     .lux-content-wrapper h1 { font-size: 2.8rem; }
-    .lux-names span { font-size: 1.8rem; } /* Ajuste del nombre para no desbordar en móvil al estar 100% alineado */
-    
-    @keyframes luxLetterOut { 
-        0% { transform: translateX(-50%) translateY(0) rotateZ(0deg); } 
-        35% { transform: translateX(-50%) translateY(-25%) rotateZ(1.5deg); } 
-        75% { transform: translateX(-50%) translateY(-25%) rotateZ(0deg); opacity: 1; } 
-        100% { transform: translateX(-50%) translateY(-110%) rotateZ(0deg); opacity: 0; } 
-    }
+    .lux-names span { font-size: 1.8rem; } 
+    .gold-seal { width: 60px; height: 60px; font-size: 1.3rem; }
 
     .play-button { width: 60px; height: 60px; }
     .play-button i { width: 24px; height: 24px; margin-left: 3px; }
@@ -626,6 +624,7 @@ footer small { color: #999; font-size: .85rem; }
     
     .lux-envelope { max-width: 280px; }
     .lux-names span { font-size: 1.5rem; }
+    .gold-seal { width: 55px; height: 55px; font-size: 1.2rem; }
     
     .time-card { min-width: calc(50% - 10px); }
     .time-card .number { font-size: 3rem; }

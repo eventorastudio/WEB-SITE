@@ -64,7 +64,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (navigator.vibrate) navigator.vibrate(20);
 
-            // Ajustado al tiempo exacto de la cinemática
             setTimeout(() => {
                 envelopeScreen.classList.add("hide");
                 invitation.classList.remove("hidden");
@@ -225,8 +224,8 @@ document.addEventListener("DOMContentLoaded", () => {
     /*=====================================
             CONFIRMACIÓN PASES VIP (PRESTIGE)
     =====================================*/
-    if (btnConfirm && btnDecline && rsvpActionContainer && rsvpMessageContainer) {
-        btnConfirm.addEventListener("click", (e) => {
+    if (confirmButton && declineButton && rsvpActionContainer && rsvpMessageContainer) {
+        confirmButton.addEventListener("click", (e) => {
             e.preventDefault();
             rsvpActionContainer.style.display = "none";
             rsvpMessageContainer.style.display = "block";
@@ -242,7 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
             lucide.createIcons();
         });
 
-        btnDecline.addEventListener("click", (e) => {
+        declineButton.addEventListener("click", (e) => {
             e.preventDefault();
             rsvpActionContainer.style.display = "none";
             rsvpMessageContainer.style.display = "block";
