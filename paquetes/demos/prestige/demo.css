@@ -196,9 +196,9 @@ i { font-style: italic; color: var(--gold); }
 .tap-arrow { margin-top: 8px; font-size: 1.2rem; color: #a89468; animation: premiumBounce 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
 @keyframes premiumBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
 
-/* Sistema Físico del Sobre */
+/* Sistema Físico del Sobre - Restaurado Lógica Esencial para prevenir Glitches */
 #envelope { 
-    position: relative; width: 420px; height: 285px; margin: auto; cursor: pointer; perspective: 1500px; 
+    position: relative; width: 440px; height: 290px; margin: auto; cursor: pointer; perspective: 1800px; 
     animation: premiumFloat 7s cubic-bezier(0.4, 0, 0.2, 1) infinite; 
     box-shadow: 0 45px 65px -15px rgba(0,0,0,0.15), 0 15px 30px -10px rgba(0,0,0,0.12); border-radius: 6px; 
 }
@@ -419,6 +419,68 @@ footer p { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: #
 footer small { color: #999; font-size: .85rem; }
 
 /*==================================================
+            MENÚ FLOTANTE PRESTIGE
+==================================================*/
+.floating-menu {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translate(-50%, 100px) scale(0.9);
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05), inset 0 0 0 1px rgba(212,175,55,0.1);
+    border-radius: 999px;
+    padding: 5px 25px;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.floating-menu.show {
+    transform: translate(-50%, 0) scale(1);
+    opacity: 1;
+    visibility: visible;
+}
+.floating-menu ul {
+    display: flex;
+    list-style: none;
+    gap: 30px;
+    align-items: center;
+    margin: 0;
+}
+.floating-menu a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #66635e;
+    padding: 10px 5px;
+    gap: 6px;
+    transition: all 0.3s ease;
+}
+.floating-menu a:hover {
+    color: var(--gold);
+}
+.floating-menu a i {
+    width: 22px;
+    height: 22px;
+    transition: transform 0.3s ease;
+}
+.floating-menu a:hover i {
+    transform: translateY(-2px) scale(1.1);
+}
+.floating-menu a span {
+    font-size: 0.65rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+}
+
+/*==================================================
             ANIMACIONES REVEAL PREMIUM
 ==================================================*/
 .reveal { opacity: 0; transform: translateY(40px) scale(0.98); filter: blur(8px); transition: opacity 1.2s var(--transition), transform 1.2s var(--transition), filter 1.2s ease-out; }
@@ -483,6 +545,26 @@ footer small { color: #999; font-size: .85rem; }
     .ticket-info { text-align: center; }
 
     .cta-wrapper h2 { font-size: 2.3rem; }
+
+    .floating-menu {
+        bottom: 25px;
+        padding: 5px 15px;
+        width: calc(100% - 40px);
+        max-width: 400px;
+    }
+    .floating-menu ul {
+        justify-content: space-between;
+        gap: 0;
+        width: 100%;
+    }
+    .floating-menu a span {
+        font-size: 0.5rem;
+        letter-spacing: 0.5px;
+    }
+    .floating-menu a i {
+        width: 20px;
+        height: 20px;
+    }
 }
 
 @media (hover:none){
@@ -500,4 +582,15 @@ footer small { color: #999; font-size: .85rem; }
     
     .time-card { min-width: calc(50% - 10px); }
     .time-card .number { font-size: 3rem; }
+
+    .floating-menu a span {
+        display: none;
+    }
+    .floating-menu a i {
+        width: 22px;
+        height: 22px;
+    }
+    .floating-menu a {
+        padding: 12px 10px;
+    }
 }

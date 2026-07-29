@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const music = document.getElementById("backgroundMusic");
     const progressBar = document.getElementById("progress-bar");
     const confirmButton = document.querySelector('.section.vip-access .primary-button');
+    const floatingMenu = document.getElementById("floating-menu");
 
     /*=====================================
           BLOQUEO DE SCROLL (UX FIX)
@@ -160,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (el.textContent !== newValue) {
             el.textContent = newValue;
             el.classList.remove("pop");
-            void el.offsetWidth;
+            void el.offsetWidth; // Dispara reflow nativo
             el.classList.add("pop");
         }
     };
@@ -200,13 +201,20 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     /*=====================================
-            BARRA SUPERIOR
+            BARRA SUPERIOR & MENÚ FLOTANTE
     =====================================*/
     window.addEventListener("scroll", () => {
         const scrollTop = document.documentElement.scrollTop;
         const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
         const progress = (scrollTop / height) * 100;
         progressBar.style.width = progress + "%";
+
+        // Muestra el menú flotante solo después de pasar el hero y si el sobre está abierto
+        if (opened && scrollTop > window.innerHeight * 0.5) {
+            floatingMenu.classList.add("show");
+        } else {
+            floatingMenu.classList.remove("show");
+        }
     });
 
     /*=====================================

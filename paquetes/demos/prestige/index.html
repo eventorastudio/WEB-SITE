@@ -93,7 +93,7 @@
         <!--==================================
                 HERO EDITORIAL DE LUJO
         ===================================-->
-        <section class="hero">
+        <section class="hero" id="inicio">
             <div class="hero-overlay"></div>
             
             <div class="hero-editorial-frame reveal">
@@ -219,7 +219,7 @@
         <!--==================================
                 GALERÍA DE FOTOGRAFÍAS
         ===================================-->
-        <section class="section photo-gallery">
+        <section class="section photo-gallery" id="galeria">
             <div class="container">
                 <div class="text-center reveal" style="margin-bottom: 40px;">
                     <span class="section-badge">Memorias</span>
@@ -289,7 +289,7 @@
         <!--==================================
             ITINERARIO Y MULTIPLES UBICACIONES
         ===================================-->
-        <section class="section itinerary-location">
+        <section class="section itinerary-location" id="itinerario">
             <div class="container">
                 
                 <div class="text-center reveal" style="margin-bottom: 50px;">
@@ -363,7 +363,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <p style="font-size: 0.85rem; color: var(--gold); margin-top: 5px; font-style: italic;">Evento exclusivo para adultos.</p>
+                            <p style="font-size: 0.85rem; color: var(--gold); margin-top: 10px; font-style: italic;">Evento exclusivo para adultos.</p>
                         </div>
                     </div>
 
@@ -372,9 +372,9 @@
         </section>
 
         <!--==================================
-                MESA DE REGALOS (PRESTIGE EDITORIAL)
+                MESA DE REGALOS
         ===================================-->
-        <section class="section registry">
+        <section class="section registry" id="regalos">
             <div class="container">
                 
                 <div class="text-center reveal" style="margin-bottom: 40px;">
@@ -386,7 +386,6 @@
 
                 <div class="registry-grid reveal">
                     
-                    <!-- Tarjeta Amazon -->
                     <div class="premium-card hover-elevate registry-prestige-card">
                         <div class="registry-image-wrapper">
                             <img src="https://images.unsplash.com/photo-1523474253046-8cd2748b5fd2?q=80&w=800&auto=format&fit=crop" alt="Amazon">
@@ -400,7 +399,6 @@
                         </div>
                     </div>
 
-                    <!-- Tarjeta Liverpool -->
                     <div class="premium-card hover-elevate registry-prestige-card">
                         <div class="registry-image-wrapper">
                             <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&auto=format&fit=crop" alt="Liverpool">
@@ -414,7 +412,6 @@
                         </div>
                     </div>
 
-                    <!-- Tarjeta Palacio -->
                     <div class="premium-card hover-elevate registry-prestige-card">
                         <div class="registry-image-wrapper">
                             <img src="https://images.unsplash.com/photo-1580828343064-fde4cad202d5?q=80&w=800&auto=format&fit=crop" alt="Palacio de Hierro">
@@ -428,7 +425,6 @@
                         </div>
                     </div>
 
-                    <!-- Tarjeta Transferencia -->
                     <div class="premium-card hover-elevate registry-prestige-card">
                         <div class="registry-image-wrapper">
                             <img src="https://images.unsplash.com/photo-1580519542036-ed47f3caeb51?q=80&w=800&auto=format&fit=crop" alt="Transferencia Bancaria">
@@ -450,7 +446,7 @@
         <!--==================================
             CÓDIGO QR Y PASES ASIGNADOS 
         ===================================-->
-        <section class="section vip-access">
+        <section class="section vip-access" id="confirmacion">
             <div class="container">
                 <div class="premium-card hover-elevate form-card reveal">
                     
@@ -582,6 +578,44 @@
             <p>© 2026 Eventora Studio</p>
             <small>Demostración interactiva del Paquete Prestige</small>
         </footer>
+
+        <!--==================================
+                MENÚ FLOTANTE PRESTIGE
+        ===================================-->
+        <nav id="floating-menu" class="floating-menu">
+            <ul>
+                <li>
+                    <a href="#inicio" aria-label="Inicio">
+                        <i data-lucide="home"></i>
+                        <span>Inicio</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#itinerario" aria-label="Itinerario">
+                        <i data-lucide="map"></i>
+                        <span>Itinerario</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#galeria" aria-label="Galería">
+                        <i data-lucide="camera"></i>
+                        <span>Galería</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#regalos" aria-label="Regalos">
+                        <i data-lucide="gift"></i>
+                        <span>Regalos</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#confirmacion" aria-label="Confirmación">
+                        <i data-lucide="check-circle"></i>
+                        <span>Confirmación</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
 
     </main>
 
