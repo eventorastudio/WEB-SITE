@@ -113,7 +113,7 @@ i { font-style: italic; color: var(--gold); }
 .divider.small { margin: 20px auto; }
 .divider.small::before, .divider.small::after { width: 30px; }
 
-/* Tarjetas Premium y Hover (LUJO) */
+/* Tarjetas Premium */
 .premium-card {
     background: linear-gradient(160deg, #ffffff 0%, #fdfcf9 100%);
     border-radius: var(--radius);
@@ -612,6 +612,13 @@ footer small { color: #999; font-size: .85rem; }
     .pass-ticket { flex-direction: column; text-align: center; gap: 10px; }
     .ticket-icon { margin-right: 0; }
     .ticket-info { text-align: center; }
+    
+    .printed-ticket { flex-direction: column; }
+    .ticket-divider { width: 100%; height: 2px; background: repeating-linear-gradient(to right, rgba(212,175,55,0.4) 0, rgba(212,175,55,0.4) 8px, transparent 8px, transparent 16px); }
+    .ticket-divider::before { left: -16px; top: -14px; border-top-color: rgba(212,175,55,0.4); border-right-color: transparent; border-bottom-color: transparent; border-left-color: rgba(212,175,55,0.4); transform: rotate(45deg); box-shadow: inset 2px 2px 4px rgba(0,0,0,0.03);}
+    .ticket-divider::after { right: -16px; left: auto; top: -14px; border-top-color: rgba(212,175,55,0.4); border-left-color: transparent; border-bottom-color: transparent; border-right-color: rgba(212,175,55,0.4); transform: rotate(-45deg); box-shadow: inset -2px 2px 4px rgba(0,0,0,0.03);}
+    .ticket-right { padding: 30px; }
+    .ticket-guest-name { font-size: 1.5rem; }
 
     .cta-wrapper h2 { font-size: 2.3rem; }
 
