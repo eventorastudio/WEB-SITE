@@ -222,13 +222,53 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     /*=====================================
-            CONFIRMACIÓN PASES VIP (PRESTIGE)
+            SISTEMA DUAL DE ACCESOS
     =====================================*/
-    if (confirmButton && declineButton && rsvpActionContainer && rsvpMessageContainer) {
-        confirmButton.addEventListener("click", (e) => {
+    function switchAccessView(isPrinted) {
+        // Fade out info
+        accessBadge.style.opacity = 0;
+        accessDescription.style.opacity = 0;
+        
+        setTimeout(() => {
+            if(isPrinted) {
+                accessBadge.innerHTML = '🎟️ Acceso Impreso';
+                accessDescription.textContent = 'Presenta este pase impreso el día del evento para registrar tu ingreso.';
+                accessDividerIcon.setAttribute('data-lucide', 'ticket');
+                viewQr.classList.remove('active');
+                viewPrinted.classList.add('active');
+            } else {
+                accessBadge.innerHTML = '✨ Acceso Digital';
+                accessDescription.textContent = 'Presenta tu código QR el día del evento para registrar tu ingreso.';
+                accessDividerIcon.setAttribute('data-lucide', 'qr-code');
+                viewPrinted.classList.remove('active');
+                viewQr.classList.add('active');
+            }
+            lucide.createIcons();
+            accessBadge.style.opacity = 1;
+            accessDescription.style.opacity = 1;
+        }, 300);
+    }
+
+    if(tabQr && tabPrinted) {
+        tabQr.addEventListener('change', () => switchAccessView(false));
+        tabPrinted.addEventListener('change', () => switchAccessView(true));
+    }
+
+    /*=====================================
+            CONFIRMACIÓN PASES VIP
+    =====================================*/
+    if (btnConfirm && btnDecline && rsvpActionContainer && rsvpMessageContainer) {
+        btnConfirm.addEventListener("click", (e) => {
             e.preventDefault();
             rsvpActionContainer.style.display = "none";
             rsvpMessageContainer.style.display = "block";
+            
+            // Actualizar estado del ticket visible
+            if(globalTicketStatus) {
+                globalTicketStatus.textContent = "Confirmado";
+                globalTicketStatus.className = "status-badge-inline confirmed";
+            }
+
             rsvpMessageContainer.innerHTML = `
                 <div style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; color: #2e7d32; font-weight: 600; font-size: 1.1rem;">
                     <i data-lucide="check-circle-2" style="width: 24px; height: 24px;"></i>
@@ -241,10 +281,18 @@ document.addEventListener("DOMContentLoaded", () => {
             lucide.createIcons();
         });
 
-        declineButton.addEventListener("click", (e) => {
+        btnDecline.addEventListener("click", (e) => {
             e.preventDefault();
             rsvpActionContainer.style.display = "none";
             rsvpMessageContainer.style.display = "block";
+            
+            if(globalTicketStatus) {
+                globalTicketStatus.textContent = "Declinado";
+                globalTicketStatus.style.color = "#c62828";
+                globalTicketStatus.style.background = "#fcf1f1";
+                globalTicketStatus.style.borderColor = "rgba(198,40,40,0.2)";
+            }
+
             rsvpMessageContainer.innerHTML = `
                 <div style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; color: var(--gray); font-weight: 600; font-size: 1.1rem;">
                     <i data-lucide="info" style="width: 24px; height: 24px;"></i>
