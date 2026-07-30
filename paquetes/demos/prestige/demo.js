@@ -16,11 +16,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const musicButton = document.getElementById("musicButton");
     const music = document.getElementById("backgroundMusic");
     const progressBar = document.getElementById("progress-bar");
-    const confirmButton = document.getElementById("btnConfirm");
-    const declineButton = document.getElementById("btnDecline");
+    
+    // Nombres corregidos para que coincidan con la lógica de eventos
+    const btnConfirm = document.getElementById("btnConfirm");
+    const btnDecline = document.getElementById("btnDecline");
     const rsvpActionContainer = document.getElementById("rsvpActionContainer");
     const rsvpMessageContainer = document.getElementById("rsvpMessageContainer");
     const floatingMenu = document.getElementById("floating-menu");
+
+    // Variables agregadas que faltaban para que el selector QR/Impreso funcione
+    const tabQr = document.getElementById("tab-qr");
+    const tabPrinted = document.getElementById("tab-printed");
+    const accessBadge = document.getElementById("accessBadge");
+    const accessDescription = document.getElementById("accessDescription");
+    const accessDividerIcon = document.getElementById("accessDividerIcon");
+    const viewQr = document.getElementById("view-qr");
+    const viewPrinted = document.getElementById("view-printed");
+    const globalTicketStatus = document.getElementById("globalTicketStatus");
 
     /*=====================================
           BLOQUEO DE SCROLL (UX FIX)
@@ -260,13 +272,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btnConfirm && btnDecline && rsvpActionContainer && rsvpMessageContainer) {
         btnConfirm.addEventListener("click", (e) => {
             e.preventDefault();
-            rsvpActionContainer.style.display = "none";
+            // Se eliminó la línea que ocultaba la tarjeta y los botones
             rsvpMessageContainer.style.display = "block";
             
             // Actualizar estado del ticket visible
             if(globalTicketStatus) {
                 globalTicketStatus.textContent = "Confirmado";
                 globalTicketStatus.className = "status-badge-inline confirmed";
+                // Limpiar estilos en línea por si antes declinó
+                globalTicketStatus.style.color = "";
+                globalTicketStatus.style.background = "";
+                globalTicketStatus.style.borderColor = "";
             }
 
             rsvpMessageContainer.innerHTML = `
@@ -283,11 +299,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         btnDecline.addEventListener("click", (e) => {
             e.preventDefault();
-            rsvpActionContainer.style.display = "none";
+            // Se eliminó la línea que ocultaba la tarjeta y los botones
             rsvpMessageContainer.style.display = "block";
             
             if(globalTicketStatus) {
-                globalTicketStatus.textContent = "Declinado";
+                globalTicketStatus.textContent = "No asistirá"; // Actualizado el texto exacto
+                globalTicketStatus.className = "status-badge-inline"; 
                 globalTicketStatus.style.color = "#c62828";
                 globalTicketStatus.style.background = "#fcf1f1";
                 globalTicketStatus.style.borderColor = "rgba(198,40,40,0.2)";
