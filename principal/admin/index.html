@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eventora Studio | Panel Administrativo</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+
+    <div class="login-container">
+        
+        <!-- Cambiar por la ruta real del logotipo de Eventora Studio configurada en config.js, aquí solo es visual para carga -->
+        <img src="assets/logo-eventora.png" alt="Eventora Studio" class="logo anim-1" id="ui-logo">
+        
+        <h1 class="title anim-2">Panel Administrativo</h1>
+        <p class="description anim-3">Administra todos tus eventos, invitados y experiencias desde un solo lugar.</p>
+        
+        <form id="login-form">
+            <div class="form-group anim-4">
+                <label for="email">Correo electrónico</label>
+                <input type="email" id="email" required autocomplete="email" placeholder="admin@eventorastudio.com">
+            </div>
+            
+            <div class="form-group anim-4">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" required autocomplete="current-password" placeholder="••••••••">
+            </div>
+
+            <div class="checkbox-group anim-4">
+                <input type="checkbox" id="keep-session">
+                <label for="keep-session">Mantener sesión iniciada</label>
+            </div>
+
+            <div class="anim-5">
+                <button type="submit" id="btn-login" class="btn-submit">Iniciar sesión</button>
+            </div>
+        </form>
+
+        <div id="error-container" class="error-message">
+            No fue posible iniciar sesión.<br>Verifica tus credenciales e intenta nuevamente.
+        </div>
+
+        <div class="footer anim-5">
+            &copy; Eventora Studio
+        </div>
+    </div>
+
+    <!-- Módulo principal de Login -->
+    <script type="module" src="login.js"></script>
+</body>
+</html>

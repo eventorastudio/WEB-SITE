@@ -1,0 +1,187 @@
+/* login.css */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Poppins:wght@300;400;500&display=swap');
+
+:root {
+    --color-ivory: #FAF9F6;
+    --color-white: #FFFFFF;
+    --color-black: #1A1A1A;
+    --color-gold: #D4AF37;
+    --color-gold-hover: #C5A059;
+    --color-error: #B00020;
+    --font-serif: 'Cormorant Garamond', serif;
+    --font-sans: 'Poppins', sans-serif;
+    --shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.04);
+    --border-radius: 12px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--color-ivory);
+    font-family: var(--font-sans);
+    color: var(--color-black);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.login-container {
+    background-color: var(--color-white);
+    width: 100%;
+    max-width: 440px;
+    padding: 60px 40px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-soft);
+    text-align: center;
+}
+
+/* Animaciones */
+.anim-1 { animation: fadeSlideDown 0.8s ease forwards; opacity: 0; }
+.anim-2 { animation: fadeSlideDown 0.8s ease 0.2s forwards; opacity: 0; }
+.anim-3 { animation: fadeSlideDown 0.8s ease 0.4s forwards; opacity: 0; }
+.anim-4 { animation: fadeSlideDown 0.8s ease 0.6s forwards; opacity: 0; }
+.anim-5 { animation: fadeSlideDown 0.8s ease 0.8s forwards; opacity: 0; }
+
+@keyframes fadeSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.logo {
+    max-width: 140px;
+    margin-bottom: 30px;
+    height: auto;
+}
+
+.title {
+    font-family: var(--font-serif);
+    font-size: 2.2rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--color-black);
+}
+
+.description {
+    font-size: 0.9rem;
+    font-weight: 300;
+    color: #666;
+    margin-bottom: 40px;
+    line-height: 1.5;
+}
+
+.form-group {
+    text-align: left;
+    margin-bottom: 24px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--color-black);
+}
+
+.form-group input[type="email"],
+.form-group input[type="password"] {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #E0E0E0;
+    border-radius: 8px;
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.3s ease;
+    background-color: var(--color-ivory);
+}
+
+.form-group input[type="email"]:focus,
+.form-group input[type="password"]:focus {
+    border-color: var(--color-gold);
+    background-color: var(--color-white);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 35px;
+    text-align: left;
+}
+
+.checkbox-group input {
+    margin-right: 10px;
+    accent-color: var(--color-gold);
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.checkbox-group label {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: #555;
+    cursor: pointer;
+}
+
+.btn-submit {
+    width: 100%;
+    background-color: var(--color-black);
+    color: var(--color-white);
+    border: none;
+    padding: 16px;
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-submit:hover {
+    background-color: var(--color-gold);
+}
+
+.btn-submit:disabled {
+    background-color: #999;
+    cursor: not-allowed;
+}
+
+.error-message {
+    margin-top: 20px;
+    color: var(--color-error);
+    font-size: 0.85rem;
+    font-weight: 400;
+    background-color: rgba(176, 0, 32, 0.05);
+    padding: 12px;
+    border-radius: 6px;
+    display: none;
+}
+
+.footer {
+    margin-top: 40px;
+    font-size: 0.75rem;
+    color: #999;
+    font-family: var(--font-sans);
+}
+
+@media (max-width: 480px) {
+    .login-container {
+        padding: 40px 24px;
+    }
+    .title {
+        font-size: 1.8rem;
+    }
+}
