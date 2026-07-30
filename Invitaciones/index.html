@@ -32,86 +32,113 @@
     </div>
 
     <!--======================================
-            HEADER EDITORIAL
+            PANTALLA DE ACCESO (LOGIN)
     =======================================-->
-    <header class="panel-header reveal">
-        <div class="container header-container">
-            <div class="header-titles">
-                <span class="panel-badge">Panel privado de control de invitados</span>
-                <h1>María <span class="ampersand">&</span> Fernando</h1>
-                <div class="header-details">
-                    <span>15 NOVIEMBRE 2027</span>
-                    <span class="dot">✦</span>
-                    <span>SALTILLO, COAHUILA</span>
-                </div>
+    <section id="loginScreen" class="login-screen">
+        <div class="login-container reveal">
+            <div class="login-logo">
+                <span>EVENTORA</span>
             </div>
+            <h1 class="login-title">Panel del Anfitrión</h1>
+            <p class="login-subtitle">Accede al panel privado para gestionar el ingreso de tus invitados durante el evento.</p>
+
+            <form id="loginForm" class="login-form">
+                <div class="input-group">
+                    <label for="eventCode">Código del Evento</label>
+                    <input type="text" id="eventCode" placeholder="Ingresa el código" autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <label for="accessKey">Clave de Acceso</label>
+                    <input type="password" id="accessKey" placeholder="Ingresa la clave" autocomplete="off">
+                </div>
+                <button type="submit" class="primary-button login-btn">Ingresar</button>
+                <p id="loginError" class="login-error">Código del Evento o Clave de Acceso incorrectos.</p>
+            </form>
         </div>
-    </header>
+    </section>
 
     <!--======================================
-            MAIN DASHBOARD
+            CONTENEDOR DEL PANEL PRINCIPAL
     =======================================-->
-    <main class="panel-main reveal" style="animation-delay: 0.2s;">
-        <div class="container">
-            
-            <!-- ESTADÍSTICAS -->
-            <section class="stats-section">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <span class="stat-number" id="stat-total">0</span>
-                        <span class="stat-label">Invitados</span>
-                    </div>
-                    <div class="stat-card stat-success">
-                        <span class="stat-number" id="stat-arrived">0</span>
-                        <span class="stat-label">Llegaron</span>
-                    </div>
-                    <div class="stat-card stat-warning">
-                        <span class="stat-number" id="stat-pending">0</span>
-                        <span class="stat-label">Pendientes</span>
-                    </div>
-                    <div class="stat-card stat-danger">
-                        <span class="stat-number" id="stat-declined">0</span>
-                        <span class="stat-label">No asistirán</span>
+    <div id="mainPanelWrapper">
+        <!-- HEADER EDITORIAL -->
+        <header class="panel-header reveal">
+            <div class="container header-container">
+                <div class="header-titles">
+                    <span class="panel-badge">Panel privado de control de invitados</span>
+                    <h1>María <span class="ampersand">&</span> Fernando</h1>
+                    <div class="header-details">
+                        <span>15 NOVIEMBRE 2027</span>
+                        <span class="dot">✦</span>
+                        <span>SALTILLO, COAHUILA</span>
                     </div>
                 </div>
-            </section>
+            </div>
+        </header>
 
-            <!-- BARRA DE PROGRESO -->
-            <section class="progress-section">
-                <div class="premium-card progress-card">
-                    <div class="progress-header">
-                        <span class="progress-title">Invitados presentes</span>
-                        <span class="progress-percentage" id="progress-text">0%</span>
+        <!-- MAIN DASHBOARD -->
+        <main class="panel-main reveal" style="animation-delay: 0.2s;">
+            <div class="container">
+                
+                <!-- ESTADÍSTICAS -->
+                <section class="stats-section">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-number" id="stat-total">0</span>
+                            <span class="stat-label">Invitados</span>
+                        </div>
+                        <div class="stat-card stat-success">
+                            <span class="stat-number" id="stat-arrived">0</span>
+                            <span class="stat-label">Llegaron</span>
+                        </div>
+                        <div class="stat-card stat-warning">
+                            <span class="stat-number" id="stat-pending">0</span>
+                            <span class="stat-label">Pendientes</span>
+                        </div>
+                        <div class="stat-card stat-danger">
+                            <span class="stat-number" id="stat-declined">0</span>
+                            <span class="stat-label">No asistirán</span>
+                        </div>
                     </div>
-                    <div class="progress-track">
-                        <div class="progress-fill" id="progress-bar"></div>
+                </section>
+
+                <!-- BARRA DE PROGRESO -->
+                <section class="progress-section">
+                    <div class="premium-card progress-card">
+                        <div class="progress-header">
+                            <span class="progress-title">Invitados presentes</span>
+                            <span class="progress-percentage" id="progress-text">0%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="progress-bar"></div>
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            <!-- CONTROLES (BÚSQUEDA Y QR) -->
-            <section class="controls-section">
-                <div class="controls-wrapper">
-                    <div class="search-box">
-                        <i data-lucide="search"></i>
-                        <input type="text" id="searchInput" placeholder="Buscar invitado...">
+                <!-- CONTROLES (BÚSQUEDA Y QR) -->
+                <section class="controls-section">
+                    <div class="controls-wrapper">
+                        <div class="search-box">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="searchInput" placeholder="Buscar invitado...">
+                        </div>
+                        <button class="primary-button qr-btn" id="openScannerBtn">
+                            <i data-lucide="camera"></i>
+                            <span>Escanear código QR</span>
+                        </button>
                     </div>
-                    <button class="primary-button qr-btn" id="openScannerBtn">
-                        <i data-lucide="camera"></i>
-                        <span>Escanear código QR</span>
-                    </button>
-                </div>
-            </section>
+                </section>
 
-            <!-- LISTA DE INVITADOS -->
-            <section class="guests-section">
-                <div class="guests-grid" id="guestsList">
-                    <!-- Las tarjetas se generan dinámicamente con JavaScript -->
-                </div>
-            </section>
+                <!-- LISTA DE INVITADOS -->
+                <section class="guests-section">
+                    <div class="guests-grid" id="guestsList">
+                        <!-- Las tarjetas se generan dinámicamente con JavaScript -->
+                    </div>
+                </section>
 
-        </div>
-    </main>
+            </div>
+        </main>
+    </div>
 
     <!--======================================
             MODAL ESCÁNER QR
