@@ -1,13 +1,14 @@
 // event.js
-// Lógica de Módulos 4 y 5: Tablero de Evento y Gestión Avanzada de Invitados (SaaS)
+// Lógica de Módulos 4, 5 y 6: Evento, Invitados y Motor de Invitaciones Digitales
 
 import { auth, db } from './firebase.js';
 import { CONFIG } from './config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { generateToken, generateInvitationURL, generateQRCode, copyInvitation } from './invitation-utils.js';
 
 // ============================================================================
-// REFERENCIAS DOM (MÓDULO 4 Y GENERALES)
+// REFERENCIAS DOM
 // ============================================================================
 const authGuard = document.getElementById('auth-guard');
 const loadingView = document.getElementById('loading-view');
@@ -21,14 +22,12 @@ const tabPanes = document.querySelectorAll('.tab-pane');
 
 let currentEventData = null;
 let currentEventId = null;
-
-// ============================================================================
-// REFERENCIAS DOM (MÓDULO 5 - INVITADOS)
-// ============================================================================
 let globalGuests = [];
 let currentEditingGuestId = null;
+let guestToDeleteId = null;
+let guestToRegenerateId = null;
 
-// Toolbar
+// Formularios, Modales y Filtros
 const searchInput = document.getElementById('guest-search');
 const filterStatus = document.getElementById('guest-filter-status');
 const filterTable = document.getElementById('guest-filter-table');
@@ -37,7 +36,6 @@ const btnOpenAddGuest = document.getElementById('btn-open-add-guest');
 const btnImportExcel = document.getElementById('btn-import-excel');
 const btnEmptyAddGuest = document.getElementById('btn-empty-add-guest');
 
-// Contenedores Invitados
 const guestsList = document.getElementById('guests-list');
 const guestsEmptyState = document.getElementById('guests-empty-state');
 
@@ -49,16 +47,33 @@ const btnCancelModalGuest = document.getElementById('btn-cancel-modal-guest');
 const btnSubmitGuest = document.getElementById('btn-submit-guest');
 const modalGuestTitle = document.getElementById('modal-guest-title');
 
-// Modal Delete Confirm
+// Modales Acción
 const modalConfirmDelete = document.getElementById('modal-confirm-delete');
 const btnCancelDelete = document.getElementById('btn-cancel-delete');
 const btnConfirmDelete = document.getElementById('btn-confirm-delete');
 const deleteGuestName = document.getElementById('delete-guest-name');
-let guestToDeleteId = null;
 
-// Modal Feature Coming
 const modalFeatureComing = document.getElementById('modal-feature-coming');
 const btnCloseComing = document.getElementById('btn-close-coming');
+
+// Modales Módulo 6 (Invitación Digital)
+const modalConfirmRegenerate = document.getElementById('modal-confirm-regenerate');
+const btnCancelRegenerate = document.getElementById('btn-cancel-regenerate');
+const btnConfirmRegenerate = document.getElementById('btn-confirm-regenerate');
+const regenGuestName = document.getElementById('regen-guest-name');
+
+const modalQrViewer = document.getElementById('modal-qr-viewer');
+const btnCloseModalQr = document.getElementById('btn-close-modal-qr');
+const btnDownloadQr = document.getElementById('btn-download-qr');
+const btnCopyLinkQr = document.getElementById('btn-copy-link-qr');
+const qrViewerImg = document.getElementById('qr-viewer-img');
+const qrViewerToken = document.getElementById('qr-viewer-token');
+const qrViewerUrl = document.getElementById('qr-viewer-url');
+
+// Variables para descarga de QR
+let currentQrUrlDownload = '';
+let currentQrTokenDownload = '';
+
 
 // ============================================================================
 // UTILIDADES COMUNES
@@ -113,6 +128,15 @@ function generateAvatarInitials(name) {
     return parts[0].substring(0, 2).toUpperCase();
 }
 
+function showToast(message, iconSvg) {
+    const toast = document.getElementById('toast-notification');
+    const defaultIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
+    toast.innerHTML = `${iconSvg || defaultIcon} <span>${message}</span>`;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+
 // ============================================================================
 // INICIALIZACIÓN MÓDULO 4
 // ============================================================================
@@ -126,7 +150,8 @@ onAuthStateChanged(auth, async (user) => {
     setTimeout(() => authGuard.style.display = 'none', 600);
     
     initUI();
-    initGuestEvents(); // Inicializar Módulo 5
+    initGuestEvents(); 
+    initInvitationEvents(); // Módulo 6
 
     const urlParams = new URLSearchParams(window.location.search);
     currentEventId = urlParams.get('id');
@@ -141,7 +166,6 @@ onAuthStateChanged(auth, async (user) => {
 
 function initUI() {
     if (uiLogo) uiLogo.src = CONFIG.LOGO;
-    
     btnBack.addEventListener('click', () => { window.location.href = 'dashboard.html'; });
 
     tabButtons.forEach(btn => {
@@ -157,25 +181,14 @@ function initUI() {
         });
     });
 
-    document.getElementById('btn-edit-info').addEventListener('click', () => console.log("Editar Info Evento"));
-    document.getElementById('btn-generate-qr-event').addEventListener('click', () => console.log("Generar QR Global"));
-    document.getElementById('btn-delete-event').addEventListener('click', () => console.log("Eliminar Evento"));
-
     document.getElementById('btn-copy-url').addEventListener('click', () => {
-        const urlInput = document.getElementById('val-url');
-        urlInput.select();
-        navigator.clipboard.writeText(urlInput.value).then(() => {
-            const btn = document.getElementById('btn-copy-url');
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1E7E34" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-            setTimeout(() => btn.innerHTML = originalHTML, 2000);
-        });
+        const urlInput = document.getElementById('val-url').value;
+        copyInvitation(urlInput, () => showToast('Enlace general copiado exitosamente.'));
     });
-
+    
     document.getElementById('btn-open-invitation').addEventListener('click', () => {
         const url = document.getElementById('val-url').value;
         if(url && url.startsWith('http')) window.open(url, '_blank');
-        else console.log("Abrir: " + url);
     });
 }
 
@@ -186,10 +199,7 @@ async function fetchEventData(eventId) {
 
         if (docSnap.exists()) {
             currentEventData = docSnap.data();
-            
-            // Cargar invitados (Módulo 5) ANTES de llenar datos para tener stats reales
-            await fetchGuestsData();
-
+            await fetchGuestsData(); // Carga invitados antes de pintar stats globales
             populateEventData();
             
             loadingView.style.display = 'none';
@@ -197,11 +207,11 @@ async function fetchEventData(eventId) {
             setTimeout(() => mainView.style.opacity = '1', 50);
 
         } else {
-            showError("Evento no encontrado.", "El evento que intentas administrar no existe o fue eliminado.");
+            showError("Evento no encontrado.", "El evento que intentas administrar no existe.");
         }
     } catch (error) {
         console.error("Error obteniendo evento:", error);
-        showError("Error de conexión", "Ocurrió un problema al cargar los datos del evento.");
+        showError("Error de conexión", "Ocurrió un problema al cargar los datos.");
     }
 }
 
@@ -227,7 +237,6 @@ function populateEventData() {
     const descripcion = data.descripcion || 'Sin descripción adicional.';
     const claveAcceso = data.claveAcceso || '----';
 
-    // Header
     document.getElementById('val-nombre').textContent = nombre;
     document.getElementById('val-ciudad').textContent = ciudad;
     document.getElementById('val-fecha').textContent = fecha;
@@ -236,7 +245,6 @@ function populateEventData() {
     badgeEl.textContent = badgeInfo.texto;
     badgeEl.className = `badge ${badgeInfo.clase}`;
 
-    // Tab Info
     document.getElementById('info-nombre').textContent = nombre;
     document.getElementById('info-tipo').textContent = tipo;
     document.getElementById('info-fecha').textContent = fecha;
@@ -245,39 +253,32 @@ function populateEventData() {
     document.getElementById('info-estado').textContent = badgeInfo.texto;
     document.getElementById('info-descripcion').textContent = descripcion;
 
-    // Tab Invitación
     const baseUrl = window.location.origin;
     document.getElementById('val-url').value = `${baseUrl}/invitacion?code=${codigo}`;
     document.getElementById('inv-codigo').textContent = codigo;
     document.getElementById('inv-acceso').textContent = acceso;
 
-    // Tab Config
     document.getElementById('conf-estado').textContent = badgeInfo.texto;
     document.getElementById('conf-acceso').textContent = acceso;
     document.getElementById('conf-codigo').textContent = codigo;
     document.getElementById('conf-clave').textContent = claveAcceso;
 
-    // Las tarjetas y estadísticas se actualizan mediante syncParentStatsUI();
     syncParentStatsUI();
 }
 
 function animateProgressBar() {
-    const data = currentEventData;
-    const totalInv = Number(data.totalInvitados) || 0;
-    const confirmados = Number(data.confirmados) || 0;
-    
-    let porcentaje = 0;
-    if(totalInv > 0) porcentaje = Math.round((confirmados / totalInv) * 100);
+    const totalInv = Number(currentEventData.totalInvitados) || 0;
+    const confirmados = Number(currentEventData.confirmados) || 0;
+    let porcentaje = totalInv > 0 ? Math.round((confirmados / totalInv) * 100) : 0;
     if(porcentaje > 100) porcentaje = 100;
 
-    const lblPorcentaje = document.getElementById('stat-porcentaje');
-    const barFill = document.getElementById('stat-progress-bar');
-    barFill.style.width = '0%';
-    
+    const lbl = document.getElementById('stat-porcentaje');
+    const bar = document.getElementById('stat-progress-bar');
+    bar.style.width = '0%';
     setTimeout(() => {
-        animateValue(lblPorcentaje, 0, porcentaje, 1000);
-        lblPorcentaje.textContent = porcentaje + '%';
-        barFill.style.width = porcentaje + '%';
+        animateValue(lbl, 0, porcentaje, 1000);
+        lbl.textContent = porcentaje + '%';
+        bar.style.width = porcentaje + '%';
     }, 100);
 }
 
@@ -287,51 +288,39 @@ function animateProgressBar() {
 // ============================================================================
 
 function initGuestEvents() {
-    // Abrir modal agregar
     btnOpenAddGuest.addEventListener('click', () => openGuestModal());
     btnEmptyAddGuest.addEventListener('click', () => openGuestModal());
     
-    // Importar Excel (Coming soon)
     btnImportExcel.addEventListener('click', () => openModalElem(modalFeatureComing));
     btnCloseComing.addEventListener('click', () => closeModalElem(modalFeatureComing));
 
-    // Toolbar Listeners
     searchInput.addEventListener('input', renderGuestsList);
     filterStatus.addEventListener('change', renderGuestsList);
     filterTable.addEventListener('change', renderGuestsList);
     sortSelect.addEventListener('change', renderGuestsList);
 
-    // Modal Add/Edit
     btnCloseModalGuest.addEventListener('click', () => closeModalElem(modalGuest));
     btnCancelModalGuest.addEventListener('click', () => closeModalElem(modalGuest));
     btnSubmitGuest.addEventListener('click', saveGuest);
     
-    // Validaciones form
-    const inputs = formGuest.querySelectorAll('.form-control');
-    inputs.forEach(input => {
+    formGuest.querySelectorAll('.form-control').forEach(input => {
         input.addEventListener('input', () => {
             input.classList.remove('input-error');
-            const err = input.nextElementSibling;
-            if(err && err.classList.contains('error-msg')) err.style.display = 'none';
+            if(input.nextElementSibling) input.nextElementSibling.style.display = 'none';
         });
     });
 
-    // Delete Modal
     btnCancelDelete.addEventListener('click', () => closeModalElem(modalConfirmDelete));
     btnConfirmDelete.addEventListener('click', executeDeleteGuest);
 }
 
-// ---- Obtener datos (Firestore Subcollection) ----
+// Obtener datos (Firestore Subcollection)
 async function fetchGuestsData() {
     try {
         const guestsRef = collection(db, `eventos/${currentEventId}/invitados`);
         const snapshot = await getDocs(guestsRef);
         globalGuests = [];
-        
-        snapshot.forEach(doc => {
-            globalGuests.push({ firebaseId: doc.id, ...doc.data() });
-        });
-        
+        snapshot.forEach(doc => globalGuests.push({ firebaseId: doc.id, ...doc.data() }));
         calculateAndUpdateStats();
         renderGuestsList();
     } catch (error) {
@@ -339,32 +328,28 @@ async function fetchGuestsData() {
     }
 }
 
-// ---- Estadísticas y Sincronización ----
 function calculateAndUpdateStats() {
     let stats = { totalPases: 0, conf: 0, pend: 0, no: 0, llegaron: 0, totalInvitadosEntidad: globalGuests.length };
 
     globalGuests.forEach(g => {
         const pases = Number(g.pases) || 1;
         stats.totalPases += pases;
-        
         const est = g.estado ? g.estado.toLowerCase() : '';
         if (est.includes('confirmado')) stats.conf += pases;
         else if (est.includes('no')) stats.no += pases;
         else if (est.includes('llegó') || est.includes('llego')) {
             stats.llegaron += pases;
-            stats.conf += pases; // El que llega, cuenta como confirmado en la bolsa total
+            stats.conf += pases;
         } 
-        else stats.pend += pases; // Por defecto
+        else stats.pend += pases;
     });
 
-    // Actualizar UI Local Tab Invitados
     document.getElementById('g-stat-total').textContent = stats.totalInvitadosEntidad;
     document.getElementById('g-stat-conf').textContent = stats.conf;
     document.getElementById('g-stat-pend').textContent = stats.pend;
     document.getElementById('g-stat-no').textContent = stats.no;
     document.getElementById('g-stat-llegaron').textContent = stats.llegaron;
 
-    // Sincronizar en Local Memory para el Evento Global
     if (currentEventData) {
         currentEventData.totalInvitados = stats.totalPases;
         currentEventData.confirmados = stats.conf;
@@ -377,13 +362,11 @@ function calculateAndUpdateStats() {
 async function syncParentStatsUI() {
     if (!currentEventData) return;
     
-    // Actualizar Tarjetas Resumen Globales
     animateValue(document.getElementById('count-invitados'), 0, currentEventData.totalInvitados || 0, 800);
     animateValue(document.getElementById('count-confirmados'), 0, currentEventData.confirmados || 0, 800);
     animateValue(document.getElementById('count-pendientes'), 0, currentEventData.pendientes || 0, 800);
     animateValue(document.getElementById('count-llegadas'), 0, currentEventData.llegaron || 0, 800);
 
-    // Actualizar Tab Estadísticas Globales
     document.getElementById('stat-total').textContent = currentEventData.totalInvitados || 0;
     document.getElementById('stat-confirmados').textContent = currentEventData.confirmados || 0;
     document.getElementById('stat-pendientes').textContent = currentEventData.pendientes || 0;
@@ -392,7 +375,6 @@ async function syncParentStatsUI() {
     
     animateProgressBar();
 
-    // Persistir en Firestore (Evento Padre)
     try {
         const eventRef = doc(db, 'eventos', currentEventId);
         await updateDoc(eventRef, {
@@ -402,15 +384,13 @@ async function syncParentStatsUI() {
             llegaron: currentEventData.llegaron
         });
     } catch (e) {
-        console.error("No se pudo actualizar los stats en el documento padre", e);
+        console.error("Error sincronizando stats:", e);
     }
 }
 
-// ---- Renderizado de la Lista ----
 function renderGuestsList() {
     let filtered = [...globalGuests];
     
-    // Search
     const searchVal = searchInput.value.toLowerCase().trim();
     if (searchVal) {
         filtered = filtered.filter(g => 
@@ -421,7 +401,6 @@ function renderGuestsList() {
         );
     }
 
-    // Filter Status
     const statusVal = filterStatus.value;
     if (statusVal !== 'all') {
         filtered = filtered.filter(g => {
@@ -434,7 +413,6 @@ function renderGuestsList() {
         });
     }
 
-    // Filter Table
     const tableVal = filterTable.value;
     if (tableVal !== 'all') {
         filtered = filtered.filter(g => {
@@ -443,21 +421,15 @@ function renderGuestsList() {
         });
     }
 
-    // Sort
     const sortVal = sortSelect.value;
     filtered.sort((a, b) => {
         if (sortVal === 'name') return (a.nombre || '').localeCompare(b.nombre || '');
-        if (sortVal === 'table') {
-            const tA = parseInt(a.mesa) || 9999;
-            const tB = parseInt(b.mesa) || 9999;
-            return tA - tB;
-        }
+        if (sortVal === 'table') return (parseInt(a.mesa) || 9999) - (parseInt(b.mesa) || 9999);
         if (sortVal === 'status') return (a.estado || '').localeCompare(b.estado || '');
         if (sortVal === 'date') return (b.fechaRegistro?.toMillis?.() || 0) - (a.fechaRegistro?.toMillis?.() || 0);
         return 0;
     });
 
-    // Render HTML
     guestsList.innerHTML = '';
     
     if (globalGuests.length === 0) {
@@ -479,6 +451,13 @@ function renderGuestsList() {
         const pasesStr = g.pases > 1 ? `${g.pases} pases` : `1 pase`;
         const mesaStr = g.mesa ? `Mesa ${g.mesa}` : 'Sin mesa';
         
+        // MÓDULO 6: Estado de la invitación y token
+        const invStatus = g.estadoAcceso || 'Pendiente';
+        let invBadgeClass = 'badge-inv-pendiente';
+        if(invStatus === 'Invitación generada') invBadgeClass = 'badge-inv-generada';
+        if(invStatus === 'Regenerada') invBadgeClass = 'badge-inv-regenerada';
+        const tokenDisplay = g.token ? g.token.substring(0, 8) + '...' : '----';
+
         const card = document.createElement('div');
         card.className = 'guest-card';
         card.style.animationDelay = `${Math.min(index * 0.03, 0.3)}s`;
@@ -504,11 +483,30 @@ function renderGuestsList() {
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
                     ${mesaStr}
                 </div>
-                ${g.telefono ? `<div class="guest-info-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>${g.telefono}</div>` : ''}
                 
-                <div class="guest-code-box mt-10">
-                    <span>Código de Acceso</span>
-                    <strong>${g.codigo}</strong>
+                <!-- MÓDULO 6: Invitación Box -->
+                <div class="guest-invitation-box mt-10">
+                    <div class="inv-status-row">
+                        <span class="guest-badge ${invBadgeClass}">${invStatus}</span>
+                        <span class="inv-short-token" title="${g.token || ''}">TK: <strong>${tokenDisplay}</strong></span>
+                    </div>
+                    <div class="inv-actions-row">
+                        <button class="btn-inv-action mod6-copy-link" data-url="${g.urlInvitacion || ''}" title="Copiar enlace">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        </button>
+                        <button class="btn-inv-action mod6-open-link" data-url="${g.urlInvitacion || ''}" title="Abrir invitación">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        </button>
+                        <button class="btn-inv-action mod6-copy-token" data-token="${g.token || ''}" title="Copiar token">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                        </button>
+                        <button class="btn-inv-action mod6-show-qr" data-url="${g.urlInvitacion || ''}" data-token="${g.token || ''}" title="Ver QR">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="7" y="7" width="3" height="3"></rect><rect x="14" y="7" width="3" height="3"></rect><rect x="7" y="14" width="3" height="3"></rect><rect x="14" y="14" width="3" height="3"></rect></svg>
+                        </button>
+                        <button class="btn-inv-action btn-regen mod6-regen" data-id="${g.firebaseId}" data-name="${g.nombre}" title="Regenerar Invitación">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -516,42 +514,49 @@ function renderGuestsList() {
                 <button class="btn-guest-action btn-edit-g" data-id="${g.firebaseId}" title="Editar">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                 </button>
-                <button class="btn-guest-action btn-qr-g" title="Generar QR">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="7" y="7" width="3" height="3"></rect><rect x="14" y="7" width="3" height="3"></rect><rect x="7" y="14" width="3" height="3"></rect><rect x="14" y="14" width="3" height="3"></rect></svg>
-                </button>
-                <button class="btn-guest-action btn-link-g" data-code="${g.codigo}" title="Copiar enlace">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                </button>
                 <button class="btn-guest-action delete btn-del-g" data-id="${g.firebaseId}" data-name="${g.nombre}" title="Eliminar">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 </button>
             </div>
         `;
 
-        // Eventos Tarjeta
+        // Eventos Editar / Eliminar (Mod 5)
         card.querySelector('.btn-edit-g').addEventListener('click', () => openGuestModal(g));
-        card.querySelector('.btn-qr-g').addEventListener('click', () => console.log("QR Invitado:", g.codigo));
         card.querySelector('.btn-del-g').addEventListener('click', (e) => {
             guestToDeleteId = e.currentTarget.getAttribute('data-id');
             deleteGuestName.textContent = e.currentTarget.getAttribute('data-name');
             openModalElem(modalConfirmDelete);
         });
-        card.querySelector('.btn-link-g').addEventListener('click', (e) => {
-            const code = e.currentTarget.getAttribute('data-code');
-            const url = `${window.location.origin}/invitacion?code=${currentEventData.codigoEvento}&guest=${code}`;
-            navigator.clipboard.writeText(url).then(() => {
-                const btn = e.currentTarget;
-                const origHtml = btn.innerHTML;
-                btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1E7E34" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-                setTimeout(() => btn.innerHTML = origHtml, 2000);
-            });
+
+        // Eventos Módulo 6
+        card.querySelector('.mod6-copy-link').addEventListener('click', (e) => {
+            const url = e.currentTarget.getAttribute('data-url');
+            if(url) copyInvitation(url, () => showToast('Enlace de invitación copiado.'));
+        });
+        card.querySelector('.mod6-copy-token').addEventListener('click', (e) => {
+            const token = e.currentTarget.getAttribute('data-token');
+            if(token) copyInvitation(token, () => showToast('Token copiado.'));
+        });
+        card.querySelector('.mod6-open-link').addEventListener('click', (e) => {
+            const url = e.currentTarget.getAttribute('data-url');
+            if(url) window.open(url, '_blank');
+        });
+        card.querySelector('.mod6-show-qr').addEventListener('click', (e) => {
+            const url = e.currentTarget.getAttribute('data-url');
+            const token = e.currentTarget.getAttribute('data-token');
+            if(url) openQRModal(url, token);
+        });
+        card.querySelector('.mod6-regen').addEventListener('click', (e) => {
+            guestToRegenerateId = e.currentTarget.getAttribute('data-id');
+            regenGuestName.textContent = e.currentTarget.getAttribute('data-name');
+            openModalElem(modalConfirmRegenerate);
         });
 
         guestsList.appendChild(card);
     });
 }
 
-// ---- Helper Generadores ----
+// Helpers Add
 function generateGuestId() {
     let nextNum = 1;
     globalGuests.forEach(g => {
@@ -574,7 +579,7 @@ function generateUniqueGuestCode() {
     return code;
 }
 
-// ---- CRUD Invitados ----
+// CRUD Invitados
 function openGuestModal(guestData = null) {
     formGuest.reset();
     document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
@@ -584,9 +589,6 @@ function openGuestModal(guestData = null) {
         currentEditingGuestId = guestData.firebaseId;
         modalGuestTitle.textContent = "Editar Invitado";
         document.getElementById('g-doc-id').value = guestData.firebaseId;
-        document.getElementById('g-internal-id').value = guestData.id || '';
-        document.getElementById('g-unique-code').value = guestData.codigo || '';
-        
         document.getElementById('g-nombre').value = guestData.nombre || '';
         document.getElementById('g-telefono').value = guestData.telefono || '';
         document.getElementById('g-correo').value = guestData.correo || '';
@@ -599,12 +601,9 @@ function openGuestModal(guestData = null) {
         currentEditingGuestId = null;
         modalGuestTitle.textContent = "Agregar Invitado";
         document.getElementById('g-doc-id').value = '';
-        document.getElementById('g-internal-id').value = '';
-        document.getElementById('g-unique-code').value = '';
         document.getElementById('g-estado').value = 'Pendiente';
         document.getElementById('g-acceso').value = 'Ambos';
     }
-
     openModalElem(modalGuest);
 }
 
@@ -625,7 +624,6 @@ async function saveGuest() {
     }
 
     if (!isValid) return;
-
     setModalBtnLoading(true);
 
     try {
@@ -648,29 +646,32 @@ async function saveGuest() {
             const docRef = doc(db, `eventos/${currentEventId}/invitados`, currentEditingGuestId);
             await updateDoc(docRef, guestData);
             
-            // Reflejar localmente
             const idx = globalGuests.findIndex(g => g.firebaseId === currentEditingGuestId);
-            if (idx > -1) {
-                globalGuests[idx] = { ...globalGuests[idx], ...guestData };
-            }
+            if (idx > -1) globalGuests[idx] = { ...globalGuests[idx], ...guestData };
         } else {
-            // Add
+            // Add - MÓDULO 6: Generación Automática
             guestData.id = generateGuestId();
             guestData.codigo = generateUniqueGuestCode();
             guestData.fechaRegistro = serverTimestamp();
             
-            const newDocRef = await addDoc(guestsColRef, guestData);
+            const existingTokens = globalGuests.map(g => g.token).filter(t => t);
+            guestData.token = generateToken(existingTokens);
+            guestData.urlInvitacion = generateInvitationURL(guestData.token);
+            guestData.qrGenerado = generateQRCode(guestData.urlInvitacion);
+            guestData.fechaGeneracion = serverTimestamp();
+            guestData.estadoAcceso = 'Invitación generada';
+            guestData.ultimoAcceso = null;
             
-            // Reflejar localmente (simular timestamp para sort)
+            const newDocRef = await addDoc(guestsColRef, guestData);
             guestData.fechaRegistro = { toMillis: () => Date.now() }; 
             globalGuests.push({ firebaseId: newDocRef.id, ...guestData });
+            
+            showToast('Invitación generada automáticamente.');
         }
 
-        // Refrescar vistas
         calculateAndUpdateStats();
         renderGuestsList();
         await syncParentStatsUI();
-        
         closeModalElem(modalGuest);
 
     } catch (e) {
@@ -682,7 +683,6 @@ async function saveGuest() {
 
 async function executeDeleteGuest() {
     if(!guestToDeleteId) return;
-    
     const originalText = btnConfirmDelete.textContent;
     btnConfirmDelete.textContent = "Eliminando...";
     btnConfirmDelete.disabled = true;
@@ -692,12 +692,11 @@ async function executeDeleteGuest() {
         await deleteDoc(docRef);
 
         globalGuests = globalGuests.filter(g => g.firebaseId !== guestToDeleteId);
-        
         calculateAndUpdateStats();
         renderGuestsList();
         await syncParentStatsUI();
-
         closeModalElem(modalConfirmDelete);
+        showToast('Invitado y sus credenciales eliminadas.');
     } catch (e) {
         console.error("Error eliminando invitado", e);
     } finally {
@@ -707,7 +706,99 @@ async function executeDeleteGuest() {
     }
 }
 
-// ---- Control Modales Genérico ----
+// ============================================================================
+// LÓGICA MÓDULO 6: MOTOR DIGITAL INVITACIONES
+// ============================================================================
+
+function initInvitationEvents() {
+    btnCancelRegenerate.addEventListener('click', () => closeModalElem(modalConfirmRegenerate));
+    btnConfirmRegenerate.addEventListener('click', executeRegenerateInvitation);
+    
+    btnCloseModalQr.addEventListener('click', () => closeModalElem(modalQrViewer));
+    
+    btnCopyLinkQr.addEventListener('click', () => {
+        copyInvitation(currentQrUrlDownload, () => showToast('Enlace de invitación copiado.'));
+    });
+    
+    btnDownloadQr.addEventListener('click', downloadQRImage);
+}
+
+async function executeRegenerateInvitation() {
+    if(!guestToRegenerateId) return;
+    const originalText = btnConfirmRegenerate.textContent;
+    btnConfirmRegenerate.textContent = "Generando...";
+    btnConfirmRegenerate.disabled = true;
+
+    try {
+        const existingTokens = globalGuests.map(g => g.token).filter(t => t);
+        const newToken = generateToken(existingTokens);
+        const newUrl = generateInvitationURL(newToken);
+        const newQr = generateQRCode(newUrl);
+
+        const updateData = {
+            token: newToken,
+            urlInvitacion: newUrl,
+            qrGenerado: newQr,
+            fechaGeneracion: serverTimestamp(),
+            estadoAcceso: 'Regenerada'
+        };
+
+        const docRef = doc(db, `eventos/${currentEventId}/invitados`, guestToRegenerateId);
+        await updateDoc(docRef, updateData);
+
+        const idx = globalGuests.findIndex(g => g.firebaseId === guestToRegenerateId);
+        if(idx > -1) {
+            globalGuests[idx] = { ...globalGuests[idx], ...updateData };
+        }
+
+        renderGuestsList();
+        closeModalElem(modalConfirmRegenerate);
+        showToast('Invitación y credenciales regeneradas.', `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8E3CDB" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>`);
+
+    } catch(e) {
+        console.error("Error regenerando:", e);
+    } finally {
+        btnConfirmRegenerate.textContent = originalText;
+        btnConfirmRegenerate.disabled = false;
+        guestToRegenerateId = null;
+    }
+}
+
+function openQRModal(url, token) {
+    currentQrUrlDownload = url;
+    currentQrTokenDownload = token;
+    
+    qrViewerToken.textContent = token;
+    qrViewerUrl.textContent = url;
+    // Usar la API pública sin librerías externas para renderizar el PNG directamente.
+    qrViewerImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(url)}`;
+    
+    openModalElem(modalQrViewer);
+}
+
+async function downloadQRImage() {
+    const originalText = btnDownloadQr.innerHTML;
+    btnDownloadQr.innerHTML = 'Descargando...';
+    try {
+        const response = await fetch(`https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodeURIComponent(currentQrUrlDownload)}`);
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = blobUrl;
+        a.download = `QR_${currentQrTokenDownload}.png`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(blobUrl);
+    } catch(e) {
+        console.error("Error al descargar QR:", e);
+        showToast("Error al descargar el archivo.");
+    } finally {
+        btnDownloadQr.innerHTML = originalText;
+    }
+}
+
+// Control Modales
 function openModalElem(modalEl) {
     modalEl.classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -721,7 +812,6 @@ function closeModalElem(modalEl) {
 function setModalBtnLoading(isLoading) {
     const btnText = btnSubmitGuest.querySelector('.btn-text');
     const btnLoader = btnSubmitGuest.querySelector('.btn-loader');
-    
     if (isLoading) {
         btnSubmitGuest.disabled = true;
         btnText.textContent = 'Guardando...';

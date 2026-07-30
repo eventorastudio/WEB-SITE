@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administrar Evento | Eventora Studio</title>
-    <link rel="stylesheet" href="dashboard.css"> <!-- Importamos variables base y modales del módulo 3 -->
+    <link rel="stylesheet" href="dashboard.css">
     <link rel="stylesheet" href="event.css">
 </head>
 <body>
@@ -17,6 +17,9 @@
         <div class="bg-blob blob-1"></div>
         <div class="bg-blob blob-2"></div>
     </div>
+
+    <!-- Notificación Toast (Módulo 6) -->
+    <div id="toast-notification" class="toast-notification"></div>
 
     <!-- VISTA DE CARGA (SKELETON) -->
     <div id="loading-view" class="event-wrapper" style="display: block;">
@@ -89,7 +92,7 @@
             </div>
         </header>
 
-        <!-- TARJETAS DE RESUMEN (Se actualizan dinámicamente con los invitados) -->
+        <!-- TARJETAS DE RESUMEN -->
         <section class="stats-grid anim-stagger delay-1">
             <div class="stat-card">
                 <div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
@@ -159,10 +162,9 @@
                 </div>
             </div>
 
-            <!-- PESTAÑA: INVITADOS (MÓDULO 5) -->
+            <!-- PESTAÑA: INVITADOS -->
             <div id="tab-invitados" class="tab-pane">
                 
-                <!-- Encabezado de la pestaña Invitados -->
                 <div class="guest-stats-row">
                     <div class="guest-stat-pill">
                         <span class="guest-stat-label">Total Invitados</span>
@@ -186,7 +188,6 @@
                     </div>
                 </div>
 
-                <!-- Buscador, Filtros y Acciones -->
                 <div class="guest-toolbar">
                     <div class="guest-search-box">
                         <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -232,32 +233,14 @@
                     </div>
                 </div>
 
-                <!-- Contenedor de Tarjetas de Invitados -->
-                <div id="guests-list" class="guests-grid">
-                    <!-- Skeleton de Invitados -->
-                    <div class="guest-card skeleton-container">
-                        <div class="skeleton-avatar skeleton"></div>
-                        <div class="guest-card-info">
-                            <div class="skeleton-title skeleton"></div>
-                            <div class="skeleton-subtitle skeleton"></div>
-                        </div>
-                    </div>
-                    <div class="guest-card skeleton-container">
-                        <div class="skeleton-avatar skeleton"></div>
-                        <div class="guest-card-info">
-                            <div class="skeleton-title skeleton"></div>
-                            <div class="skeleton-subtitle skeleton"></div>
-                        </div>
-                    </div>
-                </div>
+                <div id="guests-list" class="guests-grid"></div>
 
-                <!-- Empty State (Se muestra con JS si no hay invitados) -->
                 <div id="guests-empty-state" class="empty-state-panel" style="display: none;">
                     <div class="empty-icon">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                     </div>
                     <h3>Aún no has agregado invitados</h3>
-                    <p>Comienza a estructurar tu lista de invitados para este evento. Cada invitado generará automáticamente un código único.</p>
+                    <p>Comienza a estructurar tu lista de invitados para este evento. Cada invitado generará automáticamente un token y QR único.</p>
                     <button class="btn-primary ripple mt-20" id="btn-empty-add-guest">
                         Agregar primer invitado
                     </button>
@@ -265,11 +248,11 @@
 
             </div>
 
-            <!-- PESTAÑA: INVITACIÓN -->
+            <!-- PESTAÑA: INVITACIÓN (GLOBAL) -->
             <div id="tab-invitacion" class="tab-pane">
                 <div class="data-grid">
                     <div class="data-group col-span-2">
-                        <label>URL de la invitación digital</label>
+                        <label>URL de la invitación general</label>
                         <div class="url-copy-box">
                             <input type="text" id="val-url" readonly value="Cargando enlace...">
                             <button class="btn-icon ripple" id="btn-copy-url" title="Copiar enlace">
@@ -289,10 +272,6 @@
                         <button class="btn-secondary ripple" id="btn-open-invitation">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                             Abrir invitación
-                        </button>
-                        <button class="btn-primary ripple" id="btn-generate-qr-event">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="7" y="7" width="3" height="3"></rect><rect x="14" y="7" width="3" height="3"></rect><rect x="7" y="14" width="3" height="3"></rect><rect x="14" y="14" width="3" height="3"></rect></svg>
-                            Generar QR General
                         </button>
                     </div>
                 </div>
@@ -369,7 +348,7 @@
         </main>
     </div>
 
-    <!-- MODAL: AGREGAR / EDITAR INVITADO (MÓDULO 5) -->
+    <!-- MODAL: AGREGAR / EDITAR INVITADO -->
     <div id="modal-guest" class="modal-overlay">
         <div class="modal-container modal-guest-size">
             <header class="modal-header">
@@ -382,18 +361,12 @@
             <div class="modal-body">
                 <form id="form-guest">
                     <input type="hidden" id="g-doc-id">
-                    <input type="hidden" id="g-internal-id">
-                    <input type="hidden" id="g-unique-code">
                     <div class="form-grid">
-                        
-                        <!-- Row 1 -->
                         <div class="col-12 form-group">
                             <label for="g-nombre">Nombre completo <span class="required">*</span></label>
                             <input type="text" id="g-nombre" class="form-control" placeholder="Ej. Familia Rodríguez o Juan Pérez" autocomplete="off">
                             <span class="error-msg">Este campo es obligatorio.</span>
                         </div>
-
-                        <!-- Row 2 -->
                         <div class="col-6 form-group">
                             <label for="g-telefono">Teléfono</label>
                             <input type="tel" id="g-telefono" class="form-control" placeholder="Opcional">
@@ -402,8 +375,6 @@
                             <label for="g-correo">Correo electrónico</label>
                             <input type="email" id="g-correo" class="form-control" placeholder="Opcional">
                         </div>
-
-                        <!-- Row 3 -->
                         <div class="col-4 form-group">
                             <label for="g-pases">Número de pases <span class="required">*</span></label>
                             <input type="number" id="g-pases" class="form-control" value="1" min="1">
@@ -424,8 +395,6 @@
                                 </select>
                             </div>
                         </div>
-
-                        <!-- Row 4 -->
                         <div class="col-6 form-group">
                             <label for="g-acceso">Tipo de acceso</label>
                             <div class="select-wrapper">
@@ -436,7 +405,6 @@
                                 </select>
                             </div>
                         </div>
-
                         <div class="col-12 form-group">
                             <label for="g-notas">Notas / Restricciones</label>
                             <textarea id="g-notas" class="form-control" rows="2" placeholder="Ej. Alergias, vegetarianos, etc..."></textarea>
@@ -444,7 +412,6 @@
                     </div>
                 </form>
             </div>
-            
             <div class="modal-footer">
                 <button type="button" class="btn-secondary" id="btn-cancel-modal-guest">Cancelar</button>
                 <button type="button" class="btn-primary" id="btn-submit-guest">
@@ -473,7 +440,52 @@
         </div>
     </div>
 
-    <!-- MODAL: PRÓXIMAMENTE (Importar Excel) -->
+    <!-- MODAL: CONFIRMAR REGENERACIÓN (MÓDULO 6) -->
+    <div id="modal-confirm-regenerate" class="modal-overlay">
+        <div class="modal-container modal-sm">
+            <div class="modal-body text-center" style="padding: 40px 30px;">
+                <div class="alert-icon" style="color: var(--color-gold);">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                </div>
+                <h3 style="font-family: var(--font-serif); font-size: 1.8rem; margin: 16px 0 8px;">¿Regenerar Invitación?</h3>
+                <p style="color: var(--color-gray-dark); font-size: 0.95rem;">Esto creará un nuevo Token y URL para <strong id="regen-guest-name">--</strong>. El QR y enlace anterior dejarán de funcionar.</p>
+            </div>
+            <div class="modal-footer justify-center" style="border-top: none; padding-bottom: 40px;">
+                <button type="button" class="btn-secondary" id="btn-cancel-regenerate">Cancelar</button>
+                <button type="button" class="btn-primary" id="btn-confirm-regenerate">Regenerar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: VISOR DE QR (MÓDULO 6) -->
+    <div id="modal-qr-viewer" class="modal-overlay">
+        <div class="modal-container modal-sm">
+            <header class="modal-header">
+                <h2 class="modal-title" style="font-size: 1.4rem;">Código de Acceso</h2>
+                <button class="btn-close-modal" id="btn-close-modal-qr">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </header>
+            <div class="modal-body text-center" style="padding: 30px;">
+                <div class="qr-container-lg">
+                    <img id="qr-viewer-img" src="" alt="Código QR" style="width: 250px; height: 250px; display: block; margin: 0 auto; border-radius: var(--border-radius-sm); border: 1px solid var(--color-border); padding: 10px; background: #fff;">
+                </div>
+                <div class="qr-info-details mt-20">
+                    <p style="font-family: monospace; font-size: 1.2rem; color: var(--color-black); letter-spacing: 2px; margin-bottom: 8px;" id="qr-viewer-token">--</p>
+                    <p style="font-size: 0.8rem; color: var(--color-gray-dark); word-break: break-all;" id="qr-viewer-url">--</p>
+                </div>
+            </div>
+            <div class="modal-footer" style="flex-direction: column; gap: 12px; padding: 20px 30px 30px;">
+                <button type="button" class="btn-primary" id="btn-download-qr" style="width: 100%; justify-content: center;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Descargar PNG
+                </button>
+                <button type="button" class="btn-secondary" id="btn-copy-link-qr" style="width: 100%; justify-content: center;">Copiar enlace</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: PRÓXIMAMENTE -->
     <div id="modal-feature-coming" class="modal-overlay">
         <div class="modal-container modal-sm">
             <div class="modal-body text-center" style="padding: 40px 30px;">
@@ -481,7 +493,7 @@
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                 </div>
                 <h3 style="font-family: var(--font-serif); font-size: 1.8rem; margin-bottom: 8px;">Módulo en desarrollo</h3>
-                <p style="color: var(--color-gray-dark); font-size: 0.95rem;">La importación masiva desde Excel estará disponible próximamente en Eventora Studio.</p>
+                <p style="color: var(--color-gray-dark); font-size: 0.95rem;">La importación masiva desde Excel estará disponible próximamente.</p>
             </div>
             <div class="modal-footer justify-center" style="border-top: none; padding-bottom: 40px;">
                 <button type="button" class="btn-primary" id="btn-close-coming">Entendido</button>
