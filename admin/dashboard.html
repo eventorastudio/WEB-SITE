@@ -3,23 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eventora Studio | Dashboard</title>
+    <title>Eventora Studio | Panel Administrativo</title>
     <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
 
-    <!-- Contenido del Dashboard básico -->
-    <div class="dashboard-container" id="dashboard-content" style="display: none;">
+    <!-- Capa protectora inicial para evitar destellos mientras Firebase valida la sesión -->
+    <div id="auth-guard" class="auth-guard"></div>
+
+    <div class="dashboard-wrapper" id="dashboard-content" style="opacity: 0; visibility: hidden;">
         
-        <!-- Cambiar por la ruta real del logotipo de Eventora Studio configurada en config.js -->
-        <img src="assets/logo-eventora.png" alt="Eventora Studio" class="logo" id="ui-logo">
-        
-        <div class="studio-name">Eventora Studio</div>
-        <h1 class="title">Panel Administrativo</h1>
-        <p class="welcome-msg">Bienvenido nuevamente.</p>
-        
-        <button id="btn-logout" class="btn-logout">Cerrar sesión</button>
-        
+        <!-- HEADER -->
+        <header class="dashboard-header">
+            <div class="header-left">
+                <!-- El logo se inyecta desde config.js -->
+                <img src="" alt="Eventora Studio" class="logo" id="ui-logo">
+                <div class="header-titles">
+                    <span class="studio-name">Eventora Studio</span>
+                    <span class="panel-name">Panel Administrativo</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="avatar" id="user-avatar"></div>
+                <button id="btn-logout" class="btn-logout">Cerrar sesión</button>
+            </div>
+        </header>
+
+        <main class="dashboard-main">
+            <!-- HERO WELCOME -->
+            <section class="welcome-hero anim-stagger">
+                <h1 class="welcome-title">Bienvenido nuevamente.</h1>
+                <p class="welcome-subtitle">Administra todos tus eventos, invitados y experiencias desde un solo lugar.</p>
+            </section>
+
+            <!-- STATS CARDS -->
+            <section class="stats-grid" id="stats-container">
+                <!-- Skeleton Loading de Estadísticas -->
+                <div class="stat-card skeleton-card anim-stagger">
+                    <div class="skeleton-icon skeleton"></div>
+                    <div class="skeleton-number skeleton"></div>
+                    <div class="skeleton-text skeleton"></div>
+                    <div class="skeleton-text-sm skeleton"></div>
+                </div>
+                <div class="stat-card skeleton-card anim-stagger">
+                    <div class="skeleton-icon skeleton"></div>
+                    <div class="skeleton-number skeleton"></div>
+                    <div class="skeleton-text skeleton"></div>
+                    <div class="skeleton-text-sm skeleton"></div>
+                </div>
+                <div class="stat-card skeleton-card anim-stagger">
+                    <div class="skeleton-icon skeleton"></div>
+                    <div class="skeleton-number skeleton"></div>
+                    <div class="skeleton-text skeleton"></div>
+                    <div class="skeleton-text-sm skeleton"></div>
+                </div>
+                <div class="stat-card skeleton-card anim-stagger">
+                    <div class="skeleton-icon skeleton"></div>
+                    <div class="skeleton-number skeleton"></div>
+                    <div class="skeleton-text skeleton"></div>
+                    <div class="skeleton-text-sm skeleton"></div>
+                </div>
+            </section>
+
+            <!-- MAIN ACTION -->
+            <section class="actions-section anim-stagger">
+                <button id="btn-create-event" class="btn-primary">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Crear nuevo evento
+                </button>
+            </section>
+
+            <!-- RECENT EVENTS LIST -->
+            <section class="events-section anim-stagger">
+                <h2 class="section-title">Eventos recientes</h2>
+                
+                <div id="events-container" class="events-container">
+                    <!-- Skeleton Loading de Eventos -->
+                    <div class="event-row skeleton-row">
+                        <div class="skeleton-avatar skeleton"></div>
+                        <div class="event-info-skeleton">
+                            <div class="skeleton-line skeleton"></div>
+                            <div class="skeleton-line short skeleton"></div>
+                        </div>
+                    </div>
+                    <div class="event-row skeleton-row">
+                        <div class="skeleton-avatar skeleton"></div>
+                        <div class="event-info-skeleton">
+                            <div class="skeleton-line skeleton"></div>
+                            <div class="skeleton-line short skeleton"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
     </div>
 
     <!-- Módulo principal del Dashboard -->
