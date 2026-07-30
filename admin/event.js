@@ -1,15 +1,13 @@
 // event.js
-// Lógica de Módulos 4, 5 y 6: Evento, Invitados y Motor de Invitaciones Digitales
+// Lógica Integrada Módulos 4, 5, 6 y 7
 
 import { auth, db } from './firebase.js';
 import { CONFIG } from './config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { generateToken, generateInvitationURL, generateQRCode, copyInvitation } from './invitation-utils.js';
+import { initExcelImport } from './excel-import.js';
 
-// ============================================================================
-// REFERENCIAS DOM
-// ============================================================================
 const authGuard = document.getElementById('auth-guard');
 const loadingView = document.getElementById('loading-view');
 const errorView = document.getElementById('error-view');
@@ -20,14 +18,14 @@ const btnBack = document.getElementById('btn-back');
 const tabButtons = document.querySelectorAll('.tab-btn');
 const tabPanes = document.querySelectorAll('.tab-pane');
 
-let currentEventData = null;
-let currentEventId = null;
-let globalGuests = [];
+export let currentEventData = null;
+export let currentEventId = null;
+export let globalGuests = [];
 let currentEditingGuestId = null;
 let guestToDeleteId = null;
 let guestToRegenerateId = null;
 
-// Formularios, Modales y Filtros
+// Formularios y Modales
 const searchInput = document.getElementById('guest-search');
 const filterStatus = document.getElementById('guest-filter-status');
 const filterTable = document.getElementById('guest-filter-table');
@@ -35,11 +33,11 @@ const sortSelect = document.getElementById('guest-sort');
 const btnOpenAddGuest = document.getElementById('btn-open-add-guest');
 const btnImportExcel = document.getElementById('btn-import-excel');
 const btnEmptyAddGuest = document.getElementById('btn-empty-add-guest');
+const btnEmptyImportExcel = document.getElementById('btn-empty-import-excel');
 
 const guestsList = document.getElementById('guests-list');
 const guestsEmptyState = document.getElementById('guests-empty-state');
 
-// Modal Guest (Formulario)
 const modalGuest = document.getElementById('modal-guest');
 const formGuest = document.getElementById('form-guest');
 const btnCloseModalGuest = document.getElementById('btn-close-modal-guest');
@@ -47,16 +45,11 @@ const btnCancelModalGuest = document.getElementById('btn-cancel-modal-guest');
 const btnSubmitGuest = document.getElementById('btn-submit-guest');
 const modalGuestTitle = document.getElementById('modal-guest-title');
 
-// Modales Acción
 const modalConfirmDelete = document.getElementById('modal-confirm-delete');
 const btnCancelDelete = document.getElementById('btn-cancel-delete');
 const btnConfirmDelete = document.getElementById('btn-confirm-delete');
 const deleteGuestName = document.getElementById('delete-guest-name');
 
-const modalFeatureComing = document.getElementById('modal-feature-coming');
-const btnCloseComing = document.getElementById('btn-close-coming');
-
-// Modales Módulo 6 (Invitación Digital)
 const modalConfirmRegenerate = document.getElementById('modal-confirm-regenerate');
 const btnCancelRegenerate = document.getElementById('btn-cancel-regenerate');
 const btnConfirmRegenerate = document.getElementById('btn-confirm-regenerate');
@@ -70,10 +63,8 @@ const qrViewerImg = document.getElementById('qr-viewer-img');
 const qrViewerToken = document.getElementById('qr-viewer-token');
 const qrViewerUrl = document.getElementById('qr-viewer-url');
 
-// Variables para descarga de QR
 let currentQrUrlDownload = '';
 let currentQrTokenDownload = '';
-
 
 // ============================================================================
 // UTILIDADES COMUNES
@@ -102,7 +93,6 @@ function formatearFecha(fechaObj) {
     } 
     else if (fechaObj.toDate) fecha = fechaObj.toDate();
     else fecha = new Date(fechaObj);
-
     return fecha.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
@@ -128,7 +118,7 @@ function generateAvatarInitials(name) {
     return parts[0].substring(0, 2).toUpperCase();
 }
 
-function showToast(message, iconSvg) {
+export function showToast(message, iconSvg) {
     const toast = document.getElementById('toast-notification');
     const defaultIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
     toast.innerHTML = `${iconSvg || defaultIcon} <span>${message}</span>`;
@@ -136,9 +126,8 @@ function showToast(message, iconSvg) {
     setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
-
 // ============================================================================
-// INICIALIZACIÓN MÓDULO 4
+// INICIALIZACIÓN
 // ============================================================================
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
@@ -151,7 +140,7 @@ onAuthStateChanged(auth, async (user) => {
     
     initUI();
     initGuestEvents(); 
-    initInvitationEvents(); // Módulo 6
+    initInvitationEvents();
 
     const urlParams = new URLSearchParams(window.location.search);
     currentEventId = urlParams.get('id');
@@ -176,8 +165,7 @@ function initUI() {
             
             btn.classList.add('active');
             document.getElementById(`tab-${targetId}`).classList.add('active');
-            
-            if(targetId === 'estadisticas' && currentEventData) animateProgressBar(currentEventData);
+            if(targetId === 'estadisticas' && currentEventData) animateProgressBar();
         });
     });
 
@@ -199,13 +187,12 @@ async function fetchEventData(eventId) {
 
         if (docSnap.exists()) {
             currentEventData = docSnap.data();
-            await fetchGuestsData(); // Carga invitados antes de pintar stats globales
+            await fetchGuestsData(); 
             populateEventData();
             
             loadingView.style.display = 'none';
             mainView.style.display = 'block';
             setTimeout(() => mainView.style.opacity = '1', 50);
-
         } else {
             showError("Evento no encontrado.", "El evento que intentas administrar no existe.");
         }
@@ -284,15 +271,25 @@ function animateProgressBar() {
 
 
 // ============================================================================
-// LÓGICA MÓDULO 5: ADMINISTRACIÓN DE INVITADOS
+// INVITADOS
 // ============================================================================
-
 function initGuestEvents() {
     btnOpenAddGuest.addEventListener('click', () => openGuestModal());
     btnEmptyAddGuest.addEventListener('click', () => openGuestModal());
     
-    btnImportExcel.addEventListener('click', () => openModalElem(modalFeatureComing));
-    btnCloseComing.addEventListener('click', () => closeModalElem(modalFeatureComing));
+    // MÓDULO 7: Excel Import Bindings
+    btnImportExcel.addEventListener('click', () => {
+        initExcelImport(currentEventId, globalGuests, async () => {
+            await fetchGuestsData(); // Recargar todo tras importación
+            showToast('Importación exitosa. Lista actualizada.');
+        });
+    });
+    btnEmptyImportExcel.addEventListener('click', () => {
+        initExcelImport(currentEventId, globalGuests, async () => {
+            await fetchGuestsData();
+            showToast('Importación exitosa. Lista actualizada.');
+        });
+    });
 
     searchInput.addEventListener('input', renderGuestsList);
     filterStatus.addEventListener('change', renderGuestsList);
@@ -314,8 +311,7 @@ function initGuestEvents() {
     btnConfirmDelete.addEventListener('click', executeDeleteGuest);
 }
 
-// Obtener datos (Firestore Subcollection)
-async function fetchGuestsData() {
+export async function fetchGuestsData() {
     try {
         const guestsRef = collection(db, `eventos/${currentEventId}/invitados`);
         const snapshot = await getDocs(guestsRef);
@@ -340,8 +336,7 @@ function calculateAndUpdateStats() {
         else if (est.includes('llegó') || est.includes('llego')) {
             stats.llegaron += pases;
             stats.conf += pases;
-        } 
-        else stats.pend += pases;
+        } else stats.pend += pases;
     });
 
     document.getElementById('g-stat-total').textContent = stats.totalInvitadosEntidad;
@@ -390,7 +385,6 @@ async function syncParentStatsUI() {
 
 function renderGuestsList() {
     let filtered = [...globalGuests];
-    
     const searchVal = searchInput.value.toLowerCase().trim();
     if (searchVal) {
         filtered = filtered.filter(g => 
@@ -451,7 +445,6 @@ function renderGuestsList() {
         const pasesStr = g.pases > 1 ? `${g.pases} pases` : `1 pase`;
         const mesaStr = g.mesa ? `Mesa ${g.mesa}` : 'Sin mesa';
         
-        // MÓDULO 6: Estado de la invitación y token
         const invStatus = g.estadoAcceso || 'Pendiente';
         let invBadgeClass = 'badge-inv-pendiente';
         if(invStatus === 'Invitación generada') invBadgeClass = 'badge-inv-generada';
@@ -473,7 +466,6 @@ function renderGuestsList() {
                 </div>
                 <span class="guest-badge ${badge.clase}">${badge.texto}</span>
             </div>
-            
             <div class="guest-card-body">
                 <div class="guest-info-row">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
@@ -484,43 +476,26 @@ function renderGuestsList() {
                     ${mesaStr}
                 </div>
                 
-                <!-- MÓDULO 6: Invitación Box -->
                 <div class="guest-invitation-box mt-10">
                     <div class="inv-status-row">
                         <span class="guest-badge ${invBadgeClass}">${invStatus}</span>
                         <span class="inv-short-token" title="${g.token || ''}">TK: <strong>${tokenDisplay}</strong></span>
                     </div>
                     <div class="inv-actions-row">
-                        <button class="btn-inv-action mod6-copy-link" data-url="${g.urlInvitacion || ''}" title="Copiar enlace">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                        </button>
-                        <button class="btn-inv-action mod6-open-link" data-url="${g.urlInvitacion || ''}" title="Abrir invitación">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                        </button>
-                        <button class="btn-inv-action mod6-copy-token" data-token="${g.token || ''}" title="Copiar token">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
-                        </button>
-                        <button class="btn-inv-action mod6-show-qr" data-url="${g.urlInvitacion || ''}" data-token="${g.token || ''}" title="Ver QR">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="7" y="7" width="3" height="3"></rect><rect x="14" y="7" width="3" height="3"></rect><rect x="7" y="14" width="3" height="3"></rect><rect x="14" y="14" width="3" height="3"></rect></svg>
-                        </button>
-                        <button class="btn-inv-action btn-regen mod6-regen" data-id="${g.firebaseId}" data-name="${g.nombre}" title="Regenerar Invitación">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-                        </button>
+                        <button class="btn-inv-action mod6-copy-link" data-url="${g.urlInvitacion || ''}" title="Copiar enlace"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                        <button class="btn-inv-action mod6-open-link" data-url="${g.urlInvitacion || ''}" title="Abrir invitación"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></button>
+                        <button class="btn-inv-action mod6-copy-token" data-token="${g.token || ''}" title="Copiar token"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg></button>
+                        <button class="btn-inv-action mod6-show-qr" data-url="${g.urlInvitacion || ''}" data-token="${g.token || ''}" title="Ver QR"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="7" y="7" width="3" height="3"></rect><rect x="14" y="7" width="3" height="3"></rect><rect x="7" y="14" width="3" height="3"></rect><rect x="14" y="14" width="3" height="3"></rect></svg></button>
+                        <button class="btn-inv-action btn-regen mod6-regen" data-id="${g.firebaseId}" data-name="${g.nombre}" title="Regenerar Invitación"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg></button>
                     </div>
                 </div>
             </div>
-
             <div class="guest-card-actions">
-                <button class="btn-guest-action btn-edit-g" data-id="${g.firebaseId}" title="Editar">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                </button>
-                <button class="btn-guest-action delete btn-del-g" data-id="${g.firebaseId}" data-name="${g.nombre}" title="Eliminar">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                </button>
+                <button class="btn-guest-action btn-edit-g" data-id="${g.firebaseId}" title="Editar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                <button class="btn-guest-action delete btn-del-g" data-id="${g.firebaseId}" data-name="${g.nombre}" title="Eliminar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
             </div>
         `;
 
-        // Eventos Editar / Eliminar (Mod 5)
         card.querySelector('.btn-edit-g').addEventListener('click', () => openGuestModal(g));
         card.querySelector('.btn-del-g').addEventListener('click', (e) => {
             guestToDeleteId = e.currentTarget.getAttribute('data-id');
@@ -528,10 +503,9 @@ function renderGuestsList() {
             openModalElem(modalConfirmDelete);
         });
 
-        // Eventos Módulo 6
         card.querySelector('.mod6-copy-link').addEventListener('click', (e) => {
             const url = e.currentTarget.getAttribute('data-url');
-            if(url) copyInvitation(url, () => showToast('Enlace de invitación copiado.'));
+            if(url) copyInvitation(url, () => showToast('Enlace copiado.'));
         });
         card.querySelector('.mod6-copy-token').addEventListener('click', (e) => {
             const token = e.currentTarget.getAttribute('data-token');
@@ -556,8 +530,7 @@ function renderGuestsList() {
     });
 }
 
-// Helpers Add
-function generateGuestId() {
+function generateGuestId(indexOffset = 0) {
     let nextNum = 1;
     globalGuests.forEach(g => {
         if (g.id && g.id.startsWith('INV-')) {
@@ -565,21 +538,24 @@ function generateGuestId() {
             if (!isNaN(num) && num >= nextNum) nextNum = num + 1;
         }
     });
+    nextNum += indexOffset;
     return `INV-${String(nextNum).padStart(4, '0')}`;
 }
 
-function generateUniqueGuestCode() {
+export function generateUniqueGuestCode(usedCodesSet = new Set()) {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code = '';
     let isUnique = false;
     while (!isUnique) {
         code = Array.from({length: 6}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-        if (!globalGuests.some(g => g.codigo === code)) isUnique = true;
+        if (!globalGuests.some(g => g.codigo === code) && !usedCodesSet.has(code)) {
+            isUnique = true;
+            usedCodesSet.add(code);
+        }
     }
     return code;
 }
 
-// CRUD Invitados
 function openGuestModal(guestData = null) {
     formGuest.reset();
     document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
@@ -612,16 +588,8 @@ async function saveGuest() {
     const pasesInput = document.getElementById('g-pases');
     
     let isValid = true;
-    if (!nameInput.value.trim()) {
-        nameInput.classList.add('input-error');
-        nameInput.nextElementSibling.style.display = 'block';
-        isValid = false;
-    }
-    if (!pasesInput.value || pasesInput.value < 1) {
-        pasesInput.classList.add('input-error');
-        pasesInput.nextElementSibling.style.display = 'block';
-        isValid = false;
-    }
+    if (!nameInput.value.trim()) { nameInput.classList.add('input-error'); nameInput.nextElementSibling.style.display = 'block'; isValid = false; }
+    if (!pasesInput.value || pasesInput.value < 1) { pasesInput.classList.add('input-error'); pasesInput.nextElementSibling.style.display = 'block'; isValid = false; }
 
     if (!isValid) return;
     setModalBtnLoading(true);
@@ -642,14 +610,11 @@ async function saveGuest() {
         const guestsColRef = collection(db, `eventos/${currentEventId}/invitados`);
 
         if (currentEditingGuestId) {
-            // Update
             const docRef = doc(db, `eventos/${currentEventId}/invitados`, currentEditingGuestId);
             await updateDoc(docRef, guestData);
-            
             const idx = globalGuests.findIndex(g => g.firebaseId === currentEditingGuestId);
             if (idx > -1) globalGuests[idx] = { ...globalGuests[idx], ...guestData };
         } else {
-            // Add - MÓDULO 6: Generación Automática
             guestData.id = generateGuestId();
             guestData.codigo = generateUniqueGuestCode();
             guestData.fechaRegistro = serverTimestamp();
@@ -665,7 +630,6 @@ async function saveGuest() {
             const newDocRef = await addDoc(guestsColRef, guestData);
             guestData.fechaRegistro = { toMillis: () => Date.now() }; 
             globalGuests.push({ firebaseId: newDocRef.id, ...guestData });
-            
             showToast('Invitación generada automáticamente.');
         }
 
@@ -690,13 +654,12 @@ async function executeDeleteGuest() {
     try {
         const docRef = doc(db, `eventos/${currentEventId}/invitados`, guestToDeleteId);
         await deleteDoc(docRef);
-
         globalGuests = globalGuests.filter(g => g.firebaseId !== guestToDeleteId);
         calculateAndUpdateStats();
         renderGuestsList();
         await syncParentStatsUI();
         closeModalElem(modalConfirmDelete);
-        showToast('Invitado y sus credenciales eliminadas.');
+        showToast('Invitado eliminado.');
     } catch (e) {
         console.error("Error eliminando invitado", e);
     } finally {
@@ -706,20 +669,11 @@ async function executeDeleteGuest() {
     }
 }
 
-// ============================================================================
-// LÓGICA MÓDULO 6: MOTOR DIGITAL INVITACIONES
-// ============================================================================
-
 function initInvitationEvents() {
     btnCancelRegenerate.addEventListener('click', () => closeModalElem(modalConfirmRegenerate));
     btnConfirmRegenerate.addEventListener('click', executeRegenerateInvitation);
-    
     btnCloseModalQr.addEventListener('click', () => closeModalElem(modalQrViewer));
-    
-    btnCopyLinkQr.addEventListener('click', () => {
-        copyInvitation(currentQrUrlDownload, () => showToast('Enlace de invitación copiado.'));
-    });
-    
+    btnCopyLinkQr.addEventListener('click', () => { copyInvitation(currentQrUrlDownload, () => showToast('Enlace copiado.')); });
     btnDownloadQr.addEventListener('click', downloadQRImage);
 }
 
@@ -736,43 +690,27 @@ async function executeRegenerateInvitation() {
         const newQr = generateQRCode(newUrl);
 
         const updateData = {
-            token: newToken,
-            urlInvitacion: newUrl,
-            qrGenerado: newQr,
-            fechaGeneracion: serverTimestamp(),
-            estadoAcceso: 'Regenerada'
+            token: newToken, urlInvitacion: newUrl, qrGenerado: newQr,
+            fechaGeneracion: serverTimestamp(), estadoAcceso: 'Regenerada'
         };
 
         const docRef = doc(db, `eventos/${currentEventId}/invitados`, guestToRegenerateId);
         await updateDoc(docRef, updateData);
 
         const idx = globalGuests.findIndex(g => g.firebaseId === guestToRegenerateId);
-        if(idx > -1) {
-            globalGuests[idx] = { ...globalGuests[idx], ...updateData };
-        }
+        if(idx > -1) globalGuests[idx] = { ...globalGuests[idx], ...updateData };
 
         renderGuestsList();
         closeModalElem(modalConfirmRegenerate);
-        showToast('Invitación y credenciales regeneradas.', `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8E3CDB" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>`);
-
-    } catch(e) {
-        console.error("Error regenerando:", e);
-    } finally {
-        btnConfirmRegenerate.textContent = originalText;
-        btnConfirmRegenerate.disabled = false;
-        guestToRegenerateId = null;
-    }
+        showToast('Invitación regenerada.');
+    } catch(e) { console.error("Error regenerando:", e); } 
+    finally { btnConfirmRegenerate.textContent = originalText; btnConfirmRegenerate.disabled = false; guestToRegenerateId = null; }
 }
 
 function openQRModal(url, token) {
-    currentQrUrlDownload = url;
-    currentQrTokenDownload = token;
-    
-    qrViewerToken.textContent = token;
-    qrViewerUrl.textContent = url;
-    // Usar la API pública sin librerías externas para renderizar el PNG directamente.
+    currentQrUrlDownload = url; currentQrTokenDownload = token;
+    qrViewerToken.textContent = token; qrViewerUrl.textContent = url;
     qrViewerImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(url)}`;
-    
     openModalElem(modalQrViewer);
 }
 
@@ -784,45 +722,17 @@ async function downloadQRImage() {
         const blob = await response.blob();
         const blobUrl = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = blobUrl;
-        a.download = `QR_${currentQrTokenDownload}.png`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(blobUrl);
-    } catch(e) {
-        console.error("Error al descargar QR:", e);
-        showToast("Error al descargar el archivo.");
-    } finally {
-        btnDownloadQr.innerHTML = originalText;
-    }
+        a.style.display = 'none'; a.href = blobUrl; a.download = `QR_${currentQrTokenDownload}.png`;
+        document.body.appendChild(a); a.click(); window.URL.revokeObjectURL(blobUrl);
+    } catch(e) { showToast("Error al descargar el archivo."); } 
+    finally { btnDownloadQr.innerHTML = originalText; }
 }
 
-// Control Modales
-function openModalElem(modalEl) {
-    modalEl.classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeModalElem(modalEl) {
-    modalEl.classList.remove('active');
-    document.body.style.overflow = '';
-}
-
+export function openModalElem(modalEl) { modalEl.classList.add('active'); document.body.style.overflow = 'hidden'; }
+export function closeModalElem(modalEl) { modalEl.classList.remove('active'); document.body.style.overflow = ''; }
 function setModalBtnLoading(isLoading) {
     const btnText = btnSubmitGuest.querySelector('.btn-text');
     const btnLoader = btnSubmitGuest.querySelector('.btn-loader');
-    if (isLoading) {
-        btnSubmitGuest.disabled = true;
-        btnText.textContent = 'Guardando...';
-        btnLoader.style.display = 'block';
-        btnCancelModalGuest.disabled = true;
-        btnCloseModalGuest.style.pointerEvents = 'none';
-    } else {
-        btnSubmitGuest.disabled = false;
-        btnText.textContent = 'Guardar Invitado';
-        btnLoader.style.display = 'none';
-        btnCancelModalGuest.disabled = false;
-        btnCloseModalGuest.style.pointerEvents = 'auto';
-    }
+    if (isLoading) { btnSubmitGuest.disabled = true; btnText.textContent = 'Guardando...'; btnLoader.style.display = 'block'; btnCancelModalGuest.disabled = true; btnCloseModalGuest.style.pointerEvents = 'none'; } 
+    else { btnSubmitGuest.disabled = false; btnText.textContent = 'Guardar Invitado'; btnLoader.style.display = 'none'; btnCancelModalGuest.disabled = false; btnCloseModalGuest.style.pointerEvents = 'auto'; }
 }

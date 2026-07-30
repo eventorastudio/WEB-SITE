@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administrar Evento | Eventora Studio</title>
+    <!-- Librería SheetJS para importar Excel (Módulo 7) -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="dashboard.css">
     <link rel="stylesheet" href="event.css">
 </head>
@@ -18,7 +20,7 @@
         <div class="bg-blob blob-2"></div>
     </div>
 
-    <!-- Notificación Toast (Módulo 6) -->
+    <!-- Notificación Toast (Módulo 6 & 7) -->
     <div id="toast-notification" class="toast-notification"></div>
 
     <!-- VISTA DE CARGA (SKELETON) -->
@@ -222,6 +224,7 @@
                     </div>
 
                     <div class="guest-actions-main">
+                        <!-- MÓDULO 7: Botón Importar Excel -->
                         <button class="btn-secondary ripple" id="btn-import-excel">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                             Importar Excel
@@ -240,15 +243,16 @@
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                     </div>
                     <h3>Aún no has agregado invitados</h3>
-                    <p>Comienza a estructurar tu lista de invitados para este evento. Cada invitado generará automáticamente un token y QR único.</p>
-                    <button class="btn-primary ripple mt-20" id="btn-empty-add-guest">
-                        Agregar primer invitado
-                    </button>
+                    <p>Comienza a estructurar tu lista de invitados para este evento. Puedes agregarlos manualmente o importarlos desde Excel.</p>
+                    <div class="actions-row mt-20">
+                        <button class="btn-secondary ripple" id="btn-empty-import-excel">Importar Excel</button>
+                        <button class="btn-primary ripple" id="btn-empty-add-guest">Agregar primer invitado</button>
+                    </div>
                 </div>
 
             </div>
 
-            <!-- PESTAÑA: INVITACIÓN (GLOBAL) -->
+            <!-- PESTAÑA: INVITACIÓN -->
             <div id="tab-invitacion" class="tab-pane">
                 <div class="data-grid">
                     <div class="data-group col-span-2">
@@ -357,7 +361,6 @@
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </header>
-            
             <div class="modal-body">
                 <form id="form-guest">
                     <input type="hidden" id="g-doc-id">
@@ -485,18 +488,97 @@
         </div>
     </div>
 
-    <!-- MODAL: PRÓXIMAMENTE -->
-    <div id="modal-feature-coming" class="modal-overlay">
-        <div class="modal-container modal-sm">
-            <div class="modal-body text-center" style="padding: 40px 30px;">
-                <div style="color: var(--color-gold); margin-bottom: 20px;">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+    <!-- MODAL: IMPORTAR EXCEL (MÓDULO 7) -->
+    <div id="modal-import-excel" class="modal-overlay">
+        <div class="modal-container import-modal-size">
+            <header class="modal-header">
+                <h2 class="modal-title">Importar Invitados</h2>
+                <button class="btn-close-modal" id="btn-close-modal-import">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </header>
+            
+            <div class="modal-body" style="padding: 0;">
+                
+                <!-- PASO 1: SUBIR ARCHIVO -->
+                <div id="import-step-1" class="import-step active" style="padding: 40px;">
+                    <div class="upload-area-premium" id="excel-drop-zone">
+                        <input type="file" id="excel-file-input" accept=".xlsx, .xls" class="file-input-hidden">
+                        <div class="upload-content">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold)" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            <h3 class="mt-20">Selecciona o arrastra tu archivo Excel</h3>
+                            <p class="upload-hint mt-10">Formato soportado: .xlsx o .xls</p>
+                        </div>
+                    </div>
+                    <div class="text-center mt-20">
+                        <button class="btn-text ripple" id="btn-download-template" style="color: var(--color-gray-dark); font-size: 0.9rem; border: none; background: transparent; cursor: pointer; text-decoration: underline;">
+                            Descargar plantilla de ejemplo
+                        </button>
+                    </div>
                 </div>
-                <h3 style="font-family: var(--font-serif); font-size: 1.8rem; margin-bottom: 8px;">Módulo en desarrollo</h3>
-                <p style="color: var(--color-gray-dark); font-size: 0.95rem;">La importación masiva desde Excel estará disponible próximamente.</p>
-            </div>
-            <div class="modal-footer justify-center" style="border-top: none; padding-bottom: 40px;">
-                <button type="button" class="btn-primary" id="btn-close-coming">Entendido</button>
+
+                <!-- PASO 2: MAPEO DE COLUMNAS -->
+                <div id="import-step-2" class="import-step" style="padding: 30px 40px;">
+                    <h3 style="margin-bottom: 10px; font-family: var(--font-serif); font-size: 1.5rem;">Asignar columnas</h3>
+                    <p style="color: var(--color-gray-dark); font-size: 0.9rem; margin-bottom: 24px;">Relaciona las columnas de tu Excel con los campos del sistema.</p>
+                    <div class="mapping-grid" id="mapping-container">
+                        <!-- Generado via JS -->
+                    </div>
+                    <div class="actions-row mt-20" style="justify-content: flex-end;">
+                        <button class="btn-primary ripple" id="btn-confirm-mapping">Continuar</button>
+                    </div>
+                </div>
+
+                <!-- PASO 3: PREVIEW Y VALIDACIÓN -->
+                <div id="import-step-3" class="import-step">
+                    <div class="validation-summary" id="validation-summary-box">
+                        <!-- Generado via JS -->
+                    </div>
+                    <div class="premium-table-container">
+                        <table class="premium-table">
+                            <thead>
+                                <tr>
+                                    <th>Estado</th>
+                                    <th>Nombre</th>
+                                    <th>Correo</th>
+                                    <th>Teléfono</th>
+                                    <th>Pases</th>
+                                    <th>Mesa</th>
+                                    <th>Detalle</th>
+                                </tr>
+                            </thead>
+                            <tbody id="preview-table-body">
+                                <!-- Filas de preview -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer" style="padding: 20px 30px;">
+                        <button type="button" class="btn-secondary" id="btn-back-to-upload">Cancelar</button>
+                        <button type="button" class="btn-primary" id="btn-execute-import">
+                            Importar Registros Válidos
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PASO 4: PROGRESO -->
+                <div id="import-step-4" class="import-step text-center" style="padding: 80px 40px;">
+                    <h3 style="font-family: var(--font-serif); font-size: 1.8rem; margin-bottom: 20px;" id="import-progress-title">Procesando...</h3>
+                    <div class="progress-bar-container" style="max-width: 400px; margin: 0 auto 10px;">
+                        <div class="progress-bar-fill" id="import-progress-bar" style="width: 0%; transition: width 0.3s ease;"></div>
+                    </div>
+                    <p style="color: var(--color-gray-dark); font-size: 0.9rem;" id="import-progress-text">Generando invitaciones digitales...</p>
+                </div>
+
+                <!-- PASO 5: RESUMEN FINAL -->
+                <div id="import-step-5" class="import-step text-center" style="padding: 60px 40px;">
+                    <div class="empty-icon" style="margin: 0 auto 20px; color: #1E7E34; background: rgba(36, 150, 62, 0.1);">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </div>
+                    <h3 style="font-family: var(--font-serif); font-size: 2rem; margin-bottom: 10px;">Importación Completada</h3>
+                    <p style="color: var(--color-gray-dark); margin-bottom: 30px;" id="final-summary-text">Resumen de la operación.</p>
+                    <button class="btn-primary ripple" id="btn-finish-import">Finalizar</button>
+                </div>
+
             </div>
         </div>
     </div>
