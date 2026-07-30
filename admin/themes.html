@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motor de Temas | Eventora Studio</title>
+    <!-- Google Fonts Universales -->
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Poppins:wght@300;400;500;600&family=Montserrat:wght@300;400;500&family=Playfair+Display:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="themes.css">
+</head>
+<body>
+
+    <div id="auth-guard" class="auth-guard"></div>
+    <div id="toast-notification" class="toast-notification"></div>
+
+    <!-- VISTA 1: GALERÍA DE TEMAS -->
+    <div id="theme-library-view" class="library-wrapper">
+        <header class="library-header">
+            <div class="header-left">
+                <button class="btn-back" id="btn-back-dash" title="Volver al Dashboard">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                </button>
+                <div class="header-divider"></div>
+                <img src="" alt="Eventora" class="logo" id="ui-logo" style="height:30px;">
+            </div>
+            <div class="header-center">
+                <h1 class="library-title">Motor de Temas</h1>
+            </div>
+            <div class="header-right actions-row">
+                <input type="file" id="theme-import-file" accept=".json" style="display:none;">
+                <button class="btn-secondary ripple" id="btn-import-theme">Importar JSON</button>
+                <button class="btn-primary ripple" id="btn-create-theme">Crear Tema</button>
+            </div>
+        </header>
+
+        <div class="library-toolbar">
+            <div class="search-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="theme-search" placeholder="Buscar temas...">
+            </div>
+            <div class="select-wrapper">
+                <select id="theme-category" class="form-control">
+                    <option value="all">Todas las categorías</option>
+                    <option value="Luxury">Luxury</option>
+                    <option value="Minimal">Minimal</option>
+                    <option value="Personalizado">Personalizado</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="themes-grid" id="themes-grid">
+            <!-- Cargando -->
+            <div style="grid-column:1/-1; text-align:center; padding: 40px;">Cargando motor...</div>
+        </div>
+    </div>
+
+    <!-- VISTA 2: BUILDER (Framer-like) -->
+    <div id="theme-builder-view" class="builder-wrapper" style="display: none;">
+        
+        <!-- Builder Header -->
+        <header class="builder-topbar">
+            <div class="b-top-left">
+                <button class="btn-icon-sm" id="builder-btn-back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg></button>
+                <div class="b-title-edit" id="builder-theme-title" title="Clic para editar">Nombre del Tema</div>
+            </div>
+            <div class="b-top-center">
+                <div class="b-save-status" id="builder-save-status">Guardado ✓</div>
+            </div>
+            <div class="b-top-right">
+                <!-- Botones placeholder para UI premium -->
+                <div class="user-avatar-sm">A</div>
+            </div>
+        </header>
+
+        <!-- Builder Layout 3 Columnas -->
+        <div class="builder-layout">
+            
+            <!-- Columna Izquierda: Capas / Componentes -->
+            <aside class="builder-panel left-panel">
+                <div class="panel-header">Componentes</div>
+                <div class="panel-content">
+                    <p style="font-size:0.75rem; color:var(--color-gray-dark); margin-bottom:12px;">Arrastra para ordenar. Clic para editar propiedades.</p>
+                    <ul class="layers-list" id="builder-layers-list">
+                        <!-- Generado por JS -->
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Columna Central: Canvas Infinito -->
+            <main class="builder-canvas-area">
+                <div class="canvas-device-frame">
+                    <div class="canvas-content" id="builder-canvas-content">
+                        <!-- Renderizado dinámico del Motor -->
+                    </div>
+                </div>
+            </main>
+
+            <!-- Columna Derecha: Propiedades -->
+            <aside class="builder-panel right-panel">
+                <div class="panel-header">Propiedades</div>
+                <div class="panel-content" id="builder-props-panel">
+                    <!-- Generado por JS -->
+                </div>
+            </aside>
+
+        </div>
+    </div>
+
+    <script type="module" src="themes.js"></script>
+</body>
+</html>
