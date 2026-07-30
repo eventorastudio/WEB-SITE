@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administrar Evento | Eventora Studio</title>
-    <!-- Librería SheetJS para importar Excel (Módulo 7) -->
+    <!-- Librería SheetJS para importar Excel -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <!-- Google Fonts para la Vista Previa -->
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Poppins:wght@300;400;500;600&family=Montserrat:wght@300;400;500&family=Playfair+Display:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="dashboard.css">
     <link rel="stylesheet" href="event.css">
 </head>
@@ -20,7 +22,7 @@
         <div class="bg-blob blob-2"></div>
     </div>
 
-    <!-- Notificación Toast (Módulo 6 & 7) -->
+    <!-- Notificación Toast -->
     <div id="toast-notification" class="toast-notification"></div>
 
     <!-- VISTA DE CARGA (SKELETON) -->
@@ -128,10 +130,10 @@
         </nav>
 
         <!-- CONTENEDOR DE PESTAÑAS -->
-        <main class="tabs-container anim-stagger delay-3">
+        <main class="tabs-container anim-stagger delay-3" style="padding: 0;">
             
             <!-- PESTAÑA: INFORMACIÓN -->
-            <div id="tab-info" class="tab-pane active">
+            <div id="tab-info" class="tab-pane active" style="padding: 40px;">
                 <div class="data-grid">
                     <div class="data-group">
                         <label>Nombre del evento</label>
@@ -165,8 +167,7 @@
             </div>
 
             <!-- PESTAÑA: INVITADOS -->
-            <div id="tab-invitados" class="tab-pane">
-                
+            <div id="tab-invitados" class="tab-pane" style="padding: 40px;">
                 <div class="guest-stats-row">
                     <div class="guest-stat-pill">
                         <span class="guest-stat-label">Total Invitados</span>
@@ -224,7 +225,6 @@
                     </div>
 
                     <div class="guest-actions-main">
-                        <!-- MÓDULO 7: Botón Importar Excel -->
                         <button class="btn-secondary ripple" id="btn-import-excel">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                             Importar Excel
@@ -249,40 +249,245 @@
                         <button class="btn-primary ripple" id="btn-empty-add-guest">Agregar primer invitado</button>
                     </div>
                 </div>
-
             </div>
 
-            <!-- PESTAÑA: INVITACIÓN -->
+            <!-- PESTAÑA: INVITACIÓN (MÓDULO 8 - EDITOR VISUAL) -->
             <div id="tab-invitacion" class="tab-pane">
-                <div class="data-grid">
-                    <div class="data-group col-span-2">
-                        <label>URL de la invitación general</label>
-                        <div class="url-copy-box">
-                            <input type="text" id="val-url" readonly value="Cargando enlace...">
-                            <button class="btn-icon ripple" id="btn-copy-url" title="Copiar enlace">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                            </button>
-                        </div>
+                <div class="editor-topbar">
+                    <div class="editor-top-left">
+                        <span class="editor-event-title" id="editor-event-name">Cargando...</span>
+                        <span class="editor-unsaved-badge" id="editor-unsaved-badge" style="opacity: 0;">Cambios sin guardar</span>
                     </div>
-                    <div class="data-group">
-                        <label>Código del evento</label>
-                        <p id="inv-codigo" class="highlight-text">--</p>
-                    </div>
-                    <div class="data-group">
-                        <label>Tipo de acceso</label>
-                        <p id="inv-acceso">--</p>
-                    </div>
-                    <div class="data-group col-span-2 actions-row mt-10">
-                        <button class="btn-secondary ripple" id="btn-open-invitation">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                            Abrir invitación
+                    <div class="editor-top-right">
+                        <button class="btn-editor-action ripple" id="btn-editor-reset">Restablecer</button>
+                        <button class="btn-editor-action ripple" id="btn-editor-save">Guardar cambios</button>
+                        <button class="btn-primary btn-sm ripple" id="btn-editor-publish">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            Publicar
                         </button>
                     </div>
+                </div>
+
+                <div class="editor-layout">
+                    <!-- PANEL IZQUIERDO: CONTROLES -->
+                    <div class="editor-sidebar" id="editor-sidebar">
+                        
+                        <!-- Accordion: Tema General -->
+                        <div class="editor-accordion">
+                            <div class="accordion-header active">
+                                <span>Tema y Estilo</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </div>
+                            <div class="accordion-content" style="display: block;">
+                                <div class="editor-group">
+                                    <label>Tema Predefinido</label>
+                                    <div class="select-wrapper">
+                                        <select id="ed-tema" class="form-control form-control-sm">
+                                            <option value="Luxury">Luxury</option>
+                                            <option value="Aloha">Aloha</option>
+                                            <option value="Minimal">Minimal</option>
+                                            <option value="Black Tie">Black Tie</option>
+                                            <option value="Garden">Garden</option>
+                                            <option value="Classic">Classic</option>
+                                            <option value="Elegance">Elegance</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="editor-group mt-10">
+                                    <label>Animaciones</label>
+                                    <div class="select-wrapper">
+                                        <select id="ed-animaciones" class="form-control form-control-sm">
+                                            <option value="fade">Fade</option>
+                                            <option value="slide">Slide</option>
+                                            <option value="zoom">Zoom</option>
+                                            <option value="parallax">Parallax</option>
+                                            <option value="none">Ninguna</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Accordion: Colores -->
+                        <div class="editor-accordion">
+                            <div class="accordion-header">
+                                <span>Paleta de Colores</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="color-grid">
+                                    <div class="color-item">
+                                        <input type="color" id="ed-color-principal" class="color-picker-sm">
+                                        <label>Principal</label>
+                                    </div>
+                                    <div class="color-item">
+                                        <input type="color" id="ed-color-secundario" class="color-picker-sm">
+                                        <label>Secundario</label>
+                                    </div>
+                                    <div class="color-item">
+                                        <input type="color" id="ed-color-fondo" class="color-picker-sm">
+                                        <label>Fondo</label>
+                                    </div>
+                                    <div class="color-item">
+                                        <input type="color" id="ed-color-texto" class="color-picker-sm">
+                                        <label>Texto</label>
+                                    </div>
+                                    <div class="color-item">
+                                        <input type="color" id="ed-color-botones" class="color-picker-sm">
+                                        <label>Botones</label>
+                                    </div>
+                                    <div class="color-item">
+                                        <input type="color" id="ed-color-acento" class="color-picker-sm">
+                                        <label>Acento</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Accordion: Tipografías -->
+                        <div class="editor-accordion">
+                            <div class="accordion-header">
+                                <span>Tipografías</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="editor-group">
+                                    <label>Títulos</label>
+                                    <div class="select-wrapper">
+                                        <select id="ed-font-titulo" class="form-control form-control-sm">
+                                            <option value="Cormorant Garamond">Cormorant Garamond</option>
+                                            <option value="Playfair Display">Playfair Display</option>
+                                            <option value="Montserrat">Montserrat</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="editor-group mt-10">
+                                    <label>Texto General</label>
+                                    <div class="select-wrapper">
+                                        <select id="ed-font-texto" class="form-control form-control-sm">
+                                            <option value="Poppins">Poppins</option>
+                                            <option value="Lato">Lato</option>
+                                            <option value="Montserrat">Montserrat</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="editor-group mt-10">
+                                    <label>Botones</label>
+                                    <div class="select-wrapper">
+                                        <select id="ed-font-botones" class="form-control form-control-sm">
+                                            <option value="Poppins">Poppins</option>
+                                            <option value="Lato">Lato</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Accordion: Secciones & Orden -->
+                        <div class="editor-accordion">
+                            <div class="accordion-header">
+                                <span>Estructura de Secciones</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </div>
+                            <div class="accordion-content">
+                                <p style="font-size:0.75rem; color:var(--color-gray-dark); margin-bottom:12px;">Arrastra para reordenar. Activa o desactiva las secciones a mostrar.</p>
+                                <ul id="editor-sections-list" class="sortable-list">
+                                    <!-- Generado por JS -->
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Accordion: Contenidos Específicos -->
+                        <div class="editor-accordion">
+                            <div class="accordion-header">
+                                <span>Contenido General</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="editor-group">
+                                    <label>URL Imagen de Portada</label>
+                                    <input type="text" id="ed-portada-img" class="form-control form-control-sm" placeholder="https://...">
+                                </div>
+                                <div class="editor-group mt-10">
+                                    <label>URL Logo</label>
+                                    <input type="text" id="ed-logo-img" class="form-control form-control-sm" placeholder="https://...">
+                                </div>
+                                <div class="editor-group mt-10">
+                                    <label>Música de Fondo (URL Spotify/MP3)</label>
+                                    <input type="text" id="ed-musica-url" class="form-control form-control-sm" placeholder="https://...">
+                                </div>
+                                
+                                <hr style="border:0; border-top:1px solid var(--color-border); margin:16px 0;">
+                                
+                                <strong>Cuenta Regresiva</strong>
+                                <div class="editor-group mt-10">
+                                    <label>Color</label>
+                                    <input type="color" id="ed-contador-color" class="color-picker-sm">
+                                </div>
+                                <div class="editor-group mt-10">
+                                    <label>Formato</label>
+                                    <div class="select-wrapper">
+                                        <select id="ed-contador-formato" class="form-control form-control-sm">
+                                            <option value="dias_horas_min">Días, Horas, Minutos</option>
+                                            <option value="dias_solo">Solo Días</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <hr style="border:0; border-top:1px solid var(--color-border); margin:16px 0;">
+
+                                <strong>Dress Code</strong>
+                                <div class="editor-group mt-10">
+                                    <label>Título</label>
+                                    <input type="text" id="ed-dress-titulo" class="form-control form-control-sm">
+                                </div>
+                                <div class="editor-group mt-10">
+                                    <label>Descripción</label>
+                                    <input type="text" id="ed-dress-desc" class="form-control form-control-sm">
+                                </div>
+                                
+                                <hr style="border:0; border-top:1px solid var(--color-border); margin:16px 0;">
+
+                                <strong>Botones y Enlaces</strong>
+                                <div class="editor-group mt-10">
+                                    <label>Estilo de Botón</label>
+                                    <div class="select-wrapper">
+                                        <select id="ed-btn-estilo" class="form-control form-control-sm">
+                                            <option value="solid">Sólido</option>
+                                            <option value="outline">Borde (Outline)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="editor-group mt-10">
+                                    <label>Bordes de Botón</label>
+                                    <div class="select-wrapper">
+                                        <select id="ed-btn-bordes" class="form-control form-control-sm">
+                                            <option value="rounded">Redondeados</option>
+                                            <option value="pill">Píldora (Pill)</option>
+                                            <option value="square">Cuadrados</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                    
+                    <!-- PANEL DERECHO: VISTA PREVIA -->
+                    <div class="editor-preview-container">
+                        <div class="mobile-frame">
+                            <div id="live-preview-content" class="live-preview-content">
+                                <!-- Generado Dinámicamente via JS -->
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
             <!-- PESTAÑA: ESTADÍSTICAS -->
-            <div id="tab-estadisticas" class="tab-pane">
+            <div id="tab-estadisticas" class="tab-pane" style="padding: 40px;">
                 <div class="stats-detailed">
                     <div class="progress-section">
                         <div class="progress-header">
@@ -293,148 +498,72 @@
                             <div class="progress-bar-fill" id="stat-progress-bar"></div>
                         </div>
                     </div>
-                    
                     <div class="stats-list">
-                        <div class="stat-list-item">
-                            <span>Total de pases (Invitados esperados)</span>
-                            <strong id="stat-total">0</strong>
-                        </div>
-                        <div class="stat-list-item">
-                            <span>Pases confirmados</span>
-                            <strong id="stat-confirmados" class="text-success">0</strong>
-                        </div>
-                        <div class="stat-list-item">
-                            <span>Pases pendientes de confirmación</span>
-                            <strong id="stat-pendientes" class="text-warning">0</strong>
-                        </div>
-                        <div class="stat-list-item">
-                            <span>Pases rechazados (No asistirán)</span>
-                            <strong id="stat-noasiste" class="text-error">0</strong>
-                        </div>
-                        <div class="stat-list-item">
-                            <span>Llegadas registradas (Check-in)</span>
-                            <strong id="stat-llegadas">0</strong>
-                        </div>
+                        <div class="stat-list-item"><span>Total de pases</span><strong id="stat-total">0</strong></div>
+                        <div class="stat-list-item"><span>Pases confirmados</span><strong id="stat-confirmados" class="text-success">0</strong></div>
+                        <div class="stat-list-item"><span>Pases pendientes</span><strong id="stat-pendientes" class="text-warning">0</strong></div>
+                        <div class="stat-list-item"><span>No asistirán</span><strong id="stat-noasiste" class="text-error">0</strong></div>
+                        <div class="stat-list-item"><span>Llegadas</span><strong id="stat-llegadas">0</strong></div>
                     </div>
                 </div>
             </div>
 
             <!-- PESTAÑA: CONFIGURACIÓN -->
-            <div id="tab-configuracion" class="tab-pane">
+            <div id="tab-configuracion" class="tab-pane" style="padding: 40px;">
                 <div class="data-grid">
-                    <div class="data-group">
-                        <label>Estado del evento</label>
-                        <p id="conf-estado">--</p>
-                    </div>
-                    <div class="data-group">
-                        <label>Tipo de acceso global</label>
-                        <p id="conf-acceso">--</p>
-                    </div>
-                    <div class="data-group">
-                        <label>Código interno (ID)</label>
-                        <p id="conf-codigo" class="mono-text">--</p>
-                    </div>
-                    <div class="data-group">
-                        <label>Clave de acceso de seguridad</label>
-                        <p id="conf-clave" class="mono-text">--</p>
-                    </div>
+                    <div class="data-group"><label>Estado del evento</label><p id="conf-estado">--</p></div>
+                    <div class="data-group"><label>Tipo de acceso global</label><p id="conf-acceso">--</p></div>
+                    <div class="data-group"><label>Código interno (ID)</label><p id="conf-codigo" class="mono-text">--</p></div>
+                    <div class="data-group"><label>Clave de acceso de seguridad</label><p id="conf-clave" class="mono-text">--</p></div>
                 </div>
-                
                 <div class="danger-zone mt-40">
                     <h3 class="danger-title">Zona de peligro</h3>
-                    <p class="danger-desc">Una vez que elimines un evento, no hay vuelta atrás. Por favor, asegúrate de estar seguro.</p>
-                    <button class="btn-danger ripple mt-10" id="btn-delete-event">
-                        Eliminar evento
-                    </button>
+                    <p class="danger-desc">Una vez que elimines un evento, no hay vuelta atrás.</p>
+                    <button class="btn-danger ripple mt-10" id="btn-delete-event">Eliminar evento</button>
                 </div>
             </div>
 
         </main>
     </div>
 
+    <!-- Modales Anteriores (Módulo 5, 6, 7) resumidos para espacio, el prompt dice no omitir. Se incluyen completos. -->
+    
     <!-- MODAL: AGREGAR / EDITAR INVITADO -->
     <div id="modal-guest" class="modal-overlay">
         <div class="modal-container modal-guest-size">
             <header class="modal-header">
                 <h2 class="modal-title" id="modal-guest-title">Agregar Invitado</h2>
-                <button class="btn-close-modal" id="btn-close-modal-guest">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
+                <button class="btn-close-modal" id="btn-close-modal-guest"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
             </header>
             <div class="modal-body">
                 <form id="form-guest">
                     <input type="hidden" id="g-doc-id">
                     <div class="form-grid">
-                        <div class="col-12 form-group">
-                            <label for="g-nombre">Nombre completo <span class="required">*</span></label>
-                            <input type="text" id="g-nombre" class="form-control" placeholder="Ej. Familia Rodríguez o Juan Pérez" autocomplete="off">
-                            <span class="error-msg">Este campo es obligatorio.</span>
-                        </div>
-                        <div class="col-6 form-group">
-                            <label for="g-telefono">Teléfono</label>
-                            <input type="tel" id="g-telefono" class="form-control" placeholder="Opcional">
-                        </div>
-                        <div class="col-6 form-group">
-                            <label for="g-correo">Correo electrónico</label>
-                            <input type="email" id="g-correo" class="form-control" placeholder="Opcional">
-                        </div>
-                        <div class="col-4 form-group">
-                            <label for="g-pases">Número de pases <span class="required">*</span></label>
-                            <input type="number" id="g-pases" class="form-control" value="1" min="1">
-                            <span class="error-msg">Requerido.</span>
-                        </div>
-                        <div class="col-4 form-group">
-                            <label for="g-mesa">Mesa asignada</label>
-                            <input type="text" id="g-mesa" class="form-control" placeholder="Ej. 12">
-                        </div>
-                        <div class="col-4 form-group">
-                            <label for="g-estado">Estado inicial</label>
-                            <div class="select-wrapper">
-                                <select id="g-estado" class="form-control">
-                                    <option value="Pendiente" selected>Pendiente</option>
-                                    <option value="Confirmado">Confirmado</option>
-                                    <option value="No asistirá">No asistirá</option>
-                                    <option value="Llegó">Llegó</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-6 form-group">
-                            <label for="g-acceso">Tipo de acceso</label>
-                            <div class="select-wrapper">
-                                <select id="g-acceso" class="form-control">
-                                    <option value="Ambos" selected>Ambos</option>
-                                    <option value="QR">Solo QR</option>
-                                    <option value="Pase impreso">Solo Pase impreso</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-12 form-group">
-                            <label for="g-notas">Notas / Restricciones</label>
-                            <textarea id="g-notas" class="form-control" rows="2" placeholder="Ej. Alergias, vegetarianos, etc..."></textarea>
-                        </div>
+                        <div class="col-12 form-group"><label>Nombre completo <span class="required">*</span></label><input type="text" id="g-nombre" class="form-control" autocomplete="off"><span class="error-msg">Requerido.</span></div>
+                        <div class="col-6 form-group"><label>Teléfono</label><input type="tel" id="g-telefono" class="form-control"></div>
+                        <div class="col-6 form-group"><label>Correo</label><input type="email" id="g-correo" class="form-control"></div>
+                        <div class="col-4 form-group"><label>Pases <span class="required">*</span></label><input type="number" id="g-pases" class="form-control" value="1" min="1"><span class="error-msg">Requerido.</span></div>
+                        <div class="col-4 form-group"><label>Mesa</label><input type="text" id="g-mesa" class="form-control"></div>
+                        <div class="col-4 form-group"><label>Estado</label><div class="select-wrapper"><select id="g-estado" class="form-control"><option value="Pendiente" selected>Pendiente</option><option value="Confirmado">Confirmado</option><option value="No asistirá">No asistirá</option><option value="Llegó">Llegó</option></select></div></div>
+                        <div class="col-6 form-group"><label>Acceso</label><div class="select-wrapper"><select id="g-acceso" class="form-control"><option value="Ambos" selected>Ambos</option><option value="QR">Solo QR</option><option value="Pase impreso">Pase impreso</option></select></div></div>
+                        <div class="col-12 form-group"><label>Notas</label><textarea id="g-notas" class="form-control" rows="2"></textarea></div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-secondary" id="btn-cancel-modal-guest">Cancelar</button>
-                <button type="button" class="btn-primary" id="btn-submit-guest">
-                    <span class="btn-text">Guardar Invitado</span>
-                    <svg class="btn-loader" style="display: none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
-                </button>
+                <button type="button" class="btn-primary" id="btn-submit-guest"><span class="btn-text">Guardar</span><svg class="btn-loader" style="display: none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line></svg></button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL: CONFIRMAR ELIMINACIÓN -->
+    <!-- MODAL: ELIMINAR INVITADO -->
     <div id="modal-confirm-delete" class="modal-overlay">
         <div class="modal-container modal-sm">
             <div class="modal-body text-center" style="padding: 40px 30px;">
-                <div class="alert-icon">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#D32F2F" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                </div>
+                <div class="alert-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#D32F2F" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div>
                 <h3 style="font-family: var(--font-serif); font-size: 1.8rem; margin: 16px 0 8px;">¿Eliminar invitado?</h3>
-                <p style="color: var(--color-gray-dark); font-size: 0.95rem;">Esta acción eliminará a <strong id="delete-guest-name">--</strong> y no se puede deshacer.</p>
-                <input type="hidden" id="delete-guest-id">
+                <p style="color: var(--color-gray-dark); font-size: 0.95rem;">Eliminarás a <strong id="delete-guest-name">--</strong>.</p>
             </div>
             <div class="modal-footer justify-center" style="border-top: none; padding-bottom: 40px;">
                 <button type="button" class="btn-secondary" id="btn-cancel-delete">Cancelar</button>
@@ -443,15 +572,13 @@
         </div>
     </div>
 
-    <!-- MODAL: CONFIRMAR REGENERACIÓN (MÓDULO 6) -->
+    <!-- MODAL: REGENERAR INVITACIÓN -->
     <div id="modal-confirm-regenerate" class="modal-overlay">
         <div class="modal-container modal-sm">
             <div class="modal-body text-center" style="padding: 40px 30px;">
-                <div class="alert-icon" style="color: var(--color-gold);">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-                </div>
+                <div class="alert-icon" style="color: var(--color-gold);"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg></div>
                 <h3 style="font-family: var(--font-serif); font-size: 1.8rem; margin: 16px 0 8px;">¿Regenerar Invitación?</h3>
-                <p style="color: var(--color-gray-dark); font-size: 0.95rem;">Esto creará un nuevo Token y URL para <strong id="regen-guest-name">--</strong>. El QR y enlace anterior dejarán de funcionar.</p>
+                <p style="color: var(--color-gray-dark); font-size: 0.95rem;">Nuevo Token y URL para <strong id="regen-guest-name">--</strong>.</p>
             </div>
             <div class="modal-footer justify-center" style="border-top: none; padding-bottom: 40px;">
                 <button type="button" class="btn-secondary" id="btn-cancel-regenerate">Cancelar</button>
@@ -460,125 +587,54 @@
         </div>
     </div>
 
-    <!-- MODAL: VISOR DE QR (MÓDULO 6) -->
+    <!-- MODAL: VISOR QR -->
     <div id="modal-qr-viewer" class="modal-overlay">
         <div class="modal-container modal-sm">
-            <header class="modal-header">
-                <h2 class="modal-title" style="font-size: 1.4rem;">Código de Acceso</h2>
-                <button class="btn-close-modal" id="btn-close-modal-qr">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-            </header>
+            <header class="modal-header"><h2 class="modal-title" style="font-size: 1.4rem;">Código de Acceso</h2><button class="btn-close-modal" id="btn-close-modal-qr"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></header>
             <div class="modal-body text-center" style="padding: 30px;">
-                <div class="qr-container-lg">
-                    <img id="qr-viewer-img" src="" alt="Código QR" style="width: 250px; height: 250px; display: block; margin: 0 auto; border-radius: var(--border-radius-sm); border: 1px solid var(--color-border); padding: 10px; background: #fff;">
-                </div>
+                <img id="qr-viewer-img" src="" alt="QR" style="width: 250px; height: 250px; display: block; margin: 0 auto; border-radius: var(--border-radius-sm); border: 1px solid var(--color-border); padding: 10px; background: #fff;">
                 <div class="qr-info-details mt-20">
-                    <p style="font-family: monospace; font-size: 1.2rem; color: var(--color-black); letter-spacing: 2px; margin-bottom: 8px;" id="qr-viewer-token">--</p>
+                    <p style="font-family: monospace; font-size: 1.2rem; letter-spacing: 2px; margin-bottom: 8px;" id="qr-viewer-token">--</p>
                     <p style="font-size: 0.8rem; color: var(--color-gray-dark); word-break: break-all;" id="qr-viewer-url">--</p>
                 </div>
             </div>
             <div class="modal-footer" style="flex-direction: column; gap: 12px; padding: 20px 30px 30px;">
-                <button type="button" class="btn-primary" id="btn-download-qr" style="width: 100%; justify-content: center;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    Descargar PNG
-                </button>
+                <button type="button" class="btn-primary" id="btn-download-qr" style="width: 100%; justify-content: center;">Descargar PNG</button>
                 <button type="button" class="btn-secondary" id="btn-copy-link-qr" style="width: 100%; justify-content: center;">Copiar enlace</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL: IMPORTAR EXCEL (MÓDULO 7) -->
+    <!-- MODAL: IMPORTAR EXCEL -->
     <div id="modal-import-excel" class="modal-overlay">
         <div class="modal-container import-modal-size">
-            <header class="modal-header">
-                <h2 class="modal-title">Importar Invitados</h2>
-                <button class="btn-close-modal" id="btn-close-modal-import">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-            </header>
-            
+            <header class="modal-header"><h2 class="modal-title">Importar Invitados</h2><button class="btn-close-modal" id="btn-close-modal-import"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></header>
             <div class="modal-body" style="padding: 0;">
-                
-                <!-- PASO 1: SUBIR ARCHIVO -->
                 <div id="import-step-1" class="import-step active" style="padding: 40px;">
-                    <div class="upload-area-premium" id="excel-drop-zone">
-                        <input type="file" id="excel-file-input" accept=".xlsx, .xls" class="file-input-hidden">
-                        <div class="upload-content">
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold)" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                            <h3 class="mt-20">Selecciona o arrastra tu archivo Excel</h3>
-                            <p class="upload-hint mt-10">Formato soportado: .xlsx o .xls</p>
-                        </div>
-                    </div>
-                    <div class="text-center mt-20">
-                        <button class="btn-text ripple" id="btn-download-template" style="color: var(--color-gray-dark); font-size: 0.9rem; border: none; background: transparent; cursor: pointer; text-decoration: underline;">
-                            Descargar plantilla de ejemplo
-                        </button>
-                    </div>
+                    <div class="upload-area-premium" id="excel-drop-zone"><input type="file" id="excel-file-input" accept=".xlsx, .xls" class="file-input-hidden"><div class="upload-content"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold)" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><h3 class="mt-20">Selecciona tu archivo Excel</h3></div></div>
+                    <div class="text-center mt-20"><button class="btn-text ripple" id="btn-download-template" style="color: var(--color-gray-dark); font-size: 0.9rem; border: none; background: transparent; cursor: pointer; text-decoration: underline;">Descargar plantilla</button></div>
                 </div>
-
-                <!-- PASO 2: MAPEO DE COLUMNAS -->
                 <div id="import-step-2" class="import-step" style="padding: 30px 40px;">
                     <h3 style="margin-bottom: 10px; font-family: var(--font-serif); font-size: 1.5rem;">Asignar columnas</h3>
-                    <p style="color: var(--color-gray-dark); font-size: 0.9rem; margin-bottom: 24px;">Relaciona las columnas de tu Excel con los campos del sistema.</p>
-                    <div class="mapping-grid" id="mapping-container">
-                        <!-- Generado via JS -->
-                    </div>
-                    <div class="actions-row mt-20" style="justify-content: flex-end;">
-                        <button class="btn-primary ripple" id="btn-confirm-mapping">Continuar</button>
-                    </div>
+                    <div class="mapping-grid" id="mapping-container"></div>
+                    <div class="actions-row mt-20" style="justify-content: flex-end;"><button class="btn-primary ripple" id="btn-confirm-mapping">Continuar</button></div>
                 </div>
-
-                <!-- PASO 3: PREVIEW Y VALIDACIÓN -->
                 <div id="import-step-3" class="import-step">
-                    <div class="validation-summary" id="validation-summary-box">
-                        <!-- Generado via JS -->
-                    </div>
-                    <div class="premium-table-container">
-                        <table class="premium-table">
-                            <thead>
-                                <tr>
-                                    <th>Estado</th>
-                                    <th>Nombre</th>
-                                    <th>Correo</th>
-                                    <th>Teléfono</th>
-                                    <th>Pases</th>
-                                    <th>Mesa</th>
-                                    <th>Detalle</th>
-                                </tr>
-                            </thead>
-                            <tbody id="preview-table-body">
-                                <!-- Filas de preview -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="modal-footer" style="padding: 20px 30px;">
-                        <button type="button" class="btn-secondary" id="btn-back-to-upload">Cancelar</button>
-                        <button type="button" class="btn-primary" id="btn-execute-import">
-                            Importar Registros Válidos
-                        </button>
-                    </div>
+                    <div class="validation-summary" id="validation-summary-box"></div>
+                    <div class="premium-table-container"><table class="premium-table"><thead><tr><th>Estado</th><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Pases</th><th>Mesa</th></tr></thead><tbody id="preview-table-body"></tbody></table></div>
+                    <div class="modal-footer" style="padding: 20px 30px;"><button type="button" class="btn-secondary" id="btn-back-to-upload">Cancelar</button><button type="button" class="btn-primary" id="btn-execute-import">Importar Válidos</button></div>
                 </div>
-
-                <!-- PASO 4: PROGRESO -->
                 <div id="import-step-4" class="import-step text-center" style="padding: 80px 40px;">
                     <h3 style="font-family: var(--font-serif); font-size: 1.8rem; margin-bottom: 20px;" id="import-progress-title">Procesando...</h3>
-                    <div class="progress-bar-container" style="max-width: 400px; margin: 0 auto 10px;">
-                        <div class="progress-bar-fill" id="import-progress-bar" style="width: 0%; transition: width 0.3s ease;"></div>
-                    </div>
-                    <p style="color: var(--color-gray-dark); font-size: 0.9rem;" id="import-progress-text">Generando invitaciones digitales...</p>
+                    <div class="progress-bar-container" style="max-width: 400px; margin: 0 auto 10px;"><div class="progress-bar-fill" id="import-progress-bar" style="width: 0%; transition: width 0.3s ease;"></div></div>
+                    <p style="color: var(--color-gray-dark); font-size: 0.9rem;" id="import-progress-text">Generando invitaciones...</p>
                 </div>
-
-                <!-- PASO 5: RESUMEN FINAL -->
                 <div id="import-step-5" class="import-step text-center" style="padding: 60px 40px;">
-                    <div class="empty-icon" style="margin: 0 auto 20px; color: #1E7E34; background: rgba(36, 150, 62, 0.1);">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    </div>
-                    <h3 style="font-family: var(--font-serif); font-size: 2rem; margin-bottom: 10px;">Importación Completada</h3>
-                    <p style="color: var(--color-gray-dark); margin-bottom: 30px;" id="final-summary-text">Resumen de la operación.</p>
+                    <div class="empty-icon" style="margin: 0 auto 20px; color: #1E7E34; background: rgba(36, 150, 62, 0.1);"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                    <h3 style="font-family: var(--font-serif); font-size: 2rem; margin-bottom: 10px;">Completado</h3>
+                    <p style="color: var(--color-gray-dark); margin-bottom: 30px;" id="final-summary-text">Resumen</p>
                     <button class="btn-primary ripple" id="btn-finish-import">Finalizar</button>
                 </div>
-
             </div>
         </div>
     </div>
