@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrar Evento | Eventora Studio</title>
+    <link rel="stylesheet" href="dashboard.css"> <!-- Importamos variables base -->
+    <link rel="stylesheet" href="event.css">
+</head>
+<body>
+
+    <!-- Capa protectora inicial (Auth Guard) -->
+    <div id="auth-guard" class="auth-guard"></div>
+
+    <!-- Fondo Premium -->
+    <div class="premium-bg">
+        <div class="bg-blob blob-1"></div>
+        <div class="bg-blob blob-2"></div>
+    </div>
+
+    <!-- VISTA DE CARGA (SKELETON) -->
+    <div id="loading-view" class="event-wrapper" style="display: block;">
+        <header class="event-header-skeleton">
+            <div class="skeleton-btn skeleton"></div>
+            <div class="header-info-skeleton">
+                <div class="skeleton-title skeleton"></div>
+                <div class="skeleton-subtitle skeleton"></div>
+            </div>
+        </header>
+        <div class="stats-grid">
+            <div class="stat-card skeleton-container"><div class="skeleton-icon skeleton"></div><div class="skeleton-number skeleton"></div></div>
+            <div class="stat-card skeleton-container"><div class="skeleton-icon skeleton"></div><div class="skeleton-number skeleton"></div></div>
+            <div class="stat-card skeleton-container"><div class="skeleton-icon skeleton"></div><div class="skeleton-number skeleton"></div></div>
+            <div class="stat-card skeleton-container"><div class="skeleton-icon skeleton"></div><div class="skeleton-number skeleton"></div></div>
+        </div>
+        <div class="tabs-skeleton">
+            <div class="skeleton-tab skeleton"></div>
+            <div class="skeleton-tab skeleton"></div>
+            <div class="skeleton-tab skeleton"></div>
+        </div>
+        <div class="content-skeleton skeleton"></div>
+    </div>
+
+    <!-- VISTA DE ERROR / NO ENCONTRADO -->
+    <div id="error-view" class="event-wrapper" style="display: none;">
+        <div class="error-container anim-stagger">
+            <div class="error-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            </div>
+            <h2 class="error-title" id="error-title">Evento no encontrado.</h2>
+            <p class="error-desc" id="error-desc">El evento que intentas administrar no existe o fue eliminado.</p>
+            <button class="btn-primary ripple mt-20" onclick="window.location.href='dashboard.html'">
+                Volver al Dashboard
+            </button>
+        </div>
+    </div>
+
+    <!-- VISTA PRINCIPAL DEL EVENTO -->
+    <div id="main-view" class="event-wrapper" style="display: none; opacity: 0;">
+        
+        <!-- HEADER DEL EVENTO -->
+        <header class="event-header anim-stagger">
+            <div class="header-left">
+                <button class="btn-back" id="btn-back" title="Volver al Dashboard">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                </button>
+                <div class="header-divider"></div>
+                <img src="" alt="Eventora Studio" class="logo" id="ui-logo">
+            </div>
+            
+            <div class="header-center">
+                <div class="event-titles">
+                    <h1 class="event-title" id="val-nombre">Cargando...</h1>
+                    <div class="event-meta-header">
+                        <span id="val-ciudad">--</span>
+                        <span class="dot-separator">•</span>
+                        <span id="val-fecha">--</span>
+                        <span class="dot-separator">•</span>
+                        <span class="badge" id="val-estado-badge">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <button class="btn-secondary ripple" id="btn-edit-info">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    Editar información
+                </button>
+            </div>
+        </header>
+
+        <!-- TARJETAS DE RESUMEN -->
+        <section class="stats-grid anim-stagger delay-1">
+            <div class="stat-card">
+                <div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+                <div class="stat-number" id="count-invitados">0</div>
+                <div class="stat-title">Invitados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
+                <div class="stat-number" id="count-confirmados">0</div>
+                <div class="stat-title">Confirmados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
+                <div class="stat-number" id="count-pendientes">0</div>
+                <div class="stat-title">Pendientes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6z"></path><path d="M14 3v5h5M16 13H8M16 17H8M10 9H8"></path></svg></div>
+                <div class="stat-number" id="count-llegadas">0</div>
+                <div class="stat-title">Llegadas</div>
+            </div>
+        </section>
+
+        <!-- NAVEGACIÓN DE PESTAÑAS -->
+        <nav class="tabs-nav anim-stagger delay-2">
+            <button class="tab-btn active" data-target="info">Información</button>
+            <button class="tab-btn" data-target="invitados">Invitados</button>
+            <button class="tab-btn" data-target="invitacion">Invitación</button>
+            <button class="tab-btn" data-target="estadisticas">Estadísticas</button>
+            <button class="tab-btn" data-target="configuracion">Configuración</button>
+        </nav>
+
+        <!-- CONTENEDOR DE PESTAÑAS -->
+        <main class="tabs-container anim-stagger delay-3">
+            
+            <!-- PESTAÑA: INFORMACIÓN -->
+            <div id="tab-info" class="tab-pane active">
+                <div class="data-grid">
+                    <div class="data-group">
+                        <label>Nombre del evento</label>
+                        <p id="info-nombre">--</p>
+                    </div>
+                    <div class="data-group">
+                        <label>Tipo de evento</label>
+                        <p id="info-tipo">--</p>
+                    </div>
+                    <div class="data-group">
+                        <label>Fecha</label>
+                        <p id="info-fecha">--</p>
+                    </div>
+                    <div class="data-group">
+                        <label>Hora</label>
+                        <p id="info-hora">--</p>
+                    </div>
+                    <div class="data-group">
+                        <label>Ubicación</label>
+                        <p id="info-ubicacion">--</p>
+                    </div>
+                    <div class="data-group">
+                        <label>Estado actual</label>
+                        <p id="info-estado">--</p>
+                    </div>
+                    <div class="data-group col-span-2">
+                        <label>Descripción</label>
+                        <p id="info-descripcion" class="text-block">--</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PESTAÑA: INVITADOS -->
+            <div id="tab-invitados" class="tab-pane">
+                <div class="empty-state-panel">
+                    <div class="empty-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    </div>
+                    <h3>Sin invitados registrados</h3>
+                    <p>Comienza a estructurar tu lista de invitados para este evento.</p>
+                    <div class="actions-row mt-20">
+                        <button class="btn-secondary ripple" id="btn-import-guests">Importar invitados</button>
+                        <button class="btn-primary ripple" id="btn-add-guest">Agregar invitado</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PESTAÑA: INVITACIÓN -->
+            <div id="tab-invitacion" class="tab-pane">
+                <div class="data-grid">
+                    <div class="data-group col-span-2">
+                        <label>URL de la invitación digital</label>
+                        <div class="url-copy-box">
+                            <input type="text" id="val-url" readonly value="Cargando enlace...">
+                            <button class="btn-icon ripple" id="btn-copy-url" title="Copiar enlace">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="data-group">
+                        <label>Código del evento</label>
+                        <p id="inv-codigo" class="highlight-text">--</p>
+                    </div>
+                    <div class="data-group">
+                        <label>Tipo de acceso</label>
+                        <p id="inv-acceso">--</p>
+                    </div>
+                    <div class="data-group col-span-2 actions-row mt-10">
+                        <button class="btn-secondary ripple" id="btn-open-invitation">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                            Abrir invitación
+                        </button>
+                        <button class="btn-primary ripple" id="btn-generate-qr">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="7" y="7" width="3" height="3"></rect><rect x="14" y="7" width="3" height="3"></rect><rect x="7" y="14" width="3" height="3"></rect><rect x="14" y="14" width="3" height="3"></rect></svg>
+                            Generar QR General
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PESTAÑA: ESTADÍSTICAS -->
+            <div id="tab-estadisticas" class="tab-pane">
+                <div class="stats-detailed">
+                    <div class="progress-section">
+                        <div class="progress-header">
+                            <h3>Porcentaje de confirmación</h3>
+                            <span id="stat-porcentaje" class="percentage-val">0%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill" id="stat-progress-bar"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-list">
+                        <div class="stat-list-item">
+                            <span>Total de invitados esperados</span>
+                            <strong id="stat-total">0</strong>
+                        </div>
+                        <div class="stat-list-item">
+                            <span>Asistencias confirmadas</span>
+                            <strong id="stat-confirmados" class="text-success">0</strong>
+                        </div>
+                        <div class="stat-list-item">
+                            <span>Pendientes de confirmación</span>
+                            <strong id="stat-pendientes" class="text-warning">0</strong>
+                        </div>
+                        <div class="stat-list-item">
+                            <span>Llegadas registradas (Check-in)</span>
+                            <strong id="stat-llegadas">0</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PESTAÑA: CONFIGURACIÓN -->
+            <div id="tab-configuracion" class="tab-pane">
+                <div class="data-grid">
+                    <div class="data-group">
+                        <label>Estado del evento</label>
+                        <p id="conf-estado">--</p>
+                    </div>
+                    <div class="data-group">
+                        <label>Tipo de acceso global</label>
+                        <p id="conf-acceso">--</p>
+                    </div>
+                    <div class="data-group">
+                        <label>Código interno (ID)</label>
+                        <p id="conf-codigo" class="mono-text">--</p>
+                    </div>
+                    <div class="data-group">
+                        <label>Clave de acceso de seguridad</label>
+                        <p id="conf-clave" class="mono-text">--</p>
+                    </div>
+                </div>
+                
+                <div class="danger-zone mt-40">
+                    <h3 class="danger-title">Zona de peligro</h3>
+                    <p class="danger-desc">Una vez que elimines un evento, no hay vuelta atrás. Por favor, asegúrate de estar seguro.</p>
+                    <button class="btn-danger ripple mt-10" id="btn-delete-event">
+                        Eliminar evento
+                    </button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script type="module" src="event.js"></script>
+</body>
+</html>

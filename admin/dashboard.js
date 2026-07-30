@@ -324,7 +324,10 @@ function renderEvents(events) {
         const btnManage = card.querySelector('.btn-manage');
         const btnDelete = card.querySelector('.btn-delete');
 
-        btnManage.addEventListener('click', () => { console.log(btnManage.getAttribute('data-id')); });
+        btnManage.addEventListener('click', () => {
+            const eventId = btnManage.getAttribute('data-id');
+            window.location.href = `event.html?id=${eventId}`;
+        });
         btnDelete.addEventListener('click', () => { console.log("Eliminar"); });
 
         eventsContainer.appendChild(card);
