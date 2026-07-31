@@ -8,6 +8,13 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/f
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // ============================================================================
+// IMPORTACIÓN DE MÓDULOS DEL CORE (NUEVO)
+// ============================================================================
+import { state, setEventId, setEventData } from './core/state.js';
+import { ui } from './core/ui.js';
+import { helpers } from './core/helpers.js';
+
+// ============================================================================
 // IMPORTACIÓN DE MÓDULOS EXISTENTES
 // ============================================================================
 import { initExcelImport } from './excel-import.js';
@@ -30,12 +37,6 @@ import { copyInvitation } from './invitation-utils.js';
  import { initQRModals } from './qr-viewer-ui.js';
 ===============================================================================
 */
-
-// ============================================================================
-// ESTADO GLOBAL DEL EVENTO EN MEMORIA
-// ============================================================================
-export let currentEventId = null;
-export let currentEventData = null;
 
 // ============================================================================
 // REFERENCIAS DOM PRINCIPALES (Flujo de vistas y Tabs)
@@ -78,15 +79,16 @@ async function bootstrapEventOrchestrator() {
 
         // B. Obtener ID del evento desde URL
         const urlParams = new URLSearchParams(window.location.search);
-        currentEventId = urlParams.get('id');
+        const extractedId = urlParams.get('id');
+        setEventId(extractedId);
 
-        if (!currentEventId) {
+        if (!state.eventId) {
             showErrorView("Falta el ID del evento", "No se proporcionó un identificador válido en la URL.");
             return;
         }
 
         // C. Cargar datos del evento desde Firestore
-        await loadEventFromFirestore(currentEventId);
+        await loadEventFromFirestore(state.eventId);
 
     } catch (error) {
         console.error("Error en orquestador:", error);
@@ -103,10 +105,10 @@ async function loadEventFromFirestore(eventId) {
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-            currentEventData = docSnap.data();
+            setEventData(docSnap.data());
             
             // Renderizar la información base en la UI
-            renderEventHeaderAndInfo(currentEventData);
+            renderEventHeaderAndInfo(state.eventData);
             
             // Cambiar vista de Skeleton a Vista Principal
             loadingView.style.display = 'none';
@@ -144,7 +146,7 @@ function setupBaseUI() {
     if (btnCopyUrl) {
         btnCopyUrl.addEventListener('click', () => {
             const urlInput = document.getElementById('val-url').value;
-            copyInvitation(urlInput, () => showToast('Enlace general copiado exitosamente.'));
+            copyInvitation(urlInput, () => ui.showToast('Enlace general copiado exitosamente.'));
         });
     }
     
@@ -206,12 +208,8 @@ function renderEventHeaderAndInfo(data) {
     const descripcion = data.descripcion || 'Sin descripción adicional.';
     const claveAcceso = data.claveAcceso || '----';
     
-    // Formatear fecha
-    let fecha = 'Por definir';
-    if (data.fecha) {
-        const f = data.fecha.toDate ? data.fecha.toDate() : new Date(data.fecha);
-        fecha = f.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
-    }
+    // Formatear fecha utilizando helpers puros
+    const fecha = helpers.formatDate(data.fecha);
 
     // Aplicar a los elementos del Header y Tab Info
     document.getElementById('val-nombre').textContent = nombre;
@@ -263,11 +261,11 @@ function showErrorView(title, desc) {
 // 5. INICIALIZACIÓN DE MÓDULOS SECUNDARIOS
 // ============================================================================
 function initializeExternalModules() {
-    const nombre = currentEventData.nombreEvento || currentEventData.nombre || 'Evento';
+    const nombre = state.eventData.nombreEvento || state.eventData.nombre || 'Evento';
 
     // Iniciar Módulo 8: Editor Visual
     if (typeof initEditor === 'function') {
-        initEditor(currentEventId, nombre);
+        initEditor(state.eventId, nombre);
     }
 
     // Iniciar Módulo 7: Importación Excel
@@ -278,8 +276,8 @@ function initializeExternalModules() {
         if (typeof initExcelImport === 'function') {
             // Nota: Al carecer del archivo guests-manager, pasamos un array vacío a 'currentGuests'.
             // El módulo de Excel hará el import y llamará al callback al terminar.
-            initExcelImport(currentEventId, [], () => {
-                showToast('Importación exitosa.');
+            initExcelImport(state.eventId, [], () => {
+                ui.showToast('Importación exitosa.');
                 /* 
                  * COMENTARIO MÓDULOS FALTANTES:
                  * Aquí se llamaría a fetchGuestsData() para recargar la lista
@@ -296,30 +294,10 @@ function initializeExternalModules() {
      * COMENTARIO MÓDULOS FALTANTES:
      * Si los módulos existieran, aquí se inicializarían:
      * 
-     * initGuestsManager(currentEventId);
+     * initGuestsManager(state.eventId);
      * fetchGuestsData();
-     * initStatsUI(currentEventData);
-     * initSettingsManager(currentEventId);
+     * initStatsUI(state.eventData);
+     * initSettingsManager(state.eventId);
      * initQRModals();
      */
-}
-
-// ============================================================================
-// UTILIDADES EXPORTADAS (Para uso por otros módulos)
-// ============================================================================
-
-/**
- * Muestra una notificación Toast elegante en pantalla.
- * @param {string} message - El mensaje a mostrar.
- * @param {string} iconSvg - (Opcional) Icono SVG personalizado.
- */
-export function showToast(message, iconSvg) {
-    const toast = document.getElementById('toast-notification');
-    if (!toast) return;
-
-    const defaultIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
-    toast.innerHTML = `${iconSvg || defaultIcon} <span>${message}</span>`;
-    toast.classList.add('show');
-    
-    setTimeout(() => toast.classList.remove('show'), 3000);
 }

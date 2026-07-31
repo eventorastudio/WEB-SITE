@@ -4,7 +4,7 @@
 import { db } from './firebase.js';
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { renderTheme, getDefaultThemeConfig } from './theme-engine.js';
-import { showToast } from './themes.js';
+import { ui } from './core/ui.js';
 
 let currentThemeId = null;
 let currentThemeState = null;
@@ -36,7 +36,7 @@ export async function openThemeBuilder(themeId) {
             if (snap.exists()) {
                 currentThemeState = snap.data();
             } else {
-                showToast("Tema no encontrado.");
+                ui.showToast("Tema no encontrado.");
                 closeBuilder();
                 return;
             }

@@ -1,9 +1,9 @@
 // invitation-editor.js
 // Módulo 8: Editor Visual de Invitaciones (Configurador)
 import { db } from './firebase.js';
-import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { updatePreview } from './invitation-preview.js';
-import { showToast } from './event.js';
+import { ui } from './core/ui.js';
 
 let editorEventId = null;
 let editorEventName = '';
@@ -178,9 +178,9 @@ async function publishDesign() {
             ultimaActualizacion: serverTimestamp(),
             estadoPublicacion: 'Publicado'
         });
-        showToast('Invitación publicada exitosamente.', `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1E7E34" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>`);
+        ui.showToast('Invitación publicada exitosamente.', `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1E7E34" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>`);
     } catch (e) {
-        showToast('Error al publicar.');
+        ui.showToast('Error al publicar.');
     } finally {
         btnPublish.innerHTML = orig;
     }

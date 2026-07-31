@@ -3,7 +3,8 @@
 import { db } from './firebase.js';
 import { collection, doc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { generateToken, generateInvitationURL, generateQRCode } from './invitation-utils.js';
-import { generateUniqueGuestCode, openModalElem, closeModalElem } from './event.js';
+import { ui } from './core/ui.js';
+import { helpers } from './core/helpers.js';
 
 let currentEventId = null;
 let existingGuests = [];
@@ -56,7 +57,7 @@ export function initExcelImport(eventId, currentGuests, onSuccess) {
     
     // Asignar listeners solo una vez (prevenir duplicados)
     if (!modal.dataset.initialized) {
-        btnClose.addEventListener('click', () => closeModalElem(modal));
+        btnClose.addEventListener('click', () => ui.closeModalElem(modal));
         btnDownloadTpl.addEventListener('click', downloadTemplate);
         
         fileInput.addEventListener('change', handleFileUpload);
@@ -70,12 +71,12 @@ export function initExcelImport(eventId, currentGuests, onSuccess) {
         btnConfirmMapping.addEventListener('click', processMapping);
         btnBackToUpload.addEventListener('click', resetImportUI);
         btnExecuteImport.addEventListener('click', importGuests);
-        btnFinishImport.addEventListener('click', () => { closeModalElem(modal); if(onSuccessCallback) onSuccessCallback(); });
+        btnFinishImport.addEventListener('click', () => { ui.closeModalElem(modal); if(onSuccessCallback) onSuccessCallback(); });
         
         modal.dataset.initialized = 'true';
     }
     
-    openModalElem(modal);
+    ui.openModalElem(modal);
 }
 
 function resetImportUI() {
@@ -265,7 +266,7 @@ async function importGuests() {
         // IDs Base
         const nextIdIndex = existingGuests.length + i + 1; 
         const nextIdStr = `INV-${String(nextIdIndex).padStart(4, '0')}`;
-        const uCode = generateUniqueGuestCode(usedCodes);
+        const uCode = helpers.generateUniqueGuestCode(usedCodes);
         
         // Motor de Invitaciones
         const nToken = generateToken(usedTokens);

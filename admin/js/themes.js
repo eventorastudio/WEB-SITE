@@ -6,6 +6,7 @@ import { CONFIG } from './config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { collection, getDocs, doc, setDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { openThemeBuilder } from './theme-builder.js';
+import { ui } from './core/ui.js';
 
 const authGuard = document.getElementById('auth-guard');
 const themesGrid = document.getElementById('themes-grid');
@@ -16,13 +17,6 @@ const btnImportTheme = document.getElementById('btn-import-theme');
 const importFileInput = document.getElementById('theme-import-file');
 
 let globalThemes = [];
-
-export function showToast(message) {
-    const toast = document.getElementById('toast-notification');
-    toast.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> <span>${message}</span>`;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
-}
 
 onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = CONFIG.LOGOUT_REDIRECT; return; }
@@ -141,7 +135,7 @@ async function duplicateTheme(theme) {
     try {
         const newDocRef = doc(collection(db, 'themes'));
         await setDoc(newDocRef, newTheme);
-        showToast("Tema duplicado exitosamente.");
+        ui.showToast("Tema duplicado exitosamente.");
         loadThemes();
     } catch (e) { console.error(e); }
 }
@@ -151,7 +145,7 @@ async function deleteTheme(id) {
     if(window.confirm("¿Seguro que deseas eliminar este tema de forma permanente?")) {
         try {
             await deleteDoc(doc(db, 'themes', id));
-            showToast("Tema eliminado.");
+            ui.showToast("Tema eliminado.");
             loadThemes();
         } catch(e) { console.error(e); }
     }
@@ -185,7 +179,7 @@ function handleImportJSON(e) {
             const newDocRef = doc(collection(db, 'themes'));
             await setDoc(newDocRef, importedTheme);
             
-            showToast("Tema importado exitosamente.");
+            ui.showToast("Tema importado exitosamente.");
             loadThemes();
         } catch (err) {
             console.error(err);
