@@ -211,10 +211,16 @@ function renderEventHeaderAndInfo(data) {
     // Formatear fecha utilizando helpers puros
     const fecha = helpers.formatDate(data.fecha);
 
-    // Aplicar a los elementos del Header y Tab Info
-    document.getElementById('val-nombre').textContent = nombre;
-    document.getElementById('val-ciudad').textContent = ciudad;
-    document.getElementById('val-fecha').textContent = fecha;
+    // NUEVO: Función auxiliar para inyectar texto de forma segura sin romper el código
+    const safeSetText = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+    };
+
+    // Aplicar a los elementos del Header y Tab Info de forma segura
+    safeSetText('val-nombre', nombre);
+    safeSetText('val-ciudad', ciudad);
+    safeSetText('val-fecha', fecha);
     
     const badgeEl = document.getElementById('val-estado-badge');
     if (badgeEl) {
@@ -227,34 +233,25 @@ function renderEventHeaderAndInfo(data) {
         badgeEl.className = `badge ${bClass}`;
     }
 
-    document.getElementById('info-nombre').textContent = nombre;
-    document.getElementById('info-tipo').textContent = data.tipoEvento || data.tipo || 'General';
-    document.getElementById('info-fecha').textContent = fecha;
-    document.getElementById('info-hora').textContent = data.hora || '--:--';
-    document.getElementById('info-ubicacion').textContent = `${ciudad}, ${estadoLugar}, ${pais}`;
-    document.getElementById('info-estado').textContent = status;
-    document.getElementById('info-descripcion').textContent = descripcion;
+    safeSetText('info-nombre', nombre);
+    safeSetText('info-tipo', data.tipoEvento || data.tipo || 'General');
+    safeSetText('info-fecha', fecha);
+    safeSetText('info-hora', data.hora || '--:--');
+    safeSetText('info-ubicacion', `${ciudad}, ${estadoLugar}, ${pais}`);
+    safeSetText('info-estado', status);
+    safeSetText('info-descripcion', descripcion);
 
     // Elementos de la Pestaña Invitación General & Configuración
     const baseUrl = window.location.origin;
     const urlInput = document.getElementById('val-url');
     if (urlInput) urlInput.value = `${baseUrl}/invitacion?code=${codigo}`;
     
-    document.getElementById('inv-codigo').textContent = codigo;
-    document.getElementById('inv-acceso').textContent = acceso;
-    document.getElementById('conf-estado').textContent = status;
-    document.getElementById('conf-acceso').textContent = acceso;
-    document.getElementById('conf-codigo').textContent = codigo;
-    document.getElementById('conf-clave').textContent = claveAcceso;
-}
-
-function showErrorView(title, desc) {
-    if (loadingView) loadingView.style.display = 'none';
-    if (mainView) mainView.style.display = 'none';
-    if (errorView) errorView.style.display = 'block';
-    
-    if(title) document.getElementById('error-title').textContent = title;
-    if(desc) document.getElementById('error-desc').textContent = desc;
+    safeSetText('inv-codigo', codigo);
+    safeSetText('inv-acceso', acceso);
+    safeSetText('conf-estado', status);
+    safeSetText('conf-acceso', acceso);
+    safeSetText('conf-codigo', codigo);
+    safeSetText('conf-clave', claveAcceso);
 }
 
 // ============================================================================
