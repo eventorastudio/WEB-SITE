@@ -1,41 +1,13 @@
 // admin/excel-import.js
-/**
- * @fileoverview Módulo de Importación masiva de Excel para Eventora Studio (Fase 3.9).
- * 
- * Responsabilidad:
- * - Administrar la interfaz y lógica de procesamiento, validación e importación de archivos Excel de invitados.
- * - Operar bajo el patrón de Inyección de Dependencias, sin variables globales de contexto.
- * - Delegar toda persistencia de datos exclusivamente a services.guest.
- * - Notificar las operaciones visuales mediante ui.js y reportar éxitos mediante el event-bus.js.
- */
-
 import { EVENT_TYPES } from './core/event-types.js';
 
-/**
- * Referencia interna a las dependencias inyectadas del sistema.
- * @private
- */
 let appDeps = null;
-
-/**
- * Estado mutable local específico del flujo de importación de Excel.
- * @private
- */
 let excelState = {
     rawRows: [],
     mappedGuests: [],
     isValid: false
 };
 
-/**
- * Función pública de inicialización del módulo (Entry Point).
- * @param {Object} dependencies - Contenedor estándar de inyección.
- * @param {Object} dependencies.state 
- * @param {Object} dependencies.ui 
- * @param {Object} dependencies.eventBus 
- * @param {Object} dependencies.services 
- * @param {Object} dependencies.eventContext 
- */
 export function initExcelImport(dependencies) {
     if (!dependencies || !dependencies.services || !dependencies.ui) {
         console.error('[Excel Import] No se pudieron inicializar las dependencias requeridas.');
@@ -46,10 +18,6 @@ export function initExcelImport(dependencies) {
     bindDomAndEvents();
 }
 
-/**
- * Captura defensiva de elementos del DOM y asociación de escuchas de eventos.
- * @private
- */
 function bindDomAndEvents() {
     try {
         const fileInput = document.getElementById('excel-file-input');
@@ -75,24 +43,18 @@ function bindDomAndEvents() {
     }
 }
 
-/**
- * Maneja la selección de archivos locales por parte del usuario.
- * @private
- * @param {Event} event 
- */
 function handleFileSelected(event) {
-    const file = event.target.files[0];
+    const fileInput = event.target;
+    const file = fileInput.files[0];
     if (!file) return;
 
     const { ui } = appDeps;
     ui.showLoader({ text: 'Leyendo archivo Excel...' });
 
-    // Lectura del archivo mediante FileReader y SheetJS (si está disponible en el entorno)
     const reader = new FileReader();
     reader.onload = async (e) => {
         try {
             const data = new Uint8Array(e.target.result);
-            // Validar existencia de la librería global XLSX
             if (typeof XLSX === 'undefined') {
                 throw new Error('Librería XLSX no disponible en el entorno.');
             }
@@ -105,27 +67,37 @@ function handleFileSelected(event) {
             processAndValidateRows(jsonRows);
         } catch (error) {
             ui.hideLoader();
+            if (fileInput) fileInput.value = '';
+            excelState = { rawRows: [], mappedGuests: [], isValid: false };
             ui.showError({
-                title: 'Error de lectura',
-                description: 'No se pudo procesar el archivo Excel. Verifique que el formato sea correcto.',
-                code: 'ERR_EXCEL_PARSE'
+                title: 'Archivo no válido',
+                description: 'No se pudo procesar el archivo seleccionado. Verifique que el formato sea correcto.',
+                code: ''
             });
             console.error('[Excel Import] Error parseando Excel:', error);
         }
     };
+    reader.onerror = () => {
+        ui.hideLoader();
+        if (fileInput) fileInput.value = '';
+        excelState = { rawRows: [], mappedGuests: [], isValid: false };
+        ui.showError({
+            title: 'Error de lectura',
+            description: 'Ocurrió un problema al leer el archivo.',
+            code: ''
+        });
+    };
     reader.readAsArrayBuffer(file);
 }
 
-/**
- * Procesa y valida la estructura de las filas extraídas del archivo.
- * @private
- * @param {Array<Object>} rows 
- */
 function processAndValidateRows(rows) {
     const { ui } = appDeps;
     ui.hideLoader();
 
     if (!Array.isArray(rows) || rows.length === 0) {
+        const fileInput = document.getElementById('excel-file-input');
+        if (fileInput) fileInput.value = '';
+        excelState = { rawRows: [], mappedGuests: [], isValid: false };
         ui.showToast({
             message: 'El archivo Excel está vacío o no contiene registros válidos.',
             type: 'warning',
@@ -134,7 +106,6 @@ function processAndValidateRows(rows) {
         return;
     }
 
-    // Mapeo normalizado hacia el esquema de invitados de Eventora Studio
     excelState.rawRows = rows;
     excelState.mappedGuests = rows.map(row => ({
         nombre: row.Nombre || row.nombre || row.NAME || 'Invitado sin nombre',
@@ -153,12 +124,10 @@ function processAndValidateRows(rows) {
     });
 }
 
-/**
- * Ejecuta la confirmación y almacenamiento masivo de los invitados procesados.
- * @private
- */
 async function handleConfirmImport() {
     const { ui, services, eventContext, eventBus } = appDeps;
+    const confirmBtn = document.getElementById('excel-confirm-btn');
+    const fileInput = document.getElementById('excel-file-input');
 
     if (!excelState.isValid || excelState.mappedGuests.length === 0) {
         ui.showToast({
@@ -172,9 +141,9 @@ async function handleConfirmImport() {
     const eventId = eventContext?.eventId;
     if (!eventId) {
         ui.showError({
-            title: 'Error de contexto',
+            title: 'Atención',
             description: 'No se encontró el identificador del evento activo.',
-            code: 'ERR_MISSING_EVENT_ID'
+            code: ''
         });
         return;
     }
@@ -188,36 +157,41 @@ async function handleConfirmImport() {
 
     if (!confirmed) return;
 
-    ui.showLoader({ text: 'Guardando invitados en la base de datos...' });
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.dataset.originalText = confirmBtn.textContent;
+        confirmBtn.textContent = 'Importando...';
+    }
 
     try {
-        // Toda comunicación con Firestore pasa exclusivamente por guest-service.js
         await services.guest.importGuestsBatch(eventId, excelState.mappedGuests);
 
-        ui.hideLoader();
         ui.showToast({
             message: '¡Invitados importados correctamente!',
             type: 'success',
             title: 'Éxito'
         });
 
-        // Emitir señal oficial a través del Event Bus utilizando constantes tipadas
         eventBus.emit(EVENT_TYPES.GUEST_IMPORTED, {
             eventId,
             count: excelState.mappedGuests.length,
             timestamp: Date.now()
         });
 
-        // Limpiar estado temporal local
         excelState = { rawRows: [], mappedGuests: [], isValid: false };
+        if (fileInput) fileInput.value = '';
 
     } catch (error) {
-        ui.hideLoader();
         console.error('[Excel Import] Error guardando lote de invitados:', error);
         ui.showError({
             title: 'Error de importación',
-            description: 'Ocurrió un fallo al guardar los invitados en la base de datos.',
-            code: 'ERR_GUEST_BATCH_SAVE'
+            description: 'No pudimos importar los invitados. Verifica tu conexión e inténtalo nuevamente.',
+            code: ''
         });
+    } finally {
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = confirmBtn.dataset.originalText || 'Confirmar Importación';
+        }
     }
 }

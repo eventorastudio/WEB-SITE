@@ -1,40 +1,12 @@
 // admin/invitation-editor.js
-/**
- * @fileoverview Módulo Editor de Invitaciones para Eventora Studio (Fase 3.10).
- * 
- * Responsabilidad:
- * - Administrar la interfaz, configuración y previsualización interactiva del diseño de invitaciones.
- * - Operar estrictamente bajo el patrón de Inyección de Dependencias, sin variables globales.
- * - Delegar la persistencia de configuraciones y temas exclusivamente a services.theme.
- * - Canalizar notificaciones visuales mediante ui.js y emitir avisos de guardado con el event-bus.js.
- */
-
 import { EVENT_TYPES } from './core/event-types.js';
 
-/**
- * Referencia interna a las dependencias inyectadas del sistema.
- * @private
- */
 let appDeps = null;
-
-/**
- * Estado mutable local específico del editor de invitaciones.
- * @private
- */
 let editorState = {
     config: {},
     isDirty: false
 };
 
-/**
- * Función pública de inicialización del módulo (Entry Point).
- * @param {Object} dependencies - Contenedor estándar de inyección.
- * @param {Object} dependencies.state 
- * @param {Object} dependencies.ui 
- * @param {Object} dependencies.eventBus 
- * @param {Object} dependencies.services 
- * @param {Object} dependencies.eventContext 
- */
 export function initInvitationEditor(dependencies) {
     if (!dependencies || !dependencies.services || !dependencies.ui) {
         console.error('[Invitation Editor] No se pudieron inicializar las dependencias requeridas.');
@@ -46,10 +18,6 @@ export function initInvitationEditor(dependencies) {
     loadEditorConfig();
 }
 
-/**
- * Captura defensiva de elementos del DOM y asociación de escuchas de eventos.
- * @private
- */
 function bindDomAndEvents() {
     try {
         const saveBtn = document.getElementById('editor-save-btn');
@@ -81,10 +49,6 @@ function bindDomAndEvents() {
     }
 }
 
-/**
- * Carga la configuración inicial del editor desde el contexto del evento o servicios.
- * @private
- */
 function loadEditorConfig() {
     try {
         const { eventContext } = appDeps;
@@ -101,13 +65,8 @@ function loadEditorConfig() {
     }
 }
 
-/**
- * Actualiza el componente de previsualización en tiempo real si está disponible.
- * @private
- */
 function triggerPreviewUpdate() {
     try {
-        // Disparar evento interno o invocar previsualizador si existe en el scope global/módulo
         const previewFrame = document.getElementById('invitation-preview-frame');
         if (previewFrame && typeof previewFrame.contentWindow?.updatePreview === 'function') {
             previewFrame.contentWindow.updatePreview(editorState.config);
@@ -117,31 +76,29 @@ function triggerPreviewUpdate() {
     }
 }
 
-/**
- * Maneja el almacenamiento de la configuración actual del editor.
- * @private
- */
 async function handleSaveConfiguration() {
     const { ui, services, eventContext, eventBus } = appDeps;
+    const saveBtn = document.getElementById('editor-save-btn');
 
     const eventId = eventContext?.eventId;
     if (!eventId) {
         ui.showError({
-            title: 'Error de contexto',
+            title: 'Atención',
             description: 'No se encontró el identificador del evento activo.',
-            code: 'ERR_MISSING_EVENT_ID'
+            code: ''
         });
         return;
     }
 
-    ui.showLoader({ text: 'Guardando configuración de la invitación...' });
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.dataset.originalText = saveBtn.textContent;
+        saveBtn.textContent = 'Guardando...';
+    }
 
     try {
-        // Toda comunicación con Firestore / persistencia de temas pasa exclusivamente por theme-service.js o event-service.js
-        // En este caso utilizaremos services.theme para guardar plantillas/configuraciones asociadas
         await services.theme.saveTheme(eventId, editorState.config);
 
-        ui.hideLoader();
         ui.showToast({
             message: 'Configuración guardada correctamente.',
             type: 'success',
@@ -150,7 +107,6 @@ async function handleSaveConfiguration() {
 
         editorState.isDirty = false;
 
-        // Emitir señal oficial a través del Event Bus utilizando constantes tipadas de event-types.js
         eventBus.emit(EVENT_TYPES.THEME_SAVED, {
             eventId,
             config: editorState.config,
@@ -158,12 +114,16 @@ async function handleSaveConfiguration() {
         });
 
     } catch (error) {
-        ui.hideLoader();
         console.error('[Invitation Editor] Error guardando configuración:', error);
         ui.showError({
             title: 'Error de guardado',
-            description: 'Ocurrió un fallo al guardar la configuración en la base de datos.',
-            code: 'ERR_EDITOR_SAVE'
+            description: 'No pudimos guardar los cambios. Verifica tu conexión e inténtalo nuevamente.',
+            code: ''
         });
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = saveBtn.dataset.originalText || 'Guardar';
+        }
     }
 }
