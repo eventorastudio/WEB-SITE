@@ -1,0 +1,40 @@
+// core/event-types.js
+// Catálogo oficial de constantes para el Event Bus de Eventora Studio
+
+export const EVENT_TYPES = Object.freeze({
+    // Eventos de Eventos (CRUD)
+    EVENT_CREATED: 'EVENT_CREATED',
+    EVENT_UPDATED: 'EVENT_UPDATED',
+    EVENT_DELETED: 'EVENT_DELETED',
+    EVENT_LOADED: 'EVENT_LOADED',
+    EVENT_SAVED: 'EVENT_SAVED',
+
+    // Eventos de Invitados
+    GUEST_CREATED: 'GUEST_CREATED',
+    GUEST_UPDATED: 'GUEST_UPDATED',
+    GUEST_DELETED: 'GUEST_DELETED',
+    GUEST_IMPORTED: 'GUEST_IMPORTED',
+
+    // Eventos de Acceso y QR
+    QR_SCANNED: 'QR_SCANNED',
+    CHECKIN_COMPLETED: 'CHECKIN_COMPLETED',
+    RSVP_CONFIRMED: 'RSVP_CONFIRMED',
+
+    // Eventos de Temas
+    THEME_CREATED: 'THEME_CREATED',
+    THEME_UPDATED: 'THEME_UPDATED',
+    THEME_DELETED: 'THEME_DELETED',
+    THEME_APPLIED: 'THEME_APPLIED',
+    THEME_SAVED: 'THEME_SAVED',
+
+    // Eventos de Autenticación y Sesión
+    LOGIN_SUCCESS: 'LOGIN_SUCCESS',
+    LOGIN_FAILED: 'LOGIN_FAILED',
+    LOGOUT: 'LOGOUT',
+
+    // Eventos de UI / Sistema
+    UI_TOAST_SHOW: 'UI_TOAST_SHOW',
+    UI_MODAL_OPEN: 'UI_MODAL_OPEN',
+    UI_MODAL_CLOSE: 'UI_MODAL_CLOSE',
+    UI_LOADER_TOGGLE: 'UI_LOADER_TOGGLE'
+});

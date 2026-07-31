@@ -1,192 +1,287 @@
-// themes.js
-// Módulo 9: Controlador de la Galería y Sistema de Temas (CRUD, Import/Export)
+// admin/themes.js
+/**
+ * @fileoverview Módulo de Administración y Galería de Temas para Eventora Studio (Fase 3.12).
+ * 
+ * Responsabilidad:
+ * - Administrar la interfaz, galería y operaciones CRUD/duplicación sobre los temas visuales.
+ * - Operar estrictamente bajo el patrón de Inyección de Dependencias, sin variables globales.
+ * - Delegar todas las consultas y persistencia exclusivamente a services.theme.
+ * - Canalizar notificaciones visuales mediante ui.js y emitir avisos de selección o cambio mediante el event-bus.js.
+ * - Proveer soporte de ciclo de vida completo mediante initThemes() y destroy() para prevenir fugas de memoria.
+ */
 
-import { auth, db } from './firebase.js';
-import { CONFIG } from './config.js';
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { collection, getDocs, doc, setDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { openThemeBuilder } from './theme-builder.js';
-import { ui } from './core/ui.js';
+import { EVENT_TYPES } from './core/event-types.js';
 
-const authGuard = document.getElementById('auth-guard');
-const themesGrid = document.getElementById('themes-grid');
-const searchInput = document.getElementById('theme-search');
-const filterCat = document.getElementById('theme-category');
-const btnCreateTheme = document.getElementById('btn-create-theme');
-const btnImportTheme = document.getElementById('btn-import-theme');
-const importFileInput = document.getElementById('theme-import-file');
+/**
+ * Referencia interna a las dependencias inyectadas del sistema.
+ * @private
+ */
+let appDeps = null;
 
-let globalThemes = [];
+/**
+ * Almacena las referencias a las funciones de desuscripción de eventos para el ciclo de vida.
+ * @private
+ * @type {Array<Function>}
+ */
+let unsubscribeList = [];
 
-onAuthStateChanged(auth, async (user) => {
-    if (!user) { window.location.href = CONFIG.LOGOUT_REDIRECT; return; }
-    authGuard.style.opacity = '0';
-    setTimeout(() => authGuard.style.display = 'none', 600);
-    
-    initLibraryEvents();
-    await loadThemes();
-});
+/**
+ * Estado local mutable específico del módulo de temas.
+ * @private
+ */
+let themesState = {
+    themesList: [],
+    selectedThemeId: null,
+    isLoading: false
+};
 
-function initLibraryEvents() {
-    // Menu
-    document.getElementById('ui-logo').src = CONFIG.LOGO;
-    document.getElementById('btn-back-dash').addEventListener('click', () => window.location.href = 'dashboard.html');
-
-    // Filters
-    searchInput.addEventListener('input', renderThemes);
-    filterCat.addEventListener('change', renderThemes);
-
-    // Actions
-    btnCreateTheme.addEventListener('click', () => openThemeBuilder('new'));
-    
-    // Import
-    btnImportTheme.addEventListener('click', () => importFileInput.click());
-    importFileInput.addEventListener('change', handleImportJSON);
-
-    // Escuchar evento de recarga desde el builder
-    document.addEventListener('reloadThemesGallery', loadThemes);
-}
-
-async function loadThemes() {
-    try {
-        const querySnapshot = await getDocs(collection(db, 'themes'));
-        globalThemes = [];
-        querySnapshot.forEach(doc => {
-            globalThemes.push({ id: doc.id, ...doc.data() });
-        });
-        renderThemes();
-    } catch (e) {
-        console.error("Error loading themes:", e);
-        themesGrid.innerHTML = `<p style="color:red;">Error de conexión.</p>`;
-    }
-}
-
-function renderThemes() {
-    const searchVal = searchInput.value.toLowerCase();
-    const catVal = filterCat.value;
-
-    const filtered = globalThemes.filter(t => {
-        const matchName = (t.nombre || '').toLowerCase().includes(searchVal);
-        const matchCat = catVal === 'all' || t.categoria === catVal;
-        return matchName && matchCat;
-    });
-
-    themesGrid.innerHTML = '';
-    
-    if (filtered.length === 0) {
-        themesGrid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 60px; color: var(--color-gray-dark);">No se encontraron temas.</div>`;
+/**
+ * Función pública de inicialización del módulo (Entry Point).
+ * @param {Object} dependencies - Contenedor estándar de inyección.
+ * @param {Object} dependencies.state 
+ * @param {Object} dependencies.ui 
+ * @param {Object} dependencies.eventBus 
+ * @param {Object} dependencies.services 
+ * @param {Object} dependencies.eventContext 
+ */
+export function initThemes(dependencies) {
+    if (!dependencies || !dependencies.services || !dependencies.ui || !dependencies.eventBus) {
+        console.error('[Themes Module] No se pudieron inicializar las dependencias requeridas.');
         return;
     }
 
-    filtered.forEach((t, i) => {
-        const card = document.createElement('div');
-        card.className = 'theme-card';
-        card.style.animationDelay = `${i * 0.05}s`;
-
-        // Colores de preview basados en config
-        const pColor = t.configuracion?.global?.colores?.primary || '#D4AF37';
-        const bg = t.configuracion?.global?.colores?.bg || '#FCFBF8';
-
-        card.innerHTML = `
-            <div class="theme-preview" style="background: ${bg}; border-bottom: 1px solid var(--color-border);">
-                <div style="width: 50%; height: 60%; background: ${pColor}; border-radius: 8px 8px 0 0; margin-top: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></div>
-                <div class="theme-version">v${t.version || '1.0'}</div>
-            </div>
-            <div class="theme-info">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div>
-                        <h3 class="theme-name">${t.nombre}</h3>
-                        <span class="theme-cat">${t.categoria || 'Personalizado'}</span>
-                    </div>
-                    <button class="btn-icon-sm theme-menu-btn" data-id="${t.id}">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
-                    </button>
-                </div>
-            </div>
-            <div class="theme-hover-actions">
-                <button class="btn-primary btn-edit-theme" data-id="${t.id}">Editar Tema</button>
-                <div class="theme-action-icons">
-                    <button class="btn-circle btn-dup-theme" title="Duplicar" data-id="${t.id}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
-                    <button class="btn-circle btn-exp-theme" title="Exportar JSON" data-id="${t.id}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></button>
-                    <button class="btn-circle btn-del-theme" title="Eliminar" data-id="${t.id}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D32F2F" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
-                </div>
-            </div>
-        `;
-
-        // Bindings
-        card.querySelector('.btn-edit-theme').addEventListener('click', () => openThemeBuilder(t.id));
-        card.querySelector('.btn-dup-theme').addEventListener('click', () => duplicateTheme(t));
-        card.querySelector('.btn-exp-theme').addEventListener('click', () => exportTheme(t));
-        card.querySelector('.btn-del-theme').addEventListener('click', () => deleteTheme(t.id));
-
-        themesGrid.appendChild(card);
-    });
+    appDeps = dependencies;
+    bindDomAndEvents();
+    loadThemes();
+    registerEventBusListeners();
 }
 
-// ---- Funciones Base ----
-
-async function duplicateTheme(theme) {
-    const newTheme = JSON.parse(JSON.stringify(theme));
-    delete newTheme.id;
-    newTheme.nombre = `${newTheme.nombre} (Copia)`;
-    newTheme.fechaCreacion = serverTimestamp();
-    newTheme.fechaActualizacion = serverTimestamp();
-
+/**
+ * Captura defensiva de elementos del DOM y asociación de escuchas de eventos.
+ * @private
+ */
+function bindDomAndEvents() {
     try {
-        const newDocRef = doc(collection(db, 'themes'));
-        await setDoc(newDocRef, newTheme);
-        ui.showToast("Tema duplicado exitosamente.");
-        loadThemes();
-    } catch (e) { console.error(e); }
-}
-
-async function deleteTheme(id) {
-    // Implementación elegante sin confirm()
-    if(window.confirm("¿Seguro que deseas eliminar este tema de forma permanente?")) {
-        try {
-            await deleteDoc(doc(db, 'themes', id));
-            ui.showToast("Tema eliminado.");
-            loadThemes();
-        } catch(e) { console.error(e); }
+        const themeContainer = document.getElementById('themes-gallery-container');
+        if (themeContainer) {
+            // Delegación de eventos para acciones en tarjetas de temas (aplicar, duplicar, eliminar)
+            themeContainer.addEventListener('click', handleThemeActionClick);
+        }
+    } catch (error) {
+        console.warn('[Themes Module] Error defensivo al enlazar el DOM:', error);
     }
 }
 
-function exportTheme(theme) {
-    const exportData = JSON.parse(JSON.stringify(theme));
-    delete exportData.id; // No exportar ID interno
-    
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
-    const dlAnchorElem = document.createElement('a');
-    dlAnchorElem.setAttribute("href", dataStr);
-    dlAnchorElem.setAttribute("download", `theme_${theme.nombre.replace(/\s+/g, '_')}.json`);
-    dlAnchorElem.click();
+/**
+ * Registra las escuchas necesarias en el Event Bus de manera desacoplada.
+ * @private
+ */
+function registerEventBusListeners() {
+    const { eventBus } = appDeps;
+
+    // Escuchar cuando se guarde o cree un tema desde otros componentes (ej. theme-builder)
+    const unsubThemeSaved = eventBus.on(EVENT_TYPES.THEME_SAVED, () => {
+        loadThemes();
+    });
+
+    if (typeof unsubThemeSaved === 'function') {
+        unsubscribeList.push(unsubThemeSaved);
+    }
 }
 
-function handleImportJSON(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+/**
+ * Carga la lista de temas disponibles utilizando exclusivamente services.theme.
+ * @private
+ */
+async function loadThemes() {
+    const { ui, services } = appDeps;
+    themesState.isLoading = true;
+    ui.showLoader({ text: 'Cargando galería de temas...' });
 
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-        try {
-            const importedTheme = JSON.parse(event.target.result);
-            if (!importedTheme.configuracion) throw new Error("Estructura inválida");
-            
-            importedTheme.nombre = importedTheme.nombre ? `${importedTheme.nombre} (Importado)` : 'Tema Importado';
-            importedTheme.fechaCreacion = serverTimestamp();
-            importedTheme.fechaActualizacion = serverTimestamp();
+    try {
+        // Toda comunicación con Firestore pasa exclusivamente por theme-service.js
+        const themes = await services.theme.getAllThemes();
+        themesState.themesList = themes || [];
+        themesState.isLoading = false;
+        ui.hideLoader();
 
-            const newDocRef = doc(collection(db, 'themes'));
-            await setDoc(newDocRef, importedTheme);
-            
-            ui.showToast("Tema importado exitosamente.");
-            loadThemes();
-        } catch (err) {
-            console.error(err);
-            alert("El archivo no es un tema válido de Eventora Studio.");
-        } finally {
-            importFileInput.value = ''; // Reset input
+        renderThemes();
+    } catch (error) {
+        themesState.isLoading = false;
+        ui.hideLoader();
+        console.error('[Themes Module] Error obteniendo temas:', error);
+        ui.showError({
+            title: 'Error de carga',
+            description: 'No se pudo obtener la galería de temas desde la base de datos.',
+            code: 'ERR_THEMES_FETCH'
+        });
+    }
+}
+
+/**
+ * Renderiza la galería de temas en el DOM de forma defensiva.
+ * @private
+ */
+function renderThemes() {
+    try {
+        const container = document.getElementById('themes-gallery-container');
+        if (!container) return;
+
+        if (themesState.themesList.length === 0) {
+            const { ui } = appDeps;
+            ui.showEmptyState({
+                containerId: 'themes-gallery-container',
+                title: 'No hay temas disponibles',
+                description: 'Aún no se han registrado plantillas maestras en la plataforma.'
+            });
+            return;
         }
-    };
-    reader.readAsText(file);
+
+        // Construcción segura del marcado visual de la galería
+        let htmlContent = '<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:20px;">';
+        
+        themesState.themesList.forEach(theme => {
+            htmlContent.umnos || (htmlContent += `
+                <div class="theme-card" data-theme-id="${theme.id}" style="border:1px solid #E5E7EB; border-radius:10px; padding:16px; background:#fff; display:flex; flex-direction:column; gap:12px; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
+                    <div style="font-weight:600; font-size:16px; color:#111;">${theme.nombre || 'Tema sin título'}</div>
+                    <div style="font-size:13px; color:#6B7280; line-height:1.4;">${theme.descripcion || 'Sin descripción adicional.'}</div>
+                    <div style="display:flex; gap:8px; margin-top:auto; justify-content:flex-end;">
+                        <button data-action="apply" data-id="${theme.id}" style="padding:6px 12px; background:#111; color:#fff; border:none; border-radius:6px; font-size:12px; cursor:pointer;">Aplicar</button>
+                        <button data-action="duplicate" data-id="${theme.id}" style="padding:6px 12px; background:#F3F4F6; color:#374151; border:1px solid #D1D5DB; border-radius:6px; font-size:12px; cursor:pointer;">Duplicar</button>
+                    </div>
+                </div>
+            `);
+        });
+
+        htmlContent += '</div>';
+        container.innerHTML = htmlContent;
+
+    } catch (error) {
+        console.warn('[Themes Module] Error al renderizar la galería:', error);
+    }
+}
+
+/**
+ * Maneja las acciones de clic delegadas en las tarjetas de temas.
+ * @private
+ * @param {MouseEvent} event 
+ */
+async function handleThemeActionClick(event) {
+    const target = event.target;
+    if (!target || !target.dataset || !target.dataset.action) return;
+
+    const action = target.dataset.action;
+    const themeId = target.dataset.id;
+
+    if (action === 'apply') {
+        applyTheme(themeId);
+    } else if (action === 'duplicate') {
+        duplicateTheme(themeId);
+    }
+}
+
+/**
+ * Aplica un tema seleccionado al evento activo.
+ * @private
+ * @param {string} themeId 
+ */
+async function applyTheme(themeId) {
+    const { ui, services, eventContext, eventBus } = appDeps;
+    const eventId = eventContext?.eventId;
+
+    if (!eventId) {
+        ui.showToast({ message: 'No hay un evento activo seleccionado.', type: 'error', title: 'Error' });
+        return;
+    }
+
+    const targetTheme = themesState.themesList.find(t => t.id === themeId);
+    if (!targetTheme) return;
+
+    const confirmed = await ui.confirm({
+        title: 'Aplicar tema',
+        message: `¿Deseas aplicar el tema "${targetTheme.nombre}" a tu invitación?`,
+        confirmText: 'Aplicar'
+    });
+
+    if (!confirmed) return;
+
+    ui.showLoader({ text: 'Aplicando tema...' });
+
+    try {
+        // Actualizar el tema mediante la capa de servicios del evento o de temas
+        await services.event.updateEvent(eventId, { themeId: themeId, themeConfig: targetTheme });
+
+        ui.hideLoader();
+        ui.showToast({
+            message: '¡Tema aplicado correctamente!',
+            type: 'success',
+            title: 'Actualizado'
+        });
+
+        // Emitir evento oficial a través del Event Bus
+        eventBus.emit(EVENT_TYPES.THEME_APPLIED, {
+            eventId,
+            themeId,
+            timestamp: Date.now()
+        });
+
+    } catch (error) {
+        ui.hideLoader();
+        console.error('[Themes Module] Error aplicando tema:', error);
+        ui.showError({
+            title: 'Error',
+            description: 'No se pudo aplicar el tema seleccionado.',
+            code: 'ERR_THEME_APPLY'
+        });
+    }
+}
+
+/**
+ * Duplica un tema existente en la base de datos.
+ * @private
+ * @param {string} themeId 
+ */
+async function duplicateTheme(themeId) {
+    const { ui, services } = appDeps;
+    const targetTheme = themesState.themesList.find(t => t.id === themeId);
+    if (!targetTheme) return;
+
+    ui.showLoader({ text: 'Duplicando tema...' });
+
+    try {
+        // Toda operación de base de datos pasa exclusivamente por theme-service.js
+        await services.theme.duplicateTheme(targetTheme);
+
+        ui.hideLoader();
+        ui.showToast({
+            message: 'Tema duplicado con éxito.',
+            type: 'success',
+            title: 'Duplicado'
+        });
+
+        loadThemes(); // Recargar galería
+    } catch (error) {
+        ui.hideLoader();
+        console.error('[Themes Module] Error duplicando tema:', error);
+        ui.showError({
+            title: 'Error',
+            description: 'No se pudo duplicar el tema.',
+            code: 'ERR_THEME_DUPLICATE'
+        });
+    }
+}
+
+/**
+ * Método del ciclo de vida para destruir el módulo y liberar recursos (Memory Leaks prevention).
+ */
+export function destroy() {
+    try {
+        unsubscribeList.forEach(unsub => {
+            if (typeof unsub === 'function') unsub();
+        });
+        unsubscribeList = [];
+        appDeps = null;
+    } catch (error) {
+        console.warn('[Themes Module] Error defensivo durante destroy():', error);
+    }
 }

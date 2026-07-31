@@ -1,300 +1,313 @@
-// event.js
-// ORQUESTADOR PRINCIPAL DEL EVENTO
-// Responsabilidad: Controlar el flujo de la vista, autenticación, obtención de datos base y coordinación de submódulos.
+// admin/event.js
+/**
+ * @fileoverview Orquestador Principal del Panel Administrativo de Eventora Studio (Fase 4.1 - Integración Total).
+ * 
+ * Responsabilidad:
+ * - Coordinar el ciclo de vida completo de la vista de administración del evento.
+ * - Autenticar, cargar el contexto, estructurar el Dependency Container y entregarlo a todos los módulos.
+ * - Registrar la invocación de inicialización (init) y destrucción (destroy) para garantizar cero fugas de memoria.
+ */
 
-import { auth, db } from './firebase.js';
-import { CONFIG } from './config.js';
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-// ============================================================================
-// IMPORTACIÓN DE MÓDULOS DEL CORE (NUEVO)
-// ============================================================================
-import { state, setEventId, setEventData } from './core/state.js';
+import { authService } from './services/auth-service.js';
+import { eventService } from './services/event-service.js';
+import { guestService } from './services/guest-service.js';
+import { themeService } from './services/theme-service.js';
+import { state } from './core/state.js';
 import { ui } from './core/ui.js';
-import { helpers } from './core/helpers.js';
+import { eventBus } from './core/event-bus.js';
+import { EVENT_TYPES } from './core/event-types.js';
+import { CONFIG } from './config.js';
 
-// ============================================================================
-// IMPORTACIÓN DE MÓDULOS EXISTENTES
-// ============================================================================
+// Importación de los puntos de entrada oficiales de los submódulos refactorizados
 import { initExcelImport } from './excel-import.js';
-import { initEditor } from './invitation-editor.js';
-import { copyInvitation } from './invitation-utils.js';
+import { initInvitationEditor } from './invitation-editor.js';
+import { initInvitationPreview } from './invitation-preview.js';
+import { initThemes } from './themes.js';
+import { initThemeBuilder } from './theme-builder.js';
 
-/*
-===============================================================================
- COMENTARIO DE ARQUITECTURA: MÓDULOS FALTANTES
-===============================================================================
- Para cumplir con la directiva de mantener este archivo ÚNICAMENTE como 
- orquestador, se detecta que la lógica de los siguientes elementos aún no 
- existe en archivos independientes. 
+/**
+ * Almacena referencias a las funciones de destrucción activas para la limpieza de recursos.
+ * @private
+ * @type {Array<Function>}
+ */
+let activeModulesDestroyers = [];
 
- Idealmente, se deberían importar así:
- 
- import { initGuestsManager, fetchGuestsData } from './guests-manager.js';
- import { initStatsUI, updateGlobalStats } from './stats-engine.js';
- import { initSettingsManager } from './event-settings.js';
- import { initQRModals } from './qr-viewer-ui.js';
-===============================================================================
-*/
-
-// ============================================================================
-// REFERENCIAS DOM PRINCIPALES (Flujo de vistas y Tabs)
-// ============================================================================
-const authGuard = document.getElementById('auth-guard');
-const loadingView = document.getElementById('loading-view');
-const errorView = document.getElementById('error-view');
-const mainView = document.getElementById('main-view');
-
-const uiLogo = document.getElementById('ui-logo');
-const btnBack = document.getElementById('btn-back');
-const tabButtons = document.querySelectorAll('.tab-btn');
-const tabPanes = document.querySelectorAll('.tab-pane');
-
-// ============================================================================
-// 1. VERIFICACIÓN DE AUTENTICACIÓN
-// ============================================================================
-onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-        window.location.href = CONFIG.LOGOUT_REDIRECT;
-        return;
-    }
-    
-    // Ocultar guard protector de UI
-    authGuard.style.opacity = '0';
-    setTimeout(() => authGuard.style.display = 'none', 600);
-    
-    // Iniciar el ciclo de vida del orquestador
-    await bootstrapEventOrchestrator();
+/**
+ * Punto de entrada principal (Boot).
+ */
+document.addEventListener('DOMContentLoaded', async () => {
+    await boot();
 });
 
-// ============================================================================
-// 2. CICLO DE VIDA DEL ORQUESTADOR
-// ============================================================================
-async function bootstrapEventOrchestrator() {
+/**
+ * Secuencia principal de arranque del orquestador.
+ * @private
+ */
+async function boot() {
     try {
-        // A. Inicializar UI Base y Navegación
-        setupBaseUI();
-        initTabsNavigation();
+        ui.showLoader({ text: 'Preparando entorno de administración...' });
 
-        // B. Obtener ID del evento desde URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const extractedId = urlParams.get('id');
-        setEventId(extractedId);
+        const eventId = extractEventIdFromUrl();
+        if (!eventId) return;
 
-        if (!state.eventId) {
-            showErrorView("Falta el ID del evento", "No se proporcionó un identificador válido en la URL.");
+        const currentUser = await authenticateUser();
+        if (!currentUser) return;
+
+        await loadEventData(currentUser, eventId);
+
+    } catch (error) {
+        ui.hideLoader();
+        console.error('[Event Orchestrator] Error crítico en el boot:', error);
+        ui.showError({
+            title: 'Error de sistema',
+            description: 'Ocurrió un fallo inesperado al inicializar el panel.',
+            code: 'ERR_ORCHESTRATOR_BOOT'
+        });
+    }
+}
+
+/**
+ * Extrae y valida el ID del evento desde los parámetros de la URL.
+ * @private
+ * @returns {string|null}
+ */
+function extractEventIdFromUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventId = urlParams.get('id');
+
+    if (!eventId) {
+        ui.hideLoader();
+        ui.showToast({
+            message: 'No se especificó un identificador de evento válido.',
+            type: 'error',
+            title: 'Error de navegación'
+        });
+        setTimeout(() => {
+            window.location.href = CONFIG.LOGIN_REDIRECT || './dashboard.html';
+        }, 1500);
+        return null;
+    }
+    return eventId;
+}
+
+/**
+ * Valida la sesión del usuario utilizando auth-service.
+ * @private
+ * @returns {Promise<Object|null>}
+ */
+async function authenticateUser() {
+    return new Promise((resolve) => {
+        const currentUser = authService.getCurrentUser();
+        if (currentUser) {
+            resolve(currentUser);
             return;
         }
 
-        // C. Cargar datos del evento desde Firestore
-        await loadEventFromFirestore(state.eventId);
-
-    } catch (error) {
-        console.error("Error en orquestador:", error);
-        showErrorView("Error Crítico", "Ocurrió un problema al inicializar el panel del evento.");
-    }
-}
-
-// ============================================================================
-// 3. CARGA DE DATOS (FIRESTORE)
-// ============================================================================
-async function loadEventFromFirestore(eventId) {
-    try {
-        const docRef = doc(db, 'eventos', eventId);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-            setEventData(docSnap.data());
-            
-            // Renderizar la información base en la UI
-            renderEventHeaderAndInfo(state.eventData);
-            
-            // Cambiar vista de Skeleton a Vista Principal
-            loadingView.style.display = 'none';
-            mainView.style.display = 'block';
-            setTimeout(() => mainView.style.opacity = '1', 50);
-
-            // Inicializar módulos secundarios (Editor, Excel, etc.)
-            initializeExternalModules();
-
-        } else {
-            showErrorView("Evento no encontrado.", "El evento que intentas administrar no existe o fue eliminado.");
-        }
-    } catch (error) {
-        console.error("Error obteniendo documento del evento:", error);
-        showErrorView("Error de conexión", "No fue posible comunicarse con la base de datos.");
-    }
-}
-
-// ============================================================================
-// 4. COORDINACIÓN DE UI BASE
-// ============================================================================
-function setupBaseUI() {
-    // Configurar logo global
-    if (uiLogo) uiLogo.src = CONFIG.LOGO;
-    
-    // Botón regresar al dashboard
-    if (btnBack) {
-        btnBack.addEventListener('click', () => { 
-            window.location.href = 'dashboard.html'; 
-        });
-    }
-
-    // Bindings básicos que competen estrictamente al orquestador (Enlaces generales)
-    const btnCopyUrl = document.getElementById('btn-copy-url');
-    if (btnCopyUrl) {
-        btnCopyUrl.addEventListener('click', () => {
-            const urlInput = document.getElementById('val-url').value;
-            copyInvitation(urlInput, () => ui.showToast('Enlace general copiado exitosamente.'));
-        });
-    }
-    
-    const btnOpenInv = document.getElementById('btn-open-invitation');
-    if (btnOpenInv) {
-        btnOpenInv.addEventListener('click', () => {
-            const url = document.getElementById('val-url').value;
-            if(url && url.startsWith('http')) window.open(url, '_blank');
-        });
-    }
-}
-
-function initTabsNavigation() {
-    tabButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const targetId = btn.getAttribute('data-target');
-            
-            // Restablecer estados activos
-            tabButtons.forEach(b => b.classList.remove('active'));
-            tabPanes.forEach(p => p.classList.remove('active'));
-            
-            // Activar tab seleccionada
-            btn.classList.add('active');
-            document.getElementById(`tab-${targetId}`).classList.add('active');
-            
-            // Notificar a los módulos sobre el cambio de pestaña (Ej. Módulo 8 ajusta el ancho)
-            notifyTabChangeToModules(targetId);
+        authService.onAuthStateChange((user) => {
+            if (!user) {
+                ui.hideLoader();
+                window.location.href = './index.html';
+                resolve(null);
+            } else {
+                resolve(user);
+            }
         });
     });
 }
 
-function notifyTabChangeToModules(targetId) {
-    // Ajuste de layout para el Editor Visual (Módulo 8)
-    const wrapper = document.querySelector('.event-wrapper');
-    if (wrapper) {
-        if (targetId === 'invitacion') {
-            wrapper.classList.add('editor-mode');
-        } else {
-            wrapper.classList.remove('editor-mode');
-        }
-    }
+/**
+ * Carga los datos del evento y activa el flujo posterior de preparación.
+ * @private
+ * @param {Object} currentUser 
+ * @param {string} eventId 
+ */
+async function loadEventData(currentUser, eventId) {
+    try {
+        const eventData = await eventService.getEventById(eventId);
 
-    /* 
-     * COMENTARIO MÓDULOS FALTANTES:
-     * Si existiera el módulo de estadísticas, se le notificaría aquí para animar la barra:
-     * if (targetId === 'estadisticas') animateProgressBarsModule();
-     */
-}
-
-function renderEventHeaderAndInfo(data) {
-    // Extraer valores normalizados
-    const nombre = data.nombreEvento || data.nombre || 'Evento sin título';
-    const ciudad = data.ciudad || 'Ciudad no especificada';
-    const estadoLugar = data.estado || 'Estado no especificado';
-    const pais = data.pais || 'País no especificado';
-    const status = data.estadoEvento || data.estado || 'Borrador';
-    const codigo = data.codigoEvento || data.codigo || 'EVT-XXXX';
-    const acceso = data.tipoAcceso || data.acceso || 'Global';
-    const descripcion = data.descripcion || 'Sin descripción adicional.';
-    const claveAcceso = data.claveAcceso || '----';
-    
-    // Formatear fecha utilizando helpers puros
-    const fecha = helpers.formatDate(data.fecha);
-
-    // NUEVO: Función auxiliar para inyectar texto de forma segura sin romper el código
-    const safeSetText = (id, text) => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = text;
-    };
-
-    // Aplicar a los elementos del Header y Tab Info de forma segura
-    safeSetText('val-nombre', nombre);
-    safeSetText('val-ciudad', ciudad);
-    safeSetText('val-fecha', fecha);
-    
-    const badgeEl = document.getElementById('val-estado-badge');
-    if (badgeEl) {
-        const estStr = status.toLowerCase();
-        let bClass = 'borrador';
-        if (estStr.includes('activo')) bClass = 'activo';
-        if (estStr.includes('finalizado')) bClass = 'finalizado';
-        
-        badgeEl.textContent = status;
-        badgeEl.className = `badge ${bClass}`;
-    }
-
-    safeSetText('info-nombre', nombre);
-    safeSetText('info-tipo', data.tipoEvento || data.tipo || 'General');
-    safeSetText('info-fecha', fecha);
-    safeSetText('info-hora', data.hora || '--:--');
-    safeSetText('info-ubicacion', `${ciudad}, ${estadoLugar}, ${pais}`);
-    safeSetText('info-estado', status);
-    safeSetText('info-descripcion', descripcion);
-
-    // Elementos de la Pestaña Invitación General & Configuración
-    const baseUrl = window.location.origin;
-    const urlInput = document.getElementById('val-url');
-    if (urlInput) urlInput.value = `${baseUrl}/invitacion?code=${codigo}`;
-    
-    safeSetText('inv-codigo', codigo);
-    safeSetText('inv-acceso', acceso);
-    safeSetText('conf-estado', status);
-    safeSetText('conf-acceso', acceso);
-    safeSetText('conf-codigo', codigo);
-    safeSetText('conf-clave', claveAcceso);
-}
-
-// ============================================================================
-// 5. INICIALIZACIÓN DE MÓDULOS SECUNDARIOS
-// ============================================================================
-function initializeExternalModules() {
-    const nombre = state.eventData.nombreEvento || state.eventData.nombre || 'Evento';
-
-    // Iniciar Módulo 8: Editor Visual
-    if (typeof initEditor === 'function') {
-        initEditor(state.eventId, nombre);
-    }
-
-    // Iniciar Módulo 7: Importación Excel
-    const btnImportExcel = document.getElementById('btn-import-excel');
-    const btnEmptyImportExcel = document.getElementById('btn-empty-import-excel');
-    
-    const startExcelFlow = () => {
-        if (typeof initExcelImport === 'function') {
-            // Nota: Al carecer del archivo guests-manager, pasamos un array vacío a 'currentGuests'.
-            // El módulo de Excel hará el import y llamará al callback al terminar.
-            initExcelImport(state.eventId, [], () => {
-                ui.showToast('Importación exitosa.');
-                /* 
-                 * COMENTARIO MÓDULOS FALTANTES:
-                 * Aquí se llamaría a fetchGuestsData() para recargar la lista
-                 * después de que el módulo de Excel termine su trabajo.
-                 */
+        if (!eventData) {
+            ui.hideLoader();
+            ui.showToast({
+                message: 'El evento solicitado no existe o fue eliminado.',
+                type: 'error',
+                title: 'Evento no encontrado'
             });
+            setTimeout(() => {
+                window.location.href = './dashboard.html';
+            }, 1500);
+            return;
+        }
+
+        storeStateAndContext(currentUser, eventId, eventData);
+
+    } catch (error) {
+        ui.hideLoader();
+        console.error('[Event Orchestrator] Error obteniendo documento del evento:', error);
+        ui.showError({
+            title: 'Error de conexión',
+            description: 'No fue posible comunicarse con la base de datos.',
+            code: 'ERR_EVENT_LOAD'
+        });
+    }
+}
+
+/**
+ * Almacena la información en el State Manager y procede a crear el paquete de dependencias.
+ * @private
+ * @param {Object} currentUser 
+ * @param {string} eventId 
+ * @param {Object} eventData 
+ */
+function storeStateAndContext(currentUser, eventId, eventData) {
+    state.setState('auth', {
+        user: currentUser,
+        isAuthenticated: true,
+        role: 'admin'
+    });
+
+    state.setState('event', {
+        id: eventId,
+        data: eventData,
+        isLoaded: true
+    });
+
+    ui.hideLoader();
+
+    // Crear el paquete centralizado de dependencias y contexto
+    const dependencyContainer = createDependencyContainer(eventId, eventData, currentUser);
+    
+    // Inicializar y conectar todos los submódulos de la arquitectura
+    prepareModules(dependencyContainer);
+
+    // Registrar eventos del ciclo de vida para limpieza (Destroy)
+    registerLifecycleCleanup();
+
+    // Señal final de preparación lista
+    ready(dependencyContainer);
+}
+
+/**
+ * Agrupa todos los servicios en un único objeto y construye el contenedor de inyección.
+ * @private
+ * @param {string} eventId 
+ * @param {Object} eventData 
+ * @param {Object} currentUser 
+ * @returns {Object} Contenedor estándar de inyección de dependencias.
+ */
+function createDependencyContainer(eventId, eventData, currentUser) {
+    const services = {
+        auth: authService,
+        event: eventService,
+        guest: guestService,
+        theme: themeService
+    };
+
+    const eventContext = {
+        eventId,
+        eventData,
+        currentUser,
+        permissions: {
+            canEdit: true,
+            canDelete: true,
+            canExport: true
+        },
+        settings: {
+            currency: 'MXN',
+            timezone: 'America/Monterrey'
         }
     };
 
-    if (btnImportExcel) btnImportExcel.addEventListener('click', startExcelFlow);
-    if (btnEmptyImportExcel) btnEmptyImportExcel.addEventListener('click', startExcelFlow);
+    return {
+        state,
+        ui,
+        eventBus,
+        services,
+        eventContext
+    };
+}
 
-    /*
-     * COMENTARIO MÓDULOS FALTANTES:
-     * Si los módulos existieran, aquí se inicializarían:
-     * 
-     * initGuestsManager(state.eventId);
-     * fetchGuestsData();
-     * initStatsUI(state.eventData);
-     * initSettingsManager(state.eventId);
-     * initQRModals();
-     */
+/**
+ * Inicializa formalmente cada submódulo inyectándoles el Dependency Container unificado.
+ * @private
+ * @param {Object} container 
+ */
+function prepareModules(container) {
+    try {
+        // 1. Inicializar Módulo de Importación Excel
+        if (typeof initExcelImport === 'function') {
+            initExcelImport(container);
+        }
+
+        // 2. Inicializar Editor de Invitaciones
+        if (typeof initInvitationEditor === 'function') {
+            initInvitationEditor(container);
+        }
+
+        // 3. Inicializar Previsualizador de Invitaciones (capturando su destructor si existe)
+        if (typeof initInvitationPreview === 'function') {
+            initInvitationPreview(container);
+            // invitation-preview exporta destroy()
+            import('./invitation-preview.js').then(mod => {
+                if (mod && typeof mod.destroy === 'function') {
+                    activeModulesDestroyers.push(mod.destroy);
+                }
+            }).catch(() => {});
+        }
+
+        // 4. Inicializar Galería de Temas
+        if (typeof initThemes === 'function') {
+            initThemes(container);
+            import('./themes.js').then(mod => {
+                if (mod && typeof mod.destroy === 'function') {
+                    activeModulesDestroyers.push(mod.destroy);
+                }
+            }).catch(() => {});
+        }
+
+        // 5. Inicializar Constructor de Temas
+        if (typeof initThemeBuilder === 'function') {
+            initThemeBuilder(container);
+            import('./theme-builder.js').then(mod => {
+                if (mod && typeof mod.destroy === 'function') {
+                    activeModulesDestroyers.push(mod.destroy);
+                }
+            }).catch(() => {});
+        }
+
+        console.info('[Event Orchestrator] Todos los submódulos fueron inicializados correctamente mediante Dependency Injection.');
+    } catch (error) {
+        console.error('[Event Orchestrator] Error al inicializar los submódulos:', error);
+    }
+}
+
+/**
+ * Registra los listeners de limpieza ante la salida o recarga de la página (Previene Memory Leaks).
+ * @private
+ */
+function registerLifecycleCleanup() {
+    window.addEventListener('beforeunload', () => {
+        activeModulesDestroyers.forEach(destroyFn => {
+            try {
+                destroyFn();
+            } catch (e) {
+                console.warn('[Event Orchestrator] Error ejecutando destroy de un módulo:', e);
+            }
+        });
+        eventBus.clear();
+    });
+}
+
+/**
+ * Acción final del ciclo de arranque del orquestador.
+ * @private
+ * @param {Object} container 
+ */
+function ready(container) {
+    eventBus.emit(EVENT_TYPES.EVENT_LOADED, { 
+        eventId: container.eventContext.eventId, 
+        nombre: container.eventContext.eventData.nombre || 'Evento',
+        timestamp: Date.now() 
+    });
+
+    console.info('[Event Orchestrator] Sistema en estado READY. Integración total completada.');
 }

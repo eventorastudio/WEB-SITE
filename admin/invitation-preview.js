@@ -1,109 +1,158 @@
-// invitation-preview.js
-// Módulo 8: Motor de Renderizado en Tiempo Real de la Invitación
+// admin/invitation-preview.js
+/**
+ * @fileoverview Módulo de Previsualización de Invitaciones para Eventora Studio (Fase 3.11).
+ * 
+ * Responsabilidad:
+ * - Renderizar y actualizar en tiempo real la vista previa visual de la invitación.
+ * - Operar estrictamente bajo el patrón de Inyección de Dependencias, sin variables globales.
+ * - Escuchar los cambios provenientes de otros módulos (como el editor) exclusivamente a través del Event Bus.
+ * - Proveer soporte de ciclo de vida completo mediante init() y destroy() para prevenir fugas de memoria.
+ */
 
-export function updatePreview(state, containerId, eventName) {
-    const container = document.getElementById(containerId);
-    if (!container || !state) return;
+import { EVENT_TYPES } from './core/event-types.js';
 
-    // Generar CSS Variables inyectables basadas en la configuración
-    const cssVars = `
-        --prev-main: ${state.colores.principal};
-        --prev-sec: ${state.colores.secundario};
-        --prev-bg: ${state.colores.fondo};
-        --prev-text: ${state.colores.texto};
-        --prev-btn-bg: ${state.colores.botones};
-        --prev-accent: ${state.colores.acento};
-        
-        --prev-font-title: '${state.tipografias.titulo}', serif;
-        --prev-font-text: '${state.tipografias.texto}', sans-serif;
-        --prev-font-btn: '${state.tipografias.botones}', sans-serif;
-    `;
+/**
+ * Referencia interna a las dependencias inyectadas del sistema.
+ * @private
+ */
+let appDeps = null;
 
-    let btnClass = 'prev-btn';
-    btnClass += state.botones.estilo === 'solid' ? ' s-solid' : ' s-outline';
-    
-    if(state.botones.bordes === 'rounded') btnClass += ' b-rounded';
-    else if(state.botones.bordes === 'pill') btnClass += ' b-pill';
-    else btnClass += ' b-square';
+/**
+ * Almacena las referencias a las funciones de desuscripción de eventos para el ciclo de vida.
+ * @private
+ * @type {Array<Function>}
+ */
+let unsubscribeList = [];
 
-    // Generador de Bloques HTML según la sección
-    const renderBlocks = {
-        portada: () => `
-            <div class="prev-portada" style="background-image: url('${state.portada.imagen || ''}');">
-                <div class="prev-portada-content">
-                    <div style="font-size:0.8rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:10px;">¡Nos Casamos!</div>
-                    <h1 class="prev-title" style="font-size:3.5rem; margin-bottom:0;">${eventName}</h1>
-                </div>
-            </div>
-        `,
-        bienvenida: () => `
-            <div class="prev-section" style="background-color: var(--prev-bg);">
-                <h2 class="prev-title">Bienvenidos</h2>
-                <p class="prev-text">Nos llena de alegría invitarte a celebrar con nosotros este día tan especial.</p>
-                ${state.logo.imagen ? `<img src="${state.logo.imagen}" style="max-width:100px; margin-top:20px;">` : ''}
-            </div>
-        `,
-        historia: () => `
-            <div class="prev-section" style="background-color: rgba(0,0,0,0.03);">
-                <h2 class="prev-title">Nuestra Historia</h2>
-                <p class="prev-text">Cada momento ha sido mágico. Estamos listos para el siguiente paso.</p>
-            </div>
-        `,
-        cronograma: () => `
-            <div class="prev-section" style="background-color: var(--prev-bg);">
-                <h2 class="prev-title">Cronograma</h2>
-                <p class="prev-text" style="font-weight:600; margin-bottom:5px;">Ceremonia - 5:00 PM</p>
-                <p class="prev-text">Templo Principal</p>
-                <p class="prev-text" style="font-weight:600; margin-top:15px; margin-bottom:5px;">Recepción - 7:00 PM</p>
-                <p class="prev-text">Salón de Eventos</p>
-            </div>
-        `,
-        ubicacion: () => `
-            <div class="prev-section" style="background-color: rgba(0,0,0,0.03);">
-                <h2 class="prev-title">Ubicación</h2>
-                <p class="prev-text">Te esperamos para celebrar juntos.</p>
-                <a href="#" class="${btnClass}">Ver en el Mapa</a>
-            </div>
-        `,
-        dressCode: () => `
-            <div class="prev-section" style="background-color: var(--prev-bg);">
-                <div style="font-size:2rem; color:var(--prev-main); margin-bottom:10px;">👗</div>
-                <h2 class="prev-title">${state.dressCode.titulo}</h2>
-                <p class="prev-text">${state.dressCode.descripcion}</p>
-            </div>
-        `,
-        regalos: () => `
-            <div class="prev-section" style="background-color: rgba(0,0,0,0.03);">
-                <h2 class="prev-title">Mesa de Regalos</h2>
-                <p class="prev-text">Tu presencia es nuestro mejor regalo, pero si deseas tener un detalle:</p>
-                <a href="#" class="${btnClass}">Ver opciones</a>
-            </div>
-        `,
-        rsvp: () => `
-            <div class="prev-section" style="background-color: var(--prev-bg); padding-bottom: 60px;">
-                <h2 class="prev-title">Confirmación</h2>
-                <p class="prev-text">Por favor, confirma tu asistencia antes del evento.</p>
-                <a href="#" class="${btnClass}">Confirmar Asistencia</a>
-            </div>
-        `
-    };
+/**
+ * Estado local mutable específico de la previsualización.
+ * @private
+ */
+let previewState = {
+    currentConfig: {}
+};
 
-    // Ensamblar HTML
-    let html = `<div class="preview-wrapper theme-${state.tema.toLowerCase()}" style="${cssVars}">`;
-    
-    // Secciones Ordenadas y Activas
-    const activeSections = state.secciones.filter(s => s.activa).sort((a,b) => a.orden - b.orden);
-    
-    activeSections.forEach(sec => {
-        if (renderBlocks[sec.id]) {
-            // Aplicar animación genérica al bloque (simulada)
-            let animStyle = '';
-            if(state.animaciones.tipo === 'fade') animStyle = 'opacity:0.9; transform:translateY(5px);';
-            
-            html += `<div style="${animStyle}">${renderBlocks[sec.id]()}</div>`;
+/**
+ * Función pública de inicialización del módulo (Entry Point).
+ * @param {Object} dependencies - Contenedor estándar de inyección.
+ * @param {Object} dependencies.state 
+ * @param {Object} dependencies.ui 
+ * @param {Object} dependencies.eventBus 
+ * @param {Object} dependencies.services 
+ * @param {Object} dependencies.eventContext 
+ */
+export function initInvitationPreview(dependencies) {
+    if (!dependencies || !dependencies.ui || !dependencies.eventBus) {
+        console.error('[Invitation Preview] No se pudieron inicializar las dependencias requeridas.');
+        return;
+    }
+
+    appDeps = dependencies;
+    bindDom();
+    registerEventBusListeners();
+    loadInitialPreview();
+}
+
+/**
+ * Captura defensiva de elementos del DOM locales.
+ * @private
+ */
+function bindDom() {
+    try {
+        const previewContainer = document.getElementById('preview-container');
+        if (previewContainer) {
+            // Preparar contenedor visual base si es necesario
+        }
+    } catch (error) {
+        console.warn('[Invitation Preview] Error defensivo al enlazar el DOM:', error);
+    }
+}
+
+/**
+ * Registra las escuchas necesarias en el Event Bus de manera desacoplada.
+ * @private
+ */
+function registerEventBusListeners() {
+    const { eventBus } = appDeps;
+
+    // Escuchar cambios de guardado o actualización de temas/configuración emitidos por el editor u otros módulos
+    const unsubThemeSaved = eventBus.on(EVENT_TYPES.THEME_SAVED, (payload) => {
+        if (payload && payload.config) {
+            updatePreview(payload.config);
         }
     });
 
-    html += `</div>`;
-    container.innerHTML = html;
+    if (typeof unsubThemeSaved === 'function') {
+        unsubscribeList.push(unsubThemeSaved);
+    }
+}
+
+/**
+ * Carga la configuración inicial para renderizar la previsualización basada en el State o Contexto.
+ * @private
+ */
+function loadInitialPreview() {
+    try {
+        const { eventContext } = appDeps;
+        const eventData = eventContext?.eventData || {};
+
+        const initialConfig = {
+            primaryColor: eventData.primaryColor || '#111111',
+            invitationTitle: eventData.invitationTitle || eventData.nombre || 'Nuestra Boda'
+        };
+
+        renderPreview(initialConfig);
+    } catch (error) {
+        console.warn('[Invitation Preview] Error al cargar la previsualización inicial:', error);
+    }
+}
+
+/**
+ * Renderiza o actualiza la vista previa en pantalla aplicando la configuración visual.
+ * @private
+ * @param {Object} config 
+ */
+function renderPreview(config) {
+    if (!config) return;
+    previewState.currentConfig = { ...config };
+
+    try {
+        // Actualización defensiva de elementos visuales de la vista previa
+        const titleEl = document.getElementById('preview-invitation-title');
+        if (titleEl) {
+            titleEl.textContent = config.invitationTitle || 'Evento';
+        }
+
+        const accentElements = document.querySelectorAll('.preview-accent-target');
+        accentElements.forEach(el => {
+            el.style.color = config.primaryColor || '#111111';
+        });
+
+    } catch (error) {
+        console.warn('[Invitation Preview] Error al renderizar la vista previa:', error);
+    }
+}
+
+/**
+ * Método público expuesto para actualizar la vista previa de manera directa si se requiere.
+ * @param {Object} config 
+ */
+export function updatePreview(config) {
+    renderPreview(config);
+}
+
+/**
+ * Método del ciclo de vida para destruir el módulo y liberar recursos (Memory Leaks prevention).
+ */
+export function destroy() {
+    try {
+        // Ejecutar todas las funciones de desuscripción registradas
+        unsubscribeList.forEach(unsub => {
+            if (typeof unsub === 'function') unsub();
+        });
+        unsubscribeList = [];
+        appDeps = null;
+    } catch (error) {
+        console.warn('[Invitation Preview] Error defensivo durante destroy():', error);
+    }
 }
