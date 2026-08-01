@@ -15,7 +15,7 @@
  * - Invocarse desde themes.js, theme-builder.js o invitation-editor.js para guardar/cargar configuraciones de diseño.
  */
 
-import { db } from '../firebase.js';
+import { db } from '...admin/firebase.js';
 import { 
     collection, 
     doc, 

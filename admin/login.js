@@ -1,8 +1,8 @@
 // login.js
 // Lógica de autenticación y protección para index.html
 
-import { auth } from './firebase.js';
-import { CONFIG } from './config.js';
+import { auth } from '.../firebase.js';
+import { CONFIG } from '.../config.js';
 import { 
     signInWithEmailAndPassword, 
     onAuthStateChanged, 

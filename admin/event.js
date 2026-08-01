@@ -1,20 +1,20 @@
 // admin/event.js
-import { authService } from './services/auth-service.js';
-import { eventService } from './services/event-service.js';
-import { guestService } from './services/guest-service.js';
-import { themeService } from './services/theme-service.js';
+import { authService } from '.../services/auth-service.js';
+import { eventService } from '.../services/event-service.js';
+import { guestService } from '.../services/guest-service.js';
+import { themeService } from '.../services/theme-service.js';
 import { state } from './core/state.js';
 import { ui } from './core/ui.js';
-import { eventBus } from './core/event-bus.js';
-import { EVENT_TYPES } from './core/event-types.js';
-import { CONFIG } from './config.js';
+import { eventBus } from '.../core/event-bus.js';
+import { EVENT_TYPES } from '.../core/event-types.js';
+import { CONFIG } from '.../admin/config.js';
 
 // --- RUTAS CORREGIDAS ---
-import { initExcelImport } from './modules/guests/excel-import.js';
-import { initInvitationEditor } from './modules/editor/invitation-editor.js';
-import { initInvitationPreview } from './modules/editor/invitation-preview.js';
-import { initThemes } from './modules/themes/themes.js';
-import { initThemeBuilder } from './modules/themes/theme-builder.js';
+import { initExcelImport } from '.../modules/guests/excel-import.js';
+import { initInvitationEditor } from '.../modules/editor/invitation-editor.js';
+import { initInvitationPreview } from '.../modules/editor/invitation-preview.js';
+import { initThemes } from '.../modules/themes/themes.js';
+import { initThemeBuilder } from '.../modules/themes/theme-builder.js';
 
 let activeModulesDestroyers = [];
 
