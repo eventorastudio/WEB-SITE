@@ -86,7 +86,13 @@ async function authenticateUser() {
 
 async function loadEventData(currentUser, eventId) {
     try {
+        console.debug('[TEMP DEBUG][Event Orchestrator] getEventById:start', { eventId });
         const eventData = await eventService.getEventById(eventId);
+        console.debug('[TEMP DEBUG][Event Orchestrator] getEventById:end', {
+            eventId,
+            isValidPojo: Boolean(eventData) && typeof eventData === 'object',
+            keys: eventData ? Object.keys(eventData) : []
+        });
 
         if (!eventData) {
             ui.hideLoader();
@@ -115,6 +121,7 @@ async function loadEventData(currentUser, eventId) {
 }
 
 function storeStateAndContext(currentUser, eventId, eventData) {
+    console.debug('[TEMP DEBUG][Event Orchestrator] state:set:start', { eventId });
     state.setState('auth', {
         user: currentUser,
         isAuthenticated: true,
@@ -126,12 +133,25 @@ function storeStateAndContext(currentUser, eventId, eventData) {
         data: eventData,
         isLoaded: true
     });
+    console.debug('[TEMP DEBUG][Event Orchestrator] state:set:end', {
+        eventId,
+        isLoaded: true
+    });
+
+    console.debug('[TEMP DEBUG][Event Orchestrator] ui:update:skipped', {
+        reason: 'No updateUI/render function is defined or invoked by event.js.'
+    });
+    console.debug('[TEMP DEBUG][Event Orchestrator] bindEvents:skipped', {
+        reason: 'No bindEvents function is defined or invoked by event.js.'
+    });
 
     ui.hideLoader();
 
     const dependencyContainer = createDependencyContainer(eventId, eventData, currentUser);
     
+    console.debug('[TEMP DEBUG][Event Orchestrator] prepareModules:start');
     prepareModules(dependencyContainer);
+    console.debug('[TEMP DEBUG][Event Orchestrator] prepareModules:end');
     registerLifecycleCleanup();
     ready(dependencyContainer);
 }

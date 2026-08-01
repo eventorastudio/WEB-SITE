@@ -64,9 +64,16 @@ export const eventService = {
     async getEventById(eventId) {
         if (!eventId) throw new Error('event/invalid-id');
         try {
+            console.debug('[TEMP DEBUG][event-service] getEventById:start', { eventId });
             const docRef = doc(db, 'eventos', eventId);
             const docSnap = await getDoc(docRef);
-            return sanitizeEventDoc(docSnap);
+            const eventData = sanitizeEventDoc(docSnap);
+            console.debug('[TEMP DEBUG][event-service] getEventById:end', {
+                eventId,
+                exists: docSnap.exists(),
+                isValidPojo: Boolean(eventData) && typeof eventData === 'object'
+            });
+            return eventData;
         } catch (error) {
             throw new Error(`event/fetch-one-failed: ${error.message}`);
         }
