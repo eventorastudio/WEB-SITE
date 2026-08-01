@@ -211,6 +211,7 @@ function ready(container) {
     document.getElementById('loading-view').style.display = 'none';
     document.getElementById('main-view').style.display = 'block';
     document.getElementById('main-view').style.opacity = '1';
+    document.getElementById('auth-guard')?.remove();
 
     console.info('[Event Orchestrator] Sistema en estado READY.');
 }
