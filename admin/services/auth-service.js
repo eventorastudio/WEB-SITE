@@ -1,7 +1,7 @@
 // services/auth-service.js
 // Servicio exclusivo para la gestión de Autenticación de Firebase
 
-import { auth } from '.../admin/firebase.js';
+import { auth } from '../firebase.js';
 import { 
     signInWithEmailAndPassword, 
     signOut, 

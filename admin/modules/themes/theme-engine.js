@@ -1,4 +1,4 @@
-// admin/theme-engine.js
+// admin/modules/themes/theme-engine.js
 /**
  * @fileoverview Motor Puro de Renderizado de Temas para Eventora Studio (Fase 3.14).
  * 

@@ -1,4 +1,4 @@
-// admin/invitation-preview.js
+// admin/modules/editor/invitation-preview.js
 /**
  * @fileoverview Módulo de Previsualización de Invitaciones para Eventora Studio (Fase 3.11).
  * 
@@ -9,7 +9,7 @@
  * - Proveer soporte de ciclo de vida completo mediante init() y destroy() para prevenir fugas de memoria.
  */
 
-import { EVENT_TYPES } from ".../core/event-types.js";
+import { EVENT_TYPES } from "../../core/event-types.js";
 
 /**
  * Referencia interna a las dependencias inyectadas del sistema.

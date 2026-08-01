@@ -1,5 +1,5 @@
-// admin/theme-builder.js
-import { EVENT_TYPES } from ".../core/event-types.js";
+// admin/modules/themes/theme-builder.js
+import { EVENT_TYPES } from "../../core/event-types.js";
 
 let appDeps = null;
 let unsubscribeList = [];

@@ -1,5 +1,5 @@
-// admin/invitation-editor.js
-import { EVENT_TYPES } from ".../core/event-types.js";
+// admin/modules/editor/invitation-editor.js
+import { EVENT_TYPES } from "../../core/event-types.js";
 
 let appDeps = null;
 let editorState = {

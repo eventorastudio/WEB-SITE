@@ -16,7 +16,7 @@
  * - Invocarse desde los módulos de interfaz (ej. excel-import.js) para sincronizar o consultar invitados.
  */
 
-import { db } from '.../admin/firebase.js';
+import { db } from '../firebase.js';
 import { 
     collection, 
     doc, 

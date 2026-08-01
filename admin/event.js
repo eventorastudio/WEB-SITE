@@ -1,20 +1,20 @@
 // admin/event.js
-import { authService } from '.../services/auth-service.js';
-import { eventService } from '.../services/event-service.js';
-import { guestService } from '.../services/guest-service.js';
-import { themeService } from '.../services/theme-service.js';
+import { authService } from './services/auth-service.js';
+import { eventService } from './services/event-service.js';
+import { guestService } from './services/guest-service.js';
+import { themeService } from './services/theme-service.js';
 import { state } from './core/state.js';
 import { ui } from './core/ui.js';
-import { eventBus } from '.../core/event-bus.js';
-import { EVENT_TYPES } from '.../core/event-types.js';
-import { CONFIG } from '.../admin/config.js';
+import { eventBus } from './core/event-bus.js';
+import { EVENT_TYPES } from './core/event-types.js';
+import { CONFIG } from './config.js';
 
 // --- RUTAS CORREGIDAS ---
-import { initExcelImport } from '.../modules/guests/excel-import.js';
-import { initInvitationEditor } from '.../modules/editor/invitation-editor.js';
-import { initInvitationPreview } from '.../modules/editor/invitation-preview.js';
-import { initThemes } from '.../modules/themes/themes.js';
-import { initThemeBuilder } from '.../modules/themes/theme-builder.js';
+import { initExcelImport } from './modules/guests/excel-import.js';
+import { initInvitationEditor } from './modules/editor/invitation-editor.js';
+import { initInvitationPreview, destroy as destroyInvitationPreview } from './modules/editor/invitation-preview.js';
+import { initThemes, destroy as destroyThemes } from './modules/themes/themes.js';
+import { initThemeBuilder, destroy as destroyThemeBuilder } from './modules/themes/theme-builder.js';
 
 let activeModulesDestroyers = [];
 
@@ -167,32 +167,23 @@ function prepareModules(container) {
 
         if (typeof initInvitationPreview === 'function') {
             initInvitationPreview(container);
-            // --- RUTA DINÁMICA CORREGIDA ---
-            import('./modules/editor/invitation-preview.js').then(mod => {
-                if (mod && typeof mod.destroy === 'function') {
-                    activeModulesDestroyers.push(mod.destroy);
-                }
-            }).catch(() => {});
+            if (typeof destroyInvitationPreview === 'function') {
+                activeModulesDestroyers.push(destroyInvitationPreview);
+            }
         }
 
         if (typeof initThemes === 'function') {
             initThemes(container);
-            // --- RUTA DINÁMICA CORREGIDA ---
-            import('./modules/themes/themes.js').then(mod => {
-                if (mod && typeof mod.destroy === 'function') {
-                    activeModulesDestroyers.push(mod.destroy);
-                }
-            }).catch(() => {});
+            if (typeof destroyThemes === 'function') {
+                activeModulesDestroyers.push(destroyThemes);
+            }
         }
 
         if (typeof initThemeBuilder === 'function') {
             initThemeBuilder(container);
-            // --- RUTA DINÁMICA CORREGIDA ---
-            import('./modules/themes/theme-builder.js').then(mod => {
-                if (mod && typeof mod.destroy === 'function') {
-                    activeModulesDestroyers.push(mod.destroy);
-                }
-            }).catch(() => {});
+            if (typeof destroyThemeBuilder === 'function') {
+                activeModulesDestroyers.push(destroyThemeBuilder);
+            }
         }
 
         console.info('[Event Orchestrator] Todos los submódulos fueron inicializados correctamente.');

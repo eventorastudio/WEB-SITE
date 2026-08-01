@@ -1,5 +1,5 @@
-// admin/excel-import.js
-import { EVENT_TYPES } from ".../core/event-types.js";
+// admin/modules/guests/excel-import.js
+import { EVENT_TYPES } from "../../core/event-types.js";
 
 
 let appDeps = null;

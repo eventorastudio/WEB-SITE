@@ -1,7 +1,7 @@
 // services/event-service.js
 // Servicio exclusivo para la gestión de Eventos en Firestore
 
-import { db } from '.../admin/firebase.js';
+import { db } from '../firebase.js';
 import { 
     collection, 
     doc, 

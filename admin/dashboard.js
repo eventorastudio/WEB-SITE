@@ -1,8 +1,8 @@
 // dashboard.js
 // Lógica de Módulo 2 y 3: Experiencia SaaS, Firestore, Animaciones y Creación de Eventos
 
-import { auth, db } from '.../admin/firebase.js';
-import { CONFIG } from '.../admin/config.js';
+import { auth, db } from './firebase.js';
+import { CONFIG } from './config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { collection, getDocs, query, orderBy, addDoc, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
