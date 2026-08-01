@@ -207,5 +207,10 @@ function ready(container) {
         nombre: container.eventContext.eventData.nombre || 'Evento',
         timestamp: Date.now() 
     });
+
+    document.getElementById('loading-view').style.display = 'none';
+    document.getElementById('main-view').style.display = 'block';
+    document.getElementById('main-view').style.opacity = '1';
+
     console.info('[Event Orchestrator] Sistema en estado READY.');
 }
