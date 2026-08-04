@@ -103,7 +103,7 @@ button[aria-busy='true']::after { content: ''; width: 11px; height: 11px; margin
 .security-future .availability-label { margin-top: auto; }
 
 body.modal-open { overflow: hidden; }
-.profile-modal { z-index: 2200; padding: 20px; background: rgba(25, 21, 15, .32); backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px); }
+.profile-modal { z-index: var(--z-modal); padding: 20px; background: var(--overlay); backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px); }
 .profile-security-modal { width: min(100%, 500px); max-height: min(90dvh, 620px); display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(255,255,255,.55); border-radius: var(--admin-radius-lg); box-shadow: var(--admin-shadow-md); }
 .profile-security-modal .modal-header { flex: 0 0 auto; padding: 21px 24px; }
 .profile-security-modal .modal-title { color: var(--admin-text); font-size: 1.65rem; }

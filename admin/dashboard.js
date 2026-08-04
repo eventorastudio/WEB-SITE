@@ -4,6 +4,7 @@
 import { auth, db } from './firebase.js';
 import { CONFIG } from './config.js';
 import { initThemeManager } from './core/theme-manager.js';
+import { initProfileMenu } from './core/profile-menu.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { collection, getDocs, query, orderBy, addDoc, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -82,15 +83,9 @@ function animateValue(element, start, end, duration) {
 function initUI() {
     if (uiLogo) uiLogo.src = CONFIG.LOGO;
     
-    userProfileTrigger.addEventListener('click', (e) => {
-        e.stopPropagation();
-        userProfileTrigger.classList.toggle('active');
-    });
-
-    document.addEventListener('click', (e) => {
-        if (!userProfileTrigger.contains(e.target)) {
-            userProfileTrigger.classList.remove('active');
-        }
+    initProfileMenu({
+        trigger: userProfileTrigger,
+        menu: document.getElementById('user-dropdown')
     });
 
     btnLogout.addEventListener('click', async (e) => {

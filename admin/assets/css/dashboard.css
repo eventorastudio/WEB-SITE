@@ -64,7 +64,7 @@ body {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
     background-color: var(--color-ivory);
-    z-index: 9999;
+    z-index: var(--z-loader);
     transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -241,7 +241,7 @@ body {
     pointer-events: none;
     transition: var(--transition-smooth);
     border: 1px solid var(--color-border);
-    z-index: 101;
+    z-index: var(--z-dropdown);
     transform-origin: top right;
 }
 
@@ -794,7 +794,7 @@ body {
     background-color: var(--overlay);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    z-index: 2000;
+    z-index: var(--z-modal);
     display: flex;
     justify-content: center;
     align-items: center;

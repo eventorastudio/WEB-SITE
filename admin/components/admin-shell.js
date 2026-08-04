@@ -5,6 +5,7 @@ import { authService } from '../services/auth-service.js';
 import { auth } from '../firebase.js';
 import { CONFIG } from '../config.js';
 import { hasPermission, PERMISSIONS, USER_ROLES, resolveRoleContext } from '../core/roles.js';
+import { destroyProfileMenu, initProfileMenu } from '../core/profile-menu.js';
 
 let cleanups = [];
 let isShellBound = false;
@@ -46,6 +47,7 @@ export function initAdminShell({ requiredPermission, onReady }) {
 
 /** Libera listeners propios de la capa compartida. */
 export function destroyAdminShell() {
+    destroyProfileMenu();
     cleanups.forEach((cleanup) => cleanup());
     cleanups = [];
     isShellBound = false;
@@ -74,13 +76,9 @@ function bindShellEvents() {
     const trigger = document.getElementById('shell-user-menu-trigger');
     const logoutButton = document.getElementById('shell-btn-logout');
 
-    listen(trigger, 'click', (event) => {
-        event.stopPropagation();
-        trigger.classList.toggle('active');
-    });
-
-    listen(document, 'click', (event) => {
-        if (trigger && !trigger.contains(event.target)) trigger.classList.remove('active');
+    initProfileMenu({
+        trigger,
+        menu: document.getElementById('shell-user-dropdown') ?? trigger?.querySelector('.dropdown-menu')
     });
 
     listen(logoutButton, 'click', async (event) => {

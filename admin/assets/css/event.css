@@ -41,7 +41,7 @@
     border-bottom: 1px solid var(--event-border);
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: var(--z-header);
     background: color-mix(in srgb, var(--background) 90%, transparent);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
@@ -543,7 +543,7 @@ select.form-control { padding-right: 42px; cursor: pointer; }
 
 /* Premium modal system */
 body.modal-open { overflow: hidden; }
-.modal-overlay { z-index: 2200; padding: 20px; background: var(--overlay); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.modal-overlay { z-index: var(--z-modal); padding: 20px; background: var(--overlay); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 .modal-container { border: 1px solid rgba(255, 255, 255, 0.72); border-radius: var(--event-radius-lg); box-shadow: var(--event-shadow-md); }
 .modal-header { padding: 21px 24px; }
 .modal-title { color: var(--event-text); font-size: 1.8rem; letter-spacing: -0.025em; }

@@ -34,6 +34,13 @@
     --radius-sm: 10px;
     --radius-md: 14px;
     --radius-lg: 20px;
+    --z-content: 0;
+    --z-menu-backdrop: 100;
+    --z-header: 200;
+    --z-dropdown: 1;
+    --z-modal: 300;
+    --z-toast: 400;
+    --z-loader: 500;
     --transition-theme: background-color 180ms ease, border-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
 }
 
@@ -152,6 +159,7 @@ textarea:focus {
 .ui-local-loader {
     background-color: var(--overlay) !important;
     color: var(--text-primary) !important;
+    z-index: var(--z-loader) !important;
 }
 
 #ui-global-loader [style*='color'],
@@ -203,8 +211,9 @@ textarea:focus {
     box-shadow: var(--shadow-sm);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
+    position: sticky;
     top: 18px;
-    z-index: 300;
+    z-index: var(--z-header);
     transition: var(--transition-theme), transform 180ms ease;
 }
 
@@ -282,7 +291,24 @@ textarea:focus {
     border-radius: 16px;
     background-color: var(--surface);
     box-shadow: var(--shadow-md);
+    z-index: var(--z-dropdown);
     transition: opacity 180ms ease, transform 180ms ease, visibility 180ms ease;
+}
+
+.dashboard-header .user-profile:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 3px;
+}
+
+.dashboard-header .dropdown-item:focus-visible {
+    background-color: var(--surface-hover);
+    color: var(--text-primary);
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
+}
+
+.profile-menu-backdrop {
+    display: none;
 }
 
 @media (max-width: 1024px) {
@@ -341,8 +367,31 @@ textarea:focus {
 
     .dashboard-header .dropdown-menu {
         right: 0;
-        width: min(200px, calc(100vw - 24px));
+        width: min(320px, calc(100vw - 24px));
+        max-height: calc(100dvh - 92px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
     }
+
+    .dashboard-header .dropdown-item {
+        min-height: 44px;
+        padding: 12px 14px;
+    }
+
+    .profile-menu-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: var(--z-menu-backdrop);
+        background: var(--overlay);
+        opacity: 0.36;
+        animation: profile-menu-backdrop-in 160ms ease-out;
+    }
+}
+
+@keyframes profile-menu-backdrop-in {
+    from { opacity: 0; }
+    to { opacity: 0.36; }
 }
 
 .tab-btn,
@@ -397,6 +446,10 @@ textarea:focus {
     box-shadow: var(--shadow-md) !important;
 }
 
+#toast-container {
+    z-index: var(--z-toast) !important;
+}
+
 .ui-toast strong,
 .ui-toast span {
     color: var(--text-primary) !important;
@@ -405,6 +458,7 @@ textarea:focus {
 #ui-active-modal,
 #ui-progress-modal {
     background: var(--overlay) !important;
+    z-index: var(--z-modal) !important;
 }
 
 #ui-active-modal > div,
