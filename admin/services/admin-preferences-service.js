@@ -8,7 +8,6 @@ const DEFAULT_SETTINGS = Object.freeze({
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'No disponible',
     dateFormat: 'DD/MM/AAAA',
     timeFormat: '24h',
-    theme: 'system',
     animations: true,
     compactView: false,
     sidebarExpanded: true
@@ -46,13 +45,12 @@ export function saveUserPreferences(uid, namespace, payload) {
 }
 
 /**
- * Aplica las preferencias visuales disponibles sin tocar el State global.
+ * Aplica las preferencias visuales que no pertenecen al sistema de temas.
+ * Light / Dark / System es responsabilidad exclusiva de core/theme-manager.js.
  * @param {Object} settings
  * @returns {void}
  */
-export function applyAdminPreferences(settings) {
-    const effectiveTheme = resolveTheme(settings?.theme);
-    document.documentElement.dataset.adminTheme = effectiveTheme;
+export function applyAdminDisplayPreferences(settings) {
     document.documentElement.classList.toggle('admin-compact', Boolean(settings?.compactView));
     document.documentElement.classList.toggle('admin-reduce-motion', settings?.animations === false);
 }
@@ -96,9 +94,4 @@ function readJson(key) {
         console.warn('[Admin Preferences] No fue posible leer preferencias locales.', error);
         return null;
     }
-}
-
-function resolveTheme(theme) {
-    if (theme === 'dark' || theme === 'light') return theme;
-    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }

@@ -3,6 +3,7 @@
 
 import { auth } from './firebase.js';
 import { CONFIG } from './config.js';
+import { initThemeManager } from './core/theme-manager.js';
 import { 
     signInWithEmailAndPassword, 
     onAuthStateChanged, 
@@ -10,6 +11,8 @@ import {
     browserLocalPersistence, 
     browserSessionPersistence 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+initThemeManager();
 
 // Referencias al DOM
 const loginForm = document.getElementById('login-form');

@@ -3,35 +3,35 @@
 
 :root {
     /* Paleta Premium SaaS */
-    --color-ivory: #FCFBF8;
-    --color-white: #FFFFFF;
-    --color-black: #111111;
-    --color-gray-dark: #4A4A4A;
-    --color-gray-light: #8E8E8E;
-    --color-border: #EAE6DF;
-    --color-gold: #D4AF37;
-    --color-gold-light: rgba(212, 175, 55, 0.3);
+    --color-ivory: var(--background);
+    --color-white: var(--surface);
+    --color-black: var(--text-primary);
+    --color-gray-dark: var(--text-secondary);
+    --color-gray-light: var(--text-tertiary);
+    --color-border: var(--border);
+    --color-gold: var(--primary);
+    --color-gold-light: var(--primary-subtle);
     
     /* Estados */
-    --color-badge-active-bg: rgba(36, 150, 62, 0.08);
-    --color-badge-active-text: #1E7E34;
-    --color-badge-finished-bg: rgba(142, 142, 147, 0.1);
-    --color-badge-finished-text: #666666;
-    --color-badge-draft-bg: rgba(230, 138, 0, 0.08);
-    --color-badge-draft-text: #B36B00;
-    --color-error: #D32F2F;
+    --color-badge-active-bg: var(--success-subtle);
+    --color-badge-active-text: var(--success);
+    --color-badge-finished-bg: var(--surface-tertiary);
+    --color-badge-finished-text: var(--text-secondary);
+    --color-badge-draft-bg: var(--warning-subtle);
+    --color-badge-draft-text: var(--warning);
+    --color-error: var(--danger);
 
     /* Tipografías */
     --font-serif: 'Cormorant Garamond', serif;
     --font-sans: 'Poppins', sans-serif;
     
     /* Sombras Elevadas y Suaves */
-    --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.02);
-    --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.04);
-    --shadow-hover: 0 15px 35px rgba(0, 0, 0, 0.06), 0 0 0 1px var(--color-gold-light);
-    --shadow-btn: 0 6px 20px rgba(0, 0, 0, 0.15);
-    --shadow-btn-hover: 0 10px 25px rgba(212, 175, 55, 0.25);
-    --shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    --shadow-sm: var(--shadow-xs);
+    --shadow-md: var(--shadow-sm);
+    --shadow-hover: var(--shadow-md), 0 0 0 1px var(--color-gold-light);
+    --shadow-btn: var(--shadow-sm);
+    --shadow-btn-hover: var(--shadow-md);
+    --shadow-modal: var(--shadow-lg);
     
     /* Bordes y Transiciones */
     --border-radius-xl: 24px;
@@ -124,7 +124,7 @@ body {
     border-bottom: 1px solid rgba(0, 0, 0, 0.03);
     position: sticky;
     top: 0;
-    background: rgba(252, 251, 248, 0.8);
+    background: color-mix(in srgb, var(--background) 80%, transparent);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     z-index: 100;
@@ -219,7 +219,7 @@ body {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #2A2A2A 0%, #111111 100%);
+    background: linear-gradient(135deg, var(--text-secondary) 0%, var(--text-primary) 100%);
     color: var(--color-gold);
     display: flex;
     justify-content: center;
@@ -289,12 +289,12 @@ body {
 }
 
 .logout-item {
-    color: #E02424;
+    color: var(--danger);
 }
 
 .logout-item:hover {
-    background-color: #FEF2F2;
-    color: #C81E1E;
+    background-color: var(--danger-subtle);
+    color: var(--danger-hover);
 }
 
 /* HERO SECTION PREMIUM */
@@ -434,7 +434,7 @@ body {
 }
 
 .btn-primary:hover {
-    background-color: #1A1A1A;
+    background-color: var(--primary-hover);
     box-shadow: var(--shadow-btn-hover);
     transform: translateY(-2px);
 }
@@ -449,7 +449,7 @@ body {
 }
 
 .btn-primary:disabled {
-    background-color: #999;
+    background-color: var(--surface-tertiary);
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
@@ -486,7 +486,7 @@ body {
     width: 100%; height: 100%;
     top: 0; left: 0;
     pointer-events: none;
-    background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+    background-image: radial-gradient(circle, var(--surface) 10%, transparent 10.01%);
     background-repeat: no-repeat;
     background-position: 50%;
     transform: scale(10, 10);
@@ -535,7 +535,7 @@ body {
 .event-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-hover);
-    border-color: rgba(212, 175, 55, 0.4);
+    border-color: var(--primary);
 }
 
 .event-card-header {
@@ -694,13 +694,13 @@ body {
 
 .btn-card.delete {
     border-color: transparent;
-    color: #D32F2F;
-    background-color: rgba(211, 47, 47, 0.05);
+    color: var(--danger);
+    background-color: var(--danger-subtle);
 }
 
 .btn-card.delete:hover {
-    background-color: #D32F2F;
-    color: var(--color-white);
+    background-color: var(--danger);
+    color: var(--on-danger);
 }
 
 /* EMPTY STATE PREMIUM */
@@ -720,7 +720,7 @@ body {
 .empty-illustration {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, var(--color-ivory) 0%, #F0EDE5 100%);
+    background: linear-gradient(135deg, var(--color-ivory) 0%, var(--surface-tertiary) 100%);
     border-radius: 50%;
     display: flex;
     justify-content: center;
@@ -748,7 +748,7 @@ body {
 
 /* SKELETON LOADING PREMIUM */
 .skeleton {
-    background: linear-gradient(90deg, #F4F3F0 25%, #EBE9E4 50%, #F4F3F0 75%);
+    background: linear-gradient(90deg, var(--surface-secondary) 25%, var(--surface-tertiary) 50%, var(--surface-secondary) 75%);
     background-size: 200% 100%;
     animation: skeletonShimmer 1.5s infinite ease-in-out;
     border-radius: 4px;
@@ -804,7 +804,7 @@ body {
 .modal-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(255, 255, 255, 0.4);
+    background-color: var(--overlay);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     z-index: 2000;
@@ -849,7 +849,7 @@ body {
     align-items: center;
     padding: 24px 32px;
     border-bottom: 1px solid var(--color-border);
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: color-mix(in srgb, var(--surface) 90%, transparent);
     position: sticky;
     top: 0;
     z-index: 10;
@@ -929,7 +929,7 @@ body {
 }
 
 .form-control::placeholder {
-    color: #BDBDBD;
+    color: var(--text-tertiary);
 }
 
 .form-control:focus {
@@ -940,7 +940,7 @@ body {
 
 .form-control.input-error {
     border-color: var(--color-error);
-    background-color: #FFFAFA;
+    background-color: var(--danger-subtle);
 }
 .form-control.input-error:focus {
     box-shadow: 0 0 0 4px rgba(211, 47, 47, 0.1);
@@ -1031,7 +1031,7 @@ select.form-control {
 
 .upload-area:hover {
     border-color: var(--color-gold);
-    background-color: #FDFCF9;
+    background-color: var(--surface-hover);
 }
 
 .file-input-hidden {

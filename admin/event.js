@@ -8,6 +8,7 @@ import { ui } from './core/ui.js';
 import { eventBus } from './core/event-bus.js';
 import { EVENT_TYPES } from './core/event-types.js';
 import { CONFIG } from './config.js';
+import { initThemeManager } from './core/theme-manager.js';
 
 // --- RUTAS CORREGIDAS ---
 import { initExcelImport } from './modules/guests/excel-import.js';
@@ -21,6 +22,8 @@ import {
 } from './modules/event-controller.js';
 
 let activeModulesDestroyers = [];
+
+initThemeManager();
 
 document.addEventListener('DOMContentLoaded', async () => {
     await boot();

@@ -2,15 +2,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Poppins:wght@300;400;500&display=swap');
 
 :root {
-    --color-ivory: #FAF9F6;
-    --color-white: #FFFFFF;
-    --color-black: #1A1A1A;
-    --color-gold: #D4AF37;
-    --color-gold-hover: #C5A059;
-    --color-error: #B00020;
+    --color-ivory: var(--background);
+    --color-white: var(--surface);
+    --color-black: var(--text-primary);
+    --color-gold: var(--primary);
+    --color-gold-hover: var(--primary-hover);
+    --color-error: var(--danger);
     --font-serif: 'Cormorant Garamond', serif;
     --font-sans: 'Poppins', sans-serif;
-    --shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.04);
+    --shadow-soft: var(--shadow-sm);
     --border-radius: 12px;
 }
 
@@ -76,7 +76,7 @@ body {
 .description {
     font-size: 0.9rem;
     font-weight: 300;
-    color: #666;
+    color: var(--text-secondary);
     margin-bottom: 40px;
     line-height: 1.5;
 }
@@ -98,7 +98,7 @@ body {
 .form-group input[type="password"] {
     width: 100%;
     padding: 14px 16px;
-    border: 1px solid #E0E0E0;
+    border: 1px solid var(--border);
     border-radius: 8px;
     font-family: var(--font-sans);
     font-size: 0.95rem;
@@ -132,7 +132,7 @@ body {
 .checkbox-group label {
     font-size: 0.85rem;
     font-weight: 400;
-    color: #555;
+    color: var(--text-secondary);
     cursor: pointer;
 }
 
@@ -155,7 +155,7 @@ body {
 }
 
 .btn-submit:disabled {
-    background-color: #999;
+    background-color: var(--surface-tertiary);
     cursor: not-allowed;
 }
 
@@ -173,7 +173,7 @@ body {
 .footer {
     margin-top: 40px;
     font-size: 0.75rem;
-    color: #999;
+    color: var(--text-tertiary);
     font-family: var(--font-sans);
 }
 

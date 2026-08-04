@@ -1,0 +1,299 @@
+/* Tema global del panel Admin. Todos los componentes consumen estos tokens. */
+:root {
+    color-scheme: light;
+    --background: #fcfbf8;
+    --surface: #ffffff;
+    --surface-secondary: #f6f4ef;
+    --surface-tertiary: #eeebe3;
+    --surface-hover: #f8f6f1;
+    --text-primary: #171717;
+    --text-secondary: #625f59;
+    --text-tertiary: #8a867e;
+    --border: #e8e4dc;
+    --border-strong: #d8d1c5;
+    --primary: #b48a1e;
+    --primary-hover: #906c14;
+    --primary-subtle: rgba(180, 138, 30, 0.14);
+    --on-primary: #ffffff;
+    --on-danger: #ffffff;
+    --danger: #c73737;
+    --danger-hover: #a92727;
+    --danger-subtle: #fff2f1;
+    --success: #197a40;
+    --success-subtle: #ecf8f0;
+    --warning: #ad6700;
+    --warning-subtle: #fff6e7;
+    --info: #2563a7;
+    --info-subtle: #eef5ff;
+    --focus-ring: 0 0 0 4px rgba(180, 138, 30, 0.22);
+    --shadow-xs: 0 1px 2px rgba(26, 21, 13, 0.05);
+    --shadow-sm: 0 8px 24px rgba(26, 21, 13, 0.07);
+    --shadow-md: 0 18px 48px rgba(26, 21, 13, 0.11);
+    --shadow-lg: 0 28px 70px rgba(26, 21, 13, 0.16);
+    --overlay: rgba(23, 22, 19, 0.55);
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --transition-theme: background-color 180ms ease, border-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
+}
+
+html[data-theme='dark'] {
+    color-scheme: dark;
+    --background: #171613;
+    --surface: #211f1b;
+    --surface-secondary: #2a2823;
+    --surface-tertiary: #343129;
+    --surface-hover: #302d27;
+    --text-primary: #f7f3ea;
+    --text-secondary: #c7c0b3;
+    --text-tertiary: #978f81;
+    --border: #3d3931;
+    --border-strong: #514b40;
+    --primary: #e1bd59;
+    --primary-hover: #f0d27a;
+    --primary-subtle: rgba(225, 189, 89, 0.16);
+    --on-primary: #211b0b;
+    --on-danger: #241010;
+    --danger: #ef7777;
+    --danger-hover: #ff9696;
+    --danger-subtle: rgba(239, 119, 119, 0.13);
+    --success: #67c28b;
+    --success-subtle: rgba(103, 194, 139, 0.13);
+    --warning: #f0b45b;
+    --warning-subtle: rgba(240, 180, 91, 0.13);
+    --info: #86b9f4;
+    --info-subtle: rgba(134, 185, 244, 0.13);
+    --focus-ring: 0 0 0 4px rgba(225, 189, 89, 0.24);
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.25);
+    --shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.24);
+    --shadow-md: 0 18px 48px rgba(0, 0, 0, 0.34);
+    --shadow-lg: 0 28px 70px rgba(0, 0, 0, 0.46);
+    --overlay: rgba(0, 0, 0, 0.68);
+}
+
+@media (prefers-color-scheme: dark) {
+    html:not([data-theme]) {
+        color-scheme: dark;
+        --background: #171613;
+        --surface: #211f1b;
+        --surface-secondary: #2a2823;
+        --surface-tertiary: #343129;
+        --surface-hover: #302d27;
+        --text-primary: #f7f3ea;
+        --text-secondary: #c7c0b3;
+        --text-tertiary: #978f81;
+        --border: #3d3931;
+        --border-strong: #514b40;
+        --primary: #e1bd59;
+        --primary-hover: #f0d27a;
+        --primary-subtle: rgba(225, 189, 89, 0.16);
+        --on-primary: #211b0b;
+        --on-danger: #241010;
+        --danger: #ef7777;
+        --danger-hover: #ff9696;
+        --danger-subtle: rgba(239, 119, 119, 0.13);
+        --success: #67c28b;
+        --success-subtle: rgba(103, 194, 139, 0.13);
+        --warning: #f0b45b;
+        --warning-subtle: rgba(240, 180, 91, 0.13);
+        --info: #86b9f4;
+        --info-subtle: rgba(134, 185, 244, 0.13);
+        --focus-ring: 0 0 0 4px rgba(225, 189, 89, 0.24);
+        --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.25);
+        --shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.24);
+        --shadow-md: 0 18px 48px rgba(0, 0, 0, 0.34);
+        --shadow-lg: 0 28px 70px rgba(0, 0, 0, 0.46);
+        --overlay: rgba(0, 0, 0, 0.68);
+    }
+}
+
+html,
+body {
+    background: var(--background);
+    color: var(--text-primary);
+}
+
+body,
+button,
+input,
+select,
+textarea {
+    transition: var(--transition-theme);
+}
+
+input,
+select,
+textarea {
+    background-color: var(--surface) !important;
+    border-color: var(--border) !important;
+    color: var(--text-primary) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-tertiary);
+    opacity: 1;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--primary) !important;
+    box-shadow: var(--focus-ring) !important;
+    outline: none;
+}
+
+.auth-guard,
+.premium-bg {
+    background-color: var(--background) !important;
+}
+
+#ui-global-loader,
+.ui-local-loader {
+    background-color: var(--overlay) !important;
+    color: var(--text-primary) !important;
+}
+
+#ui-global-loader [style*='color'],
+.ui-local-loader [style*='color'] {
+    color: var(--text-primary) !important;
+}
+
+.dashboard-header,
+.event-header,
+.dashboard-section,
+.event-section,
+.admin-card,
+.modal-content,
+.modal-dialog,
+.dropdown-menu,
+.tabs-container,
+.tab-content,
+.table-container,
+.stats-card,
+.info-card,
+.guest-card,
+.editor-panel,
+.preview-panel {
+    background-color: var(--surface);
+    border-color: var(--border);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.event-header {
+    background-color: color-mix(in srgb, var(--background) 90%, transparent) !important;
+}
+
+.tab-btn,
+.nav-link,
+.dropdown-item,
+.btn-secondary,
+.btn-back,
+.btn-editor-action,
+.btn-text {
+    color: var(--text-secondary);
+}
+
+.tab-btn:hover,
+.nav-link:hover,
+.dropdown-item:hover,
+.btn-secondary:hover,
+.btn-back:hover,
+.btn-editor-action:hover,
+.btn-text:hover {
+    background-color: var(--surface-hover);
+    color: var(--text-primary);
+}
+
+.btn-primary,
+.btn-black {
+    background-color: var(--primary) !important;
+    border-color: var(--primary) !important;
+    color: var(--on-primary) !important;
+}
+
+.btn-primary:hover,
+.btn-black:hover {
+    background-color: var(--primary-hover) !important;
+    border-color: var(--primary-hover) !important;
+}
+
+.btn-danger {
+    background-color: var(--danger-subtle) !important;
+    border-color: var(--danger) !important;
+    color: var(--danger) !important;
+}
+
+.btn-danger:hover {
+    background-color: var(--danger) !important;
+    color: var(--on-danger) !important;
+}
+
+.ui-toast {
+    background: var(--surface) !important;
+    border-color: var(--border) !important;
+    color: var(--text-primary) !important;
+    box-shadow: var(--shadow-md) !important;
+}
+
+.ui-toast strong,
+.ui-toast span {
+    color: var(--text-primary) !important;
+}
+
+#ui-active-modal,
+#ui-progress-modal {
+    background: var(--overlay) !important;
+}
+
+#ui-active-modal > div,
+#ui-progress-modal > div {
+    background: var(--surface) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: var(--shadow-md) !important;
+}
+
+#ui-active-modal [style*='color'],
+#ui-progress-modal [style*='color'] {
+    color: var(--text-primary) !important;
+}
+
+#ui-active-modal [style*='border'],
+#ui-progress-modal [style*='border'] {
+    border-color: var(--border) !important;
+}
+
+#ui-progress-modal [style*='background'] {
+    background: var(--surface-secondary) !important;
+}
+
+#ui-progress-bar {
+    background: var(--primary) !important;
+}
+
+html[data-theme='dark'] .modal-overlay,
+html[data-theme='dark'] .modal-backdrop {
+    background-color: var(--overlay) !important;
+}
+
+html[data-theme='dark'] .modal-content,
+html[data-theme='dark'] .modal-dialog,
+html[data-theme='dark'] .modal-container,
+html[data-theme='dark'] .modal-container [style*='background'] {
+    background-color: var(--surface) !important;
+    border-color: var(--border) !important;
+}
+
+html[data-theme='dark'] .modal-container [style*='color'] {
+    color: var(--text-primary) !important;
+}
+
+html.admin-reduce-motion *,
+html.admin-reduce-motion *::before,
+html.admin-reduce-motion *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+}

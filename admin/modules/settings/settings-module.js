@@ -2,8 +2,9 @@
 // Gestiona preferencias locales del panel sin mutar el State global.
 
 import { ui } from '../../core/ui.js';
+import { getThemePreference, setThemePreference } from '../../core/theme-manager.js';
 import {
-    applyAdminPreferences,
+    applyAdminDisplayPreferences,
     getDefaultSettings,
     getUserPreferences,
     saveUserPreferences
@@ -23,7 +24,7 @@ export function initSettingsModule({ user, roleContext }) {
 
     const settings = getUserPreferences(currentUserId, 'settings', getDefaultSettings());
     populateSettings(settings);
-    applyAdminPreferences(settings);
+    applyAdminDisplayPreferences(settings);
     document.getElementById('developer-settings-section').hidden = roleContext.role !== 'CEO';
     bindSettingsEvents();
 }
@@ -40,7 +41,7 @@ function populateSettings(settings) {
     setValue('setting-timezone', settings.timezone);
     setValue('setting-date-format', settings.dateFormat);
     setValue('setting-time-format', settings.timeFormat);
-    setValue('setting-theme', settings.theme);
+    setValue('setting-theme', getThemePreference());
     setChecked('setting-animations', settings.animations);
     setChecked('setting-compact-view', settings.compactView);
     setChecked('setting-sidebar-expanded', settings.sidebarExpanded);
@@ -48,7 +49,7 @@ function populateSettings(settings) {
 
 function bindSettingsEvents() {
     listen(document.getElementById('settings-form'), 'submit', handleSettingsSubmit);
-    listen(document.getElementById('setting-theme'), 'change', () => applyPreview());
+    listen(document.getElementById('setting-theme'), 'change', handleThemePreferenceChange);
     listen(document.getElementById('setting-compact-view'), 'change', () => applyPreview());
     listen(document.getElementById('setting-animations'), 'change', () => applyPreview());
     listen(document.getElementById('btn-open-system-status'), 'click', () => window.location.assign('./system-status.html'));
@@ -62,15 +63,19 @@ function handleSettingsSubmit(event) {
         return;
     }
 
-    const settings = collectSettings();
+    const { theme, ...settings } = collectSettings();
     saveUserPreferences(currentUserId, 'settings', settings);
-    applyAdminPreferences(settings);
+    applyAdminDisplayPreferences(settings);
+    setThemePreference(theme);
     ui.showToast({ title: 'Configuración guardada', message: 'Tus preferencias del panel fueron actualizadas.', type: 'success' });
 }
 
+function handleThemePreferenceChange(event) {
+    setThemePreference(event.currentTarget.value);
+}
+
 function applyPreview() {
-    applyAdminPreferences({
-        theme: getValue('setting-theme'),
+    applyAdminDisplayPreferences({
         compactView: getChecked('setting-compact-view'),
         animations: getChecked('setting-animations')
     });

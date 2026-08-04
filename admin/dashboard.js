@@ -3,8 +3,11 @@
 
 import { auth, db } from './firebase.js';
 import { CONFIG } from './config.js';
+import { initThemeManager } from './core/theme-manager.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { collection, getDocs, query, orderBy, addDoc, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+initThemeManager();
 
 // ============================================================================
 // REFERENCIAS DOM (MÓDULO 2)
