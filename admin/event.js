@@ -15,6 +15,10 @@ import { initInvitationEditor } from './modules/editor/invitation-editor.js';
 import { initInvitationPreview, destroy as destroyInvitationPreview } from './modules/editor/invitation-preview.js';
 import { initThemes, destroy as destroyThemes } from './modules/themes/themes.js';
 import { initThemeBuilder, destroy as destroyThemeBuilder } from './modules/themes/theme-builder.js';
+import {
+    initEventController,
+    destroy as destroyEventController
+} from './modules/event-controller.js';
 
 let activeModulesDestroyers = [];
 
@@ -176,6 +180,7 @@ function createDependencyContainer(eventId, eventData, currentUser) {
 }
 
 function prepareModules(container) {
+
     try {
         if (typeof initExcelImport === 'function') {
             initExcelImport(container);
@@ -187,28 +192,33 @@ function prepareModules(container) {
 
         if (typeof initInvitationPreview === 'function') {
             initInvitationPreview(container);
-            if (typeof destroyInvitationPreview === 'function') {
-                activeModulesDestroyers.push(destroyInvitationPreview);
-            }
+            registerModuleDestroyer(destroyInvitationPreview);
         }
 
         if (typeof initThemes === 'function') {
             initThemes(container);
-            if (typeof destroyThemes === 'function') {
-                activeModulesDestroyers.push(destroyThemes);
-            }
+            registerModuleDestroyer(destroyThemes);
         }
 
         if (typeof initThemeBuilder === 'function') {
             initThemeBuilder(container);
-            if (typeof destroyThemeBuilder === 'function') {
-                activeModulesDestroyers.push(destroyThemeBuilder);
-            }
+            registerModuleDestroyer(destroyThemeBuilder);
+        }
+
+        if (typeof initEventController === 'function') {
+            initEventController(container);
+            registerModuleDestroyer(destroyEventController);
         }
 
         console.info('[Event Orchestrator] Todos los submódulos fueron inicializados correctamente.');
     } catch (error) {
         console.error('[Event Orchestrator] Error al inicializar los submódulos:', error);
+    }
+}
+
+function registerModuleDestroyer(destroyFn) {
+    if (typeof destroyFn === 'function' && !activeModulesDestroyers.includes(destroyFn)) {
+        activeModulesDestroyers.push(destroyFn);
     }
 }
 
@@ -222,16 +232,13 @@ function registerLifecycleCleanup() {
 }
 
 function ready(container) {
-    eventBus.emit(EVENT_TYPES.EVENT_LOADED, { 
-        eventId: container.eventContext.eventId, 
-        nombre: container.eventContext.eventData.nombre || 'Evento',
-        timestamp: Date.now() 
+
+    eventBus.emit(EVENT_TYPES.EVENT_LOADED, {
+        eventId: container.eventContext.eventId,
+        nombre: container.eventContext.eventData.nombreEvento || 'Evento',
+        timestamp: Date.now()
     });
 
-    document.getElementById('loading-view').style.display = 'none';
-    document.getElementById('main-view').style.display = 'block';
-    document.getElementById('main-view').style.opacity = '1';
-    document.getElementById('auth-guard')?.remove();
-
     console.info('[Event Orchestrator] Sistema en estado READY.');
+
 }
