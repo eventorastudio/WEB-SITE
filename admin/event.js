@@ -149,16 +149,34 @@ function storeStateAndContext(currentUser, eventId, eventData) {
         reason: 'No bindEvents function is defined or invoked by event.js.'
     });
 
-    ui.hideLoader();
-    showEventView();
-
     const dependencyContainer = createDependencyContainer(eventId, eventData, currentUser);
     
     console.debug('[TEMP DEBUG][Event Orchestrator] prepareModules:start');
     prepareModules(dependencyContainer);
     console.debug('[TEMP DEBUG][Event Orchestrator] prepareModules:end');
+
+    completeEventBoot();
     registerLifecycleCleanup();
     ready(dependencyContainer);
+}
+
+function completeEventBoot() {
+    ui.hideLoader();
+    removeAuthGuard();
+    showEventView();
+}
+
+function removeAuthGuard() {
+    const authGuard = document.getElementById('auth-guard');
+    if (authGuard) {
+        authGuard.remove();
+    }
+
+    if (document.getElementById('auth-guard')) {
+        const error = new Error('[Event Orchestrator] No se pudo eliminar auth-guard al finalizar el boot.');
+        console.error(error);
+        throw error;
+    }
 }
 
 function showEventView() {
