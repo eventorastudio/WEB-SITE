@@ -45,15 +45,23 @@ let eventDataOverride = null;
  * @returns {void}
  */
 export function initEventController(container) {
+    console.log('[EVENT_CONTROLLER] init()');
     destroy();
 
     if (!hasRequiredDependencies(container)) {
-        console.error('[Event Controller] No se recibieron las dependencias requeridas.');
-        return;
+        const error = new Error('[Event Controller] No se recibieron las dependencias requeridas.');
+        console.error(error);
+        throw error;
     }
 
     deps = container;
-    initialize();
+    try {
+        initialize();
+        console.log('[EVENT_CONTROLLER] init() completed');
+    } catch (error) {
+        console.error('[EVENT_CONTROLLER] init() failed:', error);
+        throw error;
+    }
 }
 
 /**
@@ -123,31 +131,12 @@ function cacheDom() {
 function render() {
     const eventData = getEventData();
 
-    renderMainView();
     renderHeader(eventData);
     renderInformation(eventData);
     renderStatistics(eventData);
     renderGuests(eventData);
     renderConfiguration(eventData);
 }
-
-/**
- * Cambia del skeleton inicial a la vista principal cuando el evento ya está disponible.
- * @returns {void}
- */
-function renderMainView() {
-    const loadingView = getElement('loading-view');
-    const errorView = getElement('error-view');
-    const mainView = getElement('main-view');
-
-    if (loadingView) loadingView.style.display = 'none';
-    if (errorView) errorView.style.display = 'none';
-    if (mainView) {
-        mainView.style.display = 'block';
-        mainView.style.opacity = '1';
-    }
-}
-
 
 /* ========================================================================== 
  * Render Header
@@ -1002,11 +991,5 @@ function renderGuestsAndStatistics() {
  * @returns {void}
  */
 function runCleanups(cleanups) {
-    cleanups.forEach((cleanup) => {
-        try {
-            cleanup();
-        } catch (error) {
-            console.warn('[Event Controller] Error durante cleanup:', error);
-        }
-    });
+    cleanups.forEach((cleanup) => cleanup());
 }

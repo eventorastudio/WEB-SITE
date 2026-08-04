@@ -150,6 +150,7 @@ function storeStateAndContext(currentUser, eventId, eventData) {
     });
 
     ui.hideLoader();
+    showEventView();
 
     const dependencyContainer = createDependencyContainer(eventId, eventData, currentUser);
     
@@ -158,6 +159,25 @@ function storeStateAndContext(currentUser, eventId, eventData) {
     console.debug('[TEMP DEBUG][Event Orchestrator] prepareModules:end');
     registerLifecycleCleanup();
     ready(dependencyContainer);
+}
+
+function showEventView() {
+    const loadingView = document.getElementById('loading-view');
+    const mainView = document.getElementById('main-view');
+
+    if (!loadingView || !mainView) {
+        const missingIds = [
+            !loadingView ? 'loading-view' : null,
+            !mainView ? 'main-view' : null
+        ].filter(Boolean);
+        const error = new Error(`[Event Orchestrator] No se encontraron vistas requeridas: ${missingIds.join(', ')}`);
+        console.error(error);
+        throw error;
+    }
+
+    loadingView.style.display = 'none';
+    mainView.style.display = 'block';
+    mainView.style.opacity = '1';
 }
 
 function createDependencyContainer(eventId, eventData, currentUser) {
@@ -213,6 +233,7 @@ function prepareModules(container) {
         console.info('[Event Orchestrator] Todos los submódulos fueron inicializados correctamente.');
     } catch (error) {
         console.error('[Event Orchestrator] Error al inicializar los submódulos:', error);
+        throw error;
     }
 }
 
