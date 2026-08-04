@@ -115,20 +115,7 @@ body {
 }
 
 /* HEADER PREMIUM */
-.dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 24px 0;
-    margin-bottom: 50px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-    position: sticky;
-    top: 0;
-    background: color-mix(in srgb, var(--background) 80%, transparent);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    z-index: 100;
-}
+/* El contenedor común dashboard/event se define en theme.css. */
 
 .header-left {
     display: flex;
@@ -1101,11 +1088,7 @@ select.form-control {
         padding: 0 20px 60px 20px;
     }
 
-    .dashboard-header {
-        padding: 16px 0;
-    }
-
-    .header-titles, .header-divider, .user-info {
+    .panel-name, .header-divider, .user-info {
         display: none;
     }
 
