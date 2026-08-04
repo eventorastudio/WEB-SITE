@@ -265,6 +265,29 @@
 
             <!-- PESTAÑA: INVITACIÓN (MÓDULO 8 - EDITOR VISUAL) -->
             <div id="tab-invitacion" class="tab-pane">
+                <section class="invitation-coming-soon" aria-labelledby="invitation-coming-soon-title">
+                    <div class="coming-soon-illustration" aria-hidden="true">
+                        <svg viewBox="0 0 240 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="47" y="22" width="146" height="136" rx="18" fill="currentColor" fill-opacity="0.07" stroke="currentColor" stroke-opacity="0.22" stroke-width="2"/>
+                            <rect x="66" y="43" width="108" height="94" rx="12" fill="white" stroke="currentColor" stroke-opacity="0.18" stroke-width="2"/>
+                            <path d="M88 70H152" stroke="currentColor" stroke-opacity="0.45" stroke-width="3" stroke-linecap="round"/>
+                            <path d="M88 84H137" stroke="currentColor" stroke-opacity="0.25" stroke-width="3" stroke-linecap="round"/>
+                            <path d="M88 98H145" stroke="currentColor" stroke-opacity="0.25" stroke-width="3" stroke-linecap="round"/>
+                            <rect x="88" y="112" width="40" height="8" rx="4" fill="currentColor"/>
+                            <circle cx="183" cy="45" r="17" fill="currentColor"/>
+                            <path d="M183 36V54M174 45H192" stroke="white" stroke-width="3" stroke-linecap="round"/>
+                            <path d="M38 137C24 128 20 106 33 91" stroke="currentColor" stroke-opacity="0.24" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 7"/>
+                            <circle cx="35" cy="139" r="5" fill="currentColor" fill-opacity="0.42"/>
+                            <circle cx="205" cy="133" r="7" fill="currentColor" fill-opacity="0.18"/>
+                        </svg>
+                    </div>
+                    <div class="coming-soon-badge"><span aria-hidden="true">🚀</span> Próximamente</div>
+                    <h2 id="invitation-coming-soon-title">Estamos construyendo el editor de invitaciones</h2>
+                    <p>Esta será una de las funciones principales de Eventora Studio. Estamos desarrollando un editor profesional para crear invitaciones digitales completamente personalizadas.</p>
+                    <span class="coming-soon-note">Próximamente estará disponible.</span>
+                </section>
+
+                <div class="invitation-editor-legacy" hidden aria-hidden="true">
                 <div class="editor-topbar">
                     <div class="editor-top-left">
                         <span class="editor-event-title" id="editor-event-name">Cargando...</span>
@@ -496,28 +519,84 @@
                     </div>
 
                 </div>
+                </div>
             </div>
 
             <!-- PESTAÑA: ESTADÍSTICAS -->
-            <div id="tab-estadisticas" class="tab-pane" style="padding: 40px;">
-                <div class="stats-detailed">
-                    <div class="progress-section">
-                        <div class="progress-header">
-                            <h3>Porcentaje de confirmación</h3>
-                            <span id="stat-porcentaje" class="percentage-val">0%</span>
+            <div id="tab-estadisticas" class="tab-pane stats-dashboard-pane">
+                <section class="stats-dashboard" aria-labelledby="stats-dashboard-title">
+                    <header class="stats-dashboard-header">
+                        <div>
+                            <p class="section-eyebrow">PULSO DEL EVENTO</p>
+                            <h2 id="stats-dashboard-title">Estadísticas de invitados</h2>
                         </div>
-                        <div class="progress-bar-container">
-                            <div class="progress-bar-fill" id="stat-progress-bar"></div>
+                        <p>Una lectura clara y actualizada de la respuesta de tus invitados.</p>
+                    </header>
+
+                    <div class="stats-overview-grid">
+                        <article class="stats-overview-card stats-overview-card--total">
+                            <div class="stats-card-icon" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path></svg></div>
+                            <span class="stats-card-label">Total invitados</span>
+                            <strong class="stats-card-value" id="stat-total">0</strong>
+                            <span class="stats-card-detail">Pases registrados</span>
+                        </article>
+                        <article class="stats-overview-card stats-overview-card--confirmed">
+                            <div class="stats-card-icon" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg></div>
+                            <span class="stats-card-label">Confirmados</span>
+                            <strong class="stats-card-value" id="stat-confirmados">0</strong>
+                            <span class="stats-card-detail">RSVP recibidos</span>
+                        </article>
+                        <article class="stats-overview-card stats-overview-card--pending">
+                            <div class="stats-card-icon" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></div>
+                            <span class="stats-card-label">Pendientes</span>
+                            <strong class="stats-card-value" id="stat-pendientes">0</strong>
+                            <span class="stats-card-detail">Esperan respuesta</span>
+                        </article>
+                        <article class="stats-overview-card stats-overview-card--arrivals">
+                            <div class="stats-card-icon" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path><path d="M5 5v14"></path></svg></div>
+                            <span class="stats-card-label">Llegadas</span>
+                            <strong class="stats-card-value" id="stat-llegadas">0</strong>
+                            <span class="stats-card-detail">Check-ins realizados</span>
+                        </article>
+                    </div>
+
+                    <section class="confirmation-card" aria-labelledby="confirmation-title">
+                        <div class="confirmation-content">
+                            <div class="confirmation-title-row">
+                                <div>
+                                    <p class="section-eyebrow">CONFIRMACIÓN</p>
+                                    <h3 id="confirmation-title">Respuestas recibidas</h3>
+                                </div>
+                                <strong id="stat-porcentaje" class="confirmation-percentage">0%</strong>
+                            </div>
+                            <div class="confirmation-progress-track" role="progressbar" aria-label="Porcentaje de confirmación" aria-valuemin="0" aria-valuemax="100">
+                                <div class="confirmation-progress-fill" id="stat-progress-bar"></div>
+                            </div>
+                            <p class="confirmation-caption">El porcentaje se calcula con los pases confirmados sobre el total registrado.</p>
                         </div>
+                        <div class="confirmation-side-note"><span class="confirmation-side-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18"></path><path d="m5 10 7-7 7 7"></path></svg></span><span>Seguimiento de RSVP en tiempo real</span></div>
+                    </section>
+
+                    <div class="stats-insight-grid">
+                        <article class="attendance-visual-card">
+                            <div class="attendance-visual-copy">
+                                <p class="section-eyebrow">VISTA GENERAL</p>
+                                <h3>Lectura rápida</h3>
+                                <p>La distribución y los indicadores están diseñados para que puedas decidir de un vistazo.</p>
+                            </div>
+                            <div class="attendance-orbit" aria-hidden="true"><span>RSVP<br><small>en vivo</small></span></div>
+                        </article>
+                        <article class="status-summary-card">
+                            <div class="status-summary-header"><div><p class="section-eyebrow">RESUMEN</p><h3>Estado de la lista</h3></div><span class="status-summary-caption">Actualizado</span></div>
+                            <ul class="status-summary-list">
+                                <li><span class="status-dot status-dot--confirmed"></span><span>Confirmados</span><small>Invitados que ya respondieron</small></li>
+                                <li><span class="status-dot status-dot--pending"></span><span>Pendientes</span><small>Esperando respuesta</small></li>
+                                <li><span class="status-dot status-dot--cancelled"></span><span>Cancelados</span><strong id="stat-noasiste">0</strong></li>
+                                <li><span class="status-dot status-dot--arrivals"></span><span>Llegadas</span><small>Check-ins registrados</small></li>
+                            </ul>
+                        </article>
                     </div>
-                    <div class="stats-list">
-                        <div class="stat-list-item"><span>Total de pases</span><strong id="stat-total">0</strong></div>
-                        <div class="stat-list-item"><span>Pases confirmados</span><strong id="stat-confirmados" class="text-success">0</strong></div>
-                        <div class="stat-list-item"><span>Pases pendientes</span><strong id="stat-pendientes" class="text-warning">0</strong></div>
-                        <div class="stat-list-item"><span>No asistirán</span><strong id="stat-noasiste" class="text-error">0</strong></div>
-                        <div class="stat-list-item"><span>Llegadas</span><strong id="stat-llegadas">0</strong></div>
-                    </div>
-                </div>
+                </section>
             </div>
 
             <!-- PESTAÑA: CONFIGURACIÓN -->
