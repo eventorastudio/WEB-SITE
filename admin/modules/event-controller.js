@@ -69,6 +69,8 @@ export function initEventController(container) {
  * @returns {void}
  */
 export function destroy() {
+    closeEventEditModal();
+    closeEventDeleteModal();
     runCleanups(domCleanups);
     runCleanups(eventBusCleanups);
 
@@ -398,6 +400,15 @@ function handleGuestsImported(payload) {
 function bindButtons() {
     listen(getElement('btn-back'), 'click', handleBackClick);
     listen(getElement('btn-edit-info'), 'click', handleEditInformationClick);
+    listen(getElement('btn-close-edit-event'), 'click', closeEventEditModal);
+    listen(getElement('btn-cancel-edit-event'), 'click', closeEventEditModal);
+    listen(getElement('form-edit-event'), 'submit', handleEditEventSubmit);
+    listen(getElement('modal-edit-event'), 'click', handleEventEditOverlayClick);
+    listen(getElement('btn-delete-event'), 'click', handleDeleteEventClick);
+    listen(getElement('btn-cancel-delete-event'), 'click', closeEventDeleteModal);
+    listen(getElement('btn-confirm-delete-event'), 'click', handleDeleteEventConfirm);
+    listen(getElement('modal-delete-event'), 'click', handleEventDeleteOverlayClick);
+    listen(document, 'keydown', handleModalEscape);
 }
 
 /**
@@ -417,16 +428,220 @@ function handleBackClick(event) {
  */
 function handleEditInformationClick(event) {
     event.preventDefault();
-    activateTab('info');
+    populateEventEditForm(getEventData());
+    openModal('modal-edit-event');
+}
 
-    const infoPanel = getTabPanel('info');
-    infoPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+/**
+ * Completa el formulario de edición con los datos actuales del evento.
+ * @param {Object} eventData - Datos activos del evento.
+ * @returns {void}
+ */
+function populateEventEditForm(eventData) {
+    setInputValue('edit-event-name', eventData.nombreEvento ?? eventData.nombre);
+    setInputValue('edit-event-date', toDateInputValue(eventData.fecha));
+    setInputValue('edit-event-time', toTimeInputValue(eventData.hora));
+    setInputValue('edit-event-city', eventData.ciudad);
+    setInputValue('edit-event-region', eventData.estado);
+    setSelectValue('edit-event-type', eventData.tipoEvento, 'Otro');
+    setSelectValue('edit-event-status', eventData.estadoEvento, 'Borrador');
+    setInputValue('edit-event-description', eventData.descripcion);
+}
 
-    deps.ui.showToast({
-        title: 'Información del evento',
-        message: 'La vista de edición no está registrada en este proyecto.',
-        type: 'info'
-    });
+/**
+ * Guarda el formulario de edición mediante el servicio de eventos inyectado.
+ * @param {SubmitEvent} event - Evento de envío del formulario.
+ * @returns {Promise<void>}
+ */
+async function handleEditEventSubmit(event) {
+    event.preventDefault();
+
+    const form = getElement('form-edit-event');
+    const saveButton = getElement('btn-save-edit-event');
+    const eventId = deps.eventContext.eventId;
+
+    if (!form?.checkValidity()) {
+        form?.reportValidity();
+        return;
+    }
+
+    if (!eventId || typeof deps.services.event?.updateEvent !== 'function') {
+        deps.ui.showError({
+            title: 'No se puede guardar',
+            description: 'El servicio de eventos no está disponible para esta vista.',
+            code: 'ERR_EVENT_SERVICE_UNAVAILABLE'
+        });
+        return;
+    }
+
+    const payload = getEventEditPayload();
+    setButtonBusy(saveButton, true);
+    deps.ui.showLoader({ text: 'Guardando información del evento...' });
+
+    try {
+        await deps.services.event.updateEvent(eventId, payload);
+        eventDataOverride = { ...getEventData(), ...payload };
+        render();
+        closeEventEditModal();
+
+        deps.eventBus.emit(EVENT_TYPES.EVENT_UPDATED, {
+            eventId,
+            eventData: eventDataOverride,
+            timestamp: Date.now()
+        });
+
+        deps.ui.showToast({
+            title: 'Información actualizada',
+            message: 'Los cambios del evento se guardaron correctamente.',
+            type: 'success'
+        });
+    } catch (error) {
+        console.error('[Event Controller] Error al guardar el evento:', error);
+        deps.ui.showError({
+            title: 'No se pudieron guardar los cambios',
+            description: 'Verifica tu conexión e inténtalo nuevamente.',
+            code: 'ERR_EVENT_UPDATE'
+        });
+    } finally {
+        deps.ui.hideLoader();
+        setButtonBusy(saveButton, false);
+    }
+}
+
+/**
+ * Abre la confirmación visual antes de eliminar el evento activo.
+ * @param {MouseEvent} event - Evento de clic del botón de peligro.
+ * @returns {void}
+ */
+function handleDeleteEventClick(event) {
+    event.preventDefault();
+    setText('delete-event-name', getEventName(getEventData()));
+    openModal('modal-delete-event');
+}
+
+/**
+ * Elimina el evento después de una confirmación explícita del usuario.
+ * @returns {Promise<void>}
+ */
+async function handleDeleteEventConfirm() {
+    const eventId = deps.eventContext.eventId;
+    const confirmButton = getElement('btn-confirm-delete-event');
+
+    if (!eventId || typeof deps.services.event?.deleteEvent !== 'function') {
+        deps.ui.showError({
+            title: 'No se puede eliminar',
+            description: 'El servicio de eventos no está disponible para esta vista.',
+            code: 'ERR_EVENT_SERVICE_UNAVAILABLE'
+        });
+        return;
+    }
+
+    setButtonBusy(confirmButton, true);
+    deps.ui.showLoader({ text: 'Eliminando evento...' });
+
+    try {
+        await deps.services.event.deleteEvent(eventId);
+        deps.eventBus.emit(EVENT_TYPES.EVENT_DELETED, { eventId, timestamp: Date.now() });
+        closeEventDeleteModal();
+        deps.ui.showToast({
+            title: 'Evento eliminado',
+            message: 'El evento se eliminó correctamente.',
+            type: 'success'
+        });
+        document.location.assign('./dashboard.html');
+    } catch (error) {
+        console.error('[Event Controller] Error al eliminar el evento:', error);
+        deps.ui.showError({
+            title: 'No se pudo eliminar el evento',
+            description: 'Verifica tu conexión e inténtalo nuevamente.',
+            code: 'ERR_EVENT_DELETE'
+        });
+    } finally {
+        deps.ui.hideLoader();
+        setButtonBusy(confirmButton, false);
+    }
+}
+
+/**
+ * Cierra el modal de edición al hacer clic fuera de su cuadro.
+ * @param {MouseEvent} event - Evento de clic sobre la superposición.
+ * @returns {void}
+ */
+function handleEventEditOverlayClick(event) {
+    if (event.target === getElement('modal-edit-event')) {
+        closeEventEditModal();
+    }
+}
+
+/**
+ * Cierra el modal de eliminación al hacer clic fuera de su cuadro.
+ * @param {MouseEvent} event - Evento de clic sobre la superposición.
+ * @returns {void}
+ */
+function handleEventDeleteOverlayClick(event) {
+    if (event.target === getElement('modal-delete-event')) {
+        closeEventDeleteModal();
+    }
+}
+
+/**
+ * Cierra cualquier modal propio abierto mediante la tecla Escape.
+ * @param {KeyboardEvent} event - Evento de teclado global.
+ * @returns {void}
+ */
+function handleModalEscape(event) {
+    if (event.key !== 'Escape') return;
+    closeEventEditModal();
+    closeEventDeleteModal();
+}
+
+/**
+ * Abre un modal propio del controlador y bloquea el desplazamiento de fondo.
+ * @param {string} modalId - ID del modal detectado en event.html.
+ * @returns {void}
+ */
+function openModal(modalId) {
+    const modal = getElement(modalId);
+    if (!modal) return;
+
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+}
+
+/**
+ * Cierra el modal de edición del evento.
+ * @returns {void}
+ */
+function closeEventEditModal() {
+    closeModal('modal-edit-event');
+}
+
+/**
+ * Cierra el modal de confirmación de eliminación.
+ * @returns {void}
+ */
+function closeEventDeleteModal() {
+    closeModal('modal-delete-event');
+}
+
+/**
+ * Cierra un modal propio sin afectar los modales de otros módulos.
+ * @param {string} modalId - ID del modal a cerrar.
+ * @returns {void}
+ */
+function closeModal(modalId) {
+    const modal = getElement(modalId);
+    if (!modal) return;
+
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+
+    const hasOpenControllerModal = ['modal-edit-event', 'modal-delete-event']
+        .some((id) => getElement(id)?.classList.contains('active'));
+    if (!hasOpenControllerModal) {
+        document.body.classList.remove('modal-open');
+    }
 }
 
 
@@ -506,6 +721,102 @@ function hasRequiredDependencies(container) {
  */
 function getElement(id) {
     return dom.byId.get(id) ?? null;
+}
+
+/**
+ * Asigna un valor seguro a un campo de formulario existente.
+ * @param {string} id - ID detectado del campo.
+ * @param {*} value - Valor a asignar.
+ * @returns {void}
+ */
+function setInputValue(id, value) {
+    const field = getElement(id);
+    if (field && 'value' in field) {
+        field.value = value ?? '';
+    }
+}
+
+/**
+ * Asigna un valor a un select y utiliza un fallback cuando no existe una opción compatible.
+ * @param {string} id - ID detectado del select.
+ * @param {*} value - Valor preferido.
+ * @param {string} fallback - Valor alternativo disponible en el select.
+ * @returns {void}
+ */
+function setSelectValue(id, value, fallback) {
+    const field = getElement(id);
+    if (!field || !('value' in field)) return;
+
+    const desiredValue = getDisplayValue(value, fallback);
+    const hasOption = Array.from(field.options ?? []).some((option) => option.value === desiredValue);
+    field.value = hasOption ? desiredValue : fallback;
+}
+
+/**
+ * Obtiene el valor depurado de un campo de formulario.
+ * @param {string} id - ID detectado del campo.
+ * @returns {string} Valor sin espacios laterales.
+ */
+function getFieldValue(id) {
+    const field = getElement(id);
+    return field && 'value' in field ? String(field.value).trim() : '';
+}
+
+/**
+ * Construye el payload soportado por eventService.updateEvent().
+ * @returns {Object} Campos editables del evento.
+ */
+function getEventEditPayload() {
+    return {
+        nombreEvento: getFieldValue('edit-event-name'),
+        fecha: getFieldValue('edit-event-date'),
+        hora: getFieldValue('edit-event-time'),
+        ciudad: getFieldValue('edit-event-city'),
+        estado: getFieldValue('edit-event-region'),
+        tipoEvento: getFieldValue('edit-event-type'),
+        descripcion: getFieldValue('edit-event-description'),
+        estadoEvento: getFieldValue('edit-event-status')
+    };
+}
+
+/**
+ * Activa o desactiva el estado de espera visual de un botón existente.
+ * @param {HTMLElement|null} button - Botón a actualizar.
+ * @param {boolean} isBusy - Estado de operación asíncrona.
+ * @returns {void}
+ */
+function setButtonBusy(button, isBusy) {
+    if (!button) return;
+    button.disabled = isBusy;
+    button.setAttribute('aria-busy', String(isBusy));
+}
+
+/**
+ * Convierte una fecha almacenada al formato requerido por un input date.
+ * @param {*} value - Fecha de origen.
+ * @returns {string} Fecha en formato YYYY-MM-DD.
+ */
+function toDateInputValue(value) {
+    const date = toDate(value);
+    if (!date) return '';
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+/**
+ * Convierte una hora almacenada al formato requerido por un input time.
+ * @param {*} value - Hora de origen.
+ * @returns {string} Hora en formato HH:mm.
+ */
+function toTimeInputValue(value) {
+    if (typeof value !== 'string') return '';
+    const match = value.trim().match(/^(\d{1,2}):(\d{2})/);
+    if (!match) return '';
+
+    return `${match[1].padStart(2, '0')}:${match[2]}`;
 }
 
 /**

@@ -136,32 +136,32 @@
             
             <!-- PESTAÑA: INFORMACIÓN -->
             <div id="tab-info" class="tab-pane active" style="padding: 40px;">
-                <div class="data-grid">
-                    <div class="data-group">
+                <div class="data-grid info-grid">
+                    <div class="data-group info-card">
                         <label>Nombre del evento</label>
                         <p id="info-nombre">--</p>
                     </div>
-                    <div class="data-group">
+                    <div class="data-group info-card">
                         <label>Tipo de evento</label>
                         <p id="info-tipo">--</p>
                     </div>
-                    <div class="data-group">
+                    <div class="data-group info-card">
                         <label>Fecha</label>
                         <p id="info-fecha">--</p>
                     </div>
-                    <div class="data-group">
+                    <div class="data-group info-card">
                         <label>Hora</label>
                         <p id="info-hora">--</p>
                     </div>
-                    <div class="data-group">
+                    <div class="data-group info-card">
                         <label>Ubicación</label>
                         <p id="info-ubicacion">--</p>
                     </div>
-                    <div class="data-group">
+                    <div class="data-group info-card">
                         <label>Estado actual</label>
                         <p id="info-estado">--</p>
                     </div>
-                    <div class="data-group col-span-2">
+                    <div class="data-group info-card info-card-description col-span-2">
                         <label>Descripción</label>
                         <p id="info-descripcion" class="text-block">--</p>
                     </div>
@@ -195,34 +195,44 @@
 
                 <div class="guest-toolbar">
                     <div class="guest-search-box">
+                        <span class="filter-label">Buscar</span>
                         <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                         <input type="text" id="guest-search" placeholder="Buscar por nombre, correo, teléfono o código...">
                     </div>
                     
                     <div class="guest-filters">
-                        <div class="select-wrapper">
-                            <select id="guest-filter-status" class="form-control form-control-sm">
-                                <option value="all">Todos los estados</option>
-                                <option value="confirmado">Confirmados</option>
-                                <option value="pendiente">Pendientes</option>
-                                <option value="no_asistira">No asistirán</option>
-                                <option value="llego">Llegaron</option>
-                            </select>
+                        <div class="filter-field">
+                            <span class="filter-label">Estado</span>
+                            <div class="select-wrapper">
+                                <select id="guest-filter-status" class="form-control form-control-sm">
+                                    <option value="all">Todos los estados</option>
+                                    <option value="confirmado">Confirmados</option>
+                                    <option value="pendiente">Pendientes</option>
+                                    <option value="no_asistira">No asistirán</option>
+                                    <option value="llego">Llegaron</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="select-wrapper">
-                            <select id="guest-filter-table" class="form-control form-control-sm">
-                                <option value="all">Mesa: Todas</option>
-                                <option value="with">Con mesa asignada</option>
-                                <option value="without">Sin mesa asignada</option>
-                            </select>
+                        <div class="filter-field">
+                            <span class="filter-label">Mesa</span>
+                            <div class="select-wrapper">
+                                <select id="guest-filter-table" class="form-control form-control-sm">
+                                    <option value="all">Mesa: Todas</option>
+                                    <option value="with">Con mesa asignada</option>
+                                    <option value="without">Sin mesa asignada</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="select-wrapper">
-                            <select id="guest-sort" class="form-control form-control-sm">
-                                <option value="name">Ordenar: Nombre</option>
-                                <option value="table">Ordenar: Mesa</option>
-                                <option value="date">Ordenar: Fecha Registro</option>
-                                <option value="status">Ordenar: Estado</option>
-                            </select>
+                        <div class="filter-field">
+                            <span class="filter-label">Orden</span>
+                            <div class="select-wrapper">
+                                <select id="guest-sort" class="form-control form-control-sm">
+                                    <option value="name">Ordenar: Nombre</option>
+                                    <option value="table">Ordenar: Mesa</option>
+                                    <option value="date">Ordenar: Fecha Registro</option>
+                                    <option value="status">Ordenar: Estado</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
@@ -521,7 +531,10 @@
                 <div class="danger-zone mt-40">
                     <h3 class="danger-title">Zona de peligro</h3>
                     <p class="danger-desc">Una vez que elimines un evento, no hay vuelta atrás.</p>
-                    <button class="btn-danger ripple mt-10" id="btn-delete-event">Eliminar evento</button>
+                    <button class="btn-danger ripple mt-10" id="btn-delete-event">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        Eliminar evento
+                    </button>
                 </div>
             </div>
 
@@ -530,6 +543,58 @@
 
     <!-- Modales Anteriores (Módulo 5, 6, 7) resumidos para espacio, el prompt dice no omitir. Se incluyen completos. -->
     
+    <!-- MODAL: EDITAR INFORMACIÓN DEL EVENTO -->
+    <div id="modal-edit-event" class="modal-overlay event-edit-modal" aria-hidden="true">
+        <div class="modal-container modal-event-edit" role="dialog" aria-modal="true" aria-labelledby="modal-edit-event-title">
+            <header class="modal-header">
+                <div>
+                    <p class="modal-eyebrow">EVENTORA STUDIO</p>
+                    <h2 class="modal-title" id="modal-edit-event-title">Editar información</h2>
+                </div>
+                <button class="btn-close-modal" id="btn-close-edit-event" type="button" aria-label="Cerrar edición">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </header>
+            <form id="form-edit-event" novalidate>
+                <div class="modal-body event-edit-body">
+                    <div class="form-grid event-edit-grid">
+                        <div class="col-12 form-group"><label for="edit-event-name">Nombre del evento</label><input id="edit-event-name" class="form-control" type="text" required autocomplete="off"></div>
+                        <div class="col-6 form-group"><label for="edit-event-date">Fecha</label><input id="edit-event-date" class="form-control" type="date" required></div>
+                        <div class="col-6 form-group"><label for="edit-event-time">Hora</label><input id="edit-event-time" class="form-control" type="time" required></div>
+                        <div class="col-6 form-group"><label for="edit-event-city">Ciudad</label><input id="edit-event-city" class="form-control" type="text" required autocomplete="address-level2"></div>
+                        <div class="col-6 form-group"><label for="edit-event-region">Estado / región</label><input id="edit-event-region" class="form-control" type="text" autocomplete="address-level1"></div>
+                        <div class="col-6 form-group"><label for="edit-event-type">Tipo de evento</label><div class="select-wrapper"><select id="edit-event-type" class="form-control" required><option value="Boda">Boda</option><option value="XV Años">XV Años</option><option value="Cumpleaños">Cumpleaños</option><option value="Graduación">Graduación</option><option value="Empresarial">Empresarial</option><option value="Baby Shower">Baby Shower</option><option value="Otro">Otro</option></select></div></div>
+                        <div class="col-6 form-group"><label for="edit-event-status">Estado del evento</label><div class="select-wrapper"><select id="edit-event-status" class="form-control" required><option value="Activo">Activo</option><option value="Borrador">Borrador</option><option value="Finalizado">Finalizado</option></select></div></div>
+                        <div class="col-12 form-group"><label for="edit-event-description">Descripción</label><textarea id="edit-event-description" class="form-control" rows="4"></textarea></div>
+                    </div>
+                </div>
+                <footer class="modal-footer event-edit-footer">
+                    <button class="btn-secondary" id="btn-cancel-edit-event" type="button">Cancelar</button>
+                    <button class="btn-primary" id="btn-save-edit-event" type="submit">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                        Guardar cambios
+                    </button>
+                </footer>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CONFIRMAR ELIMINACIÓN DEL EVENTO -->
+    <div id="modal-delete-event" class="modal-overlay event-delete-modal" aria-hidden="true">
+        <div class="modal-container modal-sm modal-event-delete" role="dialog" aria-modal="true" aria-labelledby="modal-delete-event-title">
+            <div class="modal-body event-delete-body">
+                <div class="event-delete-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1 2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div>
+                <p class="modal-eyebrow">ZONA DE PELIGRO</p>
+                <h2 class="modal-title" id="modal-delete-event-title">¿Eliminar este evento?</h2>
+                <p>Se eliminará <strong id="delete-event-name">este evento</strong> y no se podrá recuperar.</p>
+            </div>
+            <footer class="modal-footer event-delete-footer">
+                <button class="btn-secondary" id="btn-cancel-delete-event" type="button">Cancelar</button>
+                <button class="btn-danger" id="btn-confirm-delete-event" type="button">Sí, eliminar evento</button>
+            </footer>
+        </div>
+    </div>
+
     <!-- MODAL: AGREGAR / EDITAR INVITADO -->
     <div id="modal-guest" class="modal-overlay">
         <div class="modal-container modal-guest-size">
