@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración | Eventora Studio</title>
+    <link rel="stylesheet" href="./assets/css/dashboard.css">
+    <link rel="stylesheet" href="./assets/css/admin-settings.css">
+    <link rel="icon" href="./assets/images/favicon.ico">
+</head>
+<body>
+    <div id="auth-guard" class="auth-guard" aria-live="polite"></div>
+    <div class="premium-bg" aria-hidden="true"><div class="bg-blob blob-1"></div><div class="bg-blob blob-2"></div></div>
+    <div id="admin-page-content" class="admin-page-shell">
+        <header class="dashboard-header admin-page-header">
+            <div class="header-left"><a class="admin-logo-link" href="./dashboard.html" aria-label="Volver al panel"><img src="./assets/images/LOGO2.jpg" alt="Eventora Studio" class="logo"></a><div class="header-divider"></div><div class="header-titles"><span class="studio-name">Eventora Studio</span><span class="panel-name">Panel administrativo</span></div></div>
+            <div class="header-right"><div class="user-profile" id="shell-user-menu-trigger"><div class="user-info"><span class="user-name" id="shell-user-name">Cargando...</span><span class="user-role" id="shell-user-role">--</span></div><div class="avatar" id="shell-user-avatar">A</div><svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg><nav class="dropdown-menu" aria-label="Menú de usuario"><a class="dropdown-item" href="./profile.html">Mi perfil</a><a class="dropdown-item" href="./settings.html">Configuración</a><a class="dropdown-item" id="shell-nav-system" href="./system-status.html" hidden>Estado del sistema</a><div class="dropdown-divider"></div><button class="dropdown-item logout-item" id="shell-btn-logout" type="button">Cerrar sesión</button></nav></div></div>
+        </header>
+
+        <main class="admin-page-main settings-page-main">
+            <section class="page-intro"><div><a class="back-link" href="./dashboard.html">← Panel administrativo</a><p class="section-kicker">PREFERENCIAS DEL PANEL</p><h1>Configuración</h1><p>Define cómo se presenta el entorno interno de Eventora Studio en este navegador.</p></div></section>
+            <form id="settings-form" class="settings-layout" novalidate>
+                <section class="admin-card settings-section" aria-labelledby="settings-general-title"><div class="card-heading"><div><p class="section-kicker">GENERAL</p><h2 id="settings-general-title">Región y formatos</h2><p>Se guardan como preferencias locales de tu cuenta.</p></div></div><div class="form-grid"><label class="form-field">Idioma<select id="setting-language" class="form-control"><option value="es-MX">Español (México)</option><option value="es">Español</option><option value="en">English</option></select></label><label class="form-field">Zona horaria<select id="setting-timezone" class="form-control"><option value="America/Mexico_City">Ciudad de México</option><option value="America/Monterrey">Monterrey</option><option value="America/Tijuana">Tijuana</option><option value="America/Cancun">Cancún</option></select></label><label class="form-field">Formato de fecha<select id="setting-date-format" class="form-control"><option value="DD/MM/AAAA">DD/MM/AAAA</option><option value="MM/DD/AAAA">MM/DD/AAAA</option><option value="AAAA-MM-DD">AAAA-MM-DD</option></select></label><label class="form-field">Formato de hora<select id="setting-time-format" class="form-control"><option value="24h">24 horas</option><option value="12h">12 horas (AM/PM)</option></select></label></div></section>
+
+                <section class="admin-card settings-section" aria-labelledby="settings-appearance-title"><div class="card-heading"><div><p class="section-kicker">APARIENCIA</p><h2 id="settings-appearance-title">Experiencia visual</h2><p>La vista previa se aplica de inmediato y se conserva al guardar.</p></div></div><div class="settings-option-list"><label class="settings-select-row"><span><strong>Tema</strong><small>Define la paleta del panel interno.</small></span><select id="setting-theme" class="form-control"><option value="light">Claro</option><option value="dark">Oscuro</option><option value="system">Sistema</option></select></label><label class="toggle-row"><span><strong>Animaciones</strong><small>Usa transiciones suaves en los componentes.</small></span><input id="setting-animations" class="toggle-input" type="checkbox"><i aria-hidden="true"></i></label><label class="toggle-row"><span><strong>Vista compacta</strong><small>Reduce el espacio vertical de las tarjetas compatibles.</small></span><input id="setting-compact-view" class="toggle-input" type="checkbox"><i aria-hidden="true"></i></label><label class="toggle-row"><span><strong>Sidebar expandido</strong><small>Preferencia reservada para la futura navegación lateral.</small></span><input id="setting-sidebar-expanded" class="toggle-input" type="checkbox"><i aria-hidden="true"></i></label></div></section>
+
+                <section class="admin-card developer-settings" id="developer-settings-section" aria-labelledby="settings-developer-title"><div class="card-heading"><div><p class="section-kicker">MODO DESARROLLADOR · CEO</p><h2 id="settings-developer-title">Modo desarrollador</h2><p>Solo se muestran capacidades ya expuestas por la plataforma.</p></div><span class="role-chip">CEO</span></div><div class="developer-settings-grid"><div><strong>State Manager</strong><span>Disponible mediante la herramienta de estado.</span></div><div><strong>Event Bus</strong><span>Disponible mediante la herramienta de estado del sistema.</span></div><div><strong>Feature Flags</strong><span>No disponible: no existe registro de flags.</span></div><div><strong>Logs recientes</strong><span>Disponibles en el Estado del sistema durante esta sesión.</span></div></div><button id="btn-open-system-status" class="btn-secondary" type="button">Abrir Estado del sistema</button></section>
+
+                <div class="settings-save-bar"><div><strong>Preferencias de este navegador</strong><span>La sesión de Firebase y los servicios no se modifican.</span></div><button class="btn-primary" type="submit">Guardar configuración</button></div>
+            </form>
+            <section id="page-error-state" class="page-error-state" hidden>No fue posible cargar esta sección. Recarga la página e inténtalo nuevamente.</section>
+        </main>
+    </div>
+    <script type="module" src="./settings.js"></script>
+</body>
+</html>

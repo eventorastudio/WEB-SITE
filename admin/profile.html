@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil | Eventora Studio</title>
+    <link rel="stylesheet" href="./assets/css/dashboard.css">
+    <link rel="stylesheet" href="./assets/css/admin-settings.css">
+    <link rel="icon" href="./assets/images/favicon.ico">
+</head>
+<body>
+    <div id="auth-guard" class="auth-guard" aria-live="polite"></div>
+    <div class="premium-bg" aria-hidden="true"><div class="bg-blob blob-1"></div><div class="bg-blob blob-2"></div></div>
+
+    <div id="admin-page-content" class="admin-page-shell">
+        <header class="dashboard-header admin-page-header">
+            <div class="header-left">
+                <a class="admin-logo-link" href="./dashboard.html" aria-label="Volver al panel"><img src="./assets/images/LOGO2.jpg" alt="Eventora Studio" class="logo"></a>
+                <div class="header-divider"></div>
+                <div class="header-titles"><span class="studio-name">Eventora Studio</span><span class="panel-name">Panel administrativo</span></div>
+            </div>
+            <div class="header-right">
+                <div class="user-profile" id="shell-user-menu-trigger">
+                    <div class="user-info"><span class="user-name" id="shell-user-name">Cargando...</span><span class="user-role" id="shell-user-role">--</span></div>
+                    <div class="avatar" id="shell-user-avatar">A</div>
+                    <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    <nav class="dropdown-menu" aria-label="Menú de usuario">
+                        <a class="dropdown-item" href="./profile.html">Mi perfil</a>
+                        <a class="dropdown-item" href="./settings.html">Configuración</a>
+                        <a class="dropdown-item" id="shell-nav-system" href="./system-status.html" hidden>Estado del sistema</a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item logout-item" id="shell-btn-logout" type="button">Cerrar sesión</button>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <main class="admin-page-main">
+            <section class="page-intro">
+                <div><a class="back-link" href="./dashboard.html">← Panel administrativo</a><p class="section-kicker">CUENTA INTERNA</p><h1>Mi perfil</h1><p>Gestiona la identidad y seguridad de la cuenta que administra Eventora Studio.</p></div>
+                <span class="role-chip">CEO</span>
+            </section>
+
+            <section class="profile-identity-card">
+                <div class="profile-avatar-lg" id="profile-header-avatar"><img id="profile-header-avatar-image" alt="Foto de perfil" hidden></div>
+                <div class="profile-identity-main"><p class="section-kicker">PERFIL INTERNO</p><h2 id="profile-header-name">Cargando...</h2><p id="profile-header-role">--</p><a id="profile-header-email" href="#personal-info">--</a></div>
+                <dl class="profile-meta-list"><div><dt>UID</dt><dd id="profile-header-uid">--</dd></div><div><dt>Cuenta creada</dt><dd id="profile-account-created">--</dd></div><div><dt>Último acceso</dt><dd id="profile-last-signin">--</dd></div></dl>
+            </section>
+
+            <div class="admin-two-column-layout">
+                <section class="admin-card" id="personal-info" aria-labelledby="personal-info-title">
+                    <div class="card-heading"><div><p class="section-kicker">INFORMACIÓN PERSONAL</p><h2 id="personal-info-title">Datos de contacto</h2><p>Estos datos identifican tu cuenta interna y la marca del panel.</p></div></div>
+                    <form id="profile-form" class="admin-form" novalidate>
+                        <div class="form-grid"><label class="form-field form-field-wide">Nombre<input id="profile-name" class="form-control" type="text" autocomplete="name" required></label><label class="form-field">Correo de acceso<input id="profile-email" class="form-control" type="email" autocomplete="email" readonly aria-describedby="profile-email-help"><small id="profile-email-help">Cámbialo desde Seguridad.</small></label><label class="form-field">Teléfono<input id="profile-phone" class="form-control" type="tel" autocomplete="tel"></label><label class="form-field">Empresa<input id="profile-company" class="form-control" type="text" autocomplete="organization"></label><label class="form-field">Sitio web<input id="profile-website" class="form-control" type="url" autocomplete="url" placeholder="https://"></label><label class="form-field">Instagram<input id="profile-instagram" class="form-control" type="text" autocomplete="url" placeholder="@eventorastudio"></label><label class="form-field">WhatsApp Business<input id="profile-whatsapp" class="form-control" type="tel" autocomplete="tel"></label><label class="form-field form-field-wide">Logo de Eventora Studio (URL)<input id="profile-brand-logo" class="form-control" type="url" autocomplete="url" placeholder="https://"></label></div>
+                        <div class="form-actions"><button id="btn-save-profile" class="btn-primary" type="submit">Guardar cambios</button></div>
+                    </form>
+                </section>
+
+                <aside class="admin-card company-card" aria-labelledby="company-card-title">
+                    <div class="company-logo-preview"><img id="profile-brand-logo-preview" alt="Logo de Eventora Studio" hidden><span id="profile-brand-logo-fallback">ES</span></div>
+                    <p class="section-kicker">EMPRESA</p><h2 id="company-card-title">Eventora Studio</h2><p class="company-name" id="company-name-value">--</p>
+                    <dl class="company-version-list"><div><dt>Versión del panel</dt><dd id="company-panel-version">--</dd></div><div><dt>Versión del sistema</dt><dd id="company-system-version">--</dd></div></dl>
+                    <div class="company-service-list" aria-label="Estado de servicios"><div><span>Firebase</span><strong id="company-status-firebase" data-status="pending">Comprobando...</strong></div><div><span>Firestore</span><strong id="company-status-firestore" data-status="pending">Comprobando...</strong></div><div><span>Authentication</span><strong id="company-status-authentication" data-status="pending">Comprobando...</strong></div><div><span>Hosting</span><strong id="company-status-hosting" data-status="pending">Comprobando...</strong></div></div>
+                </aside>
+            </div>
+
+            <section class="admin-card security-card" aria-labelledby="security-title">
+                <div class="card-heading"><div><p class="section-kicker">SEGURIDAD</p><h2 id="security-title">Protege tu acceso</h2><p>Las acciones sensibles requieren tu contraseña actual.</p></div></div>
+                <div class="security-grid"><article><span class="security-icon">⌁</span><h3>Contraseña</h3><p>Actualiza la contraseña de Firebase tras confirmar tu identidad.</p><button class="btn-secondary" id="btn-open-password-modal" type="button">Cambiar contraseña</button></article><article><span class="security-icon">@</span><h3>Correo de acceso</h3><p>Cambia el correo de Firebase con reautenticación.</p><button class="btn-secondary" id="btn-open-email-modal" type="button">Cambiar correo</button></article><article><span class="security-icon">◌</span><h3>Sesiones</h3><p>Último dispositivo: <strong id="profile-last-device">--</strong></p><button class="btn-secondary" id="btn-close-all-sessions" type="button">Cerrar todas las sesiones</button></article><article class="security-future"><span class="security-icon">✦</span><h3>Autenticación en dos pasos</h3><p>La arquitectura queda preparada; aún no hay proveedor 2FA configurado.</p><span class="availability-label">No disponible</span></article></div>
+            </section>
+
+            <section id="page-error-state" class="page-error-state" hidden>No fue posible cargar esta sección. Recarga la página e inténtalo nuevamente.</section>
+        </main>
+    </div>
+
+    <div id="password-modal" class="modal-overlay profile-modal" aria-hidden="true"><div class="modal-container profile-security-modal" role="dialog" aria-modal="true" aria-labelledby="password-modal-title"><header class="modal-header"><div><p class="section-kicker">SEGURIDAD</p><h2 class="modal-title" id="password-modal-title">Cambiar contraseña</h2></div><button class="btn-close-modal" type="button" data-close-profile-modal aria-label="Cerrar">×</button></header><form id="password-form" class="modal-scroll-form"><div class="modal-body"><label class="form-field">Contraseña actual<input id="current-password" class="form-control" type="password" autocomplete="current-password" required></label><label class="form-field">Nueva contraseña<input id="new-password" class="form-control" type="password" autocomplete="new-password" minlength="6" required></label><label class="form-field">Confirmar contraseña<input id="confirm-password" class="form-control" type="password" autocomplete="new-password" minlength="6" required></label></div><footer class="modal-footer"><button class="btn-secondary" type="button" data-close-profile-modal>Cancelar</button><button id="btn-save-password" class="btn-primary" type="submit">Actualizar contraseña</button></footer></form></div></div>
+    <div id="email-modal" class="modal-overlay profile-modal" aria-hidden="true"><div class="modal-container profile-security-modal" role="dialog" aria-modal="true" aria-labelledby="email-modal-title"><header class="modal-header"><div><p class="section-kicker">SEGURIDAD</p><h2 class="modal-title" id="email-modal-title">Cambiar correo</h2></div><button class="btn-close-modal" type="button" data-close-profile-modal aria-label="Cerrar">×</button></header><form id="email-form" class="modal-scroll-form"><div class="modal-body"><label class="form-field">Nuevo correo<input id="new-email" class="form-control" type="email" autocomplete="email" required></label><label class="form-field">Contraseña actual<input id="current-email-password" class="form-control" type="password" autocomplete="current-password" required></label></div><footer class="modal-footer"><button class="btn-secondary" type="button" data-close-profile-modal>Cancelar</button><button id="btn-save-email" class="btn-primary" type="submit">Actualizar correo</button></footer></form></div></div>
+
+    <script type="module" src="./profile.js"></script>
+</body>
+</html>

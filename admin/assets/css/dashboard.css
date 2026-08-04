@@ -272,6 +272,7 @@ body {
     font-size: 0.85rem;
     font-weight: 400;
     color: var(--color-gray-dark);
+    text-decoration: none;
     border-radius: var(--border-radius-sm);
     transition: var(--transition-fast);
 }
