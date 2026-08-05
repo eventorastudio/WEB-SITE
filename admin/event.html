@@ -207,10 +207,10 @@
                             <div class="select-wrapper">
                                 <select id="guest-filter-status" class="form-control form-control-sm">
                                     <option value="all">Todos los estados</option>
-                                    <option value="confirmado">Confirmados</option>
-                                    <option value="pendiente">Pendientes</option>
-                                    <option value="no_asistira">No asistirán</option>
-                                    <option value="llego">Llegaron</option>
+                                    <option value="confirmed">Confirmados</option>
+                                    <option value="pending">Pendientes</option>
+                                    <option value="no-attendance">No asistirán</option>
+                                    <option value="arrived">Llegaron</option>
                                 </select>
                             </div>
                         </div>
@@ -219,7 +219,6 @@
                             <div class="select-wrapper">
                                 <select id="guest-filter-table" class="form-control form-control-sm">
                                     <option value="all">Mesa: Todas</option>
-                                    <option value="with">Con mesa asignada</option>
                                     <option value="without">Sin mesa asignada</option>
                                 </select>
                             </div>
@@ -228,10 +227,12 @@
                             <span class="filter-label">Orden</span>
                             <div class="select-wrapper">
                                 <select id="guest-sort" class="form-control form-control-sm">
-                                    <option value="name">Ordenar: Nombre</option>
-                                    <option value="table">Ordenar: Mesa</option>
-                                    <option value="date">Ordenar: Fecha Registro</option>
-                                    <option value="status">Ordenar: Estado</option>
+                                    <option value="name-asc">Nombre: A-Z</option>
+                                    <option value="name-desc">Nombre: Z-A</option>
+                                    <option value="date-desc">Más recientes</option>
+                                    <option value="date-asc">Más antiguos</option>
+                                    <option value="status">Estado</option>
+                                    <option value="table">Mesa</option>
                                 </select>
                             </div>
                         </div>
@@ -676,8 +677,8 @@
     </div>
 
     <!-- MODAL: AGREGAR / EDITAR INVITADO -->
-    <div id="modal-guest" class="modal-overlay">
-        <div class="modal-container modal-guest-size">
+    <div id="modal-guest" class="modal-overlay" aria-hidden="true">
+        <div class="modal-container modal-guest-size" role="dialog" aria-modal="true" aria-labelledby="modal-guest-title">
             <header class="modal-header">
                 <h2 class="modal-title" id="modal-guest-title">Agregar Invitado</h2>
                 <button class="btn-close-modal" id="btn-close-modal-guest"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
@@ -686,7 +687,7 @@
                 <form id="form-guest">
                     <input type="hidden" id="g-doc-id">
                     <div class="form-grid">
-                        <div class="col-12 form-group"><label>Nombre completo <span class="required">*</span></label><input type="text" id="g-nombre" class="form-control" autocomplete="off"><span class="error-msg">Requerido.</span></div>
+                        <div class="col-12 form-group"><label for="g-nombre">Nombre completo <span class="required">*</span></label><input type="text" id="g-nombre" class="form-control" autocomplete="name" required><span class="error-msg">Requerido.</span></div>
                         <div class="col-6 form-group"><label>Teléfono</label><input type="tel" id="g-telefono" class="form-control"></div>
                         <div class="col-6 form-group"><label>Correo</label><input type="email" id="g-correo" class="form-control"></div>
                         <div class="col-4 form-group"><label>Pases <span class="required">*</span></label><input type="number" id="g-pases" class="form-control" value="1" min="1"><span class="error-msg">Requerido.</span></div>
@@ -699,7 +700,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-secondary" id="btn-cancel-modal-guest">Cancelar</button>
-                <button type="button" class="btn-primary" id="btn-submit-guest"><span class="btn-text">Guardar</span><svg class="btn-loader" style="display: none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line></svg></button>
+                <button type="submit" form="form-guest" class="btn-primary" id="btn-submit-guest"><span class="btn-text">Guardar</span><svg class="btn-loader" style="display: none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line></svg></button>
             </div>
         </div>
     </div>
@@ -753,12 +754,12 @@
     </div>
 
     <!-- MODAL: IMPORTAR EXCEL -->
-    <div id="modal-import-excel" class="modal-overlay">
-        <div class="modal-container import-modal-size">
-            <header class="modal-header"><h2 class="modal-title">Importar Invitados</h2><button class="btn-close-modal" id="btn-close-modal-import"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></header>
+    <div id="modal-import-excel" class="modal-overlay" aria-hidden="true">
+        <div class="modal-container import-modal-size" role="dialog" aria-modal="true" aria-labelledby="modal-import-title">
+            <header class="modal-header"><h2 class="modal-title" id="modal-import-title">Importar Invitados</h2><button class="btn-close-modal" id="btn-close-modal-import" type="button" aria-label="Cerrar importación"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></header>
             <div class="modal-body" style="padding: 0;">
                 <div id="import-step-1" class="import-step active" style="padding: 40px;">
-                    <div class="upload-area-premium" id="excel-drop-zone"><input type="file" id="excel-file-input" accept=".xlsx, .xls" class="file-input-hidden"><div class="upload-content"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold)" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><h3 class="mt-20">Selecciona tu archivo Excel</h3></div></div>
+                    <div class="upload-area-premium" id="excel-drop-zone" role="button" tabindex="0" aria-label="Seleccionar archivo Excel"><input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv" class="file-input-hidden"><div class="upload-content"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold)" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><h3 class="mt-20">Selecciona tu archivo Excel o CSV</h3></div></div>
                     <div class="text-center mt-20"><button class="btn-text ripple" id="btn-download-template" style="color: var(--color-gray-dark); font-size: 0.9rem; border: none; background: transparent; cursor: pointer; text-decoration: underline;">Descargar plantilla</button></div>
                 </div>
                 <div id="import-step-2" class="import-step" style="padding: 30px 40px;">

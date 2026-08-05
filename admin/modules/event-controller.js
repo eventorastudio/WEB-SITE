@@ -29,6 +29,19 @@ let statsAdjustments = createEmptyStats();
 /** @type {Object|null} Datos de evento recibidos en una actualización tipada. */
 let eventDataOverride = null;
 
+/** Desuscripción del listener realtime de invitados. */
+let guestSubscriptionCleanup = null;
+
+/** Estado de carga independiente de la subcolección de invitados. */
+let guestLoadState = 'idle';
+let guestLoadError = null;
+
+/** Filtros visuales efímeros; las listas completas nunca se guardan en State. */
+let guestFilters = { search: '', status: 'all', table: 'all', sort: 'name-asc' };
+let guestVisibleLimit = 50;
+let guestSearchTimer = null;
+let activeGuestMode = 'create';
+
 
 /* ========================================================================== 
  * API Pública
@@ -71,15 +84,25 @@ export function initEventController(container) {
 export function destroy() {
     closeEventEditModal();
     closeEventDeleteModal();
+    closeGuestModal();
     runCleanups(domCleanups);
     runCleanups(eventBusCleanups);
+    guestSubscriptionCleanup?.();
+    if (guestSearchTimer) window.clearTimeout(guestSearchTimer);
 
     domCleanups = [];
     eventBusCleanups = [];
+    guestSubscriptionCleanup = null;
+    guestSearchTimer = null;
     guestsById.clear();
     hasGuestSnapshot = false;
     statsAdjustments = createEmptyStats();
     eventDataOverride = null;
+    guestLoadState = 'idle';
+    guestLoadError = null;
+    guestFilters = { search: '', status: 'all', table: 'all', sort: 'name-asc' };
+    guestVisibleLimit = 50;
+    activeGuestMode = 'create';
     dom = createEmptyDomCache();
     deps = null;
 }
@@ -234,13 +257,638 @@ function renderGuests(eventData) {
     setText('g-stat-no', formatNumber(stats.noAttendance));
     setText('g-stat-llegaron', formatNumber(stats.arrivals));
 
-    if (emptyState) {
-        emptyState.style.display = stats.total > 0 ? 'none' : 'block';
+    if (!guestsList) return;
+
+    if (guestLoadState === 'idle' || guestLoadState === 'loading') {
+        if (emptyState) emptyState.style.display = 'none';
+        renderGuestSkeleton(guestsList);
+        return;
     }
 
-    if (guestsList && stats.total === 0) {
-        guestsList.replaceChildren();
+    if (guestLoadState === 'error') {
+        if (emptyState) emptyState.style.display = 'none';
+        renderGuestLoadError(guestsList);
+        return;
     }
+
+    const guests = Array.from(guestsById.values());
+    syncGuestTableFilter(guests);
+
+    if (guests.length === 0) {
+        guestsList.replaceChildren();
+        if (emptyState) emptyState.style.display = 'block';
+        return;
+    }
+
+    if (emptyState) emptyState.style.display = 'none';
+    const filteredGuests = getFilteredGuests(guests);
+
+    if (filteredGuests.length === 0) {
+        renderGuestNoResults(guestsList);
+        return;
+    }
+
+    renderGuestCollection(guestsList, filteredGuests);
+}
+
+/** Carga la subcolección una sola vez al abrir la pestaña Invitados. */
+async function ensureGuestsLoaded() {
+    if (guestLoadState === 'loading' || guestLoadState === 'loaded') return;
+
+    if (typeof deps.services.guest?.getGuestsByEventId !== 'function') {
+        guestLoadState = 'error';
+        guestLoadError = 'El servicio de invitados no está disponible.';
+        renderGuests(getEventData());
+        return;
+    }
+
+    guestLoadState = 'loading';
+    guestLoadError = null;
+    renderGuests(getEventData());
+
+    try {
+        const guests = await deps.services.guest.getGuestsByEventId(deps.eventContext.eventId);
+        replaceGuests(guests);
+        guestLoadState = 'loaded';
+        startGuestSubscription();
+        renderGuestsAndStatistics();
+    } catch (error) {
+        console.error('[Event Controller] Error cargando invitados:', error);
+        guestLoadState = 'error';
+        guestLoadError = error?.message || 'No fue posible consultar los invitados.';
+        renderGuests(getEventData());
+        deps.ui.showToast({
+            title: 'No se pudieron cargar los invitados',
+            message: 'Verifica tu conexión e inténtalo nuevamente.',
+            type: 'error'
+        });
+    }
+}
+
+/** Mantiene la lista actualizada sin consultas adicionales desde la interfaz. */
+function startGuestSubscription() {
+    if (guestSubscriptionCleanup || typeof deps.services.guest?.subscribeToGuests !== 'function') return;
+
+    guestSubscriptionCleanup = deps.services.guest.subscribeToGuests(
+        deps.eventContext.eventId,
+        (guests) => {
+            replaceGuests(guests);
+            guestLoadState = 'loaded';
+            guestLoadError = null;
+            renderGuestsAndStatistics();
+        },
+        (error) => {
+            console.error('[Event Controller] Error realtime de invitados:', error);
+            if (!hasGuestSnapshot) {
+                guestLoadState = 'error';
+                guestLoadError = error?.message || 'No fue posible mantener la lista sincronizada.';
+                renderGuests(getEventData());
+            }
+        }
+    );
+}
+
+/** Integra invitados recién creados o importados sin sustituir el snapshot vigente. */
+function mergeGuests(guests) {
+    guests.forEach((guest, index) => {
+        if (isPlainObject(guest)) {
+            guestsById.set(guest.id ?? `event-guest-${guestsById.size + index}`, guest);
+        }
+    });
+}
+
+function renderGuestSkeleton(container) {
+    const skeleton = document.createElement('section');
+    skeleton.className = 'guest-list-skeleton';
+    skeleton.setAttribute('aria-label', 'Cargando invitados');
+
+    for (let index = 0; index < 5; index += 1) {
+        const row = document.createElement('div');
+        row.className = 'guest-skeleton-row';
+        for (let column = 0; column < 6; column += 1) {
+            const block = document.createElement('span');
+            block.className = 'guest-skeleton-block';
+            row.appendChild(block);
+        }
+        skeleton.appendChild(row);
+    }
+
+    container.replaceChildren(skeleton);
+}
+
+function renderGuestLoadError(container) {
+    const state = createGuestListState(
+        'No fue posible cargar los invitados',
+        'La lista no pudo obtenerse desde Firestore. Inténtalo nuevamente.',
+        'Reintentar',
+        () => {
+            guestLoadState = 'idle';
+            ensureGuestsLoaded();
+        }
+    );
+    container.replaceChildren(state);
+}
+
+function renderGuestNoResults(container) {
+    const state = createGuestListState(
+        'No hay coincidencias',
+        'Prueba con otro texto de búsqueda o ajusta los filtros activos.',
+        'Limpiar filtros',
+        clearGuestFilters
+    );
+    container.replaceChildren(state);
+}
+
+function createGuestListState(title, description, actionLabel, onAction) {
+    const state = document.createElement('section');
+    state.className = 'guest-list-state';
+    const heading = document.createElement('h3');
+    const copy = document.createElement('p');
+    const action = document.createElement('button');
+
+    heading.textContent = title;
+    copy.textContent = description;
+    action.type = 'button';
+    action.className = 'btn-secondary';
+    action.textContent = actionLabel;
+    action.addEventListener('click', onAction);
+    state.append(heading, copy, action);
+    return state;
+}
+
+function renderGuestCollection(container, guests) {
+    const visibleGuests = guests.slice(0, guestVisibleLimit);
+    const fragment = document.createDocumentFragment();
+    fragment.append(createGuestTable(visibleGuests));
+    fragment.append(createGuestCards(visibleGuests));
+
+    if (visibleGuests.length < guests.length) {
+        const moreButton = document.createElement('button');
+        moreButton.type = 'button';
+        moreButton.className = 'btn-secondary guest-load-more';
+        moreButton.textContent = `Mostrar más invitados (${guests.length - visibleGuests.length})`;
+        moreButton.addEventListener('click', () => {
+            guestVisibleLimit += 50;
+            renderGuests(getEventData());
+        });
+        fragment.append(moreButton);
+    }
+
+    container.replaceChildren(fragment);
+}
+
+function createGuestTable(guests) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'guest-table-wrapper';
+    const table = document.createElement('table');
+    table.className = 'guest-table';
+    table.setAttribute('aria-label', 'Lista de invitados');
+    const headers = ['Invitado', 'Contacto', 'Pases', 'Estado', 'Mesa', 'Código', 'Llegada', 'Acciones'];
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    headers.forEach((label) => {
+        const cell = document.createElement('th');
+        cell.scope = 'col';
+        cell.textContent = label;
+        headerRow.appendChild(cell);
+    });
+    thead.appendChild(headerRow);
+
+    const tbody = document.createElement('tbody');
+    guests.forEach((guest) => tbody.appendChild(createGuestTableRow(guest)));
+    table.append(thead, tbody);
+    wrapper.appendChild(table);
+    return wrapper;
+}
+
+function createGuestTableRow(guest) {
+    const row = document.createElement('tr');
+    const nameCell = document.createElement('td');
+    const name = document.createElement('strong');
+    const date = document.createElement('small');
+    name.textContent = getGuestName(guest);
+    date.textContent = formatGuestDate(guest.fechaCreacion);
+    nameCell.append(name, date);
+
+    const contactCell = document.createElement('td');
+    const email = document.createElement('span');
+    const phone = document.createElement('small');
+    email.textContent = getDisplayValue(guest.correo ?? guest.email, '—');
+    phone.textContent = getDisplayValue(guest.telefono ?? guest.tel ?? guest.phone, '—');
+    contactCell.append(email, phone);
+
+    const passesCell = document.createElement('td');
+    passesCell.textContent = formatNumber(getGuestPasses(guest));
+
+    const statusCell = document.createElement('td');
+    statusCell.appendChild(createGuestStatusBadge(guest));
+
+    const tableCell = document.createElement('td');
+    tableCell.textContent = getGuestTable(guest) || 'Sin mesa';
+
+    const codeCell = document.createElement('td');
+    codeCell.className = 'guest-code-cell';
+    codeCell.textContent = getGuestCode(guest) || '—';
+
+    const arrivalCell = document.createElement('td');
+    arrivalCell.textContent = hasGuestArrival(guest) ? 'Registrada' : 'Pendiente';
+
+    const actionsCell = document.createElement('td');
+    actionsCell.className = 'guest-actions-cell';
+    actionsCell.append(
+        createGuestActionButton('view', 'Ver', guest),
+        createGuestActionButton('edit', 'Editar', guest),
+        createGuestActionButton('delete', 'Eliminar', guest, true)
+    );
+
+    row.append(nameCell, contactCell, passesCell, statusCell, tableCell, codeCell, arrivalCell, actionsCell);
+    return row;
+}
+
+function createGuestCards(guests) {
+    const list = document.createElement('div');
+    list.className = 'guest-cards';
+    guests.forEach((guest) => {
+        const card = document.createElement('article');
+        card.className = 'guest-card';
+        const header = document.createElement('header');
+        const title = document.createElement('h3');
+        title.textContent = getGuestName(guest);
+        header.append(title, createGuestStatusBadge(guest));
+
+        const details = document.createElement('dl');
+        appendGuestCardDetail(details, 'Correo', getDisplayValue(guest.correo ?? guest.email, '—'));
+        appendGuestCardDetail(details, 'Teléfono', getDisplayValue(guest.telefono ?? guest.tel ?? guest.phone, '—'));
+        appendGuestCardDetail(details, 'Pases', formatNumber(getGuestPasses(guest)));
+        appendGuestCardDetail(details, 'Mesa', getGuestTable(guest) || 'Sin mesa');
+        appendGuestCardDetail(details, 'Código', getGuestCode(guest) || '—');
+        appendGuestCardDetail(details, 'Llegada', hasGuestArrival(guest) ? 'Registrada' : 'Pendiente');
+
+        const actions = document.createElement('footer');
+        actions.className = 'guest-card-actions';
+        actions.append(
+            createGuestActionButton('view', 'Ver', guest),
+            createGuestActionButton('edit', 'Editar', guest),
+            createGuestActionButton('delete', 'Eliminar', guest, true)
+        );
+        card.append(header, details, actions);
+        list.appendChild(card);
+    });
+    return list;
+}
+
+function appendGuestCardDetail(list, label, value) {
+    const row = document.createElement('div');
+    const term = document.createElement('dt');
+    const detail = document.createElement('dd');
+    term.textContent = label;
+    detail.textContent = value;
+    row.append(term, detail);
+    list.appendChild(row);
+}
+
+function createGuestStatusBadge(guest) {
+    const status = getGuestStatus(guest);
+    const badge = document.createElement('span');
+    badge.className = `guest-status guest-status--${status}`;
+    badge.textContent = getGuestStatusLabel(status);
+    return badge;
+}
+
+function createGuestActionButton(action, label, guest, isDanger = false) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `guest-action${isDanger ? ' guest-action--danger' : ''}`;
+    button.dataset.guestAction = action;
+    button.dataset.guestId = String(guest.id || '');
+    button.textContent = label;
+    button.setAttribute('aria-label', `${label}: ${getGuestName(guest)}`);
+    return button;
+}
+
+function getFilteredGuests(guests) {
+    const search = normalizeText(guestFilters.search).replace(/\s+/g, '');
+    const filtered = guests.filter((guest) => {
+        const statusMatches = guestFilters.status === 'all' || getGuestStatus(guest) === guestFilters.status;
+        if (!statusMatches) return false;
+
+        const table = getGuestTable(guest);
+        const tableMatches = guestFilters.table === 'all'
+            || (guestFilters.table === 'without' && !table)
+            || (guestFilters.table === 'with' && Boolean(table))
+            || (guestFilters.table.startsWith('table:') && normalizeText(table) === guestFilters.table.slice(6));
+        if (!tableMatches) return false;
+
+        if (!search) return true;
+        const searchable = [getGuestName(guest), guest.correo, guest.email, guest.telefono, guest.tel, guest.phone, getGuestCode(guest)]
+            .map((value) => normalizeText(value).replace(/\s+/g, ''))
+            .join('|');
+        return searchable.includes(search);
+    });
+
+    return filtered.sort(compareGuestsBySelectedOrder);
+}
+
+function compareGuestsBySelectedOrder(left, right) {
+    const nameComparison = getGuestName(left).localeCompare(getGuestName(right), 'es', { sensitivity: 'base', numeric: true });
+    switch (guestFilters.sort) {
+        case 'name-desc': return -nameComparison;
+        case 'date-desc': return getGuestTimestamp(right) - getGuestTimestamp(left) || nameComparison;
+        case 'date-asc': return getGuestTimestamp(left) - getGuestTimestamp(right) || nameComparison;
+        case 'status': return getGuestStatusRank(left) - getGuestStatusRank(right) || nameComparison;
+        case 'table': return (getGuestTable(left) || 'zzzz').localeCompare(getGuestTable(right) || 'zzzz', 'es', { sensitivity: 'base', numeric: true }) || nameComparison;
+        case 'name-asc':
+        default: return nameComparison;
+    }
+}
+
+function syncGuestTableFilter(guests) {
+    const select = getElement('guest-filter-table');
+    if (!select) return;
+
+    const previousValue = guestFilters.table;
+    Array.from(select.querySelectorAll('[data-guest-table-option]')).forEach((option) => option.remove());
+    const tables = [...new Map(guests
+        .map(getGuestTable)
+        .filter(Boolean)
+        .map((table) => [normalizeText(table), table])).values()]
+        .sort((left, right) => left.localeCompare(right, 'es', { sensitivity: 'base', numeric: true }));
+
+    tables.forEach((table) => {
+        const option = document.createElement('option');
+        option.value = `table:${normalizeText(table)}`;
+        option.textContent = `Mesa: ${table}`;
+        option.dataset.guestTableOption = 'true';
+        select.appendChild(option);
+    });
+
+    const hasPreviousValue = Array.from(select.options).some((option) => option.value === previousValue);
+    guestFilters.table = hasPreviousValue ? previousValue : 'all';
+    select.value = guestFilters.table;
+}
+
+function handleGuestSearchInput(event) {
+    const value = event.target?.value || '';
+    if (guestSearchTimer) window.clearTimeout(guestSearchTimer);
+    guestSearchTimer = window.setTimeout(() => {
+        guestFilters.search = value;
+        guestVisibleLimit = 50;
+        renderGuests(getEventData());
+    }, 160);
+}
+
+function handleGuestFilterChange() {
+    guestFilters.status = getElement('guest-filter-status')?.value || 'all';
+    guestFilters.table = getElement('guest-filter-table')?.value || 'all';
+    guestFilters.sort = getElement('guest-sort')?.value || 'name-asc';
+    guestVisibleLimit = 50;
+    renderGuests(getEventData());
+}
+
+function clearGuestFilters() {
+    guestFilters = { search: '', status: 'all', table: 'all', sort: 'name-asc' };
+    guestVisibleLimit = 50;
+    setInputValue('guest-search', '');
+    setSelectValue('guest-filter-status', 'all', 'all');
+    setSelectValue('guest-filter-table', 'all', 'all');
+    setSelectValue('guest-sort', 'name-asc', 'name-asc');
+    renderGuests(getEventData());
+}
+
+function handleGuestListAction(event) {
+    const button = event.target instanceof Element ? event.target.closest('[data-guest-action]') : null;
+    if (!button) return;
+
+    event.preventDefault();
+    const guest = guestsById.get(button.dataset.guestId);
+    if (!guest) return;
+
+    if (button.dataset.guestAction === 'view') {
+        openGuestModal('view', guest);
+    } else if (button.dataset.guestAction === 'edit') {
+        openGuestModal('edit', guest);
+    } else if (button.dataset.guestAction === 'delete') {
+        deleteGuestWithConfirmation(guest, button);
+    }
+}
+
+function openGuestModal(mode, guest = null) {
+    activeGuestMode = mode;
+    const form = getElement('form-guest');
+    const saveButton = getElement('btn-submit-guest');
+    const title = getElement('modal-guest-title');
+
+    form?.reset();
+    setInputValue('g-doc-id', guest?.id || '');
+    setInputValue('g-nombre', guest?.nombre ?? guest?.name);
+    setInputValue('g-telefono', guest?.telefono ?? guest?.tel ?? guest?.phone);
+    setInputValue('g-correo', guest?.correo ?? guest?.email);
+    setInputValue('g-pases', guest ? getGuestPasses(guest) : 1);
+    setInputValue('g-mesa', getGuestTable(guest));
+    setSelectValue('g-estado', getGuestStatusLabel(getGuestStatus(guest)), 'Pendiente');
+    setSelectValue('g-acceso', guest?.tipoAcceso ?? guest?.acceso, 'Ambos');
+    setInputValue('g-notas', guest?.notas ?? guest?.comentarios ?? guest?.observaciones);
+
+    const isView = mode === 'view';
+    if (title) title.textContent = isView ? 'Detalle del invitado' : mode === 'edit' ? 'Editar invitado' : 'Agregar invitado';
+    setGuestFormReadOnly(isView);
+    if (saveButton) {
+        saveButton.hidden = isView;
+        saveButton.dataset.idleLabel = mode === 'edit' ? 'Guardar cambios' : 'Guardar invitado';
+        setGuestSaveButtonBusy(false);
+    }
+
+    openModal('modal-guest');
+    if (!isView) window.setTimeout(() => getElement('g-nombre')?.focus(), 0);
+}
+
+function closeGuestModal() {
+    closeModal('modal-guest');
+    activeGuestMode = 'create';
+    setGuestFormReadOnly(false);
+}
+
+function handleGuestOverlayClick(event) {
+    if (event.target === getElement('modal-guest')) closeGuestModal();
+}
+
+function setGuestFormReadOnly(isReadOnly) {
+    const form = getElement('form-guest');
+    if (!form) return;
+    Array.from(form.elements).forEach((field) => {
+        if (field.id !== 'g-doc-id') field.disabled = isReadOnly;
+    });
+}
+
+async function handleGuestFormSubmit(event) {
+    event.preventDefault();
+    if (activeGuestMode === 'view') return;
+
+    const payload = getGuestFormPayload();
+    if (!payload) return;
+
+    const eventId = deps.eventContext.eventId;
+    const guestId = getFieldValue('g-doc-id');
+    const isEditing = Boolean(guestId);
+    if (!eventId || typeof deps.services.guest?.[isEditing ? 'updateGuest' : 'createGuest'] !== 'function') {
+        deps.ui.showError({
+            title: 'No se puede guardar el invitado',
+            description: 'El servicio de invitados no está disponible para esta vista.',
+            code: 'ERR_GUEST_SERVICE_UNAVAILABLE'
+        });
+        return;
+    }
+
+    setGuestSaveButtonBusy(true);
+    try {
+        if (isEditing) {
+            await deps.services.guest.updateGuest(eventId, guestId, payload);
+            const previous = guestsById.get(guestId) || {};
+            const guest = { ...previous, ...payload, id: guestId, fechaActualizacion: new Date().toISOString() };
+            deps.eventBus.emit(EVENT_TYPES.GUEST_UPDATED, { eventId, guest, timestamp: Date.now() });
+            deps.ui.showToast({ title: 'Invitado actualizado', message: 'Los cambios se guardaron correctamente.', type: 'success' });
+        } else {
+            const id = await deps.services.guest.createGuest(eventId, payload);
+            const now = new Date().toISOString();
+            const guest = { ...payload, id, fechaCreacion: now, fechaActualizacion: now };
+            deps.eventBus.emit(EVENT_TYPES.GUEST_CREATED, { eventId, guest, timestamp: Date.now() });
+            deps.ui.showToast({ title: 'Invitado agregado', message: 'El invitado se agregó correctamente.', type: 'success' });
+        }
+        guestLoadState = 'loaded';
+        closeGuestModal();
+    } catch (error) {
+        console.error('[Event Controller] Error guardando invitado:', error);
+        deps.ui.showError({
+            title: 'No se pudo guardar el invitado',
+            description: 'Verifica los datos y tu conexión antes de intentarlo de nuevo.',
+            code: isEditing ? 'ERR_GUEST_UPDATE' : 'ERR_GUEST_CREATE'
+        });
+    } finally {
+        setGuestSaveButtonBusy(false);
+    }
+}
+
+async function deleteGuestWithConfirmation(guest, trigger) {
+    if (!guest?.id || typeof deps.services.guest?.deleteGuest !== 'function') return;
+
+    const confirmed = await deps.ui.confirm({
+        title: '¿Eliminar invitado?',
+        message: `Eliminarás a ${getGuestName(guest)}. Esta acción no se puede deshacer.`,
+        confirmText: 'Sí, eliminar',
+        cancelText: 'Cancelar',
+        isDanger: true
+    });
+    if (!confirmed) return;
+
+    setButtonBusy(trigger, true);
+    try {
+        await deps.services.guest.deleteGuest(deps.eventContext.eventId, guest.id);
+        deps.eventBus.emit(EVENT_TYPES.GUEST_DELETED, { eventId: deps.eventContext.eventId, guest, guestId: guest.id, timestamp: Date.now() });
+        deps.ui.showToast({ title: 'Invitado eliminado', message: 'El invitado se eliminó correctamente.', type: 'success' });
+    } catch (error) {
+        console.error('[Event Controller] Error eliminando invitado:', error);
+        deps.ui.showError({
+            title: 'No se pudo eliminar el invitado',
+            description: 'Verifica tu conexión e inténtalo nuevamente.',
+            code: 'ERR_GUEST_DELETE'
+        });
+    } finally {
+        setButtonBusy(trigger, false);
+    }
+}
+
+function getGuestFormPayload() {
+    const nombre = cleanGuestText(getFieldValue('g-nombre'), 160);
+    const correo = cleanGuestText(getFieldValue('g-correo'), 160).toLowerCase();
+    const telefono = sanitizeGuestPhone(getFieldValue('g-telefono'));
+    const pasesRaw = getFieldValue('g-pases');
+    const pases = Number(pasesRaw);
+    const estado = getFieldValue('g-estado');
+    const mesa = cleanGuestText(getFieldValue('g-mesa'), 80);
+    const notas = cleanGuestText(getFieldValue('g-notas'), 1000);
+    const tipoAcceso = cleanGuestText(getFieldValue('g-acceso'), 80) || 'Ambos';
+
+    if (!nombre) return showGuestValidationError('El nombre del invitado es obligatorio.', 'g-nombre');
+    if (correo && !isValidGuestEmail(correo)) return showGuestValidationError('Ingresa un correo electrónico válido.', 'g-correo');
+    if (telefono && !isValidGuestPhone(telefono)) return showGuestValidationError('Ingresa un teléfono válido.', 'g-telefono');
+    if (!Number.isInteger(pases) || pases < 1 || pases > 999) return showGuestValidationError('Los pases deben ser un número entero entre 1 y 999.', 'g-pases');
+    if (!['Pendiente', 'Confirmado', 'No asistirá', 'Llegó'].includes(estado)) return showGuestValidationError('Selecciona un estado de asistencia válido.', 'g-estado');
+
+    return { nombre, correo, telefono, pases, estado, mesa, notas, tipoAcceso };
+}
+
+function showGuestValidationError(message, fieldId) {
+    const field = getElement(fieldId);
+    field?.focus();
+    deps.ui.showToast({ title: 'Revisa el formulario', message, type: 'warning' });
+    return null;
+}
+
+function cleanGuestText(value, maxLength) {
+    return String(value || '').replace(/\s+/g, ' ').trim().slice(0, maxLength);
+}
+
+function sanitizeGuestPhone(value) {
+    const text = String(value || '').trim();
+    const digits = text.replace(/\D/g, '');
+    if (!digits) return '';
+    return `${text.startsWith('+') ? '+' : ''}${digits}`;
+}
+
+function isValidGuestEmail(value) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function isValidGuestPhone(value) {
+    const digits = value.replace(/\D/g, '');
+    return digits.length >= 7 && digits.length <= 15;
+}
+
+function setGuestSaveButtonBusy(isBusy) {
+    const button = getElement('btn-submit-guest');
+    if (!button) return;
+    setButtonBusy(button, isBusy);
+    const label = button.querySelector('.btn-text');
+    const loader = button.querySelector('.btn-loader');
+    if (label) label.textContent = isBusy ? 'Guardando...' : (button.dataset.idleLabel || 'Guardar');
+    if (loader) loader.style.display = isBusy ? 'block' : 'none';
+}
+
+function getGuestName(guest) {
+    return getDisplayValue(guest?.nombre ?? guest?.name, 'Invitado sin nombre');
+}
+
+function getGuestTable(guest) {
+    return cleanGuestText(guest?.mesa ?? guest?.table, 80);
+}
+
+function getGuestCode(guest) {
+    return cleanGuestText(guest?.codigo ?? guest?.codigoInvitacion ?? guest?.folio ?? guest?.token ?? guest?.code, 160);
+}
+
+function hasGuestArrival(guest) {
+    return getGuestStatus(guest) === 'arrived' || Boolean(guest?.llegadaRegistrada ?? guest?.llego ?? guest?.checkIn);
+}
+
+function getGuestStatusLabel(status) {
+    if (status === 'confirmed') return 'Confirmado';
+    if (status === 'no-attendance') return 'No asistirá';
+    if (status === 'arrived') return 'Llegó';
+    return 'Pendiente';
+}
+
+function getGuestStatusRank(guest) {
+    return ({ confirmed: 1, pending: 2, 'no-attendance': 3, arrived: 4 })[getGuestStatus(guest)] || 5;
+}
+
+function getGuestTimestamp(guest) {
+    const date = toDate(guest?.fechaCreacion ?? guest?.createdAt);
+    return date ? date.getTime() : 0;
+}
+
+function formatGuestDate(value) {
+    const date = toDate(value);
+    return date ? new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }).format(date) : 'Sin fecha';
 }
 
 
@@ -379,7 +1027,7 @@ function handleGuestsImported(payload) {
     if (!isCurrentEventPayload(payload)) return;
 
     if (Array.isArray(payload?.guests)) {
-        replaceGuests(payload.guests);
+        mergeGuests(payload.guests);
     } else {
         applyImportedGuestAdjustment(toSafeNumber(payload?.count, 0));
     }
@@ -408,6 +1056,17 @@ function bindButtons() {
     listen(getElement('btn-cancel-delete-event'), 'click', closeEventDeleteModal);
     listen(getElement('btn-confirm-delete-event'), 'click', handleDeleteEventConfirm);
     listen(getElement('modal-delete-event'), 'click', handleEventDeleteOverlayClick);
+    listen(getElement('btn-open-add-guest'), 'click', () => openGuestModal('create'));
+    listen(getElement('btn-empty-add-guest'), 'click', () => openGuestModal('create'));
+    listen(getElement('btn-close-modal-guest'), 'click', closeGuestModal);
+    listen(getElement('btn-cancel-modal-guest'), 'click', closeGuestModal);
+    listen(getElement('modal-guest'), 'click', handleGuestOverlayClick);
+    listen(getElement('form-guest'), 'submit', handleGuestFormSubmit);
+    listen(getElement('guests-list'), 'click', handleGuestListAction);
+    listen(getElement('guest-search'), 'input', handleGuestSearchInput);
+    listen(getElement('guest-filter-status'), 'change', handleGuestFilterChange);
+    listen(getElement('guest-filter-table'), 'change', handleGuestFilterChange);
+    listen(getElement('guest-sort'), 'change', handleGuestFilterChange);
     listen(document, 'keydown', handleModalEscape);
 }
 
@@ -593,6 +1252,7 @@ function handleModalEscape(event) {
     if (event.key !== 'Escape') return;
     closeEventEditModal();
     closeEventDeleteModal();
+    closeGuestModal();
 }
 
 /**
@@ -637,7 +1297,7 @@ function closeModal(modalId) {
     modal.classList.remove('active');
     modal.setAttribute('aria-hidden', 'true');
 
-    const hasOpenControllerModal = ['modal-edit-event', 'modal-delete-event']
+    const hasOpenControllerModal = ['modal-edit-event', 'modal-delete-event', 'modal-guest']
         .some((id) => getElement(id)?.classList.contains('active'));
     if (!hasOpenControllerModal) {
         document.body.classList.remove('modal-open');
@@ -675,6 +1335,10 @@ function activateTab(target) {
     dom.tabPanels.forEach((tabPanel) => {
         tabPanel.classList.toggle('active', tabPanel === panel);
     });
+
+    if (target === 'invitados') {
+        ensureGuestsLoaded();
+    }
 }
 
 
@@ -1156,10 +1820,13 @@ function getGuestPasses(guest) {
  * @returns {'confirmed'|'no-attendance'|'arrived'|'pending'} Estado normalizado.
  */
 function getGuestStatus(guest) {
+    if (guest?.estado === undefined && guest?.status === undefined && Boolean(guest?.llegadaRegistrada ?? guest?.llego ?? guest?.checkIn)) return 'arrived';
+
     const status = normalizeText(guest?.estado ?? guest?.status);
     if (status.includes('llego')) return 'arrived';
     if (status.includes('confirm')) return 'confirmed';
     if (status.includes('no asist')) return 'no-attendance';
+    if (guest?.asistenciaConfirmada === true) return 'confirmed';
     return 'pending';
 }
 
