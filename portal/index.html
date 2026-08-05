@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#0c0c0d">
+    <meta name="description" content="Portal operativo Prestige de Eventora Studio.">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" href="./assets/images/portal-icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="./assets/css/portal.css">
+    <link rel="stylesheet" href="./assets/css/components.css">
+    <title>Acceso Prestige | Eventora Studio</title>
+</head>
+<body class="portal-login">
+    <main class="login-card" aria-labelledby="portal-login-title">
+        <a class="brand" href="../index.html" aria-label="Eventora Studio">
+            <span class="brand-mark">E</span><span>Eventora<small>Portal Prestige</small></span>
+        </a>
+        <h1 id="portal-login-title">Operación<br><em>Prestige</em></h1>
+        <p>Controla accesos y seguimiento en vivo de tu evento autorizado.</p>
+        <form id="portal-login-form" class="login-form" novalidate>
+            <div class="field"><label for="portal-email">Correo</label><input id="portal-email" type="email" autocomplete="email" required></div>
+            <div class="field"><label for="portal-password">Contraseña</label><input id="portal-password" type="password" autocomplete="current-password" required></div>
+            <label class="inline-option"><input id="portal-keep-session" type="checkbox"> Mantener mi sesión en este dispositivo</label>
+            <p id="portal-login-feedback" class="login-feedback" role="alert" hidden></p>
+            <div class="login-actions"><button id="portal-login-submit" class="button button--primary button--wide" type="submit">Iniciar sesión</button><button id="portal-recover" class="login-recovery" type="button">¿Olvidaste tu contraseña?</button></div>
+        </form>
+        <p class="login-footnote">Acceso reservado para clientes con eventos habilitados.</p>
+    </main>
+    <script type="module" src="./modules/portal-login.js"></script>
+</body>
+</html>

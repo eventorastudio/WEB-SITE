@@ -14,17 +14,24 @@ import {
     updateDoc,
     writeBatch
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import {
+    GUEST_ACCESS_TYPES,
+    GUEST_STATUSES,
+    normalizeGuestData
+} from '../../shared/guest-contract.js';
+
+export { GUEST_ACCESS_TYPES, GUEST_STATUSES, normalizeGuestData } from '../../shared/guest-contract.js';
 
 const IMPORT_BATCH_SIZE = 400;
 
-export const GUEST_STATUSES = Object.freeze(['pendiente', 'confirmado', 'no_asistira', 'llego']);
-export const GUEST_ACCESS_TYPES = Object.freeze(['ambos', 'qr', 'enlace', 'manual']);
+const LEGACY_GUEST_STATUSES = Object.freeze(['pendiente', 'confirmado', 'no_asistira', 'llego']);
+const LEGACY_GUEST_ACCESS_TYPES = Object.freeze(['ambos', 'qr', 'enlace', 'manual']);
 
 /**
  * Contrato canónico interno. `estado` es la fuente de verdad para confirmado y llegada.
  * Las fechas de Firestore se convierten a ISO al leer para no filtrar objetos Firebase a la interfaz.
  */
-export function normalizeGuestData(data = {}, { requireName = false, strict = false } = {}) {
+function legacyNormalizeGuestData(data = {}, { requireName = false, strict = false } = {}) {
     const source = data && typeof data === 'object' ? data : {};
     const nombre = normalizeText(source.nombre ?? source.name, 160);
     const correo = normalizeText(source.correo ?? source.email, 160).toLowerCase();
