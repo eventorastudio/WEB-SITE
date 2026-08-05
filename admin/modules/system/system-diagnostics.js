@@ -1,7 +1,7 @@
 // modules/system/system-diagnostics.js
 // Diagnósticos de solo lectura sobre los servicios realmente expuestos por el panel.
 
-import { app, auth, db } from '../../firebase.js';
+import { app, appCheck, auth, db } from '../../firebase.js';
 import { CONFIG } from '../../config.js';
 import { state } from '../../core/state.js';
 import { eventBus } from '../../core/event-bus.js';
@@ -24,7 +24,7 @@ export async function collectSystemSnapshot() {
             firestore,
             unavailableResult('Storage', 'No inicializado en firebase.js'),
             unavailableResult('Hosting', 'No existe API de estado de Hosting en el navegador'),
-            unavailableResult('App Check', 'Instancia no expuesta por firebase.js'),
+            getAppCheckStatus(),
             unavailableResult('Analytics', 'No inicializado en esta aplicación')
         ],
         system: {
@@ -58,6 +58,8 @@ export async function runFullDiagnostic(roleContext) {
 
     const firestore = await checkFirestore();
     add('Firestore', firestore.status === 'Conectado', firestore.detail);
+    const appCheckStatus = getAppCheckStatus();
+    add('App Check', appCheckStatus.status === 'Activo', appCheckStatus.detail);
     add('Storage', false, 'No disponible: Storage no está inicializado.');
     add('Estado del usuario', Boolean(auth?.currentUser), auth?.currentUser?.uid || 'Sin usuario activo');
     add('State Manager', state && typeof state.getState === 'function', getStateListenerCount() === 'No disponible' ? 'Disponible' : `${getStateListenerCount()} listeners`);
@@ -93,6 +95,17 @@ async function checkFirestore() {
 
 function serviceResult(name, available, detail) {
     return { name, status: available ? 'Disponible' : 'No disponible', detail, responseTime: 'No disponible' };
+}
+
+function getAppCheckStatus() {
+    if (!appCheck) return unavailableResult('App Check', 'No inicializado en firebase.js');
+
+    return {
+        name: 'App Check',
+        status: 'Activo',
+        detail: 'Proveedor: reCAPTCHA v3 · Renovación automática: Activada · Aplicación obligatoria: No verificable desde el cliente',
+        responseTime: 'No verificable desde el cliente'
+    };
 }
 
 function unavailableResult(name, detail) {

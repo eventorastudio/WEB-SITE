@@ -172,7 +172,7 @@ function startLocalClock() {
 }
 
 function setCardStatus(card, status) {
-    card.dataset.status = status === 'Conectado' || status === 'Disponible' ? 'available' : 'unavailable';
+    card.dataset.status = status === 'Conectado' || status === 'Disponible' || status === 'Activo' ? 'available' : 'unavailable';
 }
 
 function setTextWithin(element, selector, value) {

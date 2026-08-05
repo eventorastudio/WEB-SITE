@@ -28,4 +28,4 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // Exportar módulos para su uso en toda la aplicación
-export { app, auth, db };
+export { app, appCheck, auth, db };
