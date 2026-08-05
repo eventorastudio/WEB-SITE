@@ -867,7 +867,7 @@ function getGuestCode(guest) {
 }
 
 function hasGuestArrival(guest) {
-    return getGuestStatus(guest) === 'arrived' || Boolean(guest?.llegadaRegistrada ?? guest?.llego ?? guest?.checkIn);
+    return getGuestStatus(guest) === 'arrived' || Boolean(guest?.llegadaRegistrada || guest?.llego || guest?.checkIn);
 }
 
 function getGuestStatusLabel(status) {
@@ -1820,7 +1820,7 @@ function getGuestPasses(guest) {
  * @returns {'confirmed'|'no-attendance'|'arrived'|'pending'} Estado normalizado.
  */
 function getGuestStatus(guest) {
-    if (guest?.estado === undefined && guest?.status === undefined && Boolean(guest?.llegadaRegistrada ?? guest?.llego ?? guest?.checkIn)) return 'arrived';
+    if (Boolean(guest?.llegadaRegistrada || guest?.llego || guest?.checkIn)) return 'arrived';
 
     const status = normalizeText(guest?.estado ?? guest?.status);
     if (status.includes('llego')) return 'arrived';

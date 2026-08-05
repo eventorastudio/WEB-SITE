@@ -11,7 +11,7 @@ import { CONFIG } from './config.js';
 import { initThemeManager } from './core/theme-manager.js';
 
 // --- RUTAS CORREGIDAS ---
-import { initExcelImport } from './modules/guests/excel-import.js';
+import { initExcelImport, destroyExcelImport } from './modules/guests/excel-import.js';
 import { initInvitationEditor } from './modules/editor/invitation-editor.js';
 import { initInvitationPreview, destroy as destroyInvitationPreview } from './modules/editor/invitation-preview.js';
 import { initThemes, destroy as destroyThemes } from './modules/themes/themes.js';
@@ -225,6 +225,7 @@ function prepareModules(container) {
     try {
         if (typeof initExcelImport === 'function') {
             initExcelImport(container);
+            registerModuleDestroyer(destroyExcelImport);
         }
 
         if (typeof initInvitationEditor === 'function') {
