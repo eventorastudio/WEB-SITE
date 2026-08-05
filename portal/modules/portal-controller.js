@@ -193,7 +193,7 @@ function formatEventMeta(event) {
 }
 
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch((error) => {
+    window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js', { updateViaCache: 'none' }).catch((error) => {
         console.warn('[Portal PWA] Service worker unavailable', error);
     }));
 }

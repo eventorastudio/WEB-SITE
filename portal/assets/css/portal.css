@@ -136,7 +136,7 @@ a { color: inherit; }
 .guest-card dl { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 7px; margin: 0; }
 .guest-card dl div { min-width: 0; }
 .guest-card dt { color: var(--muted); font-size: 9px; text-transform: uppercase; letter-spacing: .08em; }
-.guest-card dd { overflow: hidden; margin: 2px 0 0; color: var(--ivory); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.guest-card dd { overflow-wrap: anywhere; margin: 2px 0 0; color: var(--ivory); font-size: 11px; }
 .guest-card__actions { display: flex; flex-wrap: wrap; gap: 9px; }
 .history-list { display: grid; }
 .history-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--line); }

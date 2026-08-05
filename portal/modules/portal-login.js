@@ -43,7 +43,7 @@ function initLogin() {
             portalUi.setBusy(recover, false);
         }
     });
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js', { updateViaCache: 'none' }).catch(() => {});
 }
 
 function redirectAfterLogin() {

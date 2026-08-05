@@ -1,4 +1,5 @@
 import { filterGuests } from '../services/portal-guest-service.js';
+import { getCheckinErrorMessage } from '../services/checkin-service.js';
 import { portalEventBus } from '../core/portal-event-bus.js';
 import { PORTAL_EVENTS } from '../core/portal-event-types.js';
 
@@ -73,10 +74,12 @@ function createGuestCard(container, guest) {
     const code = document.createElement('span');
     code.className = 'guest-code';
     code.textContent = guest.codigoInvitado || 'Sin código visible';
+    code.title = guest.codigoInvitado || 'Sin código visible';
     head.append(title, code);
     const details = document.createElement('dl');
     appendDetail(details, 'Mesa', guest.mesa === null ? 'Sin mesa' : String(guest.mesa));
-    appendDetail(details, 'Pases', `${guest.pasesUtilizados} usados · ${guest.pasesDisponibles} disponibles`);
+    appendDetail(details, 'Usados', String(guest.pasesUtilizados));
+    appendDetail(details, 'Disponibles', String(guest.pasesDisponibles));
     appendDetail(details, 'Estado', getGuestStateLabel(guest));
     appendDetail(details, 'Última llegada', formatArrival(guest.ultimaLlegada));
     const actions = document.createElement('div');
@@ -133,7 +136,6 @@ function openManualEntry(container, guest) {
                 passes,
                 method: 'manual',
                 userId: container.context.user.uid,
-                device: getDeviceLabel()
             });
             portalEventBus.emit(PORTAL_EVENTS.CHECKIN_COMPLETED, result);
             container.ui.toast({ title: result.result === 'parcial' ? 'Entrada parcial' : 'Entrada aprobada', message: `${result.passesRegistered} pase(s) registrados para ${guest.nombre}.`, type: 'success' });
@@ -177,14 +179,6 @@ function formatArrival(value) {
         : 'Sin llegada';
 }
 
-function getDeviceLabel() {
-    return `${navigator.platform || 'web'} · ${navigator.userAgent.slice(0, 80)}`;
-}
-
 function getCheckinError(error) {
-    const code = String(error?.code || error?.message || '');
-    if (code.includes('passes-already-used')) return 'Todos los pases de este invitado ya fueron utilizados.';
-    if (code.includes('insufficient-passes')) return 'La cantidad solicitada supera los pases disponibles.';
-    if (code.includes('guest-not-found')) return 'El invitado ya no está disponible.';
-    return 'Verifica la conexión y vuelve a intentarlo.';
+    return getCheckinErrorMessage(error);
 }

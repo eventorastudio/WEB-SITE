@@ -1,0 +1,147 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function profilePath() {
+      return /databases/$(database)/documents/usuarios/$(request.auth.uid);
+    }
+
+    function hasPortalProfile() {
+      return signedIn()
+        && exists(profilePath())
+        && get(profilePath()).data.activo == true
+        && get(profilePath()).data.rol == 'cliente';
+    }
+
+    function isAssignedTo(eventId) {
+      return hasPortalProfile()
+        && eventId in get(profilePath()).data.eventosPermitidos;
+    }
+
+    function eventPath(eventId) {
+      return /databases/$(database)/documents/eventos/$(eventId);
+    }
+
+    function portalEnabled(eventId) {
+      return isAssignedTo(eventId)
+        && exists(eventPath(eventId))
+        && get(eventPath(eventId)).data.funcionalidades.portalCliente == true;
+    }
+
+    function checkinEnabled(eventId) {
+      return portalEnabled(eventId)
+        && get(eventPath(eventId)).data.funcionalidades.checkInQR == true;
+    }
+
+    function historyEnabled(eventId) {
+      return portalEnabled(eventId)
+        && get(eventPath(eventId)).data.funcionalidades.historialAccesos == true;
+    }
+
+    function guestPath(eventId, guestId) {
+      return /databases/$(database)/documents/eventos/$(eventId)/invitados/$(guestId);
+    }
+
+    function previousUsed(guest) {
+      return guest.keys().hasAll(['pasesUtilizados']) && guest.pasesUtilizados is int
+        ? guest.pasesUtilizados
+        : guest.keys().hasAll(['pases', 'pasesDisponibles'])
+          && guest.pases is int
+          && guest.pasesDisponibles is int
+          && guest.pasesDisponibles >= 0
+          && guest.pasesDisponibles <= guest.pases
+            ? guest.pases - guest.pasesDisponibles
+            : 0;
+    }
+
+    function availableDoesNotIncrease(before, after) {
+      return before.keys().hasAll(['pasesDisponibles']) && before.pasesDisponibles is int
+        ? after.pasesDisponibles < before.pasesDisponibles
+        : after.pasesDisponibles < before.pases;
+    }
+
+    function keepsFirstArrival(before, after) {
+      return before.keys().hasAll(['horaLlegada']) && before.horaLlegada != null
+        ? after.horaLlegada == before.horaLlegada
+        : after.horaLlegada is timestamp;
+    }
+
+    function validGuestCheckin(eventId) {
+      let before = resource.data;
+      let after = request.resource.data;
+      return checkinEnabled(eventId)
+        && after.diff(before).affectedKeys().hasOnly([
+          'pasesUtilizados', 'pasesDisponibles', 'llegadaRegistrada',
+          'horaLlegada', 'estado', 'fechaActualizacion'
+        ])
+        && before.pases is int && before.pases > 0
+        && after.pasesUtilizados is int && after.pasesUtilizados >= 0
+        && after.pasesDisponibles is int && after.pasesDisponibles >= 0
+        && after.pasesUtilizados > previousUsed(before)
+        && after.pasesUtilizados <= before.pases
+        && after.pasesUtilizados + after.pasesDisponibles == before.pases
+        && availableDoesNotIncrease(before, after)
+        && after.llegadaRegistrada == true
+        && keepsFirstArrival(before, after)
+        && after.estado == 'llego'
+        && after.fechaActualizacion is timestamp;
+    }
+
+    function validCheckinCreate(eventId) {
+      let record = request.resource.data;
+      let path = guestPath(eventId, record.invitadoId);
+      let before = get(path).data;
+      let after = getAfter(path).data;
+      return checkinEnabled(eventId)
+        && exists(path)
+        && record.keys().hasAll([
+          'eventId', 'invitadoId', 'codigoInvitado', 'nombreInvitado',
+          'pasesRegistrados', 'pasesDisponiblesDespues', 'fechaHora',
+          'registradoPor', 'metodo', 'resultado'
+        ])
+        && record.keys().hasOnly([
+          'eventId', 'invitadoId', 'codigoInvitado', 'nombreInvitado',
+          'pasesRegistrados', 'pasesDisponiblesDespues', 'fechaHora',
+          'registradoPor', 'metodo', 'resultado'
+        ])
+        && record.eventId == eventId
+        && record.invitadoId is string
+        && record.codigoInvitado is string
+        && record.nombreInvitado is string
+        && record.registradoPor == request.auth.uid
+        && record.pasesRegistrados is int && record.pasesRegistrados > 0
+        && record.pasesDisponiblesDespues is int && record.pasesDisponiblesDespues >= 0
+        && record.fechaHora is timestamp
+        && record.metodo in ['manual', 'qr']
+        && record.resultado in ['parcial', 'aprobado']
+        && after.pasesUtilizados == previousUsed(before) + record.pasesRegistrados
+        && after.pasesDisponibles == record.pasesDisponiblesDespues
+        && record.resultado == (after.pasesDisponibles > 0 ? 'parcial' : 'aprobado');
+    }
+
+    match /usuarios/{uid} {
+      allow get: if signedIn() && request.auth.uid == uid;
+      allow list, create, update, delete: if false;
+    }
+
+    match /eventos/{eventId} {
+      allow get: if portalEnabled(eventId);
+      allow list, create, update, delete: if false;
+
+      match /invitados/{guestId} {
+        allow get, list: if portalEnabled(eventId);
+        allow update: if validGuestCheckin(eventId);
+        allow create, delete: if false;
+      }
+
+      match /checkins/{checkinId} {
+        allow get, list: if historyEnabled(eventId);
+        allow create: if validCheckinCreate(eventId);
+        allow update, delete: if false;
+      }
+    }
+  }
+}

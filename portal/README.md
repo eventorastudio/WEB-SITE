@@ -8,7 +8,7 @@ Aplicación independiente para clientes autorizados de Eventora Studio. No impor
 portal/
 ├── index.html                    acceso Prestige
 ├── dashboard.html                resumen y actividad reciente
-├── check-in.html                 lector BarcodeDetector + captura manual
+├── check-in.html                 lector nativo + fallback ZXing + captura manual
 ├── invitados.html                búsqueda y entrada manual
 ├── actividad.html                historial protegido
 ├── core/                         estado, bus, UI, guards y entitlements
@@ -16,7 +16,8 @@ portal/
 ├── modules/                      UI y ciclo init/destroy
 ├── assets/                       CSS e icono PWA
 ├── docs/                         reglas y checklist de prueba
-└── service-worker.js             cache solo de interfaz estática
+├── vendor/                       dependencias locales versionadas
+└── service-worker.js             cache de interfaz con módulos network-first
 ```
 
 `shared/guest-contract.js` es el contrato puro común de invitados. La extracción mantiene el contrato ADMIN existente y permite que el portal use los mismos estados, mesa numérica y normalización sin importar un servicio administrativo.
@@ -37,14 +38,16 @@ No existe una consulta que enumere todos los eventos. El selector, cuando hay m�
 
 Un QR aceptado contiene un token aleatorio de 16–256 caracteres, en JSON `{ eventId, token }`, URL con `?t=TOKEN`, o token directo para captura manual. No se admite `INV-0001` como QR.
 
-`checkin-service.js` usa una transacción Firestore que relee el invitado, valida disponibilidad, actualiza `pasesUtilizados` y `pasesDisponibles`, sincroniza el estado de llegada y crea el historial en la misma confirmación. Por tanto, dos dispositivos no pueden confirmar los mismos pases restantes. La UI no confirma una llegada hasta que la transacción resuelve.
+`checkin-service.js` usa una transacción Firestore que relee el invitado por su **ID de documento**, valida y normaliza sus contadores operativos, actualiza `pasesUtilizados` y `pasesDisponibles`, conserva `horaLlegada` tras el primer ingreso y crea el historial en la misma confirmación. Por tanto, dos dispositivos no pueden confirmar los mismos pases restantes. La UI no confirma una llegada hasta que la transacción resuelve.
+
+El escáner abre la cámara mediante `getUserMedia` a partir de una acción explícita. Usa `BarcodeDetector` solo si confirma soporte `qr_code`; de lo contrario, o si el motor nativo falla, usa el fallback local **@zxing/browser 0.2.0** (`portal/vendor/zxing-browser-0.2.0.min.js`, MIT, obtenido del paquete oficial). Así Safari en iPhone no depende de `BarcodeDetector` ni de un CDN de producción.
 
 ## Pasos manuales previos a producción
 
 1. Crear perfiles `usuarios/{uid}` desde una operación administrativa segura; el cliente no puede autoasignarse eventos ni features.
 2. Añadir entitlements explícitos al evento (`portalCliente`, `checkInQR`, `seguimientoEnVivo`, `historialAccesos`). No usar solo el paquete comercial.
 3. Generar y guardar para cada pase QR `qrToken` aleatorio criptográficamente seguro y `qrActivo: true`; nunca emplear códigos secuenciales como token.
-4. Revisar y desplegar reglas de [seguridad](./docs/firestore-security-recommendations.md) con Emulator Suite. El repositorio no tenía reglas versionadas y no se hizo ningún despliegue.
+4. Revisar y publicar manualmente las [reglas de seguridad](./docs/firestore-security-recommendations.md) con Emulator Suite. El repositorio ahora incluye `firestore.rules`, pero no se hizo ningún despliegue.
 5. Configurar el dominio del portal entre los dominios permitidos de Firebase Auth y App Check/reCAPTCHA. No se cambió FirebaseConfig, ninguna key ni App Check.
 6. Servir el portal por HTTPS; `getUserMedia`, BarcodeDetector y la instalación PWA lo requieren.
 

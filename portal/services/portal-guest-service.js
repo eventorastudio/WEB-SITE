@@ -24,13 +24,19 @@ function sanitizeGuest(snapshot) {
     if (!snapshot.exists()) return null;
     const raw = snapshot.data();
     const canonical = normalizeGuestData(raw);
-    const inferredUsed = raw.pasesUtilizados ?? raw.pasesUsados ?? (canonical.llegadaRegistrada ? canonical.pases : 0);
+    const rawAvailable = boundedInteger(raw.pasesDisponibles, 0, canonical.pases, null);
+    const inferredUsed = raw.pasesUtilizados ?? raw.pasesUsados
+        ?? (rawAvailable !== null ? canonical.pases - rawAvailable : (canonical.llegadaRegistrada ? canonical.pases : 0));
     const pasesUtilizados = boundedInteger(inferredUsed, 0, canonical.pases, 0);
+    const pasesDisponibles = rawAvailable === null
+        ? Math.max(canonical.pases - pasesUtilizados, 0)
+        : rawAvailable;
     return {
+        ...raw,
         ...canonical,
         id: snapshot.id,
         pasesUtilizados,
-        pasesDisponibles: Math.max(canonical.pases - pasesUtilizados, 0),
+        pasesDisponibles,
         qrActivo: raw.qrActivo !== false,
         ultimaLlegada: toIso(raw.ultimaLlegada ?? raw.horaLlegada),
         fechaCreacion: toIso(raw.fechaCreacion),
