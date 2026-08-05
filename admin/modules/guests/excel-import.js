@@ -269,6 +269,21 @@ function validateRow(row, rowNumber, existingIndexes, fileIndexes) {
     const mesa = cleanCellText(raw.mesa, 80);
     const notas = cleanCellText(raw.notas, 1000);
     const codigo = cleanCellText(raw.codigo, 160);
+    let normalizedGuest = null;
+    try {
+        normalizedGuest = deps.services.guest.normalizeGuestData({
+            nombre: raw.nombre,
+            correo: raw.correo,
+            telefono: raw.telefono,
+            pases: raw.pases,
+            mesa: raw.mesa,
+            estado: raw.estado,
+            notas: raw.notas,
+            codigoInvitado: raw.codigo
+        }, { requireName: true, strict: true });
+    } catch (error) {
+        messages.push(getNormalizationMessage(error));
+    }
     const parsedPasses = parsePasses(raw.pases);
     const parsedStatus = parseStatus(raw.estado);
 
@@ -278,7 +293,7 @@ function validateRow(row, rowNumber, existingIndexes, fileIndexes) {
     if (!parsedPasses.valid) messages.push('Los pases deben ser un entero positivo.');
     if (!parsedStatus.valid) messages.push('El estado no es reconocido.');
 
-    const guest = {
+    const guest = normalizedGuest || {
         nombre,
         correo,
         telefono,
@@ -287,7 +302,7 @@ function validateRow(row, rowNumber, existingIndexes, fileIndexes) {
         mesa,
         notas
     };
-    if (codigo) guest.codigo = codigo;
+    if (codigo) guest.codigoInvitado = codigo;
 
     if (messages.length > 0) return { rowNumber, status: 'invalid', guest, messages, importable: false };
 
@@ -330,7 +345,7 @@ function buildDuplicateIndexes(guests) {
 }
 
 function registerDuplicateKeys(guest, indexes) {
-    const code = normalizeKey(guest.codigo);
+    const code = normalizeKey(guest.codigoInvitado ?? guest.codigo);
     const email = normalizeKey(guest.correo);
     const phone = normalizePhone(guest.telefono);
     const name = normalizeKey(guest.nombre);
@@ -341,7 +356,7 @@ function registerDuplicateKeys(guest, indexes) {
 }
 
 function findDuplicate(guest, existingIndexes, fileIndexes) {
-    const code = normalizeKey(guest.codigo);
+    const code = normalizeKey(guest.codigoInvitado ?? guest.codigo);
     const email = normalizeKey(guest.correo);
     const phone = normalizePhone(guest.telefono);
     const name = normalizeKey(guest.nombre);
@@ -531,7 +546,18 @@ function getPreviewStatusLabel(result) {
 }
 
 function getGuestCode(guest) {
-    return guest?.codigo ?? guest?.codigoInvitacion ?? guest?.folio ?? guest?.token ?? guest?.code ?? '';
+    return guest?.codigoInvitado ?? guest?.codigo ?? guest?.codigoInvitacion ?? guest?.folio ?? guest?.token ?? guest?.code ?? '';
+}
+
+function getNormalizationMessage(error) {
+    const code = String(error?.message || '');
+    if (code.includes('invalid-name')) return 'El nombre es obligatorio.';
+    if (code.includes('invalid-email')) return 'El correo no es valido.';
+    if (code.includes('invalid-phone')) return 'El telefono no es valido.';
+    if (code.includes('invalid-passes')) return 'Los pases deben ser un entero entre 1 y 999.';
+    if (code.includes('invalid-table')) return 'La mesa debe ser un numero o estar vacia.';
+    if (code.includes('invalid-status')) return 'El estado no es reconocido.';
+    return 'El tipo de acceso no es valido.';
 }
 
 function cleanCellText(value, maxLength) {

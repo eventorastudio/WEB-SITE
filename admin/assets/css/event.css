@@ -446,10 +446,10 @@ select.form-control { padding-right: 42px; cursor: pointer; }
 .guest-table td small { margin-top: 3px; color: var(--event-muted); font-size: 0.7rem; }
 .guest-code-cell { max-width: 150px; overflow: hidden; color: var(--event-muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; text-overflow: ellipsis; white-space: nowrap; }
 .guest-status { display: inline-flex; align-items: center; min-height: 25px; padding: 4px 8px; border-radius: 999px; font-size: 0.67rem; font-weight: 700; letter-spacing: 0.02em; white-space: nowrap; }
-.guest-status--confirmed { background: var(--success-subtle); color: var(--success); }
-.guest-status--pending { background: var(--warning-subtle); color: var(--warning); }
-.guest-status--no-attendance { background: var(--danger-subtle); color: var(--danger); }
-.guest-status--arrived { background: var(--info-subtle); color: var(--info); }
+.guest-status--confirmado { background: var(--success-subtle); color: var(--success); }
+.guest-status--pendiente { background: var(--warning-subtle); color: var(--warning); }
+.guest-status--no_asistira { background: var(--danger-subtle); color: var(--danger); }
+.guest-status--llego { background: var(--info-subtle); color: var(--info); }
 .guest-actions-cell, .guest-card-actions { display: flex; align-items: center; gap: 6px; }
 .guest-action { min-width: 44px; min-height: 36px; padding: 7px 9px; border: 1px solid var(--event-border); border-radius: 8px; background: var(--event-surface); color: var(--event-text); cursor: pointer; font: inherit; font-size: 0.71rem; font-weight: 700; transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease; }
 .guest-action:hover, .guest-action:focus-visible { border-color: var(--color-gold); background: var(--primary-subtle); color: var(--primary); outline: none; }

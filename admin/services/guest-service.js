@@ -1,5 +1,5 @@
 // services/guest-service.js
-// Servicio exclusivo para la gestión de invitados en Firestore.
+// Contrato y persistencia exclusivos de invitados en Firestore.
 
 import { db } from '../firebase.js';
 import {
@@ -17,34 +17,180 @@ import {
 
 const IMPORT_BATCH_SIZE = 400;
 
-/** Convierte un DocumentSnapshot en un POJO sin referencias de Firebase. */
+export const GUEST_STATUSES = Object.freeze(['pendiente', 'confirmado', 'no_asistira', 'llego']);
+export const GUEST_ACCESS_TYPES = Object.freeze(['ambos', 'qr', 'enlace', 'manual']);
+
+/**
+ * Contrato canónico interno. `estado` es la fuente de verdad para confirmado y llegada.
+ * Las fechas de Firestore se convierten a ISO al leer para no filtrar objetos Firebase a la interfaz.
+ */
+export function normalizeGuestData(data = {}, { requireName = false, strict = false } = {}) {
+    const source = data && typeof data === 'object' ? data : {};
+    const nombre = normalizeText(source.nombre ?? source.name, 160);
+    const correo = normalizeText(source.correo ?? source.email, 160).toLowerCase();
+    const telefono = normalizePhone(source.telefono ?? source.tel ?? source.phone);
+    const pases = normalizePasses(source.pases, { strict });
+    const mesa = normalizeTable(source.mesa ?? source.table, { strict });
+    const estado = normalizeStatus(source, { strict });
+    const tipoAcceso = normalizeAccessType(source.tipoAcceso ?? source.acceso, { strict });
+    const codigoInvitado = normalizeText(
+        source.codigoInvitado ?? source.codigo ?? source.codigoInvitacion ?? source.folio ?? source.code,
+        160
+    );
+    const llegadaRegistrada = estado === 'llego';
+    const confirmado = estado === 'confirmado' || estado === 'llego';
+    const horaLlegada = llegadaRegistrada ? normalizeArrivalTime(source.horaLlegada) : null;
+
+    if (requireName && !nombre) throw new Error('guest/invalid-name');
+    if (strict && correo && !isValidEmail(correo)) throw new Error('guest/invalid-email');
+    if (strict && telefono && !isValidPhone(telefono)) throw new Error('guest/invalid-phone');
+
+    return {
+        codigoInvitado,
+        nombre,
+        correo,
+        telefono,
+        pases,
+        mesa,
+        estado,
+        confirmado,
+        llegadaRegistrada,
+        horaLlegada,
+        tipoAcceso,
+        notas: normalizeText(source.notas ?? source.comentarios ?? source.observaciones, 1000)
+    };
+}
+
+function normalizeStatus(source, { strict }) {
+    const rawStatus = normalizeComparableText(source.estado ?? source.status);
+    if (!rawStatus) {
+        if (Boolean(source.llegadaRegistrada || source.llego || source.checkIn || source.horaLlegada)) return 'llego';
+        if (Boolean(source.confirmado || source.asistenciaConfirmada)) return 'confirmado';
+        return 'pendiente';
+    }
+    if (rawStatus.includes('llego') || rawStatus.includes('arrivo') || rawStatus.includes('arrived')) return 'llego';
+    if (rawStatus.includes('confirm')) return 'confirmado';
+    if (rawStatus.includes('no asist') || rawStatus.includes('cancel')) return 'no_asistira';
+    if (rawStatus.includes('pend')) return 'pendiente';
+    if (strict) throw new Error('guest/invalid-status');
+    return 'pendiente';
+}
+
+function normalizeAccessType(value, { strict }) {
+    const comparable = normalizeComparableText(value);
+    if (!comparable || comparable.includes('ambos')) return 'ambos';
+    if (comparable.includes('qr')) return 'qr';
+    if (comparable.includes('enlace') || comparable.includes('link') || comparable.includes('url')) return 'enlace';
+    if (comparable.includes('manual') || comparable.includes('impreso') || comparable.includes('print')) return 'manual';
+    if (strict) throw new Error('guest/invalid-access-type');
+    return 'manual';
+}
+
+function normalizePasses(value, { strict }) {
+    const text = normalizeText(value, 30);
+    if (!text) return 1;
+    const parsed = Number(text.replace(',', '.'));
+    if (Number.isInteger(parsed) && parsed >= 1 && parsed <= 999) return parsed;
+    if (strict) throw new Error('guest/invalid-passes');
+    return 1;
+}
+
+function normalizeTable(value, { strict }) {
+    if (value === null || value === undefined || normalizeText(value, 80) === '') return null;
+    if (typeof value === 'number' && Number.isInteger(value) && value >= 0) return value;
+
+    const text = normalizeComparableText(value);
+    const match = text.match(/^(?:mesa\s*)?(\d+)$/);
+    if (match) return Number(match[1]);
+    if (strict) throw new Error('guest/invalid-table');
+    return null;
+}
+
+function normalizeArrivalTime(value) {
+    if (value === null || value === undefined || value === '') return null;
+    return value;
+}
+
+function normalizeText(value, maxLength) {
+    return String(value ?? '').replace(/\s+/g, ' ').trim().slice(0, maxLength);
+}
+
+function normalizeComparableText(value) {
+    return normalizeText(value, 160)
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[\-_./]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function normalizePhone(value) {
+    const text = String(value ?? '').trim();
+    if (!text) return '';
+    const digits = text.replace(/\D/g, '');
+    return digits ? `${text.startsWith('+') ? '+' : ''}${digits}` : '';
+}
+
+function isValidEmail(value) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function isValidPhone(value) {
+    const digits = value.replace(/\D/g, '');
+    return digits.length >= 7 && digits.length <= 15;
+}
+
 function sanitizeGuestDoc(docSnap) {
     if (!docSnap.exists()) return null;
 
     const data = docSnap.data();
+    const codigoInvitado = resolveGuestCode(data, docSnap.id);
     return {
-        ...data,
+        ...normalizeGuestData({ ...data, codigoInvitado }),
         id: docSnap.id,
         fechaCreacion: toIsoString(data.fechaCreacion),
-        fechaActualizacion: toIsoString(data.fechaActualizacion)
+        fechaActualizacion: toIsoString(data.fechaActualizacion),
+        horaLlegada: toIsoString(data.horaLlegada)
     };
+}
+
+function resolveGuestCode(data, documentId) {
+    if (data?.codigoInvitado ?? data?.codigo ?? data?.codigoInvitacion ?? data?.folio ?? data?.code) {
+        return data.codigoInvitado ?? data.codigo ?? data.codigoInvitacion ?? data.folio ?? data.code;
+    }
+    return /^INV-\d+$/i.test(documentId) ? documentId : '';
 }
 
 function toIsoString(value) {
     return value?.toDate ? value.toDate().toISOString() : value ?? null;
 }
 
-/**
- * Evita enviar undefined, IDs internos o timestamps del cliente a Firestore.
- * Los módulos visuales entregan POJOs ya validados; esta limpieza es una segunda barrera.
- */
-function toWritableGuest(guest) {
+function cleanGuestInput(guest) {
     const payload = {};
     Object.entries(guest || {}).forEach(([key, value]) => {
         if (['id', 'fechaCreacion', 'fechaActualizacion'].includes(key) || value === undefined) return;
+        if (key === 'codigoInvitado' && value === '') return;
         payload[key] = value;
     });
     return payload;
+}
+
+function toFirestoreGuest(guest) {
+    return {
+        codigoInvitado: guest.codigoInvitado,
+        nombre: guest.nombre,
+        correo: guest.correo,
+        telefono: guest.telefono,
+        pases: guest.pases,
+        mesa: guest.mesa,
+        estado: guest.estado,
+        confirmado: guest.confirmado,
+        llegadaRegistrada: guest.llegadaRegistrada,
+        horaLlegada: guest.llegadaRegistrada ? (guest.horaLlegada || serverTimestamp()) : null,
+        tipoAcceso: guest.tipoAcceso,
+        notas: guest.notas
+    };
 }
 
 function sortGuestsByName(guests) {
@@ -74,46 +220,39 @@ function notifyProgress(callback, payload) {
 }
 
 export const guestService = {
-    /** Obtiene todos los invitados de un evento como POJOs ordenados en el cliente. */
+    normalizeGuestData,
+
     async getGuestsByEventId(eventId) {
         if (!eventId) throw new Error('guest/invalid-event-id');
-
         try {
             const invitadosRef = collection(db, 'eventos', eventId, 'invitados');
             const snapshot = await getDocs(invitadosRef);
             const guests = [];
-
             snapshot.forEach((docSnap) => {
                 const cleaned = sanitizeGuestDoc(docSnap);
                 if (cleaned) guests.push(cleaned);
             });
-
             return sortGuestsByName(guests);
         } catch (error) {
             throw new Error(`guest/fetch-all-failed: ${error.message}`);
         }
     },
 
-    /** Obtiene un invitado específico por su ID. */
     async getGuestById(eventId, guestId) {
         if (!eventId || !guestId) throw new Error('guest/invalid-parameters');
-
         try {
-            const docRef = doc(db, 'eventos', eventId, 'invitados', guestId);
-            return sanitizeGuestDoc(await getDoc(docRef));
+            return sanitizeGuestDoc(await getDoc(doc(db, 'eventos', eventId, 'invitados', guestId)));
         } catch (error) {
             throw new Error(`guest/fetch-one-failed: ${error.message}`);
         }
     },
 
-    /** Crea un invitado y devuelve el ID del documento creado. */
     async createGuest(eventId, guestData) {
         if (!eventId) throw new Error('guest/invalid-event-id');
-
         try {
-            const invitadosRef = collection(db, 'eventos', eventId, 'invitados');
-            const docRef = await addDoc(invitadosRef, {
-                ...toWritableGuest(guestData),
+            const guest = normalizeGuestData(guestData, { requireName: true, strict: true });
+            const docRef = await addDoc(collection(db, 'eventos', eventId, 'invitados'), {
+                ...toFirestoreGuest(guest),
                 fechaCreacion: serverTimestamp(),
                 fechaActualizacion: serverTimestamp()
             });
@@ -123,25 +262,28 @@ export const guestService = {
         }
     },
 
-    /** Actualiza los campos editables de un invitado existente. */
     async updateGuest(eventId, guestId, guestData) {
         if (!eventId || !guestId) throw new Error('guest/invalid-parameters');
-
         try {
             const docRef = doc(db, 'eventos', eventId, 'invitados', guestId);
-            await updateDoc(docRef, {
-                ...toWritableGuest(guestData),
-                fechaActualizacion: serverTimestamp()
-            });
+            const current = await getDoc(docRef);
+            if (!current.exists()) throw new Error('guest/not-found');
+            const guest = normalizeGuestData(
+                {
+                    ...current.data(),
+                    codigoInvitado: resolveGuestCode(current.data(), guestId),
+                    ...cleanGuestInput(guestData)
+                },
+                { requireName: true, strict: true }
+            );
+            await updateDoc(docRef, { ...toFirestoreGuest(guest), fechaActualizacion: serverTimestamp() });
         } catch (error) {
             throw new Error(`guest/update-failed: ${error.message}`);
         }
     },
 
-    /** Elimina un invitado del evento activo. */
     async deleteGuest(eventId, guestId) {
         if (!eventId || !guestId) throw new Error('guest/invalid-parameters');
-
         try {
             await deleteDoc(doc(db, 'eventos', eventId, 'invitados', guestId));
         } catch (error) {
@@ -149,26 +291,17 @@ export const guestService = {
         }
     },
 
-    /**
-     * Importa invitados en lotes de 400 operaciones, por debajo del límite de Firestore.
-     * @returns {Promise<{guests: Object[], importedCount: number, completedBatches: number, totalBatches: number}>}
-     */
     async importGuestsBatch(eventId, guestsArray, { onProgress } = {}) {
         if (!eventId || !Array.isArray(guestsArray)) throw new Error('guest/invalid-batch-params');
 
         const guests = guestsArray
             .filter((guest) => guest && typeof guest === 'object')
-            .map(toWritableGuest);
+            .map((guest) => normalizeGuestData(guest, { requireName: true, strict: true }));
         const totalBatches = Math.ceil(guests.length / IMPORT_BATCH_SIZE);
         const summary = { guests: [], completedBatches: 0, totalBatches };
-
-        if (guests.length === 0) {
-            return { ...summary, importedCount: 0 };
-        }
+        if (guests.length === 0) return { ...summary, importedCount: 0 };
 
         const invitadosRef = collection(db, 'eventos', eventId, 'invitados');
-        const createdAt = new Date().toISOString();
-
         try {
             for (let offset = 0; offset < guests.length; offset += IMPORT_BATCH_SIZE) {
                 const chunk = guests.slice(offset, offset + IMPORT_BATCH_SIZE);
@@ -178,15 +311,16 @@ export const guestService = {
                 chunk.forEach((guest) => {
                     const guestRef = doc(invitadosRef);
                     batch.set(guestRef, {
-                        ...guest,
+                        ...toFirestoreGuest(guest),
                         fechaCreacion: serverTimestamp(),
                         fechaActualizacion: serverTimestamp()
                     });
                     createdInBatch.push({
                         ...guest,
                         id: guestRef.id,
-                        fechaCreacion: createdAt,
-                        fechaActualizacion: createdAt
+                        fechaCreacion: null,
+                        fechaActualizacion: null,
+                        horaLlegada: null
                     });
                 });
 
@@ -200,20 +334,17 @@ export const guestService = {
                     totalCount: guests.length
                 });
             }
-
             return { ...summary, importedCount: summary.guests.length };
         } catch (error) {
             throw createImportError(error, summary);
         }
     },
 
-    /** Escucha cambios en tiempo real y devuelve una función de desuscripción. */
     subscribeToGuests(eventId, callback, onError) {
         if (!eventId) throw new Error('guest/invalid-event-id');
         if (typeof callback !== 'function') throw new Error('guest/invalid-subscriber');
 
-        const invitadosRef = collection(db, 'eventos', eventId, 'invitados');
-        return onSnapshot(invitadosRef, (snapshot) => {
+        return onSnapshot(collection(db, 'eventos', eventId, 'invitados'), (snapshot) => {
             const guests = [];
             snapshot.forEach((docSnap) => {
                 const cleaned = sanitizeGuestDoc(docSnap);
@@ -221,10 +352,7 @@ export const guestService = {
             });
             callback(sortGuestsByName(guests));
         }, (error) => {
-            if (typeof onError === 'function') {
-                onError(error);
-                return;
-            }
+            if (typeof onError === 'function') return onError(error);
             console.error('[GuestService] Error en suscripción realtime:', error);
         });
     }

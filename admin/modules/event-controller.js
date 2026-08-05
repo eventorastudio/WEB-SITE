@@ -685,8 +685,8 @@ function openGuestModal(mode, guest = null) {
     setInputValue('g-correo', guest?.correo ?? guest?.email);
     setInputValue('g-pases', guest ? getGuestPasses(guest) : 1);
     setInputValue('g-mesa', getGuestTable(guest));
-    setSelectValue('g-estado', getGuestStatusLabel(getGuestStatus(guest)), 'Pendiente');
-    setSelectValue('g-acceso', guest?.tipoAcceso ?? guest?.acceso, 'Ambos');
+    setSelectValue('g-estado', getGuestStatus(guest), 'pendiente');
+    setSelectValue('g-acceso', guest?.tipoAcceso, 'ambos');
     setInputValue('g-notas', guest?.notas ?? guest?.comentarios ?? guest?.observaciones);
 
     const isView = mode === 'view';
@@ -739,18 +739,27 @@ async function handleGuestFormSubmit(event) {
         return;
     }
 
+    let canonicalPayload;
+    try {
+        canonicalPayload = deps.services.guest.normalizeGuestData(payload, { requireName: true, strict: true });
+    } catch (error) {
+        console.error('[Event Controller] Datos de invitado no vÃ¡lidos:', error);
+        deps.ui.showToast({ title: 'Revisa el formulario', message: 'Los datos del invitado no cumplen el formato requerido.', type: 'warning' });
+        return;
+    }
+
     setGuestSaveButtonBusy(true);
     try {
         if (isEditing) {
-            await deps.services.guest.updateGuest(eventId, guestId, payload);
+            await deps.services.guest.updateGuest(eventId, guestId, canonicalPayload);
             const previous = guestsById.get(guestId) || {};
-            const guest = { ...previous, ...payload, id: guestId, fechaActualizacion: new Date().toISOString() };
+            const guest = { ...previous, ...canonicalPayload, id: guestId, fechaActualizacion: new Date().toISOString() };
             deps.eventBus.emit(EVENT_TYPES.GUEST_UPDATED, { eventId, guest, timestamp: Date.now() });
             deps.ui.showToast({ title: 'Invitado actualizado', message: 'Los cambios se guardaron correctamente.', type: 'success' });
         } else {
-            const id = await deps.services.guest.createGuest(eventId, payload);
+            const id = await deps.services.guest.createGuest(eventId, canonicalPayload);
             const now = new Date().toISOString();
-            const guest = { ...payload, id, fechaCreacion: now, fechaActualizacion: now };
+            const guest = { ...canonicalPayload, id, fechaCreacion: now, fechaActualizacion: now };
             deps.eventBus.emit(EVENT_TYPES.GUEST_CREATED, { eventId, guest, timestamp: Date.now() });
             deps.ui.showToast({ title: 'Invitado agregado', message: 'El invitado se agregó correctamente.', type: 'success' });
         }
@@ -803,7 +812,13 @@ function getGuestFormPayload() {
     const telefono = sanitizeGuestPhone(getFieldValue('g-telefono'));
     const pasesRaw = getFieldValue('g-pases');
     const pases = Number(pasesRaw);
-    const estado = getFieldValue('g-estado');
+    const selectedStatus = getFieldValue('g-estado');
+    const estado = ({
+        pendiente: 'Pendiente',
+        confirmado: 'Confirmado',
+        no_asistira: 'No asistirá',
+        llego: 'Llegó'
+    })[selectedStatus] ?? selectedStatus;
     const mesa = cleanGuestText(getFieldValue('g-mesa'), 80);
     const notas = cleanGuestText(getFieldValue('g-notas'), 1000);
     const tipoAcceso = cleanGuestText(getFieldValue('g-acceso'), 80) || 'Ambos';
@@ -863,14 +878,17 @@ function getGuestTable(guest) {
 }
 
 function getGuestCode(guest) {
-    return cleanGuestText(guest?.codigo ?? guest?.codigoInvitacion ?? guest?.folio ?? guest?.token ?? guest?.code, 160);
+    return cleanGuestText(guest?.codigoInvitado ?? guest?.codigo ?? guest?.codigoInvitacion ?? guest?.folio ?? guest?.token ?? guest?.code, 160);
 }
 
 function hasGuestArrival(guest) {
-    return getGuestStatus(guest) === 'arrived' || Boolean(guest?.llegadaRegistrada || guest?.llego || guest?.checkIn);
+    return getGuestStatus(guest) === 'llego';
 }
 
 function getGuestStatusLabel(status) {
+    if (status === 'confirmado') return 'Confirmado';
+    if (status === 'no_asistira') return 'No asistirá';
+    if (status === 'llego') return 'Llegó';
     if (status === 'confirmed') return 'Confirmado';
     if (status === 'no-attendance') return 'No asistirá';
     if (status === 'arrived') return 'Llegó';
@@ -878,7 +896,7 @@ function getGuestStatusLabel(status) {
 }
 
 function getGuestStatusRank(guest) {
-    return ({ confirmed: 1, pending: 2, 'no-attendance': 3, arrived: 4 })[getGuestStatus(guest)] || 5;
+    return ({ confirmado: 1, pendiente: 2, no_asistira: 3, llego: 4 })[getGuestStatus(guest)] || 5;
 }
 
 function getGuestTimestamp(guest) {
@@ -1632,10 +1650,10 @@ function calculateGuestStatistics(guests) {
         const status = getGuestStatus(guest);
 
         totals.total += passes;
-        if (status === 'confirmed' || status === 'arrived') totals.confirmed += passes;
-        if (status === 'no-attendance') totals.noAttendance += passes;
-        if (status === 'arrived') totals.arrivals += passes;
-        if (status === 'pending') totals.pending += passes;
+        if (status === 'confirmado' || status === 'llego') totals.confirmed += passes;
+        if (status === 'no_asistira') totals.noAttendance += passes;
+        if (status === 'llego') totals.arrivals += passes;
+        if (status === 'pendiente') totals.pending += passes;
         return totals;
     }, createEmptyStats());
 
@@ -1740,16 +1758,16 @@ function applyGuestAdjustment(guest, direction) {
     const status = getGuestStatus(guest);
 
     statsAdjustments.total += passes;
-    if (status === 'confirmed' || status === 'arrived') {
+    if (status === 'confirmado' || status === 'llego') {
         statsAdjustments.confirmed += passes;
     }
-    if (status === 'no-attendance') {
+    if (status === 'no_asistira') {
         statsAdjustments.noAttendance += passes;
     }
-    if (status === 'arrived') {
+    if (status === 'llego') {
         statsAdjustments.arrivals += passes;
     }
-    if (status === 'pending') {
+    if (status === 'pendiente') {
         statsAdjustments.pending += passes;
     }
 }
@@ -1817,17 +1835,17 @@ function getGuestPasses(guest) {
 /**
  * Clasifica el estado de un invitado según los valores presentes en event.html.
  * @param {Object} guest - Invitado notificado.
- * @returns {'confirmed'|'no-attendance'|'arrived'|'pending'} Estado normalizado.
+ * @returns {'pendiente'|'confirmado'|'no_asistira'|'llego'} Estado canÃ³nico.
  */
 function getGuestStatus(guest) {
-    if (Boolean(guest?.llegadaRegistrada || guest?.llego || guest?.checkIn)) return 'arrived';
+    if (Boolean(guest?.llegadaRegistrada || guest?.llego || guest?.checkIn || guest?.horaLlegada)) return 'llego';
 
     const status = normalizeText(guest?.estado ?? guest?.status);
-    if (status.includes('llego')) return 'arrived';
-    if (status.includes('confirm')) return 'confirmed';
-    if (status.includes('no asist')) return 'no-attendance';
-    if (guest?.asistenciaConfirmada === true) return 'confirmed';
-    return 'pending';
+    if (status.includes('llego')) return 'llego';
+    if (status.includes('confirm')) return 'confirmado';
+    if (status.includes('no asist')) return 'no_asistira';
+    if (guest?.confirmado === true || guest?.asistenciaConfirmada === true) return 'confirmado';
+    return 'pendiente';
 }
 
 /**
