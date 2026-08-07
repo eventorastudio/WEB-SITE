@@ -1,7 +1,30 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-const validationSource = await readFile(new URL('../portal/services/checkin-validation.js', import.meta.url), 'utf8');
+import { SourceTextModule } from 'node:vm';
+
+async function loadModule(moduleUrl, cache = new Map()) {
+    const url = moduleUrl instanceof URL ? moduleUrl : new URL(moduleUrl);
+    const cached = cache.get(url.href);
+    if (cached) return cached;
+
+    const source = await readFile(url, 'utf8');
+    const module = new SourceTextModule(source, {
+        identifier: url.href,
+        initializeImportMeta(meta) {
+            meta.url = url.href;
+        }
+    });
+
+    cache.set(url.href, module);
+    await module.link((specifier, referencingModule) => {
+        return loadModule(new URL(specifier, referencingModule.identifier), cache);
+    });
+    await module.evaluate();
+    return module;
+}
+
+const validationModule = await loadModule(new URL('../portal/services/checkin-validation.js', import.meta.url));
 const {
     CheckinValidationError,
     getCheckinErrorMessage,
@@ -9,7 +32,7 @@ const {
     normalizeCheckinPassState,
     parseQrPayload,
     validPassCount
-} = await import(`data:text/javascript;base64,${Buffer.from(validationSource).toString('base64')}`);
+} = validationModule.namespace;
 
 test('normaliza primer check-in de invitado legado sin contadores', () => {
     assert.deepEqual(normalizeCheckinPassState({ pases: 3 }), {

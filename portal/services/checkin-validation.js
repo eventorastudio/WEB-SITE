@@ -1,3 +1,9 @@
+import {
+    GuestContractError,
+    normalizeGuestData,
+    resolveGuestPassState
+} from '../../shared/guest-contract.js';
+
 export class CheckinValidationError extends Error {
     constructor(code) {
         super(code);
@@ -17,42 +23,89 @@ export function validPassCount(value) {
     return Number.isInteger(parsed) && parsed > 0 && parsed <= 999 ? parsed : null;
 }
 
-/**
- * Turns legacy check-in fields into one internally consistent operational state.
- * It does not alter the source document; the transaction persists the normalized
- * fields only after all validations succeed.
- */
+/** Delegates the operational pass contract to the shared canonical module. */
 export function normalizeCheckinPassState(guest = {}) {
-    const pasesTotales = Number(guest.pases ?? 0);
-    const pasesUtilizadosDeclarados = Number(guest.pasesUtilizados ?? 0);
-    const pasesDisponiblesDeclarados = Number(guest.pasesDisponibles);
-    const hasUsed = guest.pasesUtilizados !== undefined && guest.pasesUtilizados !== null;
-    const hasAvailable = Number.isFinite(pasesDisponiblesDeclarados);
+    try {
+        const state = resolveGuestPassState(guest, { strict: true });
+        return {
+            pasesTotales: state.pases,
+            pasesUtilizados: state.pasesUtilizados,
+            pasesDisponibles: state.pasesDisponibles
+        };
+    } catch (error) {
+        if (error instanceof GuestContractError) {
+            throw new CheckinValidationError('checkin/invalid-guest-pass-data');
+        }
+        throw error;
+    }
+}
 
-    let pasesUtilizados = pasesUtilizadosDeclarados;
-    let pasesDisponibles = hasAvailable
-        ? pasesDisponiblesDeclarados
-        : Math.max(0, pasesTotales - pasesUtilizados);
+/**
+ * Pure representation of the exact writes used by the Firestore transaction.
+ * `timestamp` is supplied by the service as one serverTimestamp transform and
+ * makes the mutation testable without Firebase.
+ */
+export function buildCheckinMutation({
+    guest,
+    eventId,
+    guestId,
+    requestedPasses,
+    method,
+    qrToken = null,
+    userId,
+    timestamp
+}) {
+    if (!isSafeDocumentId(eventId) || !isSafeDocumentId(guestId) || !isSafeDocumentId(userId)) {
+        throw new CheckinValidationError('checkin/invalid-request');
+    }
+    if (!['qr', 'manual'].includes(method)) throw new CheckinValidationError('checkin/invalid-method');
+    if (!validPassCount(requestedPasses)) throw new CheckinValidationError('checkin/invalid-pass-count');
+    if (!timestamp) throw new CheckinValidationError('checkin/timestamp-required');
+    if (method === 'qr') validateQrToken(qrToken);
 
-    // Documents created before operational counters existed may contain only one
-    // counter. Infer the other one without changing the total number of passes.
-    if (!hasUsed && hasAvailable) pasesUtilizados = pasesTotales - pasesDisponibles;
-    if (!hasUsed && !hasAvailable && (guest.llegadaRegistrada === true || guest.estado === 'llego')) {
-        pasesUtilizados = pasesTotales;
-        pasesDisponibles = 0;
+    const raw = guest && typeof guest === 'object' ? guest : {};
+    if (method === 'qr' && (raw.qrActivo !== true || raw.qrToken !== qrToken)) {
+        throw new CheckinValidationError(raw.qrActivo === false ? 'checkin/qr-disabled' : 'checkin/invalid-token');
     }
 
-    const isValidInteger = (value) => Number.isInteger(value) && value >= 0;
-    if (!Number.isInteger(pasesTotales) || pasesTotales <= 0
-        || !isValidInteger(pasesUtilizados)
-        || !isValidInteger(pasesDisponibles)
-        || pasesUtilizados > pasesTotales
-        || pasesDisponibles > pasesTotales
-        || pasesUtilizados + pasesDisponibles !== pasesTotales) {
-        throw new CheckinValidationError('checkin/invalid-guest-pass-data');
-    }
+    const { pasesTotales, pasesUtilizados, pasesDisponibles } = normalizeCheckinPassState(raw);
+    if (pasesDisponibles <= 0) throw new CheckinValidationError('checkin/passes-already-used');
+    if (requestedPasses > pasesDisponibles) throw new CheckinValidationError('checkin/insufficient-passes');
 
-    return { pasesTotales, pasesUtilizados, pasesDisponibles };
+    const pasesUtilizadosDespues = pasesUtilizados + requestedPasses;
+    const pasesDisponiblesDespues = pasesTotales - pasesUtilizadosDespues;
+    const resultado = pasesDisponiblesDespues > 0 ? 'parcial' : 'aprobado';
+    const canonicalGuest = normalizeGuestData(raw);
+    return {
+        guest: {
+            ...canonicalGuest,
+            pases: pasesTotales,
+            pasesUtilizados: pasesUtilizadosDespues,
+            pasesDisponibles: pasesDisponiblesDespues
+        },
+        guestUpdate: {
+            pasesUtilizados: pasesUtilizadosDespues,
+            pasesDisponibles: pasesDisponiblesDespues,
+            llegadaRegistrada: true,
+            horaLlegada: raw.horaLlegada ?? timestamp,
+            estado: 'llego',
+            fechaActualizacion: timestamp
+        },
+        checkinRecord: {
+            eventId,
+            invitadoId: guestId,
+            codigoInvitado: String(canonicalGuest.codigoInvitado || ''),
+            nombreInvitado: String(canonicalGuest.nombre || ''),
+            pasesRegistrados: requestedPasses,
+            pasesDisponiblesDespues,
+            fechaHora: timestamp,
+            registradoPor: userId,
+            metodo: method,
+            resultado
+        },
+        passesRegistered: requestedPasses,
+        result: resultado
+    };
 }
 
 export function parseQrPayload(rawValue) {

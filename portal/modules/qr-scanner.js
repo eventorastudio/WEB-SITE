@@ -312,6 +312,7 @@ async function validatePayload(rawValue) {
         if (payload.eventId && payload.eventId !== containerRef?.context.event.id) throw new Error('other-event');
         const guest = await containerRef?.services.guest.getGuestByQrToken(containerRef.context.event.id, payload.token);
         if (!guest) throw new Error('not-found');
+        if (!guest.qrToken) throw new Error('qr-not-generated');
         if (!guest.qrActivo) throw new Error('disabled');
         selected = { guest, token: payload.token };
         renderSelectedGuest();
@@ -418,7 +419,8 @@ function getValidationMessage(error) {
     const code = String(error?.code || error?.message || '');
     if (code.includes('other-event')) return 'Este QR pertenece a otro evento.';
     if (code.includes('disabled')) return 'Este QR está desactivado.';
-    if (code.includes('not-found')) return 'Código inválido o no autorizado para este evento.';
+    if (code.includes('qr-not-generated')) return 'Este invitado todavía no tiene un pase QR generado.';
+    if (code.includes('not-found')) return 'No encontramos un pase QR activo para este evento. El invitado podría no tener un QR generado.';
     if (code.includes('invalid-qr') || code.includes('empty-qr')) return 'El QR no tiene un formato de pase seguro.';
     if (code.includes('offline')) return 'Sin conexión. No confirmamos accesos sin conexión.';
     return isCheckinDebugMode() && code ? `No fue posible validar el pase. (Código: ${code})` : 'No fue posible validar el pase.';

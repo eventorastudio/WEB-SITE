@@ -9,35 +9,18 @@ import {
     query,
     where
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { normalizeGuestData } from '../../shared/guest-contract.js';
+import { normalizeStoredGuestData } from '../../shared/guest-contract.js';
 
 function toIso(value) {
     return value?.toDate ? value.toDate().toISOString() : (value || null);
 }
 
-function boundedInteger(value, minimum, maximum, fallback) {
-    const parsed = Number(value);
-    return Number.isInteger(parsed) && parsed >= minimum && parsed <= maximum ? parsed : fallback;
-}
-
 function sanitizeGuest(snapshot) {
     if (!snapshot.exists()) return null;
     const raw = snapshot.data();
-    const canonical = normalizeGuestData(raw);
-    const rawAvailable = boundedInteger(raw.pasesDisponibles, 0, canonical.pases, null);
-    const inferredUsed = raw.pasesUtilizados ?? raw.pasesUsados
-        ?? (rawAvailable !== null ? canonical.pases - rawAvailable : (canonical.llegadaRegistrada ? canonical.pases : 0));
-    const pasesUtilizados = boundedInteger(inferredUsed, 0, canonical.pases, 0);
-    const pasesDisponibles = rawAvailable === null
-        ? Math.max(canonical.pases - pasesUtilizados, 0)
-        : rawAvailable;
     return {
-        ...raw,
-        ...canonical,
+        ...normalizeStoredGuestData(raw, { documentId: snapshot.id }),
         id: snapshot.id,
-        pasesUtilizados,
-        pasesDisponibles,
-        qrActivo: raw.qrActivo !== false,
         ultimaLlegada: toIso(raw.ultimaLlegada ?? raw.horaLlegada),
         fechaCreacion: toIso(raw.fechaCreacion),
         fechaActualizacion: toIso(raw.fechaActualizacion)

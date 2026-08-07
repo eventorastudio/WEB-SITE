@@ -11,13 +11,12 @@ import {
     serverTimestamp,
     where
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { normalizeGuestData } from '../../shared/guest-contract.js';
 import {
+    buildCheckinMutation,
     CheckinValidationError,
     getCheckinErrorMessage,
     isCheckinDebugMode,
     isSafeDocumentId,
-    normalizeCheckinPassState,
     parseQrPayload,
     validPassCount,
     validateQrToken
@@ -66,60 +65,35 @@ export const checkinService = {
         const checkinRef = doc(collection(db, 'eventos', eventId, 'checkins'));
         try {
             return await runTransaction(db, async (transaction) => {
-                // Firestore requires transaction reads to happen before writes.
+                // Firestore requires all transaction reads before its writes.
                 const guestSnapshot = await transaction.get(guestRef);
                 if (!guestSnapshot.exists()) throw new CheckInError('checkin/guest-not-found');
 
-                const raw = guestSnapshot.data();
-                if (method === 'qr' && (raw.qrActivo === false || raw.qrToken !== qrToken)) {
-                    throw new CheckInError(raw.qrActivo === false ? 'checkin/qr-disabled' : 'checkin/invalid-token');
-                }
-
-                let passState;
+                let mutation;
                 try {
-                    passState = normalizeCheckinPassState(raw);
+                    mutation = buildCheckinMutation({
+                        guest: guestSnapshot.data(),
+                        eventId,
+                        guestId,
+                        requestedPasses,
+                        method,
+                        qrToken,
+                        userId,
+                        // One transform is reused in all new timestamps. Rules
+                        // observe it as request.time in the transaction.
+                        timestamp: serverTimestamp()
+                    });
                 } catch (error) {
                     if (error instanceof CheckinValidationError) throw new CheckInError(error.code);
                     throw error;
                 }
-                const { pasesTotales, pasesUtilizados, pasesDisponibles } = passState;
-                if (pasesDisponibles <= 0) throw new CheckInError('checkin/passes-already-used');
-                if (requestedPasses > pasesDisponibles) throw new CheckInError('checkin/insufficient-passes');
 
-                const pasesUtilizadosDespues = pasesUtilizados + requestedPasses;
-                const pasesDisponiblesDespues = pasesTotales - pasesUtilizadosDespues;
-                const resultado = pasesDisponiblesDespues > 0 ? 'parcial' : 'aprobado';
-                const guest = normalizeGuestData(raw);
-
-                transaction.update(guestRef, {
-                    pasesUtilizados: pasesUtilizadosDespues,
-                    pasesDisponibles: pasesDisponiblesDespues,
-                    llegadaRegistrada: true,
-                    horaLlegada: raw.horaLlegada ?? serverTimestamp(),
-                    estado: 'llego',
-                    fechaActualizacion: serverTimestamp()
-                });
-                transaction.set(checkinRef, {
-                    eventId,
-                    invitadoId: guestId,
-                    codigoInvitado: String(guest.codigoInvitado || ''),
-                    nombreInvitado: String(guest.nombre || ''),
-                    pasesRegistrados: requestedPasses,
-                    pasesDisponiblesDespues,
-                    fechaHora: serverTimestamp(),
-                    registradoPor: userId,
-                    metodo,
-                    resultado
-                });
+                transaction.update(guestRef, mutation.guestUpdate);
+                transaction.set(checkinRef, mutation.checkinRecord);
                 return {
-                    guest: {
-                        ...guest,
-                        id: guestId,
-                        pasesUtilizados: pasesUtilizadosDespues,
-                        pasesDisponibles: pasesDisponiblesDespues
-                    },
-                    passesRegistered: requestedPasses,
-                    result: resultado,
+                    guest: { ...mutation.guest, id: guestId },
+                    passesRegistered: mutation.passesRegistered,
+                    result: mutation.result,
                     checkinId: checkinRef.id
                 };
             });

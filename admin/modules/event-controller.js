@@ -767,6 +767,14 @@ async function handleGuestFormSubmit(event) {
         closeGuestModal();
     } catch (error) {
         console.error('[Event Controller] Error guardando invitado:', error);
+        if (String(error?.code || error?.message || '').includes('guest/passes-below-used')) {
+            deps.ui.showToast({
+                title: 'No se pueden reducir los pases',
+                message: 'El total no puede quedar por debajo de los pases que ya registraron entrada.',
+                type: 'warning'
+            });
+            return;
+        }
         deps.ui.showError({
             title: 'No se pudo guardar el invitado',
             description: 'Verifica los datos y tu conexión antes de intentarlo de nuevo.',
