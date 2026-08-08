@@ -12,6 +12,7 @@ const FIELD_DEFINITIONS = [
     { key: 'pases', label: 'Pases', aliases: ['pases', 'acompanantes', 'numero de pases', 'guests', 'boletos'] },
     { key: 'mesa', label: 'Mesa', aliases: ['mesa', 'table'] },
     { key: 'estado', label: 'Estado', aliases: ['estado', 'confirmacion', 'status'] },
+    { key: 'tipoAcceso', label: 'Tipo de acceso', aliases: ['tipo acceso', 'tipo de acceso', 'acceso', 'access type'] },
     { key: 'notas', label: 'Notas', aliases: ['notas', 'comentarios', 'observaciones'] },
     { key: 'codigo', label: 'Código / folio', aliases: ['codigo', 'folio', 'code', 'identificador', 'id invitado'] }
 ];
@@ -278,6 +279,7 @@ function validateRow(row, rowNumber, existingIndexes, fileIndexes) {
             pases: raw.pases,
             mesa: raw.mesa,
             estado: raw.estado,
+            tipoAcceso: raw.tipoAcceso,
             notas: raw.notas,
             codigoInvitado: raw.codigo
         }, { requireName: true, strict: true });
@@ -511,8 +513,8 @@ function clearFileInput() {
 }
 
 function downloadTemplate() {
-    const header = 'Nombre,Correo,Teléfono,Pases,Mesa,Estado,Notas,Código\n';
-    const example = 'María López,maria@ejemplo.com,5551234567,2,Mesa 4,Pendiente,,INV-001\n';
+    const header = 'Nombre,Correo,Teléfono,Pases,Mesa,Estado,Tipo de acceso,Notas,Código\n';
+    const example = 'María López,maria@ejemplo.com,5551234567,2,Mesa 4,Pendiente,Ambos,,INV-001\n';
     const blob = new Blob([header, example], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');

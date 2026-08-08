@@ -1,9 +1,32 @@
-// Contrato canónico compartido para cualquier superficie de Eventora Studio.
-// No contiene Firebase, permisos ni acceso a red.
+// Contrato canónico compartido para todas las superficies de Eventora Studio.
+// Es un módulo puro: no importa Firebase, no consulta red y no escribe datos.
 
 export const GUEST_STATUSES = Object.freeze(['pendiente', 'confirmado', 'no_asistira', 'llego']);
 export const GUEST_ACCESS_TYPES = Object.freeze(['ambos', 'qr', 'enlace', 'manual']);
 export const QR_ACCESS_TYPES = Object.freeze(['ambos', 'qr']);
+
+export const GUEST_FIELD_DEFINITIONS = Object.freeze({
+    codigoInvitado: field('string', 'Código visible del invitado', true, true, 'Conservar; si falta, derivar del ID único del documento.'),
+    nombre: field('string', 'Nombre del invitado', true, false, 'Conservar el valor propio.'),
+    correo: field('string', 'Correo del invitado', true, false, 'Conservar y normalizar texto; puede estar vacío.'),
+    telefono: field('string', 'Teléfono del invitado', true, false, 'Conservar y normalizar dígitos; puede estar vacío.'),
+    pases: field('number', 'Pases totales', true, false, 'Conservar y convertir solo enteros inequívocos.'),
+    pasesUtilizados: field('number', 'Pases con entrada registrada', true, false, 'Conservar si es válido; si falta, sumar check-ins confiables.'),
+    pasesDisponibles: field('number', 'Pases restantes', true, false, 'Calcular como pases - pasesUtilizados, nunca negativo.'),
+    mesa: field('number|null', 'Mesa asignada', true, false, 'Conservar la propia; null cuando no hay asignación.'),
+    estado: field('string', 'Estado canónico de asistencia', true, false, 'Conservar y normalizar a un estado existente del contrato.'),
+    confirmado: field('boolean', 'Confirmación derivada del estado', true, false, 'Derivar de estado para evitar contradicciones.'),
+    llegadaRegistrada: field('boolean', 'Indica si existe llegada', true, false, 'Conservar llegada o derivar de historial confiable.'),
+    horaLlegada: field('timestamp|null', 'Hora de la primera llegada', true, false, 'Conservar; si falta y hay check-in, usar el primero.'),
+    tipoAcceso: field('string', 'Modalidad de acceso', true, false, 'Conservar y normalizar al catálogo existente.'),
+    qrToken: field('string|null', 'Token secreto del QR', true, true, 'Conservar; generar uno criptográfico solo si permite QR.'),
+    qrActivo: field('boolean', 'Habilitación del QR', true, false, 'Derivar de tipoAcceso y token sin reactivar un QR deshabilitado.'),
+    notas: field('string', 'Notas propias del invitado', true, false, 'Conservar; cadena vacía si no existen.'),
+    fechaCreacion: field('timestamp', 'Fecha de alta', true, false, 'Conservar siempre; si falta, reportar y no inventar.'),
+    fechaActualizacion: field('timestamp', 'Última modificación', true, false, 'Usar serverTimestamp únicamente al escribir cambios.')
+});
+
+export const CANONICAL_GUEST_FIELDS = Object.freeze(Object.keys(GUEST_FIELD_DEFINITIONS));
 
 export class GuestContractError extends Error {
     constructor(code) {
@@ -12,12 +35,9 @@ export class GuestContractError extends Error {
     }
 }
 
-/**
- * Normaliza los campos descriptivos del invitado sin persistirlo ni generar
- * identificadores. `estado` es la fuente de verdad de confirmado y llegada.
- */
+/** Normaliza campos descriptivos. `estado` gobierna confirmado y llegada. */
 export function normalizeGuestData(data = {}, { requireName = false, strict = false } = {}) {
-    const source = data && typeof data === 'object' ? data : {};
+    const source = asObject(data);
     const nombre = normalizeText(source.nombre ?? source.name, 160);
     const correo = normalizeText(source.correo ?? source.email, 160).toLowerCase();
     const telefono = normalizePhone(source.telefono ?? source.tel ?? source.phone);
@@ -53,30 +73,25 @@ export function normalizeGuestData(data = {}, { requireName = false, strict = fa
     };
 }
 
-/** True only for the two values that the versioned UI defines as QR-capable. */
 export function supportsQrAccess(tipoAcceso) {
     return QR_ACCESS_TYPES.includes(normalizeAccessType(tipoAcceso, { strict: false }));
 }
 
-/** A cryptographically random token accepted by the existing Portal QR parser. */
 export function generateGuestQrToken() {
     return randomBase64Url(32);
 }
 
 /**
- * A visible code independent of the Firestore document ID. It is random rather
- * than a count so simultaneous creates cannot produce a sequential collision.
+ * El ID de Firestore ya es único y resistente a concurrencia. Cuando está
+ * disponible se usa como base del código visible; nunca se usa collection.size.
  */
-export function generateGuestVisibleCode() {
+export function generateGuestVisibleCode(documentId = '') {
+    const safeId = normalizeText(documentId, 160).replace(/[^A-Za-z0-9_-]/g, '');
+    if (safeId) return /^INV-/i.test(safeId) ? safeId : `INV-${safeId}`;
     return `INV-${randomBase64Url(16)}`;
 }
 
-/**
- * Canonical creation boundary used by both manual creation and Excel batches.
- * Numeric input such as the string "4" is converted before it reaches
- * Firestore. Existing input tokens are kept; a token is never regenerated.
- */
-export function normalizeGuestForCreate(data = {}, options = {}) {
+export function normalizeGuestForCreate(data = {}, { documentId = '' } = {}) {
     const guest = normalizeGuestData(data, { requireName: true, strict: true });
     const qrEnabled = supportsQrAccess(guest.tipoAcceso);
     const suppliedToken = normalizeQrToken(data.qrToken);
@@ -85,12 +100,10 @@ export function normalizeGuestForCreate(data = {}, options = {}) {
         throw new GuestContractError('guest/invalid-qr-token');
     }
 
-    // A newly created guest marked as already arrived is an explicit exception:
-    // keep the arrival semantics and make its counters consistent.
     const isAlreadyArrived = guest.llegadaRegistrada === true;
     return {
         ...guest,
-        codigoInvitado: guest.codigoInvitado || generateGuestVisibleCode(),
+        codigoInvitado: guest.codigoInvitado || generateGuestVisibleCode(documentId),
         pasesUtilizados: isAlreadyArrived ? guest.pases : 0,
         pasesDisponibles: isAlreadyArrived ? 0 : guest.pases,
         llegadaRegistrada: isAlreadyArrived,
@@ -100,42 +113,41 @@ export function normalizeGuestForCreate(data = {}, options = {}) {
     };
 }
 
-/**
- * Normalizes an Admin edit while retaining operational counters and an existing
- * QR token. Total passes may grow, but can never be reduced below used passes.
- */
-export function normalizeGuestForUpdate(data = {}, current = {}) {
-    const source = current && typeof current === 'object' ? current : {};
-    const cleanInput = data && typeof data === 'object' ? data : {};
+export function normalizeGuestForUpdate(data = {}, current = {}, { documentId = '' } = {}) {
+    const source = asObject(current);
+    const cleanInput = asObject(data);
     const currentState = resolveGuestPassState(source, { strict: true });
     const guest = normalizeGuestData({ ...source, ...cleanInput }, { requireName: true, strict: true });
 
-    if (guest.pases < currentState.pasesUtilizados) {
-        throw new GuestContractError('guest/passes-below-used');
+    if (guest.pases < currentState.pasesUtilizados) throw new GuestContractError('guest/passes-below-used');
+    if (previouslyArrived(source) && guest.estado !== 'llego') {
+        throw new GuestContractError('guest/arrival-reset-not-allowed');
+    }
+
+    const existingCode = normalizeStoredCode(source, documentId);
+    const requestedCode = Object.hasOwn(cleanInput, 'codigoInvitado')
+        ? normalizeText(cleanInput.codigoInvitado, 160)
+        : '';
+    if (existingCode && requestedCode && existingCode !== requestedCode) {
+        throw new GuestContractError('guest/code-change-not-allowed');
     }
 
     const qrEnabled = supportsQrAccess(guest.tipoAcceso);
     const existingToken = normalizeQrToken(source.qrToken);
-    const requestedToken = Object.prototype.hasOwnProperty.call(cleanInput, 'qrToken')
-        ? normalizeQrToken(cleanInput.qrToken)
-        : null;
+    const requestedToken = Object.hasOwn(cleanInput, 'qrToken') ? normalizeQrToken(cleanInput.qrToken) : null;
     if (existingToken && requestedToken && existingToken !== requestedToken) {
         throw new GuestContractError('guest/qr-token-regeneration-not-allowed');
     }
-    if (requestedToken && !isValidQrToken(requestedToken)) {
-        throw new GuestContractError('guest/invalid-qr-token');
-    }
+    if (requestedToken && !isValidQrToken(requestedToken)) throw new GuestContractError('guest/invalid-qr-token');
 
     const token = qrEnabled ? (existingToken || requestedToken || generateGuestQrToken()) : existingToken;
     const hasStoredQrFlag = typeof source.qrActivo === 'boolean';
-    const isAlreadyArrived = guest.llegadaRegistrada === true;
     return {
         ...guest,
-        codigoInvitado: guest.codigoInvitado || normalizeStoredCode(source) || generateGuestVisibleCode(),
+        codigoInvitado: existingCode || requestedCode || generateGuestVisibleCode(documentId),
         pasesUtilizados: currentState.pasesUtilizados,
         pasesDisponibles: guest.pases - currentState.pasesUtilizados,
-        llegadaRegistrada: isAlreadyArrived,
-        horaLlegada: isAlreadyArrived
+        horaLlegada: guest.llegadaRegistrada
             ? (normalizeArrivalTime(source.horaLlegada) ?? normalizeArrivalTime(cleanInput.horaLlegada))
             : null,
         qrToken: token,
@@ -143,12 +155,9 @@ export function normalizeGuestForUpdate(data = {}, current = {}) {
     };
 }
 
-/**
- * Converts a stored document to the complete in-memory contract. It does not
- * write or generate a new token/code, which keeps reads side-effect free.
- */
-export function normalizeStoredGuestData(data = {}, { documentId = '' } = {}) {
-    const source = data && typeof data === 'object' ? data : {};
+/** Lectura sin efectos laterales: no genera códigos ni tokens nuevos. */
+export function normalizeGuestForRead(data = {}, { documentId = '' } = {}) {
+    const source = asObject(data);
     const guest = normalizeGuestData(source);
     const passState = resolveGuestPassState(source);
     const token = normalizeQrToken(source.qrToken);
@@ -162,12 +171,10 @@ export function normalizeStoredGuestData(data = {}, { documentId = '' } = {}) {
     };
 }
 
-/**
- * Resolves legacy pass fields without changing the source document. Strict
- * mode is used before writes and rejects inconsistent data.
- */
+export const normalizeStoredGuestData = normalizeGuestForRead;
+
 export function resolveGuestPassState(data = {}, { strict = false } = {}) {
-    const source = data && typeof data === 'object' ? data : {};
+    const source = asObject(data);
     const total = parseInteger(source.pases);
     if (!isValidPassTotal(total)) return failPassState(strict);
 
@@ -175,12 +182,11 @@ export function resolveGuestPassState(data = {}, { strict = false } = {}) {
     const hasAvailable = hasValue(source.pasesDisponibles);
     const declaredUsed = parseInteger(source.pasesUtilizados ?? source.pasesUsados);
     const declaredAvailable = parseInteger(source.pasesDisponibles);
-
     let pasesUtilizados = hasUsed ? declaredUsed : null;
     let pasesDisponibles = hasAvailable ? declaredAvailable : null;
 
     if (!hasUsed && !hasAvailable) {
-        pasesUtilizados = source.llegadaRegistrada === true || source.estado === 'llego' ? total : 0;
+        pasesUtilizados = previouslyArrived(source) ? total : 0;
         pasesDisponibles = total - pasesUtilizados;
     } else if (!hasUsed) {
         pasesUtilizados = total - pasesDisponibles;
@@ -188,73 +194,158 @@ export function resolveGuestPassState(data = {}, { strict = false } = {}) {
         pasesDisponibles = total - pasesUtilizados;
     }
 
-    const isConsistent = Number.isInteger(pasesUtilizados)
+    const valid = Number.isInteger(pasesUtilizados)
         && Number.isInteger(pasesDisponibles)
         && pasesUtilizados >= 0
         && pasesDisponibles >= 0
         && pasesUtilizados <= total
         && pasesDisponibles <= total
         && pasesUtilizados + pasesDisponibles === total;
-
-    if (!isConsistent) return failPassState(strict, total);
+    if (!valid) return failPassState(strict, total);
     return { pases: total, pasesUtilizados, pasesDisponibles };
 }
 
 /**
- * Calculates an additive patch for the controlled prestige migration. It never
- * changes identity fields or an existing QR token. `generateTokens` is false
- * by default so a dry run has no token side effects.
+ * Plan puro para un legado. El historial se entrega ya agregado por el script;
+ * un contador existente y válido siempre prevalece.
  */
-export function planGuestPrestigeMigration(data = {}, { generateTokens = false } = {}) {
-    const source = data && typeof data === 'object' ? data : {};
-    const total = parseInteger(source.pases);
-    if (!isValidPassTotal(total)) {
-        return { status: 'invalid', reason: 'guest/invalid-passes', patch: {}, needsQrToken: false, hasExistingToken: hasValue(source.qrToken) };
-    }
-
-    let state;
-    try {
-        state = resolveGuestPassState(source, { strict: true });
-    } catch (error) {
-        return { status: 'invalid', reason: error?.code || 'guest/invalid-pass-state', patch: {}, needsQrToken: false, hasExistingToken: hasValue(source.qrToken) };
-    }
-
+export function normalizeLegacyGuest(data = {}, options = {}) {
+    const source = asObject(data);
+    const {
+        documentId = '',
+        checkinPasses = 0,
+        firstCheckinAt = null,
+        generateCode = false,
+        generateTokens = false
+    } = options;
     const patch = {};
-    if (source.pases !== total) patch.pases = total;
-    if (source.pasesUtilizados !== state.pasesUtilizados) patch.pasesUtilizados = state.pasesUtilizados;
-    if (source.pasesDisponibles !== state.pasesDisponibles) patch.pasesDisponibles = state.pasesDisponibles;
+    const generatedFields = [];
 
-    const guest = normalizeGuestData({ ...source, pases: total });
-    const qrEnabled = supportsQrAccess(guest.tipoAcceso);
-    const existingToken = normalizeQrToken(source.qrToken);
-    const hasExistingToken = Boolean(existingToken);
-    const needsQrToken = qrEnabled && !existingToken;
-
-    if (qrEnabled && existingToken && !isValidQrToken(existingToken)) {
-        return { status: 'invalid', reason: 'guest/invalid-existing-qr-token', patch: {}, needsQrToken: false, hasExistingToken: true };
+    const booleanErrorCodes = {
+        confirmado: 'guest/ambiguous-confirmed',
+        llegadaRegistrada: 'guest/ambiguous-arrival-flag',
+        qrActivo: 'guest/ambiguous-qr-active'
+    };
+    for (const key of Object.keys(booleanErrorCodes)) {
+        if (Object.hasOwn(source, key)
+            && typeof source[key] !== 'boolean'
+            && parseUnambiguousBoolean(source[key]) === null) {
+            return invalidLegacy(booleanErrorCodes[key]);
+        }
     }
-    if (needsQrToken && generateTokens) patch.qrToken = generateGuestQrToken();
-    if (qrEnabled && typeof source.qrActivo !== 'boolean') patch.qrActivo = true;
 
-    const hasPatch = Object.keys(patch).length > 0 || needsQrToken;
+    const total = parseInteger(source.pases);
+    if (!isValidPassTotal(total)) return invalidLegacy('guest/invalid-passes');
+    if (source.pases !== total) patch.pases = total;
+
+    const hasUsed = hasValue(source.pasesUtilizados) || hasValue(source.pasesUsados);
+    const hasAvailable = hasValue(source.pasesDisponibles);
+    const historyUsed = parseInteger(checkinPasses) ?? 0;
+    if (historyUsed < 0 || historyUsed > total) return invalidLegacy('guest/checkins-exceed-passes');
+
+    let used;
+    if (hasUsed) {
+        used = parseInteger(source.pasesUtilizados ?? source.pasesUsados);
+    } else if (historyUsed > 0) {
+        used = historyUsed;
+        patch.pasesUtilizados = used;
+    } else if (hasAvailable) {
+        const available = parseInteger(source.pasesDisponibles);
+        used = Number.isInteger(available) ? total - available : null;
+    } else {
+        used = previouslyArrived(source) ? total : 0;
+        patch.pasesUtilizados = used;
+    }
+    if (!Number.isInteger(used) || used < 0 || used > total) return invalidLegacy('guest/invalid-pass-state');
+
+    const available = total - used;
+    if (source.pasesUtilizados !== used) patch.pasesUtilizados = used;
+    if (source.pasesDisponibles !== available) patch.pasesDisponibles = available;
+
+    let guest;
+    try {
+        guest = normalizeGuestData({ ...source, pases: total }, { requireName: true, strict: true });
+    } catch (error) {
+        return invalidLegacy(error?.code || 'guest/invalid-data');
+    }
+
+    ['nombre', 'correo', 'telefono', 'mesa', 'tipoAcceso', 'notas'].forEach((key) => {
+        if (!Object.hasOwn(source, key) || source[key] !== guest[key]) patch[key] = guest[key];
+    });
+
+    const hasHistory = historyUsed > 0;
+    const arrived = hasHistory || used > 0 || previouslyArrived(source);
+    const desiredStatus = arrived ? 'llego' : guest.estado;
+    const desiredConfirmed = desiredStatus === 'confirmado' || desiredStatus === 'llego';
+    if (source.estado !== desiredStatus) patch.estado = desiredStatus;
+    if (source.confirmado !== desiredConfirmed) patch.confirmado = desiredConfirmed;
+    if (source.llegadaRegistrada !== arrived) patch.llegadaRegistrada = arrived;
+
+    if (arrived) {
+        if (!hasValue(source.horaLlegada)) {
+            if (!firstCheckinAt) return invalidLegacy('guest/missing-arrival-time');
+            patch.horaLlegada = firstCheckinAt;
+        }
+    } else if (source.horaLlegada !== null) {
+        patch.horaLlegada = null;
+    }
+
+    const code = normalizeStoredCode(source, documentId);
+    if (!code) {
+        if (generateCode) patch.codigoInvitado = generateGuestVisibleCode(documentId);
+        generatedFields.push('codigoInvitado');
+    } else if (source.codigoInvitado !== code) {
+        patch.codigoInvitado = code;
+    }
+
+    const qrEnabled = supportsQrAccess(guest.tipoAcceso);
+    const token = normalizeQrToken(source.qrToken);
+    if (token && !isValidQrToken(token)) return invalidLegacy('guest/invalid-existing-qr-token');
+    if (qrEnabled && !token) {
+        if (generateTokens) patch.qrToken = generateGuestQrToken();
+        generatedFields.push('qrToken');
+    } else if (!qrEnabled && !Object.hasOwn(source, 'qrToken')) {
+        patch.qrToken = null;
+    }
+    const parsedQrActive = parseUnambiguousBoolean(source.qrActivo);
+    if (Object.hasOwn(source, 'qrActivo') && typeof source.qrActivo !== 'boolean' && parsedQrActive === null) {
+        return invalidLegacy('guest/ambiguous-qr-active');
+    }
+    if (qrEnabled && typeof source.qrActivo !== 'boolean') {
+        patch.qrActivo = parsedQrActive ?? true;
+    }
+    if (!qrEnabled && source.qrActivo !== false) patch.qrActivo = false;
+
     return {
-        status: hasPatch ? 'update' : 'correct',
+        status: Object.keys(patch).length || generatedFields.length ? 'update' : 'correct',
         reason: null,
         patch,
-        needsQrToken,
-        hasExistingToken
+        generatedFields
     };
 }
+
+// Compatibilidad con el nombre usado por la primera herramienta Prestige.
+export const planGuestPrestigeMigration = normalizeLegacyGuest;
 
 export function isValidQrToken(value) {
     return /^[A-Za-z0-9_-]{16,256}$/.test(String(value ?? ''));
 }
 
+export function parseUnambiguousBoolean(value) {
+    if (value === true || value === false) return value;
+    const normalized = normalizeComparableText(value);
+    if (normalized === 'true' || normalized === 'si' || normalized === 'yes' || normalized === '1') return true;
+    if (normalized === 'false' || normalized === 'no' || normalized === '0') return false;
+    return null;
+}
+
 function normalizeStatus(source, { strict }) {
     const rawStatus = normalizeComparableText(source.estado ?? source.status);
+    const arrivalFlag = parseUnambiguousBoolean(source.llegadaRegistrada ?? source.llego ?? source.checkIn);
+    const confirmationFlag = parseUnambiguousBoolean(source.confirmado ?? source.asistenciaConfirmada);
     if (!rawStatus) {
-        if (Boolean(source.llegadaRegistrada || source.llego || source.checkIn || source.horaLlegada)) return 'llego';
-        if (Boolean(source.confirmado || source.asistenciaConfirmada)) return 'confirmado';
+        if (arrivalFlag === true || hasValue(source.horaLlegada)) return 'llego';
+        if (confirmationFlag === true) return 'confirmado';
         return 'pendiente';
     }
     if (rawStatus.includes('llego') || rawStatus.includes('arrivo') || rawStatus.includes('arrived')) return 'llego';
@@ -277,34 +368,43 @@ function normalizeAccessType(value, { strict }) {
 
 function normalizePasses(value, { strict }) {
     const parsed = parseInteger(value);
-    if (value === null || value === undefined || normalizeText(value, 30) === '') return 1;
+    if (!hasValue(value)) return 1;
     if (isValidPassTotal(parsed)) return parsed;
     if (strict) throw new GuestContractError('guest/invalid-passes');
     return 1;
 }
 
 function normalizeTable(value, { strict }) {
-    if (value === null || value === undefined || normalizeText(value, 80) === '') return null;
+    if (!hasValue(value)) return null;
     if (typeof value === 'number' && Number.isInteger(value) && value >= 0) return value;
-    const text = normalizeComparableText(value);
-    const match = text.match(/^(?:mesa\s*)?(\d+)$/);
+    const match = normalizeComparableText(value).match(/^(?:mesa\s*)?(\d+)$/);
     if (match) return Number(match[1]);
     if (strict) throw new GuestContractError('guest/invalid-table');
     return null;
 }
 
 function normalizeArrivalTime(value) {
-    return value === null || value === undefined || value === '' ? null : value;
+    return hasValue(value) ? value : null;
 }
 
 function normalizeStoredCode(source, documentId = '') {
     const code = normalizeText(source.codigoInvitado ?? source.codigo ?? source.codigoInvitacion ?? source.folio ?? source.code, 160);
     if (code) return code;
-    return /^INV-\d+$/i.test(documentId) ? documentId : '';
+    return /^INV-[A-Za-z0-9_-]+$/i.test(documentId) ? documentId : '';
 }
 
 function normalizeQrToken(value) {
     return normalizeText(value, 256) || null;
+}
+
+function previouslyArrived(source) {
+    return parseUnambiguousBoolean(source.llegadaRegistrada ?? source.llego ?? source.checkIn) === true
+        || hasValue(source.horaLlegada)
+        || normalizeStatus(source, { strict: false }) === 'llego';
+}
+
+function invalidLegacy(reason) {
+    return { status: 'invalid', reason, patch: {}, generatedFields: [] };
 }
 
 function failPassState(strict, total = 1) {
@@ -317,10 +417,11 @@ function isValidPassTotal(value) {
 }
 
 function parseInteger(value) {
+    if (typeof value === 'number') return Number.isInteger(value) ? value : null;
     const text = normalizeText(value, 30);
-    if (!text) return null;
-    const parsed = Number(text.replace(',', '.'));
-    return Number.isInteger(parsed) ? parsed : null;
+    if (!text || !/^[+-]?\d+$/.test(text)) return null;
+    const parsed = Number(text);
+    return Number.isSafeInteger(parsed) ? parsed : null;
 }
 
 function hasValue(value) {
@@ -366,4 +467,12 @@ function isValidEmail(value) {
 function isValidPhone(value) {
     const digits = value.replace(/\D/g, '');
     return digits.length >= 7 && digits.length <= 15;
+}
+
+function asObject(value) {
+    return value && typeof value === 'object' ? value : {};
+}
+
+function field(type, meaning, required, unique, strategy) {
+    return Object.freeze({ type, meaning, required, unique, strategy });
 }

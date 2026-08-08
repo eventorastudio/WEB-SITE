@@ -1,0 +1,12 @@
+{
+  "name": "eventora-studio-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "normalize-guests": "node scripts/normalize-guests-from-reference.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0"
+  }
+}

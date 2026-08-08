@@ -1,0 +1,7 @@
+# Backups locales con datos personales generados antes de una migración.
+backups/
+
+# Dependencias y credenciales administrativas locales.
+node_modules/
+*.service-account.json
+service-account*.json

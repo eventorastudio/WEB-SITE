@@ -3,21 +3,26 @@
 
 import { db } from '../firebase.js';
 import {
-    addDoc,
     collection,
     deleteDoc,
     doc,
     getDoc,
     getDocs,
     onSnapshot,
+    query,
     serverTimestamp,
+    setDoc,
     updateDoc,
+    where,
+    limit,
     writeBatch
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import {
     GUEST_ACCESS_TYPES,
     GUEST_STATUSES,
     GuestContractError,
+    generateGuestQrToken,
+    generateGuestVisibleCode,
     normalizeGuestData,
     normalizeGuestForCreate,
     normalizeGuestForUpdate,
@@ -38,6 +43,7 @@ export {
 } from '../../shared/guest-contract.js';
 
 const IMPORT_BATCH_SIZE = 400;
+const UNIQUE_GENERATION_ATTEMPTS = 8;
 
 function sanitizeGuestDoc(docSnap) {
     if (!docSnap.exists()) return null;
@@ -84,6 +90,72 @@ function toFirestoreGuest(guest) {
         qrActivo: guest.qrActivo,
         notas: guest.notas
     };
+}
+
+async function fieldValueExists(eventId, fieldName, value, excludedDocumentId = '') {
+    if (!value) return false;
+    const snapshot = await getDocs(query(
+        collection(db, 'eventos', eventId, 'invitados'),
+        where(fieldName, '==', value),
+        limit(2)
+    ));
+    return snapshot.docs.some((item) => item.id !== excludedDocumentId);
+}
+
+async function prepareGuestForCreate(eventId, documentRef, input) {
+    const ownInput = cleanGuestInput(input);
+    const suppliedCode = String(ownInput.codigoInvitado || '').trim();
+    const code = suppliedCode || generateGuestVisibleCode(documentRef.id);
+    if (await fieldValueExists(eventId, 'codigoInvitado', code)) {
+        throw new GuestContractError('guest/duplicate-code');
+    }
+
+    let token = ownInput.qrToken;
+    for (let attempt = 0; attempt < UNIQUE_GENERATION_ATTEMPTS; attempt += 1) {
+        const guest = normalizeGuestForCreate({
+            ...ownInput,
+            codigoInvitado: code,
+            ...(token ? { qrToken: token } : {})
+        }, { documentId: documentRef.id });
+        if (!guest.qrToken || !(await fieldValueExists(eventId, 'qrToken', guest.qrToken))) return guest;
+        if (token) throw new GuestContractError('guest/duplicate-qr-token');
+        token = generateGuestQrToken();
+    }
+    throw new GuestContractError('guest/unique-token-unavailable');
+}
+
+function buildExistingIdentityIndex(snapshot) {
+    const codes = new Set();
+    const tokens = new Set();
+    snapshot.docs.forEach((item) => {
+        const data = item.data();
+        if (typeof data.codigoInvitado === 'string' && data.codigoInvitado.trim()) codes.add(data.codigoInvitado.trim());
+        if (typeof data.qrToken === 'string' && data.qrToken.trim()) tokens.add(data.qrToken.trim());
+    });
+    return { codes, tokens };
+}
+
+function prepareGuestBatchItem(documentRef, input, identities) {
+    const ownInput = cleanGuestInput(input);
+    const code = String(ownInput.codigoInvitado || '').trim() || generateGuestVisibleCode(documentRef.id);
+    if (identities.codes.has(code)) throw new GuestContractError('guest/duplicate-code');
+
+    let token = ownInput.qrToken;
+    for (let attempt = 0; attempt < UNIQUE_GENERATION_ATTEMPTS; attempt += 1) {
+        const guest = normalizeGuestForCreate({
+            ...ownInput,
+            codigoInvitado: code,
+            ...(token ? { qrToken: token } : {})
+        }, { documentId: documentRef.id });
+        if (!guest.qrToken || !identities.tokens.has(guest.qrToken)) {
+            identities.codes.add(guest.codigoInvitado);
+            if (guest.qrToken) identities.tokens.add(guest.qrToken);
+            return guest;
+        }
+        if (token) throw new GuestContractError('guest/duplicate-qr-token');
+        token = generateGuestQrToken();
+    }
+    throw new GuestContractError('guest/unique-token-unavailable');
 }
 
 function sortGuestsByName(guests) {
@@ -146,8 +218,9 @@ export const guestService = {
     async createGuest(eventId, guestData) {
         if (!eventId) throw new Error('guest/invalid-event-id');
         try {
-            const guest = normalizeGuestForCreate(guestData);
-            const docRef = await addDoc(collection(db, 'eventos', eventId, 'invitados'), {
+            const docRef = doc(collection(db, 'eventos', eventId, 'invitados'));
+            const guest = await prepareGuestForCreate(eventId, docRef, guestData);
+            await setDoc(docRef, {
                 ...toFirestoreGuest(guest),
                 fechaCreacion: serverTimestamp(),
                 fechaActualizacion: serverTimestamp()
@@ -165,7 +238,15 @@ export const guestService = {
             const current = await getDoc(docRef);
             if (!current.exists()) throw new Error('guest/not-found');
 
-            const guest = normalizeGuestForUpdate(cleanGuestInput(guestData), current.data());
+            const guest = normalizeGuestForUpdate(cleanGuestInput(guestData), current.data(), { documentId: guestId });
+            if (guest.codigoInvitado !== current.data().codigoInvitado
+                && await fieldValueExists(eventId, 'codigoInvitado', guest.codigoInvitado, guestId)) {
+                throw new GuestContractError('guest/duplicate-code');
+            }
+            if (guest.qrToken && guest.qrToken !== current.data().qrToken
+                && await fieldValueExists(eventId, 'qrToken', guest.qrToken, guestId)) {
+                throw new GuestContractError('guest/duplicate-qr-token');
+            }
             await updateDoc(docRef, {
                 ...toFirestoreGuest(guest),
                 fechaActualizacion: serverTimestamp()
@@ -186,30 +267,33 @@ export const guestService = {
 
     async importGuestsBatch(eventId, guestsArray, { onProgress } = {}) {
         if (!eventId || !Array.isArray(guestsArray)) throw new Error('guest/invalid-batch-params');
-        let guests;
+        let prepared;
         try {
             // This is the Excel creation boundary too: every row receives the
             // exact same counters/code/QR initialization as manual creation.
-            guests = guestsArray
+            const invitadosRef = collection(db, 'eventos', eventId, 'invitados');
+            const identities = buildExistingIdentityIndex(await getDocs(invitadosRef));
+            prepared = guestsArray
                 .filter((guest) => guest && typeof guest === 'object')
-                .map((guest) => normalizeGuestForCreate(guest));
+                .map((guest) => {
+                    const guestRef = doc(invitadosRef);
+                    return { guestRef, guest: prepareGuestBatchItem(guestRef, guest, identities) };
+                });
         } catch (error) {
             wrapGuestServiceError('batch-import', error);
         }
 
-        const totalBatches = Math.ceil(guests.length / IMPORT_BATCH_SIZE);
+        const totalBatches = Math.ceil(prepared.length / IMPORT_BATCH_SIZE);
         const summary = { guests: [], completedBatches: 0, totalBatches };
-        if (guests.length === 0) return { ...summary, importedCount: 0 };
+        if (prepared.length === 0) return { ...summary, importedCount: 0 };
 
-        const invitadosRef = collection(db, 'eventos', eventId, 'invitados');
         try {
-            for (let offset = 0; offset < guests.length; offset += IMPORT_BATCH_SIZE) {
-                const chunk = guests.slice(offset, offset + IMPORT_BATCH_SIZE);
+            for (let offset = 0; offset < prepared.length; offset += IMPORT_BATCH_SIZE) {
+                const chunk = prepared.slice(offset, offset + IMPORT_BATCH_SIZE);
                 const batch = writeBatch(db);
                 const createdInBatch = [];
 
-                chunk.forEach((guest) => {
-                    const guestRef = doc(invitadosRef);
+                chunk.forEach(({ guestRef, guest }) => {
                     batch.set(guestRef, {
                         ...toFirestoreGuest(guest),
                         fechaCreacion: serverTimestamp(),
@@ -231,7 +315,7 @@ export const guestService = {
                     completedBatches: summary.completedBatches,
                     totalBatches,
                     importedCount: summary.guests.length,
-                    totalCount: guests.length
+                    totalCount: prepared.length
                 });
             }
             return { ...summary, importedCount: summary.guests.length };
