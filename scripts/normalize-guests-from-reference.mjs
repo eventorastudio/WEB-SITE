@@ -65,8 +65,9 @@ async function run({ eventId, apply }) {
 
     const referenceData = referenceSnapshot.data();
     const referenceKeys = Object.keys(referenceData).sort();
-    const history = aggregateCheckins(checkinsSnapshot.docs);
     const identities = buildIdentityRegistry(guestsSnapshot.docs);
+    const checkinAudit = auditCheckins(checkinsSnapshot.docs, guestsSnapshot.docs);
+    const history = checkinAudit.history;
     const referenceAudit = auditReference({
         data: referenceData,
         keys: referenceKeys,
@@ -75,6 +76,7 @@ async function run({ eventId, apply }) {
     });
 
     printReferenceAudit(referenceAudit);
+    printCheckinAudit(checkinAudit);
     printDuplicateAudit(identities);
 
     const analysis = guestsSnapshot.docs.map((snapshot) => analyseGuest({
@@ -85,27 +87,30 @@ async function run({ eventId, apply }) {
         duplicateTokens: identities.duplicateTokens
     }));
     const summary = summarize(analysis);
-    printAnalysis({ eventId, apply, analysis, summary });
+    printAnalysis({ eventId, apply, analysis });
 
     const globalBlockers = [
         ...referenceAudit.errors,
+        ...checkinAudit.errors,
         ...identities.duplicateCodes.map((value) => `Código duplicado: ${value}`),
         ...identities.duplicateTokens.map((value) => `qrToken duplicado: ${maskSecret(value)}`)
     ];
+    const invalidBlockers = analysis
+        .filter((item) => item.status === 'invalid' && item.id !== REFERENCE_GUEST_ID)
+        .map((item) => `${item.id}: ${item.reasons.join(', ')}`);
+    const allBlockers = [...globalBlockers, ...invalidBlockers];
 
     if (!apply) {
         console.log('\nDRY RUN completado: no se escribió ningún documento ni se generó un backup.');
         console.log('Para aplicar, corrige primero todos los inválidos/bloqueos y ejecuta el mismo comando con --apply.');
-        if (globalBlockers.length) printBlockers(globalBlockers);
+        printSummary(summary);
+        printBlockers(allBlockers);
         return;
     }
 
-    const invalid = analysis.filter((item) => item.status === 'invalid');
-    if (globalBlockers.length || invalid.length) {
-        printBlockers([
-            ...globalBlockers,
-            ...invalid.map((item) => `${item.id}: ${item.reasons.join(', ')}`)
-        ]);
+    printSummary(summary);
+    if (allBlockers.length) {
+        printBlockers(allBlockers);
         throw new Error('Aplicación bloqueada: la referencia o uno o más documentos son inválidos.');
     }
 
@@ -160,25 +165,73 @@ export function parseArguments(args) {
     return { valid: true, eventId, apply: flags.includes('--apply') };
 }
 
-export function aggregateCheckins(documents) {
+export function aggregateCheckins(documents, guests = []) {
+    return auditCheckins(documents, guests).history;
+}
+
+export function auditCheckins(documents, guests = []) {
     const result = new Map();
+    const identityLookup = buildGuestIdentityLookup(guests);
+    const associations = [];
+    const errors = [];
     documents.forEach((snapshot) => {
         const data = snapshot.data();
-        const guestId = typeof data.invitadoId === 'string' ? data.invitadoId.trim() : '';
+        const candidates = [
+            ['invitadoId', data.invitadoId],
+            ['guestId', data.guestId],
+            ['codigoInvitado', data.codigoInvitado]
+        ].filter(([, value]) => typeof value === 'string' && value.trim())
+            .map(([field, value]) => ({ field, value: value.trim() }));
+        const resolved = new Set();
+        candidates.forEach(({ value }) => {
+            const ids = identityLookup.get(value);
+            if (ids) ids.forEach((id) => resolved.add(id));
+        });
+
+        let guestId = '';
+        if (resolved.size === 1) {
+            [guestId] = resolved;
+        } else if (guests.length === 0 && candidates.length) {
+            guestId = candidates[0].value;
+        } else if (resolved.size > 1) {
+            errors.push(`Check-in ${snapshot.id} tiene referencias contradictorias: ${[...resolved].join(', ')}`);
+        } else {
+            errors.push(`Check-in ${snapshot.id} no se puede asociar a un invitado mediante invitadoId, guestId ni codigoInvitado`);
+        }
+
+        associations.push({
+            id: snapshot.id,
+            guestId: guestId || null,
+            matchedBy: candidates.map(({ field }) => field),
+            references: candidates
+        });
         if (!guestId) return;
-        const current = result.get(guestId) || { passes: 0, firstAt: null, invalid: [] };
+        const current = result.get(guestId) || { passes: 0, firstAt: null, invalid: [], count: 0, documentIds: [] };
+        current.count += 1;
+        current.documentIds.push(snapshot.id);
         const passes = toStrictInteger(data.pasesRegistrados);
+        let invalidRecord = false;
         if (!Number.isInteger(passes) || passes < 1) {
-            current.invalid.push(snapshot.id);
+            errors.push(`Check-in ${snapshot.id} tiene pasesRegistrados inválido`);
+            invalidRecord = true;
         } else {
             current.passes += passes;
         }
-        if (isTimestamp(data.fechaHora) && (!current.firstAt || compareTimestamps(data.fechaHora, current.firstAt) < 0)) {
+        if (!isTimestamp(data.fechaHora)) {
+            errors.push(`Check-in ${snapshot.id} tiene fechaHora inválida`);
+            invalidRecord = true;
+        } else if (!current.firstAt || compareTimestamps(data.fechaHora, current.firstAt) < 0) {
             current.firstAt = data.fechaHora;
         }
+        if (invalidRecord) current.invalid.push(snapshot.id);
         result.set(guestId, current);
     });
-    return result;
+    return {
+        history: result,
+        total: documents.length,
+        associations,
+        errors
+    };
 }
 
 export function buildIdentityRegistry(documents) {
@@ -195,6 +248,24 @@ export function buildIdentityRegistry(documents) {
         duplicateCodes: duplicateValues(codes),
         duplicateTokens: duplicateValues(tokens)
     };
+}
+
+function buildGuestIdentityLookup(documents) {
+    const lookup = new Map();
+    documents.forEach((snapshot) => {
+        addGuestIdentity(lookup, snapshot.id, snapshot.id);
+        const data = snapshot.data();
+        addGuestIdentity(lookup, data.codigoInvitado, snapshot.id);
+    });
+    return lookup;
+}
+
+function addGuestIdentity(lookup, value, guestId) {
+    if (typeof value !== 'string' || !value.trim()) return;
+    const key = value.trim();
+    const ids = lookup.get(key) || new Set();
+    ids.add(guestId);
+    lookup.set(key, ids);
 }
 
 export function auditReference({ data, keys, documentId, history }) {
@@ -226,10 +297,48 @@ export function auditReference({ data, keys, documentId, history }) {
         checkinPasses: history?.passes || 0,
         firstCheckinAt: history?.firstAt || null
     });
+    const differences = buildFieldDiffs({
+        source: data,
+        patch: plan.patch,
+        generatedFields: plan.generatedFields,
+        missingFields: missingContractFields,
+        incorrectTypeFields: keys.filter((key) => {
+            const expected = GUEST_FIELD_DEFINITIONS[key]?.type;
+            return expected && !matchesExpectedType(data[key], expected);
+        })
+    });
+    const diagnosticFields = [
+        'estado',
+        'confirmado',
+        'llegadaRegistrada',
+        'horaLlegada',
+        'pases',
+        'pasesUtilizados',
+        'pasesDisponibles'
+    ];
+    const referenceState = {
+        fields: diagnosticFields.map((fieldName) => {
+            const currentPresent = Object.hasOwn(data, fieldName);
+            const proposedValue = Object.hasOwn(plan.patch, fieldName) ? plan.patch[fieldName] : data[fieldName];
+            return {
+                field: fieldName,
+                current: diagnosticField(fieldName, data[fieldName], currentPresent),
+                proposed: diagnosticField(fieldName, proposedValue, proposedValue !== undefined),
+                difference: differences.find((difference) => difference.field === fieldName) || null
+            };
+        }),
+        checkinCount: history?.count || 0,
+        checkinDocumentIds: history?.documentIds || [],
+        result: null
+    };
     if (history?.invalid?.length) errors.push(`INV-0001 tiene check-ins inválidos: ${history.invalid.join(', ')}`);
     if (plan.status === 'invalid') errors.push(`INV-0001 es inconsistente: ${plan.reason}`);
     if (plan.status === 'update') errors.push(`INV-0001 requeriría cambios: ${[...Object.keys(plan.patch), ...plan.generatedFields].join(', ')}`);
-    return { rows, errors, keys, unsupportedFields, missingContractFields };
+    referenceState.result = errors.length ? 'REFERENCIA INVÁLIDA' : 'REFERENCIA VÁLIDA';
+    referenceState.requiredChanges = plan.status === 'update'
+        ? [...Object.keys(plan.patch), ...plan.generatedFields]
+        : [];
+    return { rows, errors, keys, unsupportedFields, missingContractFields, differences, referenceState };
 }
 
 export function analyseGuest({ snapshot, referenceKeys, history, duplicateCodes = [], duplicateTokens = [] }) {
@@ -240,6 +349,9 @@ export function analyseGuest({ snapshot, referenceKeys, history, duplicateCodes 
         .filter((key) => Object.hasOwn(source, key) && GUEST_FIELD_DEFINITIONS[key])
         .filter((key) => !matchesExpectedType(source[key], GUEST_FIELD_DEFINITIONS[key].type))
         .map((key) => `${key}: ${firestoreType(source[key])} → ${GUEST_FIELD_DEFINITIONS[key].type}`);
+    const incorrectTypeFields = referenceKeys
+        .filter((key) => Object.hasOwn(source, key) && GUEST_FIELD_DEFINITIONS[key])
+        .filter((key) => !matchesExpectedType(source[key], GUEST_FIELD_DEFINITIONS[key].type));
     const reasons = [];
     if (history?.invalid?.length) reasons.push(`check-ins inválidos: ${history.invalid.join(', ')}`);
     if (!Object.hasOwn(source, 'fechaCreacion')) reasons.push('falta fechaCreacion; no se inventará una fecha histórica');
@@ -271,6 +383,13 @@ export function analyseGuest({ snapshot, referenceKeys, history, duplicateCodes 
     const changedFields = new Set([...Object.keys(patch), ...generatedFields]);
     const preservedFields = Object.keys(source).filter((key) => !changedFields.has(key));
     const needsUpdate = Object.keys(patch).length > 0 || generatedFields.length > 0;
+    const differences = buildFieldDiffs({
+        source,
+        patch,
+        generatedFields,
+        missingFields,
+        incorrectTypeFields
+    });
     return {
         id,
         ref: snapshot.ref,
@@ -281,7 +400,8 @@ export function analyseGuest({ snapshot, referenceKeys, history, duplicateCodes 
         generatedFields,
         missingFields,
         incorrectTypes,
-        preservedFields
+        preservedFields,
+        differences
     };
 }
 
@@ -291,8 +411,9 @@ export function summarize(items) {
         if (item.status === 'correct') summary.normalized += 1;
         if (item.status === 'update') summary.requiresChanges += 1;
         if (item.status === 'invalid') summary.invalid += 1;
-        if (!item.source.codigoInvitado) summary.withoutCode += 1;
-        if (supportsQrAccess(item.source.tipoAcceso) && !item.source.qrToken) summary.withoutQrToken += 1;
+        if (typeof item.source.codigoInvitado !== 'string' || !item.source.codigoInvitado.trim()) summary.withoutCode += 1;
+        if (supportsQrAccess(item.source.tipoAcceso)
+            && (typeof item.source.qrToken !== 'string' || !item.source.qrToken.trim())) summary.withoutQrToken += 1;
         if (item.incorrectTypes.length) summary.wrongTypes += 1;
         return summary;
     }, {
@@ -332,6 +453,14 @@ export function validateAfterApply(documents, referenceKeys) {
                 issues.push(`${key} tiene tipo ${firestoreType(data[key])}`);
             }
         });
+        if (!missing.length) {
+            const contractPlan = normalizeLegacyGuest(data, { documentId: snapshot.id });
+            if (contractPlan.status === 'invalid') {
+                issues.push(`contrato inválido: ${contractPlan.reason}`);
+            } else if (contractPlan.status === 'update') {
+                issues.push(`aún requeriría cambios: ${[...Object.keys(contractPlan.patch), ...contractPlan.generatedFields].join(', ')}`);
+            }
+        }
         if (identities.duplicateCodes.includes(data.codigoInvitado)) issues.push('codigoInvitado duplicado');
         if (identities.duplicateTokens.includes(data.qrToken)) issues.push('qrToken duplicado');
         return { id: snapshot.id, issues };
@@ -357,10 +486,206 @@ export function matchesExpectedType(value, expected) {
     });
 }
 
+export function buildFieldDiffs({
+    source = {},
+    patch = {},
+    generatedFields = [],
+    missingFields = [],
+    incorrectTypeFields = []
+} = {}) {
+    const fields = new Set([
+        ...Object.keys(patch),
+        ...generatedFields,
+        ...missingFields,
+        ...incorrectTypeFields
+    ]);
+    const normalizedStatus = Object.hasOwn(patch, 'estado') ? patch.estado : source.estado;
+
+    return [...fields].map((fieldName) => {
+        const present = Object.hasOwn(source, fieldName);
+        const generated = generatedFields.includes(fieldName);
+        const patched = Object.hasOwn(patch, fieldName);
+        const currentValue = present ? source[fieldName] : undefined;
+        const proposedValue = patched ? patch[fieldName] : undefined;
+        const expectedType = GUEST_FIELD_DEFINITIONS[fieldName]?.type || 'desconocido';
+        const hasProposal = patched || generated;
+        const proposedDisplay = generated
+            ? generatedValueLabel(fieldName)
+            : hasProposal
+                ? diagnosticValue(fieldName, proposedValue)
+                : '(sin propuesta automática)';
+        const proposedJsType = generated
+            ? expectedJsType(expectedType)
+            : proposedValue === '[serverTimestamp]'
+                ? 'object (FieldValue)'
+            : hasProposal
+                ? jsType(proposedValue)
+                : '(sin propuesta)';
+        const proposedFirestoreType = generated
+            ? expectedType
+            : proposedValue === '[serverTimestamp]'
+                ? 'timestamp'
+                : hasProposal
+                    ? firestoreType(proposedValue)
+                    : expectedType;
+
+        const difference = {
+            field: fieldName,
+            currentDisplay: diagnosticValue(fieldName, currentValue, { present }),
+            currentJsType: jsType(currentValue),
+            currentFirestoreType: present ? firestoreType(currentValue) : 'ausente',
+            proposedDisplay,
+            proposedJsType,
+            proposedFirestoreType,
+            reason: explainDifference({
+                fieldName,
+                present,
+                currentValue,
+                proposedValue,
+                hasProposal,
+                generated,
+                normalizedStatus,
+                expectedType
+            })
+        };
+
+        if (fieldName === 'confirmado') {
+            const statusPresent = Object.hasOwn(source, 'estado');
+            difference.statusContext = {
+                rawDisplay: diagnosticValue('estado', source.estado, { present: statusPresent }),
+                rawJsType: jsType(source.estado),
+                rawFirestoreType: statusPresent ? firestoreType(source.estado) : 'ausente',
+                normalizedDisplay: diagnosticValue('estado', normalizedStatus, { present: normalizedStatus !== undefined }),
+                normalizedJsType: jsType(normalizedStatus),
+                normalizedFirestoreType: normalizedStatus === undefined ? 'ausente' : firestoreType(normalizedStatus)
+            };
+        }
+        return difference;
+    });
+}
+
+function explainDifference({
+    fieldName,
+    present,
+    currentValue,
+    proposedValue,
+    hasProposal,
+    generated,
+    normalizedStatus,
+    expectedType
+}) {
+    if (fieldName === 'codigoInvitado' && generated) {
+        return 'codigoInvitado vacío; se generará un código único durante --apply';
+    }
+    if (fieldName === 'fechaActualizacion' && proposedValue === '[serverTimestamp]') {
+        return 'fechaActualizacion se actualizará mediante serverTimestamp() debido a que el documento tendrá cambios';
+    }
+
+    let cause;
+    if (!present) {
+        cause = 'campo ausente';
+    } else if (currentValue === null && hasProposal && proposedValue !== null) {
+        cause = 'el valor actual es null';
+    } else if (hasProposal && jsType(currentValue) !== jsType(proposedValue)) {
+        cause = `tipo distinto (${jsType(currentValue)} → ${jsType(proposedValue)})`;
+    } else if (hasProposal && !Object.is(currentValue, proposedValue)) {
+        cause = 'valor distinto';
+    } else if (!matchesExpectedType(currentValue, expectedType)) {
+        cause = `tipo Firestore distinto (${firestoreType(currentValue)} → ${expectedType})`;
+    } else {
+        cause = 'el campo requiere generación o revisión explícita';
+    }
+
+    if (fieldName === 'confirmado') {
+        const derived = normalizedStatus === 'confirmado' || normalizedStatus === 'llego';
+        return `${cause}; confirmado se deriva de estado normalizado = ${diagnosticValue('estado', normalizedStatus, { present: normalizedStatus !== undefined })}, por lo que el booleano esperado es ${derived}`;
+    }
+
+    const semanticReasons = {
+        estado: 'se normaliza al catálogo canónico: pendiente, confirmado, no_asistira o llego',
+        llegadaRegistrada: 'se deriva de las señales confiables de llegada y de los check-ins',
+        pasesUtilizados: 'se conserva un contador válido o se deriva del historial confiable',
+        pasesDisponibles: 'se calcula como pases - pasesUtilizados',
+        qrActivo: 'se valida contra tipoAcceso y la presencia de un qrToken válido',
+        horaLlegada: 'debe ser coherente con una llegada registrada',
+        fechaActualizacion: 'al escribir cambios se usaría un serverTimestamp',
+        fechaCreacion: 'no existe una propuesta automática porque no se inventa una fecha histórica'
+    };
+    return semanticReasons[fieldName] ? `${cause}; ${semanticReasons[fieldName]}` : cause;
+}
+
+function diagnosticValue(fieldName, value, { present = true } = {}) {
+    if (!present) return '(ausente)';
+    if (fieldName === 'qrToken') return maskSecret(value);
+    if (value === '[serverTimestamp]') return '[serverTimestamp → timestamp]';
+    if (isTimestamp(value)) return value.toDate().toISOString();
+    if (value === undefined) return 'undefined';
+    if (value === null) return 'null';
+    if (typeof value === 'string') return JSON.stringify(value);
+    if (typeof value === 'object') return JSON.stringify(serializeFirestoreValue(value));
+    return String(value);
+}
+
+function diagnosticField(fieldName, value, present) {
+    return {
+        display: diagnosticValue(fieldName, value, { present }),
+        jsType: jsType(value),
+        firestoreType: present ? firestoreType(value) : 'ausente'
+    };
+}
+
+function jsType(value) {
+    if (value === null) return 'object (null)';
+    if (Array.isArray(value)) return 'object (array)';
+    return typeof value;
+}
+
+function expectedJsType(expectedFirestoreType) {
+    const candidate = expectedFirestoreType.split('|')[0];
+    if (candidate === 'null') return 'object (null)';
+    if (['timestamp', 'map', 'geopoint', 'reference', 'bytes', 'array'].includes(candidate)) return 'object';
+    return candidate;
+}
+
+function generatedValueLabel(fieldName) {
+    if (fieldName === 'codigoInvitado') return '(se generaría un código único solo con --apply)';
+    if (fieldName === 'qrToken') return '(se generaría un token secreto solo con --apply)';
+    return '(se generaría solo con --apply)';
+}
+
 function printReferenceAudit(audit) {
     console.log(`\nESQUEMA REAL DE ${REFERENCE_GUEST_ID}`);
     console.table(audit.rows);
-    if (audit.errors.length) printBlockers(audit.errors);
+    printReferenceState(audit.referenceState);
+    if (audit.differences.length) {
+        console.log('\nREFERENCE DIFF');
+        audit.differences.forEach((difference) => printFieldDiff(difference));
+    }
+}
+
+function printReferenceState(state) {
+    console.log(`\nDIAGNÓSTICO REAL DE ${REFERENCE_GUEST_ID}`);
+    state.fields.forEach((field) => printReferenceField(field));
+    console.log('checkins asociados:');
+    console.log(`  cantidad: ${state.checkinCount}`);
+    if (state.checkinDocumentIds.length) console.log(`  documentos: ${state.checkinDocumentIds.join(', ')}`);
+    console.log(`${REFERENCE_GUEST_ID}: ${state.result}`);
+    console.log(`Cambios requeridos: ${state.requiredChanges.join(', ') || 'ninguno'}`);
+}
+
+function printReferenceField(field) {
+    console.log(`${field.field}:`);
+    console.log(`  actual: ${field.current.display} (JS: ${field.current.jsType}; Firestore: ${field.current.firestoreType})`);
+    console.log(`  propuesto: ${field.proposed.display} (JS: ${field.proposed.jsType}; Firestore: ${field.proposed.firestoreType})`);
+    console.log(`  motivo: ${field.difference?.reason || 'sin cambios; ya cumple el contrato'}`);
+}
+
+function printCheckinAudit(audit) {
+    console.log('\nAUDITORÍA DE CHECKINS');
+    console.log(`Total documentos: ${audit.total}`);
+    console.log(`Asociados: ${audit.associations.filter((item) => item.guestId).length}`);
+    console.log(`Sin asociación segura: ${audit.associations.filter((item) => !item.guestId).length}`);
+    if (audit.errors.length) audit.errors.forEach((error) => console.log(`- ${error}`));
 }
 
 function printDuplicateAudit(identities) {
@@ -370,18 +695,9 @@ function printDuplicateAudit(identities) {
     identities.duplicateTokens.forEach((value) => console.log(`- qrToken: ${maskSecret(value)}`));
 }
 
-function printAnalysis({ eventId, apply, analysis, summary }) {
+function printAnalysis({ eventId, apply, analysis }) {
     console.log(`\nEvento: ${eventId}`);
     console.log(`Modo: ${apply ? 'APPLY solicitado (aún sin escrituras)' : 'DRY RUN'}`);
-    console.table({
-        'Total invitados': summary.total,
-        'Ya normalizados': summary.normalized,
-        'Requieren cambios': summary.requiresChanges,
-        'Inválidos': summary.invalid,
-        'Sin código': summary.withoutCode,
-        'Sin QR token': summary.withoutQrToken,
-        'Tipos incorrectos': summary.wrongTypes
-    });
     console.log('\nDETALLE POR DOCUMENTO');
     analysis.forEach((item) => {
         console.log(`\n${item.id} [${item.status}]`);
@@ -390,15 +706,52 @@ function printAnalysis({ eventId, apply, analysis, summary }) {
         console.log(`  Valores/campos conservados: ${item.preservedFields.join(', ') || 'ninguno'}`);
         console.log(`  Valores/campos a generar: ${item.generatedFields.join(', ') || 'ninguno'}`);
         console.log(`  Campos a corregir: ${Object.keys(item.patch).join(', ') || 'ninguno'}`);
+        if (item.differences.length) {
+            console.log('  DIFERENCIAS DETALLADAS');
+            item.differences.forEach((difference) => printFieldDiff(difference, '    '));
+        }
         if (item.reasons.length) console.log(`  Bloqueos: ${item.reasons.join('; ')}`);
     });
     console.log('\nCAMPOS QUE NUNCA SE COPIAN LITERALMENTE DE INV-0001');
     console.log(NEVER_COPY_FIELDS.join(', '));
+    console.log('INV-0001 aporta únicamente el esquema de campos; ningún valor suyo se copia a otro invitado.');
+}
+
+function printSummary(summary) {
+    console.log('\nRESUMEN');
+    console.table({
+        'Total invitados': summary.total,
+        'Ya normalizados': summary.normalized,
+        'Requieren cambios': summary.requiresChanges,
+        'Inválidos': summary.invalid,
+        'Sin código': summary.withoutCode,
+        'Sin QR': summary.withoutQrToken,
+        'Tipos incorrectos': summary.wrongTypes
+    });
 }
 
 function printBlockers(blockers) {
+    if (!blockers.length) {
+        console.log('\nBLOQUEOS: ninguno');
+        return;
+    }
     console.log('\nBLOQUEOS');
     blockers.forEach((item) => console.log(`- ${item}`));
+}
+
+function printFieldDiff(difference, indent = '') {
+    console.log(`${indent}Campo: ${difference.field}`);
+    console.log(`${indent}  Valor actual: ${difference.currentDisplay}`);
+    console.log(`${indent}  Tipo actual JS: ${difference.currentJsType}`);
+    console.log(`${indent}  Tipo actual Firestore: ${difference.currentFirestoreType}`);
+    console.log(`${indent}  Valor propuesto: ${difference.proposedDisplay}`);
+    console.log(`${indent}  Tipo propuesto JS: ${difference.proposedJsType}`);
+    console.log(`${indent}  Tipo propuesto Firestore: ${difference.proposedFirestoreType}`);
+    console.log(`${indent}  Motivo: ${difference.reason}`);
+    if (difference.statusContext) {
+        console.log(`${indent}  Estado raw: ${difference.statusContext.rawDisplay} (JS: ${difference.statusContext.rawJsType}; Firestore: ${difference.statusContext.rawFirestoreType})`);
+        console.log(`${indent}  Estado normalizado: ${difference.statusContext.normalizedDisplay} (JS: ${difference.statusContext.normalizedJsType}; Firestore: ${difference.statusContext.normalizedFirestoreType})`);
+    }
 }
 
 async function confirmApply(eventId) {

@@ -40,6 +40,32 @@ test('false textual inequívoco no se interpreta como true', () => {
     assert.equal(guest.llegadaRegistrada, false);
 });
 
+test('pendiente con confirmado false booleano ya cumple el contrato legado', () => {
+    const plan = normalizeLegacyGuest({
+        nombre: 'Ana', correo: '', telefono: '', pases: 2,
+        pasesUtilizados: 0, pasesDisponibles: 2, mesa: null,
+        estado: 'pendiente', confirmado: false, llegadaRegistrada: false,
+        horaLlegada: null, tipoAcceso: 'manual', qrToken: null,
+        qrActivo: false, notas: '', codigoInvitado: 'INV-0001'
+    }, { documentId: 'INV-0001' });
+
+    assert.equal(plan.status, 'correct');
+    assert.equal(plan.patch.confirmado, undefined);
+});
+
+test('pendiente con confirmado "false" conserva el significado pero reporta el tipo', () => {
+    const plan = normalizeLegacyGuest({
+        nombre: 'Ana', correo: '', telefono: '', pases: 2,
+        pasesUtilizados: 0, pasesDisponibles: 2, mesa: null,
+        estado: 'pendiente', confirmado: 'false', llegadaRegistrada: false,
+        horaLlegada: null, tipoAcceso: 'manual', qrToken: null,
+        qrActivo: false, notas: '', codigoInvitado: 'INV-0001'
+    }, { documentId: 'INV-0001' });
+
+    assert.equal(plan.status, 'update');
+    assert.equal(plan.patch.confirmado, false);
+});
+
 test('la edición conserva token, contadores y una llegada real', () => {
     const current = {
         nombre: 'Ana', pases: 4, pasesUtilizados: 2, pasesDisponibles: 2,
@@ -118,6 +144,19 @@ test('qrActivo textual solo se convierte cuando es inequívoco', () => {
     });
     assert.equal(ambiguous.status, 'invalid');
     assert.equal(ambiguous.reason, 'guest/ambiguous-qr-active');
+});
+
+test('un QR desactivado explícitamente no se reactiva', () => {
+    const plan = normalizeLegacyGuest({
+        nombre: 'Ana', correo: '', telefono: '', pases: 1,
+        pasesUtilizados: 0, pasesDisponibles: 1, mesa: null,
+        estado: 'pendiente', confirmado: false, llegadaRegistrada: false,
+        horaLlegada: null, tipoAcceso: 'qr', qrToken: 'Abcdefghijklmnop_1234',
+        qrActivo: false, notas: '', codigoInvitado: 'INV-0002'
+    }, { documentId: 'INV-0002' });
+
+    assert.equal(plan.status, 'correct');
+    assert.equal(plan.patch.qrActivo, undefined);
 });
 
 test('una llegada real prevalece sobre un estado legado contradictorio', () => {
