@@ -1,11 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { access, readFile } from 'node:fs/promises';
-import { PACKAGE_MATRIX, PRESTIGE_DEMO_FEATURES, PRESTIGE_SERVICE_BENEFITS } from '../principal/demos/prestige-contract.js';
+import {
+  PACKAGE_MATRIX,
+  PRESTIGE_COMMERCIAL_DEMO_MAP,
+  PRESTIGE_DEMO_ARCHITECTURE,
+  PRESTIGE_DEMO_FEATURES,
+  PRESTIGE_SERVICE_BENEFITS
+} from '../principal/demos/prestige-contract.js';
 
 const DEMOS = ['xv-renatta', 'luxury', 'botanical', 'midnight', 'romance', 'minimal'];
 const NEW_COLLECTIONS = DEMOS.slice(1);
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
+const REFERENCE_DEMO = 'paquetes/demos/prestige';
 
 const extractFeatureTitles = (html, startId, endId) => {
   const start = html.indexOf(`id="${startId}"`);
@@ -33,6 +40,55 @@ test('la matriz de paquetes replica exclusivamente la fuente comercial actual', 
     'Más cambios incluidos',
     'Atención prioritaria'
   ]);
+  const commercialFeatures = new Set(Object.values(PACKAGE_MATRIX).flat());
+  for (const [commercialName, demoFeature] of Object.entries(PRESTIGE_COMMERCIAL_DEMO_MAP)) {
+    assert.ok(commercialFeatures.has(commercialName), `La función comercial no existe en paquetes.html: ${commercialName}`);
+    assert.ok(PRESTIGE_DEMO_FEATURES.includes(demoFeature), `La función comercial no está representada en demos: ${demoFeature}`);
+  }
+});
+
+test('la demo Prestige arquitectónica conserva su ruta pública y archivos propios', async () => {
+  const packages = await read('paquetes/index.html');
+  assert.match(packages, /href="\/paquetes\/demos\/prestige\/"/);
+  assert.equal(PRESTIGE_DEMO_ARCHITECTURE.sourceRoute, '/paquetes/demos/prestige/');
+  for (const file of PRESTIGE_DEMO_ARCHITECTURE.sourceFiles) {
+    await access(new URL(`../${REFERENCE_DEMO}/${file}`, import.meta.url));
+  }
+});
+
+test('la referencia Prestige modernizada implementa el contrato sin hotlinks', async () => {
+  const [html, script, css] = await Promise.all([
+    read(`${REFERENCE_DEMO}/index.html`),
+    read(`${REFERENCE_DEMO}/demo.js`),
+    read(`${REFERENCE_DEMO}/demo.css`)
+  ]);
+  const activeFeatures = collectPrestigeFeatures(html);
+  for (const feature of PRESTIGE_DEMO_FEATURES) {
+    assert.ok(activeFeatures.has(feature), `La referencia Prestige no representa: ${feature}`);
+  }
+  for (const field of ['demoMode', 'guest', 'defaultName', 'defaultPasses', 'event', 'date', 'time', 'locations', 'links']) {
+    assert.match(script, new RegExp(`\\b${field}\\b`));
+  }
+  assert.match(script, /new URLSearchParams\(window\.location\.search\)/);
+  assert.match(script, /params\.get\('nombre'\)/);
+  assert.match(script, /params\.get\('pases'\)/);
+  assert.match(script, /demoMode:\s*true/);
+  assert.match(script, /if \(EVENT_CONFIG\.demoMode\)/);
+  assert.match(script, /else if \(url\)/);
+  assert.match(script, /setAttribute\('role', 'dialog'\)/);
+  assert.match(script, /event\.key === 'Escape'/);
+  assert.match(script, /prefers-reduced-motion: reduce|reducedMotion/);
+  assert.match(css, /@media\(max-width:430px\)/);
+  assert.match(css, /@media\(max-width:768px\)/);
+  assert.match(css, /@media\(max-width:1024px\)/);
+  assert.match(css, /prefers-reduced-motion:reduce/);
+  assert.doesNotMatch(html, /(?:src|href)="https?:/);
+  assert.doesNotMatch(html, /unsplash|w3schools|qrserver|fonts\.googleapis|unpkg/i);
+  assert.doesNotMatch(script, /window\.open|window\.location\s*=|console\./);
+  for (const action of new Set([...html.matchAll(/data-demo-action="([^"]+)"/g)].map((match) => match[1]))) {
+    assert.match(script, new RegExp(`\\b${action}:`));
+  }
+  await access(new URL('../principal/demos/xv-renatta/musica.mp3', import.meta.url));
 });
 
 test('PRESTIGE_DEMO_FEATURES está activo en las seis demos y las etiquetas son inequívocas', async () => {
@@ -50,6 +106,9 @@ test('PRESTIGE_DEMO_FEATURES está activo en las seis demos y las etiquetas son 
     assert.match(html, /funciones pueden variar según el paquete contratado/i);
     assert.match(html, /data-demo-video/);
     assert.match(html, /data-pass-selector/);
+    assert.match(html, /data-access-preview/);
+    assert.match(html, /data-access-mode="digital"/);
+    assert.match(html, /data-access-mode="printed"/);
     assert.match(html, /data-demo-action="gifts"/);
     assert.match(script, /demoMode:\s*true/);
   }
@@ -172,17 +231,33 @@ test('Demo Notice es accesible, se cierra y devuelve el foco', async () => {
 
 test('cada identidad tiene composición, storytelling y galería propios', async () => {
   const expected = {
-    'xv-renatta': [/resort-card/, /pool-note/, /postcards/, /ALOHA<\/span> RENATTA/],
-    luxury: [/hero-visual/, /chapter/, /dress-figures/, /concierge/],
-    botanical: [/hero-art/, /stem-main/, /garden-frame/, /memory-strip/],
-    midnight: [/hero-light/, /timeline/, /silhouettes/, /night-gallery/],
-    romance: [/love-note/, /story/, /photo-story/, /Querida vida/],
-    minimal: [/open-grid/, /statement/, /hero-crop/, /editorial-image/]
+    'xv-renatta': [/resort-card/, /hero-sun/, /postcards/, /itinerary/, /dress-copy/, /envelope-section/, /island-pass/, /tropical-button/],
+    luxury: [/envelope-wrap/, /hero-visual/, /gallery-grid/, /black-tie-agenda/, /dress-figures/, /concierge/, /seat-pass/, /button-gold/],
+    botanical: [/class="paper"/, /hero-art/, /memory-strip/, /itinerary/, /garden-frame/, /class="gifts/, /pressed-pass/, /leaf-button/],
+    midnight: [/class="darkness"/, /hero-light/, /night-gallery/, /timeline/, /silhouettes/, /night-services/, /night-pass/, /class="rsvp/],
+    romance: [/class="letter"/, /class="portrait"/, /photo-story/, /romance-itinerary/, /dress-gifts/, /small-notes/, /letter-pass/, /class="rsvp/],
+    minimal: [/open-grid/, /hero-grid/, /class="gallery/, /minimal-itinerary/, /class="dress/, /class="registry/, /access-index/, /class="rsvp/]
   };
   for (const [demo, patterns] of Object.entries(expected)) {
     const html = await read(`principal/demos/${demo}/index.html`);
     for (const pattern of patterns) assert.match(html, pattern);
   }
+});
+
+test('las seis colecciones usan lenguajes de movimiento y accesos visualmente distintos', async () => {
+  const signatures = {
+    'xv-renatta': [/rotate\(-\.25deg\)/, /island-pass/],
+    luxury: [/scale\(\.985\)/, /seat-pass/],
+    botanical: [/rotate\(\.35deg\)/, /pressed-pass/],
+    midnight: [/clip-path:inset\(0 0 10% 0\)/, /night-pass/],
+    romance: [/rotate\(-\.35deg\)/, /letter-pass/],
+    minimal: [/translateX\(-24px\)/, /access-index/]
+  };
+  for (const [demo, patterns] of Object.entries(signatures)) {
+    const css = await read(`principal/demos/${demo}/style.css`);
+    for (const pattern of patterns) assert.match(css, pattern);
+  }
+  assert.equal(new Set(Object.keys(signatures)).size, DEMOS.length);
 });
 
 test('responsive contempla celulares reales, nombre largo y reduced-motion', async () => {

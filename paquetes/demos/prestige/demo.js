@@ -1,325 +1,323 @@
-/*=========================================
-        EVENTORA STUDIO
-        DEMO PRESTIGE UX
-=========================================*/
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    /*=====================================
-                ELEMENTOS
-    =====================================*/
-
-    const loader = document.getElementById("loader");
-    const luxEnvelope = document.getElementById("lux-envelope");
-    const envelopeScreen = document.getElementById("lux-envelope-screen");
-    const invitation = document.getElementById("invitation");
-    const musicButton = document.getElementById("musicButton");
-    const music = document.getElementById("backgroundMusic");
-    const progressBar = document.getElementById("progress-bar");
-    
-    // Nombres corregidos para que coincidan con la lógica de eventos
-    const btnConfirm = document.getElementById("btnConfirm");
-    const btnDecline = document.getElementById("btnDecline");
-    const rsvpActionContainer = document.getElementById("rsvpActionContainer");
-    const rsvpMessageContainer = document.getElementById("rsvpMessageContainer");
-    const floatingMenu = document.getElementById("floating-menu");
-
-    // Variables agregadas que faltaban para que el selector QR/Impreso funcione
-    const tabQr = document.getElementById("tab-qr");
-    const tabPrinted = document.getElementById("tab-printed");
-    const accessBadge = document.getElementById("accessBadge");
-    const accessDescription = document.getElementById("accessDescription");
-    const accessDividerIcon = document.getElementById("accessDividerIcon");
-    const viewQr = document.getElementById("view-qr");
-    const viewPrinted = document.getElementById("view-printed");
-    const globalTicketStatus = document.getElementById("globalTicketStatus");
-
-    /*=====================================
-          BLOQUEO DE SCROLL (UX FIX)
-    =====================================*/
-
-    document.body.classList.add("no-scroll");
-    document.documentElement.style.scrollBehavior = "auto";
-    window.scrollTo(0, 0);
-    document.documentElement.style.scrollBehavior = "";
-
-    const keysToBlock = ["Space", "ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End"];
-    const preventScroll = (e) => {
-        if (document.body.classList.contains("no-scroll")) {
-            if (e.type === "keydown" && !keysToBlock.includes(e.code)) return; 
-            e.preventDefault();
-        }
-    };
-
-    window.addEventListener("wheel", preventScroll, { passive: false });
-    window.addEventListener("touchmove", preventScroll, { passive: false });
-    window.addEventListener("keydown", preventScroll, { passive: false });
-
-    /*=====================================
-                LOADER
-    =====================================*/
-    setTimeout(() => {
-        loader.style.opacity = "0";
-        loader.style.visibility = "hidden";
-    }, 1200);
-
-    /*=====================================
-            ABRIR INVITACIÓN (PRESTIGE)
-    =====================================*/
-    let opened = false;
-
-    if (luxEnvelope) {
-        luxEnvelope.addEventListener("click", () => {
-            if (opened) return;
-            opened = true;
-            luxEnvelope.classList.add("is-open");
-
-            if (navigator.vibrate) navigator.vibrate(20);
-
-            setTimeout(() => {
-                envelopeScreen.classList.add("hide");
-                invitation.classList.remove("hidden");
-                
-                document.documentElement.style.scrollBehavior = "auto";
-                window.scrollTo(0, 0);
-                document.documentElement.style.scrollBehavior = "";
-                document.body.classList.remove("no-scroll");
-
-                requestAnimationFrame(() => {
-                    invitation.classList.add("show");
-                    musicButton.classList.add("show");
-                });
-            }, 4800); 
-            
-            setTimeout(() => {
-                music.play().catch(() => {});
-            }, 2500);
-        });
-    }
-
-    /*=====================================
-                MÚSICA
-    =====================================*/
-    let playing = true;
-    musicButton.addEventListener("click", () => {
-        if (playing) {
-            music.pause();
-            playing = false;
-            musicButton.innerHTML = '<i data-lucide="volume-x"></i>';
-        } else {
-            music.play();
-            playing = true;
-            musicButton.innerHTML = '<i data-lucide="music-2"></i>';
-        }
-        lucide.createIcons();
-    });
-
-    /*=====================================
-          REPRODUCTOR DE VIDEO PREMIUM
-    =====================================*/
-    const videoContainer = document.getElementById("videoContainer");
-    const coupleVideo = document.getElementById("coupleVideo");
-    const playBtn = document.getElementById("playBtn");
-    const videoCover = document.getElementById("videoCover");
-
-    if (playBtn && coupleVideo && videoContainer) {
-        
-        const playVideo = () => {
-            videoContainer.classList.add("playing");
-            coupleVideo.play();
-            
-            if (playing && music) {
-                music.pause();
-                playing = false;
-                if (musicButton) musicButton.innerHTML = '<i data-lucide="volume-x"></i>';
-                lucide.createIcons();
-            }
-        };
-
-        playBtn.addEventListener("click", playVideo);
-        if (videoCover) {
-            videoCover.addEventListener("click", playVideo);
-        }
-
-        coupleVideo.addEventListener("ended", () => {
-            videoContainer.classList.remove("playing");
-        });
-    }
-
-    /*=====================================
-            EFECTO PARALLAX PREMIUM
-    =====================================*/
-    const parallaxImages = document.querySelectorAll('.parallax-img');
-    if (parallaxImages.length > 0) {
-        window.addEventListener('scroll', () => {
-            requestAnimationFrame(() => {
-                parallaxImages.forEach(img => {
-                    const rect = img.parentElement.getBoundingClientRect();
-                    const windowHeight = window.innerHeight;
-                    
-                    if (rect.top <= windowHeight && rect.bottom >= 0) {
-                        const scrollPercent = (windowHeight - rect.top) / (windowHeight + rect.height);
-                        const yOffset = (scrollPercent - 0.5) * -50; 
-                        img.style.transform = `scale(1.15) translateY(${yOffset}px)`;
-                    }
-                });
-            });
-        }, { passive: true });
-    }
-
-    /*=====================================
-            CUENTA REGRESIVA DINÁMICA
-    =====================================*/
-    const targetDate = new Date("Nov 15, 2027 18:00:00").getTime();
-    
-    const updateTimeElement = (id, newValue) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        if (el.textContent !== newValue) {
-            el.textContent = newValue;
-            el.classList.remove("pop");
-            void el.offsetWidth;
-            el.classList.add("pop");
-        }
-    };
-
-    function updateCountdown() {
-        const now = new Date().getTime();
-        const distance = targetDate - now;
-
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-        updateTimeElement("days", String(days).padStart(2, "0"));
-        updateTimeElement("hours", String(hours).padStart(2, "0"));
-        updateTimeElement("minutes", String(minutes).padStart(2, "0"));
-        updateTimeElement("seconds", String(seconds).padStart(2, "0"));
-    }
-
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
-
-    /*=====================================
-            REVEAL SCROLL PREMIUM
-    =====================================*/
-    const reveals = document.querySelectorAll(".reveal");
-    const observer = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add("active");
-            }
-        });
-    }, { threshold: .12 });
-
-    reveals.forEach(section => {
-        observer.observe(section);
-    });
-
-    /*=====================================
-            BARRA SUPERIOR & MENÚ FLOTANTE
-    =====================================*/
-    window.addEventListener("scroll", () => {
-        const scrollTop = document.documentElement.scrollTop;
-        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        const progress = (scrollTop / height) * 100;
-        progressBar.style.width = progress + "%";
-
-        if (opened && scrollTop > window.innerHeight * 0.5) {
-            floatingMenu.classList.add("show");
-        } else {
-            floatingMenu.classList.remove("show");
-        }
-    });
-
-    /*=====================================
-            SISTEMA DUAL DE ACCESOS
-    =====================================*/
-    function switchAccessView(isPrinted) {
-        // Fade out info
-        accessBadge.style.opacity = 0;
-        accessDescription.style.opacity = 0;
-        
-        setTimeout(() => {
-            if(isPrinted) {
-                accessBadge.innerHTML = '🎟️ Acceso Impreso';
-                accessDescription.textContent = 'Presenta este pase impreso el día del evento para registrar tu ingreso.';
-                accessDividerIcon.setAttribute('data-lucide', 'ticket');
-                viewQr.classList.remove('active');
-                viewPrinted.classList.add('active');
-            } else {
-                accessBadge.innerHTML = '✨ Acceso Digital';
-                accessDescription.textContent = 'Presenta tu código QR el día del evento para registrar tu ingreso.';
-                accessDividerIcon.setAttribute('data-lucide', 'qr-code');
-                viewPrinted.classList.remove('active');
-                viewQr.classList.add('active');
-            }
-            lucide.createIcons();
-            accessBadge.style.opacity = 1;
-            accessDescription.style.opacity = 1;
-        }, 300);
-    }
-
-    if(tabQr && tabPrinted) {
-        tabQr.addEventListener('change', () => switchAccessView(false));
-        tabPrinted.addEventListener('change', () => switchAccessView(true));
-    }
-
-    /*=====================================
-            CONFIRMACIÓN PASES VIP
-    =====================================*/
-    if (btnConfirm && btnDecline && rsvpActionContainer && rsvpMessageContainer) {
-        btnConfirm.addEventListener("click", (e) => {
-            e.preventDefault();
-            // Se eliminó la línea que ocultaba la tarjeta y los botones
-            rsvpMessageContainer.style.display = "block";
-            
-            // Actualizar estado del ticket visible
-            if(globalTicketStatus) {
-                globalTicketStatus.textContent = "Confirmado";
-                globalTicketStatus.className = "status-badge-inline confirmed";
-                // Limpiar estilos en línea por si antes declinó
-                globalTicketStatus.style.color = "";
-                globalTicketStatus.style.background = "";
-                globalTicketStatus.style.borderColor = "";
-            }
-
-            rsvpMessageContainer.innerHTML = `
-                <div style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; color: #2e7d32; font-weight: 600; font-size: 1.1rem;">
-                    <i data-lucide="check-circle-2" style="width: 24px; height: 24px;"></i>
-                    Asistencia confirmada
-                </div>
-                <p style="color:var(--gray); font-size: 0.95rem; margin-top: 10px;">
-                    Nos llena de emoción saber que nos acompañarás. ¡Nos vemos muy pronto!
-                </p>
-            `;
-            lucide.createIcons();
-        });
-
-        btnDecline.addEventListener("click", (e) => {
-            e.preventDefault();
-            // Se eliminó la línea que ocultaba la tarjeta y los botones
-            rsvpMessageContainer.style.display = "block";
-            
-            if(globalTicketStatus) {
-                globalTicketStatus.textContent = "No asistirá"; // Actualizado el texto exacto
-                globalTicketStatus.className = "status-badge-inline"; 
-                globalTicketStatus.style.color = "#c62828";
-                globalTicketStatus.style.background = "#fcf1f1";
-                globalTicketStatus.style.borderColor = "rgba(198,40,40,0.2)";
-            }
-
-            rsvpMessageContainer.innerHTML = `
-                <div style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; color: var(--gray); font-weight: 600; font-size: 1.1rem;">
-                    <i data-lucide="info" style="width: 24px; height: 24px;"></i>
-                    Asistencia declinada
-                </div>
-                <p style="color:var(--gray); font-size: 0.95rem; margin-top: 10px;">
-                    Lamentamos que no puedas acompañarnos. Gracias por avisarnos.
-                </p>
-            `;
-            lucide.createIcons();
-        });
-    }
+const EVENT_CONFIG = Object.freeze({
+  demoMode: true,
+  guest: Object.freeze({ defaultName: 'Invitado especial', defaultPasses: 1 }),
+  event: Object.freeze({
+    title: 'la boda de María y Fernando',
+    date: '2027-10-18T17:00:00-06:00',
+    time: '17:00'
+  }),
+  locations: Object.freeze([
+    Object.freeze({ type: 'ceremony', name: 'Templo de San Francisco', city: 'Saltillo' }),
+    Object.freeze({ type: 'reception', name: 'Casa Madero', city: 'Parras' }),
+    Object.freeze({ type: 'after-party', name: 'Terraza de la Viña', city: 'Parras' })
+  ]),
+  music: '../../../principal/demos/xv-renatta/musica.mp3',
+  links: Object.freeze({
+    maps: 'https://www.google.com/maps/search/?api=1&query=Parras+Coahuila',
+    calendar: 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=Maria+y+Fernando',
+    gifts: 'https://www.amazon.com.mx/',
+    contact: 'https://wa.me/5215638830691?text=Hola,%20me%20interesa%20el%20Paquete%20Prestige.'
+  })
 });
+
+(function () {
+  'use strict';
+
+  const params = new URLSearchParams(window.location.search);
+  const guestName = cleanText(params.get('nombre')) || EVENT_CONFIG.guest.defaultName;
+  const authorizedPasses = normalizePasses(params.get('pases'), EVENT_CONFIG.guest.defaultPasses);
+  const state = { guestName, authorizedPasses, selectedPasses: authorizedPasses, musicPlaying: false };
+  const invitation = document.getElementById('invitation');
+  const opening = document.getElementById('opening');
+  const openButton = document.getElementById('open-invitation');
+  const music = document.getElementById('event-music');
+  const musicButton = document.getElementById('music-control');
+  const floatingNav = document.getElementById('floating-nav');
+
+  personalize();
+  setupOpening();
+  setupMusic();
+  setupCountdown();
+  setupVideo();
+  setupPassSelector();
+  setupAccessPreview();
+  setupRsvp();
+  setupDemoMode();
+  setupScrollEffects();
+  setupReveals();
+
+  function personalize() {
+    setText('[data-opening-guest]', `Una edición reservada para ${guestName}.`);
+    setText('[data-guest-message]', `${guestName}, esta experiencia fue preparada especialmente para ti.`);
+    setText('[data-pass-message]', authorizedPasses === 1 ? 'Un acceso personalizado.' : `${authorizedPasses} accesos personalizados.`);
+    setText('[data-access-guest]', guestName);
+    setText('[data-access-passes]', authorizedPasses === 1 ? '1 pase personalizado' : `${authorizedPasses} pases personalizados`);
+  }
+
+  function setupOpening() {
+    invitation.inert = true;
+    invitation.setAttribute('tabindex', '-1');
+    openButton.focus({ preventScroll: true });
+    opening.addEventListener('keydown', (event) => {
+      if (event.key !== 'Tab') return;
+      event.preventDefault();
+      openButton.focus();
+    });
+    openButton.addEventListener('click', async () => {
+      opening.classList.add('opened');
+      document.body.classList.remove('locked');
+      invitation.inert = false;
+      invitation.setAttribute('aria-hidden', 'false');
+      floatingNav.hidden = false;
+      musicButton.hidden = false;
+      state.musicPlaying = await playAudio();
+      syncMusicButton();
+      window.setTimeout(() => {
+        opening.remove();
+        invitation.focus({ preventScroll: true });
+      }, reducedMotion() ? 0 : 950);
+    }, { once: true });
+  }
+
+  function setupMusic() {
+    music.src = EVENT_CONFIG.music;
+    musicButton.addEventListener('click', async () => {
+      if (state.musicPlaying) {
+        music.pause();
+        state.musicPlaying = false;
+      } else {
+        state.musicPlaying = await playAudio();
+      }
+      syncMusicButton();
+    });
+    window.addEventListener('pagehide', () => {
+      music.pause();
+      music.currentTime = 0;
+    }, { once: true });
+  }
+
+  async function playAudio() {
+    try {
+      await music.play();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function syncMusicButton() {
+    musicButton.classList.toggle('is-playing', state.musicPlaying);
+    musicButton.setAttribute('aria-label', state.musicPlaying ? 'Pausar música' : 'Reproducir música');
+    musicButton.querySelector('.music-label').textContent = state.musicPlaying ? 'Pausar' : 'Reproducir';
+  }
+
+  function setupCountdown() {
+    const target = document.querySelector('[data-countdown]');
+    const targetTime = new Date(EVENT_CONFIG.event.date).getTime();
+    const render = () => {
+      const distance = Math.max(targetTime - Date.now(), 0);
+      if (!distance) {
+        target.textContent = 'El gran día ha llegado.';
+        return false;
+      }
+      const units = [
+        ['Días', Math.floor(distance / 86400000)],
+        ['Horas', Math.floor(distance / 3600000) % 24],
+        ['Minutos', Math.floor(distance / 60000) % 60],
+        ['Segundos', Math.floor(distance / 1000) % 60]
+      ];
+      target.replaceChildren(...units.map(([label, value]) => {
+        const item = document.createElement('div');
+        const number = document.createElement('strong');
+        const caption = document.createElement('span');
+        number.textContent = String(value).padStart(2, '0');
+        caption.textContent = label;
+        item.append(number, caption);
+        return item;
+      }));
+      return true;
+    };
+    if (!render()) return;
+    const timer = window.setInterval(() => { if (!render()) window.clearInterval(timer); }, 1000);
+    window.addEventListener('pagehide', () => window.clearInterval(timer), { once: true });
+  }
+
+  function setupVideo() {
+    const button = document.getElementById('video-control');
+    const status = document.getElementById('video-status');
+    const section = button.closest('.film');
+    button.setAttribute('aria-pressed', 'false');
+    button.addEventListener('click', () => {
+      const playing = button.getAttribute('aria-pressed') !== 'true';
+      button.setAttribute('aria-pressed', String(playing));
+      button.textContent = playing ? 'Pausar vista previa' : 'Reproducir vista previa';
+      status.textContent = playing ? 'Vista previa audiovisual en reproducción.' : 'Vista previa audiovisual en pausa.';
+      section.classList.toggle('is-playing', playing);
+    });
+  }
+
+  function setupPassSelector() {
+    const target = document.querySelector('[data-pass-selector]');
+    const label = document.createElement('p');
+    label.textContent = authorizedPasses === 1 ? 'Pase personalizado' : 'Selecciona cuántos pases utilizarás';
+    const options = document.createElement('div');
+    options.className = 'pass-options';
+    const summary = document.createElement('span');
+    summary.setAttribute('aria-live', 'polite');
+    for (let count = 1; count <= authorizedPasses; count += 1) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = String(count);
+      button.setAttribute('aria-label', `${count} ${count === 1 ? 'pase' : 'pases'}`);
+      button.setAttribute('aria-pressed', String(count === state.selectedPasses));
+      button.addEventListener('click', () => {
+        state.selectedPasses = count;
+        options.querySelectorAll('button').forEach((option) => option.setAttribute('aria-pressed', String(option === button)));
+        updateSummary();
+      });
+      options.append(button);
+    }
+    const updateSummary = () => {
+      summary.textContent = state.selectedPasses === 1 ? 'Confirmarás 1 pase autorizado.' : `Confirmarás ${state.selectedPasses} pases autorizados.`;
+    };
+    updateSummary();
+    target.replaceChildren(label, options, summary);
+  }
+
+  function setupAccessPreview() {
+    const preview = document.querySelector('[data-access-preview]');
+    const buttons = [...preview.querySelectorAll('[data-access-mode]')];
+    const views = [...preview.querySelectorAll('[data-access-view]')];
+    buttons.forEach((button) => button.addEventListener('click', () => {
+      buttons.forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+      views.forEach((view) => { view.hidden = view.dataset.accessView !== button.dataset.accessMode; });
+    }));
+  }
+
+  function setupRsvp() {
+    const status = document.getElementById('rsvp-status');
+    document.getElementById('confirm-rsvp').addEventListener('click', () => {
+      status.textContent = state.selectedPasses === 1
+        ? 'Vista demo: confirmarías 1 pase. En la invitación real se registraría para los anfitriones.'
+        : `Vista demo: confirmarías ${state.selectedPasses} pases. En la invitación real se registrarían para los anfitriones.`;
+    });
+    document.getElementById('decline-rsvp').addEventListener('click', () => {
+      status.textContent = 'Vista demo: en la invitación real se registraría que no podrás asistir.';
+    });
+  }
+
+  function setupDemoMode() {
+    const actions = [...document.querySelectorAll('[data-demo-action]')];
+    const notice = createNotice();
+    let trigger = null;
+    const messages = {
+      maps: 'En una invitación real, este botón abrirá Google Maps con la ubicación correspondiente.',
+      calendar: 'En una invitación real, esta opción guardará el evento en el calendario.',
+      gifts: 'En una invitación real, este botón llevará a la mesa de regalos configurada por los anfitriones.',
+      contact: 'Esta demostración no te sacará de la invitación. En el sitio comercial, esta acción permite solicitar el paquete Prestige.'
+    };
+    actions.forEach((element) => {
+      const url = EVENT_CONFIG.links[element.dataset.demoAction];
+      if (EVENT_CONFIG.demoMode) {
+        element.setAttribute('href', '#demo-notice');
+        element.setAttribute('aria-haspopup', 'dialog');
+      } else if (url) {
+        element.setAttribute('href', url);
+        element.setAttribute('target', '_blank');
+        element.setAttribute('rel', 'noopener');
+      }
+    });
+    document.addEventListener('click', (event) => {
+      const action = event.target.closest('[data-demo-action]');
+      if (!action || !EVENT_CONFIG.demoMode) return;
+      event.preventDefault();
+      trigger = action;
+      notice.message.textContent = messages[action.dataset.demoAction] || 'En una invitación real, esta función abrirá la opción configurada.';
+      notice.overlay.hidden = false;
+      document.body.classList.add('notice-open');
+      notice.close.focus({ preventScroll: true });
+    });
+    notice.close.addEventListener('click', closeNotice);
+    notice.overlay.addEventListener('click', (event) => { if (event.target === notice.overlay) closeNotice(); });
+    document.addEventListener('keydown', (event) => {
+      if (notice.overlay.hidden) return;
+      if (event.key === 'Escape') closeNotice();
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        notice.close.focus();
+      }
+    });
+    function closeNotice() {
+      notice.overlay.hidden = true;
+      document.body.classList.remove('notice-open');
+      if (trigger && trigger.isConnected) trigger.focus({ preventScroll: true });
+    }
+  }
+
+  function createNotice() {
+    const overlay = document.createElement('div');
+    overlay.className = 'notice-overlay';
+    overlay.id = 'demo-notice';
+    overlay.hidden = true;
+    const dialog = document.createElement('section');
+    dialog.className = 'notice';
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('aria-modal', 'true');
+    dialog.setAttribute('aria-labelledby', 'notice-title');
+    dialog.setAttribute('aria-describedby', 'notice-message');
+    const eyebrow = document.createElement('p');
+    eyebrow.className = 'eyebrow';
+    eyebrow.textContent = 'Eventora Studio · Prestige';
+    const title = document.createElement('h2');
+    title.id = 'notice-title';
+    title.textContent = 'Vista de demostración · Prestige';
+    const message = document.createElement('p');
+    message.id = 'notice-message';
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.textContent = 'Entendido';
+    dialog.append(eyebrow, title, message, close);
+    overlay.append(dialog);
+    document.body.append(overlay);
+    return { overlay, message, close };
+  }
+
+  function setupScrollEffects() {
+    const progress = document.getElementById('progress-bar');
+    window.addEventListener('scroll', () => {
+      const maximum = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+      progress.style.width = `${Math.min(window.scrollY / maximum * 100, 100)}%`;
+    }, { passive: true });
+  }
+
+  function setupReveals() {
+    const elements = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window) || reducedMotion()) {
+      elements.forEach((element) => element.classList.add('visible'));
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }), { threshold: .12 });
+    elements.forEach((element) => observer.observe(element));
+  }
+
+  function setText(selector, value) {
+    document.querySelectorAll(selector).forEach((element) => { element.textContent = value; });
+  }
+
+  function cleanText(value) {
+    return String(value || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 80);
+  }
+
+  function normalizePasses(value, fallback) {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isSafeInteger(parsed) && parsed > 0 && parsed <= 20 ? parsed : fallback;
+  }
+
+  function reducedMotion() {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+}());

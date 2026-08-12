@@ -22,6 +22,7 @@
     setupOpening(config);
     setupCountdown(config.date, document.querySelector('[data-countdown]'));
     setupPassSelection(context);
+    setupAccessPreviews(context);
     setupVideoPreviews();
     setupDemoActions(config, context);
     observeReveals();
@@ -263,6 +264,25 @@
         const frame = button.closest('[data-prestige-feature="welcome-video"]');
         if (frame) frame.classList.toggle('is-playing', playing);
       });
+    });
+  }
+
+  function setupAccessPreviews(context) {
+    setText('[data-access-guest]', context.guestName);
+    const passLabel = context.authorizedPasses === 1
+      ? '1 pase personalizado'
+      : `${context.authorizedPasses} pases personalizados`;
+    setText('[data-access-passes]', passLabel);
+
+    document.querySelectorAll('[data-access-preview]').forEach((preview) => {
+      const buttons = [...preview.querySelectorAll('[data-access-mode]')];
+      const views = [...preview.querySelectorAll('[data-access-view]')];
+      const activate = (mode) => {
+        buttons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.accessMode === mode)));
+        views.forEach((view) => { view.hidden = view.dataset.accessView !== mode; });
+      };
+      buttons.forEach((button) => button.addEventListener('click', () => activate(button.dataset.accessMode)));
+      activate(buttons.find((button) => button.getAttribute('aria-pressed') === 'true')?.dataset.accessMode || 'digital');
     });
   }
 

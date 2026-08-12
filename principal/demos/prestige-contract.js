@@ -38,6 +38,9 @@ export const PACKAGE_MATRIX = Object.freeze({
 });
 
 export const PRESTIGE_DEMO_FEATURES = Object.freeze([
+  'opening',
+  'hero',
+  'internal-navigation',
   'personalized-design',
   'guest-personalization',
   'music',
@@ -55,11 +58,75 @@ export const PRESTIGE_DEMO_FEATURES = Object.freeze([
   'itinerary',
   'personalized-passes',
   'guest-control',
-  'advanced-personalization'
+  'access-preview',
+  'advanced-personalization',
+  'demo-notice',
+  'footer-disclosure'
 ]);
+
+export const PRESTIGE_DEMO_ARCHITECTURE = Object.freeze({
+  sourceRoute: '/paquetes/demos/prestige/',
+  sourceFiles: Object.freeze(['index.html', 'demo.css', 'demo.js']),
+  requiredSections: Object.freeze([
+    'opening',
+    'hero',
+    'welcome-story',
+    'welcome-video',
+    'countdown',
+    'gallery',
+    'dress-code',
+    'itinerary-and-locations',
+    'gift-registry',
+    'rsvp-and-access',
+    'advanced-personalization',
+    'footer-disclosure'
+  ]),
+  requiredInteractions: Object.freeze([
+    'open-after-user-action',
+    'music-after-user-action',
+    'countdown-live-region',
+    'video-preview-control',
+    'pass-selection',
+    'digital-or-printed-access-preview',
+    'demo-mode-external-action-interception',
+    'accessible-demo-dialog',
+    'internal-navigation',
+    'reduced-motion'
+  ]),
+  requiredConfig: Object.freeze([
+    'demoMode',
+    'guest.defaultName',
+    'guest.defaultPasses',
+    'event.title',
+    'event.date',
+    'event.time',
+    'locations',
+    'links'
+  ])
+});
 
 export const PRESTIGE_SERVICE_BENEFITS = Object.freeze([
   'Atención personalizada',
   'Más cambios incluidos',
   'Atención prioritaria'
 ]);
+
+export const PRESTIGE_COMMERCIAL_DEMO_MAP = Object.freeze({
+  'Diseño 100% personalizado': 'personalized-design',
+  'Música personalizada': 'music',
+  'Confirmación RSVP': 'rsvp',
+  'Cuenta regresiva': 'countdown',
+  'Google Maps': 'maps',
+  'Dress Code': 'dress-code',
+  'Compatible con cualquier dispositivo': 'responsive',
+  'Video de bienvenida': 'welcome-video',
+  'Galería de fotografías': 'gallery',
+  'Mesa de regalos': 'gift-registry',
+  'Selección inteligente de pases': 'pass-selection',
+  'Animaciones premium': 'premium-animations',
+  'Múltiples ubicaciones': 'multiple-locations',
+  'Itinerario del evento': 'itinerary',
+  'Pases personalizados': 'personalized-passes',
+  'Control avanzado de invitados': 'guest-control',
+  'Personalización avanzada': 'advanced-personalization'
+});

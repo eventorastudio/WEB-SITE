@@ -164,10 +164,15 @@ footer b, footer span { display: block; letter-spacing: .15em; } footer span { m
   .social-strip { align-items: flex-start; flex-direction: column; padding-block: 40px; }.rsvp { min-height: 78svh; }.rsvp-flower { width: 210px; }
 }
 @keyframes filmPulse { to { filter: saturate(1.25) brightness(1.08); transform: scale(.995); } }
+.island-pass{position:relative;z-index:1;width:min(560px,100%);margin:30px auto;text-align:left}.island-pass-tabs{display:flex;justify-content:center;gap:8px;margin-bottom:12px}.island-pass-tabs button{padding:9px 14px;color:var(--deep);background:transparent;border:1px solid var(--deep);border-radius:999px;font-size:.62rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase}.island-pass-tabs button[aria-pressed=true]{color:#fff;background:var(--deep)}.island-pass article{min-height:190px;display:grid;grid-template-columns:120px 1fr;gap:24px;align-items:center;padding:26px;color:var(--deep);background:linear-gradient(135deg,#fff6e5,#f7c84d);border:2px solid var(--deep);border-radius:25px 4px 25px 4px;box-shadow:10px 12px 0 rgb(7 122 80 / .2)}.island-pass article[hidden]{display:none}.island-pass article strong,.island-pass article small,.island-pass article span{display:block;letter-spacing:.1em}.island-pass article strong{font:400 1.7rem Georgia,serif}.island-code{width:105px;aspect-ratio:1;background:repeating-conic-gradient(var(--deep) 0 25%,transparent 0 50%) 0 0/18px 18px;border:10px solid #fff}
 
 @media (max-width: 390px) {
   .resort-card h1 { font-size: 3.3rem; }.opening-guest { max-width: 25ch; }.hero h2 { font-size: 4.1rem; }.guest-ticket { padding: 15px; }.island-nav a { font-size: .58rem; }.postcards { grid-template-columns: 1fr; }.postcard-card:nth-child(2), .postcard-card:nth-child(3) { grid-column: auto; min-height: 340px; margin: 0; transform: none; }
 }
+@media(max-width:600px){.island-pass article{grid-template-columns:80px 1fr;padding:20px}.island-code{width:72px;border-width:7px}}
+.reveal{opacity:0;transform:translateY(24px) scale(.98) rotate(-.25deg);transition:opacity .68s ease,transform .82s cubic-bezier(.2,.8,.2,1)}
+.reveal.visible{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

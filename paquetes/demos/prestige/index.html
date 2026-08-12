@@ -1,738 +1,96 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-
 <head>
-
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Demo Prestige | Eventora Studio</title>
-
-    <meta name="description"
-        content="Descubre la experiencia máxima y exclusiva del Paquete Prestige de Eventora Studio.">
-
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-
-    <!-- Lucide -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <!-- CSS -->
-    <link rel="stylesheet" href="demo.css">
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Demostración arquitectónica del paquete Prestige de Eventora Studio.">
+  <title>María & Fernando · Demostración Prestige</title>
+  <link rel="icon" href="../../favicon.ico">
+  <link rel="stylesheet" href="demo.css">
 </head>
-
-<body>
-
-    <!--======================================
-                LOADER
-    =======================================-->
-    <div id="loader">
-        <div class="loader-logo">
-            <span>EVENTORA</span>
-            <small>PRESTIGE</small>
-        </div>
+<body class="locked" data-prestige-features="opening hero internal-navigation personalized-design guest-personalization music rsvp countdown maps dress-code responsive welcome-video gallery gift-registry pass-selection premium-animations multiple-locations itinerary personalized-passes guest-control access-preview advanced-personalization demo-notice footer-disclosure">
+  <div class="opening" id="opening" role="dialog" aria-modal="true" aria-labelledby="opening-title">
+    <div class="opening-orbit" aria-hidden="true"><i></i><i></i></div>
+    <div class="opening-card">
+      <span class="prestige-badge">Prestige · Demo</span>
+      <p class="eyebrow">Eventora Studio · Private edition</p>
+      <h1 id="opening-title">María <i>&</i><br>Fernando</h1>
+      <p data-opening-guest></p>
+      <button id="open-invitation" type="button">Descubrir la experiencia</button>
+      <small>18 · OCTUBRE · 2027</small>
     </div>
+  </div>
 
-    <!--======================================
-            BARRA DE PROGRESO
-    =======================================-->
-    <div id="progress-bar"></div>
+  <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
+  <button class="music-control" id="music-control" type="button" aria-label="Pausar música" hidden><span class="music-dot" aria-hidden="true"></span><span class="music-label">Pausar</span></button>
+  <audio id="event-music" loop preload="none" data-prestige-feature="music"></audio>
 
-    <!--======================================
-            BOTÓN DE MÚSICA
-    =======================================-->
-    <button id="musicButton" aria-label="Música">
-        <i data-lucide="music-2"></i>
-    </button>
+  <main id="invitation" aria-hidden="true">
+    <header class="hero" id="inicio">
+      <nav class="hero-nav" aria-label="Navegación principal"><b>ES / PRESTIGE</b><span>18.10.27</span><a href="#itinerario">Recorrido ↓</a></nav>
+      <div class="hero-copy"><p class="eyebrow">Una celebración en tres actos</p><h2>María <i>&</i><br>Fernando</h2><p>Arquitectura, luz y las personas que hicieron posible nuestra historia.</p><div class="guest-line"><span data-guest-message data-prestige-feature="guest-personalization"></span><strong data-pass-message data-prestige-feature="personalized-passes"></strong></div></div>
+      <div class="hero-portrait" role="img" aria-label="Composición editorial preparada para retrato de los anfitriones"><span>PORTRAIT / 01</span><i aria-hidden="true"></i></div>
+    </header>
 
-    <audio id="backgroundMusic" loop>
-        <source src="assets/audio/music.mp3" type="audio/mpeg">
-    </audio>
+    <section class="photo-interlude reveal" role="img" aria-label="Composición full-screen preparada para fotografía de los anfitriones"><span>TOGETHER / FRAME 01</span><strong>El principio<br>de todo.</strong></section>
 
-    <!--====================================
-            PORTADA / SOBRE PRESTIGE (DORADO 3D)
-    =====================================-->
-    <section id="lux-envelope-screen">
-        <div class="lux-glow"></div>
-        
-        <div class="lux-content-wrapper">
-            <span class="demo-badge">✦ PAQUETE PRESTIGE</span>
-            <h1>Experiencia Exclusiva</h1>
-            <p class="lux-description" style="margin-bottom: 10px;">Descubre la máxima expresión de elegancia.</p>
-            
-            <div class="lux-hint">
-                <p>Toca el sobre para abrir</p>
-                <div class="lux-arrow">↓</div>
-            </div>
-            
-            <!-- Estructura 3D Física -->
-            <div class="lux-envelope" id="lux-envelope">
-                
-                <!-- 1. Fondo del sobre -->
-                <div class="lux-back lux-paper"></div>
-                
-                <!-- 2. Carta Física -->
-                <div class="lux-letter">
-                    <div class="lux-letter-border">
-                        <div class="lux-letter-content">
-                            <span class="lux-intro">Con mucho cariño,</span>
-                            <span class="lux-intro" style="margin-bottom: 12px;">nos complace invitarte</span>
-                            <div class="lux-names">
-                                <span>MARÍA</span>
-                                <span class="lux-amp">&</span>
-                                <span>FERNANDO</span>
-                            </div>
-                            <div class="lux-details">
-                                <span>15 NOVIEMBRE 2027</span>
-                                <span class="lux-dot">✦</span>
-                                <span>SALTILLO, COAHUILA</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 3. Frente del sobre (Cubre la carta) -->
-                <div class="lux-front lux-paper">
-                    <div class="envelope-emboss">
-                        <span class="line"></span>
-                        <span class="title">INVITACIÓN</span>
-                        <span class="line"></span>
-                    </div>
-                </div>
-                
-                <!-- 4. Solapa superior -->
-                <div class="lux-flap lux-paper"></div>
-
-                <!-- 5. Sello de cera -->
-                <div class="gold-seal">
-                    <span>ES</span>
-                </div>
-
-            </div>
-            
-        </div>
+    <section class="welcome reveal" id="historia">
+      <span class="chapter">01</span><div><p class="eyebrow">Bienvenida</p><h2>Todo gran momento<br>comienza con una invitación.</h2></div><p>Esta experiencia reúne las capacidades arquitectónicas del paquete Prestige y las presenta como una narración digital completa.</p>
     </section>
 
-    <!--======================================
-            CONTENIDO PRINCIPAL
-    =======================================-->
-    <main id="invitation" class="hidden">
+    <section class="film reveal" data-prestige-feature="welcome-video" aria-label="Video de bienvenida">
+      <div class="film-poster" aria-hidden="true"><span>M/F</span><small>WELCOME FILM · 00:18</small></div>
+      <article><p class="eyebrow">02 · Opening film</p><h2>Una historia<br>en movimiento.</h2><p>Bloque preparado para poster, control de reproducción y video local definitivo.</p><button type="button" id="video-control">Reproducir vista previa</button><span id="video-status" aria-live="polite">Vista previa audiovisual preparada.</span></article>
+    </section>
 
-        <!--==================================
-                HERO EDITORIAL DE LUJO
-        ===================================-->
-        <section class="hero" id="inicio">
-            <div class="hero-overlay"></div>
-            
-            <div class="hero-editorial-frame reveal">
-                <span class="hero-tag">CELEBREMOS EL AMOR</span>
-                <h2>María <span>&</span> Fernando</h2>
-                
-                <div class="divider">
-                    <i data-lucide="heart"></i>
-                </div>
-                
-                <p class="hero-subtitle">Nos llena de alegría compartir el inicio de nuestro para siempre contigo.</p>
-                
-                <div class="hero-details">
-                    <span class="detail-item">15 NOVIEMBRE 2027</span>
-                    <span class="detail-dot">✦</span>
-                    <span class="detail-item">SALTILLO, COAHUILA</span>
-                </div>
-            </div>
-            
-            <div class="scroll-indicator reveal">
-                <div class="mouse"></div>
-                <span>Desliza para descubrir</span>
-            </div>
-        </section>
+    <section class="countdown-section reveal" data-prestige-feature="countdown"><div><p class="eyebrow">03 · Cuenta regresiva</p><h2>Hasta nuestro sí.</h2><a data-demo-action="calendar">Guardar la fecha</a></div><div class="countdown" data-countdown aria-live="polite"></div></section>
 
-        <!--==================================
-                FOTOGRAFÍA PRINCIPAL
-        ===================================-->
-        <section class="section photo-fullscreen">
-            <div class="container">
-                <div class="premium-image-wrapper reveal">
-                    <img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=2000&auto=format&fit=crop" alt="Nosotros" class="parallax-img">
-                </div>
-            </div>
-        </section>
+    <section class="gallery reveal" id="galeria" data-prestige-feature="gallery" aria-label="Galería editorial">
+      <div class="gallery-title"><span>04</span><p class="eyebrow">The archive</p><h2>Momentos que<br>nos trajeron aquí.</h2></div>
+      <figure class="frame frame-a"><span>01 · Encuentro</span></figure><figure class="frame frame-b"><span>02 · Promesa</span></figure><figure class="frame frame-c"><span>03 · Viaje</span></figure><figure class="frame frame-d"><span>04 · Presente</span></figure>
+    </section>
 
-        <!--==================================
-            BIENVENIDA PERSONALIZADA 
-        ===================================-->
-        <section class="section welcome" style="padding-bottom: 35px;">
-            <div class="container">
-                <div class="premium-card hover-elevate reveal text-center">
-                    <span class="section-badge">INVITACIÓN PERSONALIZADA</span>
-                    
-                    <p style="color: var(--gray); font-size: 1.05rem; margin-top: 15px; margin-bottom: 5px;">
-                        Con mucho cariño, hemos preparado esta invitación especialmente para ti.
-                    </p>
-                    
-                    <h3 style="font-size: 3.5rem; color: var(--gold); font-style: italic; margin-bottom: 25px;">
-                        Luis Pablo García
-                    </h3>
-                    
-                    <div class="divider small"><i data-lucide="sparkles"></i></div>
-                    
-                    <p style="max-width: 600px; margin: 0 auto;">
-                        Es un honor contar con tu presencia en este día tan especial. Tu compañía hará que el inicio de nuestro para siempre sea verdaderamente inolvidable.
-                    </p>
-                </div>
-            </div>
-        </section>
+    <section class="attire reveal" data-prestige-feature="dress-code">
+      <article><p class="eyebrow">05 · Dress code</p><h2>Formal<br>contemporáneo.</h2><p>Texturas sobrias, tonos profundos y accesorios contenidos. El marfil queda reservado para la novia.</p><div class="palette" aria-label="Paleta sugerida"><i></i><i></i><i></i><i></i></div></article>
+      <div class="attire-editorial" role="img" aria-label="Siluetas editoriales de vestimenta"><i></i><i></i><span>LOOK 01 / LOOK 02</span></div>
+    </section>
 
-        <!--==================================
-                NUESTRA HISTORIA (VIDEO PREMIUM)
-        ===================================-->
-        <section class="section video-story" style="padding-top: 35px; padding-bottom: 35px;">
-            <div class="container">
-                
-                <div class="text-center reveal" style="margin-bottom: 40px;">
-                    <span class="section-badge">Nuestra Historia</span>
-                    <h3>Un pequeño vistazo</h3>
-                    <p style="max-width: 550px; margin: auto; color: var(--gray);">Antes de celebrar este gran día, queremos compartir contigo un momento muy especial para nosotros.</p>
-                    <div class="divider small"><i data-lucide="film"></i></div>
-                </div>
+    <section class="journey reveal" id="itinerario" data-prestige-feature="itinerary">
+      <div class="journey-heading"><p class="eyebrow">06 · Itinerario y ubicaciones</p><h2>El recorrido<br>de nuestro día.</h2></div>
+      <div class="journey-line" data-prestige-feature="multiple-locations">
+        <article><time>17:00</time><span>ACTO I</span><h3>Ceremonia</h3><p>Templo de San Francisco · Saltillo</p><a data-demo-action="maps" data-prestige-feature="maps">Ver ubicación</a></article>
+        <article><time>19:30</time><span>ACTO II</span><h3>Recepción</h3><p>Casa Madero · Parras</p><a data-demo-action="maps">Trazar llegada</a></article>
+        <article><time>23:00</time><span>ACTO III</span><h3>After party</h3><p>Terraza de la Viña · Parras</p><a data-demo-action="maps">Segunda ubicación</a></article>
+      </div>
+    </section>
 
-                <div class="premium-video-card hover-elevate reveal" id="videoContainer">
-                    <img src="https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=1200&auto=format&fit=crop" alt="Nuestra Historia" class="video-cover" id="videoCover">
-                    <div class="video-overlay"></div>
-                    <button class="play-button" id="playBtn" aria-label="Reproducir video">
-                        <i data-lucide="play" fill="currentColor"></i>
-                    </button>
-                    <video id="coupleVideo" class="custom-video" controls playsinline preload="metadata">
-                        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-                        Tu navegador no soporta la etiqueta de video.
-                    </video>
-                </div>
+    <section class="registry reveal" id="regalos" data-prestige-feature="gift-registry">
+      <div><p class="eyebrow">07 · Mesa de regalos</p><h2>Tu presencia<br>es el mejor detalle.</h2><p>Los anfitriones pueden integrar tiendas o transferencia dentro de esta sección.</p></div>
+      <div class="registry-options"><a data-demo-action="gifts"><span>01</span>Ver mesa seleccionada</a><a data-demo-action="gifts"><span>02</span>Consultar transferencia</a></div>
+    </section>
 
-            </div>
-        </section>
+    <section class="access reveal" id="confirmacion" data-prestige-feature="guest-control">
+      <div class="access-heading"><p class="eyebrow">08 · RSVP y acceso</p><h2>Tu lugar<br>está reservado.</h2><p>Confirma cuántos pases utilizarás y consulta tu acceso digital o imprimible.</p></div>
+      <div class="access-panel" data-access-preview data-prestige-feature="access-preview">
+        <div class="access-tabs" role="group" aria-label="Vista de acceso"><button type="button" data-access-mode="digital" aria-pressed="true">Código digital</button><button type="button" data-access-mode="printed" aria-pressed="false">Pase impreso</button></div>
+        <article data-access-view="digital"><span class="access-code" aria-hidden="true"></span><div><small>PRESTIGE ACCESS</small><strong data-access-guest></strong><p data-access-passes></p><em>ESTADO · PENDIENTE</em></div></article>
+        <article data-access-view="printed" hidden><small>EVENTORA STUDIO · ADMIT</small><strong data-access-guest></strong><p data-access-passes></p><span>18 OCT 2027 · PRIVATE EDITION</span></article>
+        <div class="pass-selector" data-pass-selector data-prestige-feature="pass-selection"></div>
+        <div class="rsvp-actions"><button type="button" id="confirm-rsvp" data-prestige-feature="rsvp">Confirmar asistencia</button><button type="button" id="decline-rsvp">No podré asistir</button></div>
+        <p id="rsvp-status" aria-live="polite"></p>
+      </div>
+    </section>
 
-        <!--==================================
-            CUENTA REGRESIVA DE LUJO
-        ===================================-->
-        <section class="section countdown" style="padding-top: 35px;">
-            <div class="container">
-                <div class="text-center reveal" style="margin-bottom: 40px;">
-                    <span class="section-badge">EL GRAN DÍA</span>
-                    <h3 class="editorial-title">Falta muy poco</h3>
-                    <p style="color: var(--gray);">Para celebrar juntos nuestro para siempre</p>
-                    <div class="divider small"><i data-lucide="clock"></i></div>
-                </div>
-                
-                <div class="countdown-prestige-grid reveal">
-                    <div class="time-card hover-elevate">
-                        <span id="days" class="number">00</span>
-                        <span class="label">Días</span>
-                    </div>
-                    <div class="time-card hover-elevate">
-                        <span id="hours" class="number">00</span>
-                        <span class="label">Horas</span>
-                    </div>
-                    <div class="time-card hover-elevate">
-                        <span id="minutes" class="number">00</span>
-                        <span class="label">Min</span>
-                    </div>
-                    <div class="time-card hover-elevate">
-                        <span id="seconds" class="number">00</span>
-                        <span class="label">Seg</span>
-                    </div>
-                </div>
-            </div>
-        </section>
+    <section class="portrait-interlude reveal" role="img" aria-label="Retrato final preparado para fotografía de la pareja"><div><span>PORTRAIT / FINAL</span><strong>M <i>&</i> F</strong></div><p>See you there.</p></section>
 
-        <!--==================================
-                GALERÍA DE FOTOGRAFÍAS
-        ===================================-->
-        <section class="section photo-gallery" id="galeria">
-            <div class="container">
-                <div class="text-center reveal" style="margin-bottom: 40px;">
-                    <span class="section-badge">Memorias</span>
-                    <h3>Nuestros Momentos</h3>
-                    <div class="divider small"><i data-lucide="camera"></i></div>
-                </div>
+    <section class="prestige-service reveal" data-prestige-feature="advanced-personalization"><p class="eyebrow">09 · Personalización avanzada</p><h2>El esqueleto es común.<br>La experiencia es irrepetible.</h2><div><p><span>01</span>Control organizado de invitados y accesos.</p><p><span>02</span>Contenido, ritmo y secciones adaptados al evento.</p><p><span>03</span>Atención prioritaria durante diseño y ajustes.</p></div></section>
 
-                <div class="premium-gallery reveal">
-                    <div class="premium-image-wrapper">
-                        <img src="https://images.unsplash.com/photo-1520854221256-17451cc331bf?q=80&w=800&auto=format&fit=crop" alt="Recuerdo 1" class="parallax-img">
-                    </div>
-                    <div class="premium-image-wrapper">
-                        <img src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=800&auto=format&fit=crop" alt="Recuerdo 2" class="parallax-img">
-                    </div>
-                    <div class="premium-image-wrapper">
-                        <img src="https://images.unsplash.com/photo-1594938291221-94f18cbb5660?q=80&w=800&auto=format&fit=crop" alt="Recuerdo 3" class="parallax-img">
-                    </div>
-                    <div class="premium-image-wrapper">
-                        <img src="https://images.unsplash.com/photo-1606800052052-a08af7148866?q=80&w=800&auto=format&fit=crop" alt="Recuerdo 4" class="parallax-img">
-                    </div>
-                </div>
-            </div>
-        </section>
+    <section class="finale reveal"><span>10</span><p class="eyebrow">End note</p><h2>Cada historia es única.<br><i>Tu invitación también.</i></h2><a data-demo-action="contact">Conocer paquete Prestige</a></section>
+  </main>
 
-        <!--==================================
-                DRESS CODE EDITORIAL
-        ===================================-->
-        <section class="section dresscode">
-            <div class="container">
-                <div class="premium-card hover-elevate reveal">
-                    
-                    <div class="text-center" style="margin-bottom: 40px;">
-                        <span class="section-badge">DRESS CODE</span>
-                        <h3>Formal Elegante</h3>
-                        <p>Nos encantaría que nos acompañes con tu mejor atuendo para mantener la armonía estética de la celebración.</p>
-                        <div class="divider small"><i data-lucide="gem"></i></div>
-                    </div>
+  <footer><div><b>EVENTORA STUDIO</b><span>PAQUETE PRESTIGE · DEMO ARQUITECTÓNICA</span></div><p><strong>Demostración Prestige.</strong> Esta experiencia presenta funcionalidades disponibles en nuestro paquete Prestige. Los enlaces externos están simulados y las funciones pueden variar según el paquete contratado.</p></footer>
 
-                    <div class="dresscode-gallery">
-                        <!-- DAMAS -->
-                        <div class="dress-item">
-                            <div class="dress-image">
-                                <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=800&auto=format&fit=crop" alt="Vestido Largo Damas">
-                                <div class="dress-glass-caption">
-                                    <h4>Damas</h4>
-                                    <span>Vestido Largo</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- CABALLEROS -->
-                        <div class="dress-item">
-                            <div class="dress-image">
-                                <img src="https://images.unsplash.com/photo-1594938291221-94f18cbb5660?q=80&w=800&auto=format&fit=crop" alt="Traje Formal Caballeros">
-                                <div class="dress-glass-caption">
-                                    <h4>Caballeros</h4>
-                                    <span>Traje Formal</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </section>
-
-        <!--==================================
-            ITINERARIO Y MULTIPLES UBICACIONES
-        ===================================-->
-        <section class="section itinerary-location" id="itinerario">
-            <div class="container">
-                
-                <div class="text-center reveal" style="margin-bottom: 50px;">
-                    <span class="section-badge">ITINERARIO</span>
-                    <h3>El recorrido de nuestro día</h3>
-                    <p style="max-width: 550px; margin: auto; color: var(--gray);">Acompáñanos a disfrutar cada momento de nuestra celebración.</p>
-                    <div class="divider small"><i data-lucide="map"></i></div>
-                </div>
-
-                <div class="itinerary-grid">
-                    
-                    <!-- Ceremonia -->
-                    <div class="premium-card hover-elevate itinerary-prestige-card reveal">
-                        <div class="itinerary-image-wrapper">
-                            <img src="https://images.unsplash.com/photo-1548625361-ec8530182b8c?q=80&w=1000&auto=format&fit=crop" alt="Ceremonia Religiosa">
-                            <div class="image-overlay"></div>
-                            <div class="time-badge-premium">17:00 hrs</div>
-                        </div>
-                        <div class="itinerary-content">
-                            <div class="icon-box large itinerary-icon"><i data-lucide="church"></i></div>
-                            <h4>Ceremonia Religiosa</h4>
-                            <div class="info-list compact">
-                                <div class="info-item">
-                                    <div class="info-text text-center">
-                                        <strong>Catedral de Santiago</strong>
-                                        <span>Saltillo, Coahuila</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <a href="#" class="primary-button btn-premium full-width">Ver en el mapa</a>
-                        </div>
-                    </div>
-
-                    <!-- Recepción -->
-                    <div class="premium-card hover-elevate itinerary-prestige-card reveal">
-                        <div class="itinerary-image-wrapper">
-                            <img src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=1000&auto=format&fit=crop" alt="Recepción y Cóctel">
-                            <div class="image-overlay"></div>
-                            <div class="time-badge-premium">19:30 hrs</div>
-                        </div>
-                        <div class="itinerary-content">
-                            <div class="icon-box large itinerary-icon"><i data-lucide="glass-water"></i></div>
-                            <h4>Recepción y Cóctel</h4>
-                            <div class="info-list compact">
-                                <div class="info-item">
-                                    <div class="info-text text-center">
-                                        <strong>Quinta San José</strong>
-                                        <span>Saltillo, Coahuila</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <a href="#" class="primary-button btn-premium full-width">Ver en el mapa</a>
-                        </div>
-                    </div>
-
-                    <!-- After Party -->
-                    <div class="premium-card hover-elevate itinerary-prestige-card reveal">
-                        <div class="itinerary-image-wrapper">
-                            <img src="https://images.unsplash.com/photo-1566737236500-c8ac43014a67?q=80&w=1000&auto=format&fit=crop" alt="After Party">
-                            <div class="image-overlay"></div>
-                            <div class="time-badge-premium">23:00 hrs</div>
-                        </div>
-                        <div class="itinerary-content">
-                            <div class="icon-box large itinerary-icon"><i data-lucide="music-4"></i></div>
-                            <h4>After Party</h4>
-                            <div class="info-list compact">
-                                <div class="info-item">
-                                    <div class="info-text text-center">
-                                        <strong>Terraza VIP - Quinta San José</strong>
-                                        <span>Acompáñanos a celebrar</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <p style="font-size: 0.85rem; color: var(--gold); margin-top: 10px; font-style: italic;">Evento exclusivo para adultos.</p>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </section>
-
-        <!--==================================
-                MESA DE REGALOS
-        ===================================-->
-        <section class="section registry" id="regalos">
-            <div class="container">
-                
-                <div class="text-center reveal" style="margin-bottom: 40px;">
-                    <span class="section-badge">Mesa de Regalos</span>
-                    <h3>Detalles que suman</h3>
-                    <p style="max-width: 550px; margin: auto; color: var(--gray);">Su presencia es nuestro mayor regalo, pero si desean tener un detalle con nosotros, les dejamos algunas sugerencias.</p>
-                    <div class="divider small"><i data-lucide="gift"></i></div>
-                </div>
-
-                <div class="registry-grid reveal">
-                    
-                    <div class="premium-card hover-elevate registry-prestige-card">
-                        <div class="registry-image-wrapper">
-                            <img src="https://images.unsplash.com/photo-1523474253046-8cd2748b5fd2?q=80&w=800&auto=format&fit=crop" alt="Amazon">
-                            <div class="registry-image-overlay"></div>
-                            <div class="icon-box large"><i data-lucide="shopping-bag"></i></div>
-                        </div>
-                        <div class="registry-content">
-                            <h4>Amazon</h4>
-                            <p>Mesa de regalos online</p>
-                            <a href="#" class="primary-button btn-premium full-width">Ver mesa</a>
-                        </div>
-                    </div>
-
-                    <div class="premium-card hover-elevate registry-prestige-card">
-                        <div class="registry-image-wrapper">
-                            <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&auto=format&fit=crop" alt="Liverpool">
-                            <div class="registry-image-overlay"></div>
-                            <div class="icon-box large"><i data-lucide="shopping-bag"></i></div>
-                        </div>
-                        <div class="registry-content">
-                            <h4>Liverpool</h4>
-                            <p>Evento: 123456</p>
-                            <a href="#" class="primary-button btn-premium full-width">Ver mesa</a>
-                        </div>
-                    </div>
-
-                    <div class="premium-card hover-elevate registry-prestige-card">
-                        <div class="registry-image-wrapper">
-                            <img src="https://images.unsplash.com/photo-1580828343064-fde4cad202d5?q=80&w=800&auto=format&fit=crop" alt="Palacio de Hierro">
-                            <div class="registry-image-overlay"></div>
-                            <div class="icon-box large"><i data-lucide="shopping-bag"></i></div>
-                        </div>
-                        <div class="registry-content">
-                            <h4>Palacio de Hierro</h4>
-                            <p>Evento: 654321</p>
-                            <a href="#" class="primary-button btn-premium full-width">Ver mesa</a>
-                        </div>
-                    </div>
-
-                    <div class="premium-card hover-elevate registry-prestige-card">
-                        <div class="registry-image-wrapper">
-                            <img src="https://images.unsplash.com/photo-1580519542036-ed47f3caeb51?q=80&w=800&auto=format&fit=crop" alt="Transferencia Bancaria">
-                            <div class="registry-image-overlay"></div>
-                            <div class="icon-box large"><i data-lucide="credit-card"></i></div>
-                        </div>
-                        <div class="registry-content">
-                            <h4>Transferencia</h4>
-                            <p>Datos bancarios</p>
-                            <button class="primary-button btn-premium full-width">Ver datos</button>
-                        </div>
-                    </div>
-
-                </div>
-
-            </div>
-        </section>
-
-        <!--==================================
-            SISTEMA DUAL DE ACCESOS (PRESTIGE)
-        ===================================-->
-        <section class="section vip-access" id="confirmacion">
-            <div class="container">
-                <div class="premium-card hover-elevate form-card reveal" style="padding-top: 60px;">
-                    
-                    <div class="rsvp-header text-center">
-                        
-                        <!-- Badge Dinámico -->
-                        <div class="access-badge-container">
-                            <span class="section-badge dynamic-badge" id="accessBadge">
-                                ✨ Acceso Digital
-                            </span>
-                        </div>
-
-                        <h3>Acceso Exclusivo</h3>
-                        
-                        <!-- Segmented Control Estilo iOS -->
-                        <div class="segmented-control-wrapper">
-                            <div class="segmented-control">
-                                <input type="radio" name="access_type" id="tab-qr" checked>
-                                <input type="radio" name="access_type" id="tab-printed">
-                                
-                                <div class="segmented-slider"></div>
-                                
-                                <label for="tab-qr" class="segment-label">
-                                    <i data-lucide="smartphone"></i> Código QR
-                                </label>
-                                <label for="tab-printed" class="segment-label">
-                                    <i data-lucide="ticket"></i> Pase Impreso
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Descripción Dinámica -->
-                        <p class="access-description" id="accessDescription">
-                            Presenta tu código QR el día del evento para registrar tu ingreso.
-                        </p>
-                        <div class="divider small"><i data-lucide="qr-code" id="accessDividerIcon"></i></div>
-                    </div>
-
-                    <!-- Wrapper de Vistas -->
-                    <div class="access-views-wrapper">
-                        
-                        <!-- VISTA 1: CÓDIGO QR -->
-                        <div class="access-view active" id="view-qr">
-                            <div class="vip-access-container">
-                                <!-- Código QR Central -->
-                                <div class="qr-wrapper">
-                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://eventora.studio/prestige/LuisPablo" alt="Tu Código de Acceso VIP">
-                                    <p class="qr-caption">Luis Pablo García</p>
-                                    <span class="qr-legend">Presenta este código QR el día del evento para registrar tu acceso.</span>
-                                </div>
-
-                                <!-- Lista de Pases Asignados -->
-                                <div class="assigned-passes">
-                                    <h4 class="editorial-title" style="font-size: 1.5rem; margin-bottom: 20px;">Pases Asignados:</h4>
-                                    
-                                    <div class="pass-ticket">
-                                        <div class="ticket-icon"><i data-lucide="check"></i></div>
-                                        <div class="ticket-info">
-                                            <strong>Pase Principal</strong>
-                                        </div>
-                                    </div>
-
-                                    <div class="pass-ticket">
-                                        <div class="ticket-icon"><i data-lucide="check"></i></div>
-                                        <div class="ticket-info">
-                                            <strong>Pase Acompañante</strong>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="ticket-state-box">
-                                        Estado: <span id="globalTicketStatus" class="status-badge-inline pending">Pendiente</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div id="rsvpActionContainer" style="margin-top: 40px; display: flex; flex-direction: column; gap: 15px; align-items: center;">
-                                <button id="btnConfirm" class="primary-button btn-premium full-width" style="max-width: 400px;">
-                                    Confirmar asistencia
-                                </button>
-                                <button id="btnDecline" class="secondary-button full-width" style="max-width: 400px;">
-                                    No asistiré
-                                </button>
-                            </div>
-
-                            <!-- Mensaje de Confirmación en QR (Oculto inicialmente) -->
-                            <div id="rsvpMessageContainer" style="display: none; margin-top: 40px; text-align: center; animation: fadeIn 0.8s ease;">
-                                <!-- JS inyectará el mensaje aquí -->
-                            </div>
-                        </div>
-
-                        <!-- VISTA 2: PASE IMPRESO (VIP TICKET) -->
-                        <div class="access-view" id="view-printed">
-                            <div class="printed-ticket-wrapper">
-                                <div class="printed-ticket">
-                                    <div class="ticket-left">
-                                        <h5 class="ticket-event-name">María <span class="amp">&</span> Fernando</h5>
-                                        <h4 class="ticket-guest-name">LUIS PABLO GARCÍA</h4>
-                                        
-                                        <div class="ticket-details-grid">
-                                            <div class="td-item">
-                                                <span class="td-label">Fecha</span>
-                                                <span class="td-value">15 Nov. 2027</span>
-                                            </div>
-                                            <div class="td-item">
-                                                <span class="td-label">Ubicación</span>
-                                                <span class="td-value">Saltillo, Coah.</span>
-                                            </div>
-                                            <div class="td-item">
-                                                <span class="td-label">Cantidad</span>
-                                                <span class="td-value">2 Invitados</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="ticket-divider"></div>
-                                    <div class="ticket-right">
-                                        <span class="ticket-number-label">Número de Pase</span>
-                                        <span class="ticket-number">#P-000124</span>
-                                        <div class="ticket-status-stamp">AUTORIZADO</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <span class="printed-legend">Este pase deberá presentarse impreso el día del evento para registrar el acceso.</span>
-                        </div>
-
-                    </div>
-
-                </div>
-            </div>
-        </section>
-
-        <!--==================================
-                RETRATO FINAL
-        ===================================-->
-        <section class="section photo-portrait">
-            <div class="container" style="max-width: 650px;">
-                <div class="premium-image-wrapper reveal">
-                    <img src="https://images.unsplash.com/photo-1606800052052-a08af7148866?q=80&w=1000&auto=format&fit=crop" alt="Acompáñanos" class="parallax-img">
-                </div>
-            </div>
-        </section>
-
-        <!--==================================
-            FUNCIONES EXCLUSIVAS PRESTIGE
-        ===================================-->
-        <section class="section features prestige-services">
-            <div class="container">
-                <div class="text-center reveal" style="margin-bottom: 40px;">
-                    <span class="section-badge">SERVICIO PRESTIGE</span>
-                    <h3>Diseñado a la perfección</h3>
-                    <p style="max-width: 600px; margin: auto; color: var(--gray);">Al contratar el paquete Prestige, nos encargamos de que la experiencia de tus invitados sea absolutamente impecable.</p>
-                    <div class="divider small"><i data-lucide="gem"></i></div>
-                </div>
-                
-                <div class="prestige-services-grid reveal">
-                    
-                    <!-- Tarjeta: Control Avanzado -->
-                    <div class="premium-card hover-elevate service-card">
-                        <div class="icon-box large"><i data-lucide="users"></i></div>
-                        <h4>Control de Accesos Avanzado</h4>
-                        <p>Gestionamos el acceso de tus invitados con un sistema exclusivo. Cada persona recibe un código QR o un pase para imprimir personalizado, mientras registras cada llegada desde un panel privado en tiempo real.</p>
-                    </div>
-
-                    <!-- Tarjeta: Personalización -->
-                    <div class="premium-card hover-elevate service-card">
-                        <div class="icon-box large"><i data-lucide="wand-sparkles"></i></div>
-                        <h4>Personalización Absoluta</h4>
-                        <p>Diseño sin límites. Adaptamos la paleta de colores, las tipografías, la iconografía y el contenido para que reflejen la esencia exacta de tu celebración. Una obra de arte digital.</p>
-                    </div>
-
-                    <!-- Tarjeta: Atención VIP -->
-                    <div class="premium-card hover-elevate service-card" style="grid-column: 1 / -1; max-width: 600px;">
-                        <div class="icon-box large"><i data-lucide="headphones"></i></div>
-                        <h4>Atención Prioritaria</h4>
-                        <p>Un diseñador asignado trabajará directamente contigo para realizar cambios preferentes y brindarte asesoría durante todo el proceso creativo hasta el día del evento.</p>
-                    </div>
-
-                </div>
-            </div>
-        </section>
-
-        <!--==================================
-                ATENCIÓN & CTA FINAL
-        ===================================-->
-        <section class="section final-cta">
-            <div class="container">
-                <div class="cta-wrapper reveal">
-                    <div class="support-avatar">
-                        <i data-lucide="sparkle"></i>
-                    </div>
-                    <span class="demo-badge">EVENTORA STUDIO PRESTIGE</span>
-                    <h2>Cada historia es única.<br><i>Tu invitación también debería serlo.</i></h2>
-                    <p class="final-message">Imagina este mismo nivel de lujo, pero con tus colores, tus tipografías, tus fotografías y tu esencia. Nuestro equipo te acompaña paso a paso para lograrlo.</p>
-                    
-                    <a href="https://wa.me/5215638830691?text=Hola,%20me%20interesa%20el%20Paquete%20Prestige." class="primary-button btn-premium pulse-btn">
-                        Crear mi invitación Prestige
-                    </a>
-                </div>
-            </div>
-        </section>
-
-        <!--==================================
-                    FOOTER
-        ===================================-->
-        <footer>
-            <div class="footer-divider"></div>
-            <p>© 2026 Eventora Studio</p>
-            <small>Demostración interactiva del Paquete Prestige</small>
-        </footer>
-
-        <!--==================================
-                MENÚ FLOTANTE PRESTIGE
-        ===================================-->
-        <nav id="floating-menu" class="floating-menu">
-            <ul>
-                <li>
-                    <a href="#inicio" aria-label="Inicio">
-                        <i data-lucide="home"></i>
-                        <span>Inicio</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#itinerario" aria-label="Itinerario">
-                        <i data-lucide="map"></i>
-                        <span>Itinerario</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#galeria" aria-label="Galería">
-                        <i data-lucide="camera"></i>
-                        <span>Galería</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#regalos" aria-label="Regalos">
-                        <i data-lucide="gift"></i>
-                        <span>Regalos</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#confirmacion" aria-label="Confirmación">
-                        <i data-lucide="check-circle"></i>
-                        <span>Confirmación</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-
-    </main>
-
-    <script>
-        lucide.createIcons();
-    </script>
-    <script src="demo.js"></script>
-
+  <nav class="floating-nav" id="floating-nav" aria-label="Navegación rápida" hidden><a href="#inicio">Inicio</a><a href="#itinerario">Recorrido</a><a href="#galeria">Galería</a><a href="#regalos">Regalos</a><a href="#confirmacion">RSVP</a></nav>
+  <script src="demo.js"></script>
 </body>
-
 </html>
-

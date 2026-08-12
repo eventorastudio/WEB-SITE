@@ -52,8 +52,12 @@ cumplir las seis demos. Atención personalizada, más cambios incluidos y atenci
 prioritaria son beneficios del servicio; no se convierten artificialmente en
 secciones de una invitación.
 
+La auditoría de la demo arquitectónica original, su ruta, orden de secciones,
+interacciones, problemas encontrados, matriz comparativa y decisiones
+reutilizadas está en `PRESTIGE_ARCHITECTURE.md`.
+
 Todas las colecciones muestran personalización por invitado, pases
-personalizados con selección interna, música, RSVP, cuenta regresiva, Google
+personalizados con selección interna y vista digital/impresa, música, RSVP, cuenta regresiva, Google
 Maps simulado, Dress Code, video de bienvenida ligero, galería, mesa de regalos,
 animaciones, múltiples ubicaciones e itinerario. También conservan un ejemplo
 propio de personalización avanzada:
