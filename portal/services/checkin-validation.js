@@ -6,6 +6,31 @@ import {
 import { allocateNextCheckin } from '../../shared/checkin-numbering.js';
 import { parseQrPayloadValue } from '../../shared/qr-code.js';
 
+export const CHECKIN_GUEST_UPDATE_FIELDS = Object.freeze([
+    'pasesUtilizados',
+    'pasesDisponibles',
+    'llegadaRegistrada',
+    'horaLlegada',
+    'estado',
+    'checkinSecuencia',
+    'ultimoCheckinId',
+    'fechaActualizacion'
+]);
+
+export const CHECKIN_RECORD_FIELDS = Object.freeze([
+    'eventId',
+    'invitadoId',
+    'codigoInvitado',
+    'nombreInvitado',
+    'pasesRegistrados',
+    'pasesDisponiblesDespues',
+    'fechaHora',
+    'registradoPor',
+    'metodo',
+    'resultado',
+    'checkinSecuencia'
+]);
+
 export class CheckinValidationError extends Error {
     constructor(code) {
         super(code);
@@ -91,7 +116,8 @@ export function buildCheckinMutation({
             pases: pasesTotales,
             pasesUtilizados: pasesUtilizadosDespues,
             pasesDisponibles: pasesDisponiblesDespues,
-            checkinSecuencia: allocation.sequence
+            checkinSecuencia: allocation.sequence,
+            ultimoCheckinId: allocation.id
         },
         guestUpdate: {
             pasesUtilizados: pasesUtilizadosDespues,
@@ -100,6 +126,7 @@ export function buildCheckinMutation({
             horaLlegada: raw.horaLlegada ?? timestamp,
             estado: 'llego',
             checkinSecuencia: allocation.sequence,
+            ultimoCheckinId: allocation.id,
             fechaActualizacion: timestamp
         },
         checkinRecord: {
@@ -120,6 +147,11 @@ export function buildCheckinMutation({
         passesRegistered: requestedPasses,
         result: resultado
     };
+}
+
+/** Equivalente puro de affectedKeys() para el patch emitido por el cliente. */
+export function getGuestAffectedFields(guest = {}, guestUpdate = {}) {
+    return Object.keys(guestUpdate).filter((field) => !Object.is(guest[field], guestUpdate[field]));
 }
 
 export function parseQrPayload(rawValue) {

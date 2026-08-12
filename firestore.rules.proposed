@@ -1,0 +1,221 @@
+rules_version = '2';
+
+// PROPUESTA PARA REVISIÓN MANUAL. No está vinculada a firebase.json y no
+// representa necesariamente las Rules actualmente desplegadas.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function hasClaimedRole(roles) {
+      return signedIn()
+        && (request.auth.token.role in roles || request.auth.token.userRole in roles);
+    }
+
+    function isInternalReader() {
+      return hasClaimedRole(['CEO', 'ADMINISTRADOR', 'ADMIN', 'DISENADOR', 'VENTAS', 'SOPORTE']);
+    }
+
+    function isPlatformManager() {
+      return hasClaimedRole(['CEO', 'ADMINISTRADOR', 'ADMIN']);
+    }
+
+    function isThemeEditor() {
+      return hasClaimedRole(['CEO', 'ADMINISTRADOR', 'ADMIN', 'DISENADOR']);
+    }
+
+    function profilePath() {
+      return /databases/$(database)/documents/usuarios/$(request.auth.uid);
+    }
+
+    function eventPath(eventId) {
+      return /databases/$(database)/documents/eventos/$(eventId);
+    }
+
+    function guestPath(eventId, guestId) {
+      return /databases/$(database)/documents/eventos/$(eventId)/invitados/$(guestId);
+    }
+
+    function checkinPath(eventId, checkinId) {
+      return /databases/$(database)/documents/eventos/$(eventId)/checkins/$(checkinId);
+    }
+
+    function isActivePortalClient() {
+      return signedIn()
+        && get(profilePath()).data.activo == true
+        && get(profilePath()).data.rol == 'cliente'
+        && get(profilePath()).data.eventosPermitidos is list;
+    }
+
+    function portalEnabled(eventId) {
+      return isActivePortalClient()
+        && eventId in get(profilePath()).data.eventosPermitidos
+        && get(eventPath(eventId)).data.funcionalidades is map
+        && get(eventPath(eventId)).data.funcionalidades.portalCliente == true;
+    }
+
+    function checkinEnabled(eventId) {
+      return portalEnabled(eventId)
+        && get(eventPath(eventId)).data.funcionalidades.checkInQR == true;
+    }
+
+    function historyEnabled(eventId) {
+      return portalEnabled(eventId)
+        && get(eventPath(eventId)).data.funcionalidades.historialAccesos == true;
+    }
+
+    function checkinIdMatchesGuest(checkinId, guestId) {
+      return guestId.matches('^INV-[0-9]{4,}$')
+        && checkinId.matches('^' + guestId + '-[0-9]{3,}$');
+    }
+
+    function keepsFirstArrival(before, after) {
+      return before.keys().hasAll(['horaLlegada']) && before.horaLlegada != null
+        ? after.horaLlegada == before.horaLlegada
+        : after.horaLlegada == request.time;
+    }
+
+    function validExistingPassState(guest) {
+      return guest.pases is int
+        && guest.pases > 0
+        && guest.pasesUtilizados is int
+        && guest.pasesDisponibles is int
+        && guest.pasesUtilizados >= 0
+        && guest.pasesDisponibles >= 0
+        && guest.pasesUtilizados + guest.pasesDisponibles == guest.pases;
+    }
+
+    function validPortalGuestCheckin(eventId, guestId) {
+      let before = resource.data;
+      let after = request.resource.data;
+      let historyPath = checkinPath(eventId, after.ultimoCheckinId);
+      return checkinEnabled(eventId)
+        && after.diff(before).affectedKeys().hasOnly([
+          'pasesUtilizados',
+          'pasesDisponibles',
+          'llegadaRegistrada',
+          'horaLlegada',
+          'estado',
+          'checkinSecuencia',
+          'ultimoCheckinId',
+          'fechaActualizacion'
+        ])
+        && validExistingPassState(before)
+        && before.checkinSecuencia is int
+        && before.checkinSecuencia >= 0
+        && after.checkinSecuencia == before.checkinSecuencia + 1
+        && after.ultimoCheckinId is string
+        && after.ultimoCheckinId != before.get('ultimoCheckinId', '')
+        && checkinIdMatchesGuest(after.ultimoCheckinId, guestId)
+        && after.pasesUtilizados is int
+        && after.pasesDisponibles is int
+        && after.pasesUtilizados > before.pasesUtilizados
+        && after.pasesUtilizados <= before.pases
+        && after.pasesDisponibles >= 0
+        && after.pasesUtilizados + after.pasesDisponibles == before.pases
+        && after.pasesDisponibles < before.pasesDisponibles
+        && after.pasesUtilizados - before.pasesUtilizados
+          == before.pasesDisponibles - after.pasesDisponibles
+        && after.pasesUtilizados - before.pasesUtilizados <= 999
+        && after.llegadaRegistrada == true
+        && after.estado == 'llego'
+        && keepsFirstArrival(before, after)
+        && after.fechaActualizacion == request.time
+        && !exists(historyPath)
+        && existsAfter(historyPath)
+        && getAfter(historyPath).data.invitadoId == guestId
+        && getAfter(historyPath).data.checkinSecuencia == after.checkinSecuencia;
+    }
+
+    function checkinMatchesGuestAfter(eventId, checkinId, record) {
+      let path = guestPath(eventId, record.invitadoId);
+      let before = get(path).data;
+      let after = getAfter(path).data;
+      return validExistingPassState(before)
+        && after.pasesUtilizados == before.pasesUtilizados + record.pasesRegistrados
+        && after.pasesDisponibles == before.pasesDisponibles - record.pasesRegistrados
+        && after.pasesDisponibles == record.pasesDisponiblesDespues
+        && after.pasesUtilizados + after.pasesDisponibles == before.pases
+        && after.checkinSecuencia == before.checkinSecuencia + 1
+        && after.checkinSecuencia == record.checkinSecuencia
+        && after.ultimoCheckinId == checkinId
+        && after.llegadaRegistrada == true
+        && after.estado == 'llego'
+        && keepsFirstArrival(before, after)
+        && after.fechaActualizacion == request.time;
+    }
+
+    function validPortalCheckinCreate(eventId, checkinId) {
+      let record = request.resource.data;
+      let guest = get(guestPath(eventId, record.invitadoId)).data;
+      return checkinEnabled(eventId)
+        && record.keys().hasAll([
+          'eventId', 'invitadoId', 'codigoInvitado', 'nombreInvitado',
+          'pasesRegistrados', 'pasesDisponiblesDespues', 'fechaHora',
+          'registradoPor', 'metodo', 'resultado', 'checkinSecuencia'
+        ])
+        && record.keys().hasOnly([
+          'eventId', 'invitadoId', 'codigoInvitado', 'nombreInvitado',
+          'pasesRegistrados', 'pasesDisponiblesDespues', 'fechaHora',
+          'registradoPor', 'metodo', 'resultado', 'checkinSecuencia'
+        ])
+        && record.eventId == eventId
+        && record.invitadoId is string
+        && checkinIdMatchesGuest(checkinId, record.invitadoId)
+        && record.codigoInvitado is string
+        && record.nombreInvitado is string
+        && record.nombreInvitado == guest.nombre
+        && record.pasesRegistrados is int
+        && record.pasesRegistrados > 0
+        && record.pasesRegistrados <= 999
+        && record.pasesDisponiblesDespues is int
+        && record.pasesDisponiblesDespues >= 0
+        && record.fechaHora == request.time
+        && record.registradoPor == request.auth.uid
+        && record.metodo in ['manual', 'qr']
+        && record.resultado in ['parcial', 'aprobado']
+        && record.checkinSecuencia is int
+        && record.checkinSecuencia > 0
+        && checkinMatchesGuestAfter(eventId, checkinId, record)
+        && record.resultado == (
+          getAfter(guestPath(eventId, record.invitadoId)).data.pasesDisponibles > 0
+            ? 'parcial'
+            : 'aprobado'
+        );
+    }
+
+    match /usuarios/{uid} {
+      allow get: if signedIn() && request.auth.uid == uid;
+      allow list, create, update, delete: if false;
+    }
+
+    match /eventos/{eventId} {
+      allow get: if isInternalReader() || portalEnabled(eventId);
+      allow list: if isInternalReader();
+      // El Portal nunca recibe update sobre el documento padre.
+      allow create, update, delete: if isPlatformManager();
+
+      match /invitados/{guestId} {
+        allow get, list: if isInternalReader() || portalEnabled(eventId);
+        allow create, delete: if isPlatformManager();
+        allow update: if isPlatformManager() || validPortalGuestCheckin(eventId, guestId);
+      }
+
+      match /checkins/{checkinId} {
+        allow get, list: if isInternalReader() || historyEnabled(eventId);
+        allow create: if validPortalCheckinCreate(eventId, checkinId);
+        allow update, delete: if false;
+      }
+    }
+
+    match /themes/{themeId} {
+      allow get, list: if isThemeEditor();
+      allow create, update, delete: if isThemeEditor();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

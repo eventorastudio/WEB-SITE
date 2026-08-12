@@ -38,7 +38,7 @@ No existe una consulta que enumere todos los eventos. El selector, cuando hay m�
 
 Un QR aceptado contiene un token aleatorio de 16–256 caracteres, en JSON `{ eventId, token }`, URL con `?t=TOKEN`, o token directo para captura manual. No se admite `INV-0001` como QR.
 
-`checkin-service.js` usa una transacción Firestore que relee el invitado por su **ID de documento**, valida y normaliza sus contadores operativos, actualiza `pasesUtilizados` y `pasesDisponibles`, conserva `horaLlegada` tras el primer ingreso y crea el historial en la misma confirmación. Por tanto, dos dispositivos no pueden confirmar los mismos pases restantes. La UI no confirma una llegada hasta que la transacción resuelve.
+`checkin-service.js` usa una transacción Firestore que relee el evento y el invitado por su **ID de documento**, valida y normaliza sus contadores operativos, actualiza `pasesUtilizados` y `pasesDisponibles`, conserva `horaLlegada` tras el primer ingreso y crea el historial en la misma confirmación. Por tanto, dos dispositivos no pueden confirmar los mismos pases restantes. La UI no confirma una llegada hasta que la transacción resuelve. El cliente Portal no actualiza el documento padre del evento; esa reconciliación agregada requiere un backend confiable o el mecanismo administrativo.
 
 El escáner abre la cámara mediante `getUserMedia` a partir de una acción explícita. Usa `BarcodeDetector` solo si confirma soporte `qr_code`; de lo contrario, o si el motor nativo falla, usa el fallback local **@zxing/browser 0.2.0** (`portal/vendor/zxing-browser-0.2.0.min.js`, MIT, obtenido del paquete oficial). Así Safari en iPhone no depende de `BarcodeDetector` ni de un CDN de producción.
 
@@ -47,7 +47,7 @@ El escáner abre la cámara mediante `getUserMedia` a partir de una acción expl
 1. Crear perfiles `usuarios/{uid}` desde una operación administrativa segura; el cliente no puede autoasignarse eventos ni features.
 2. Añadir entitlements explícitos al evento (`portalCliente`, `checkInQR`, `seguimientoEnVivo`, `historialAccesos`). No usar solo el paquete comercial.
 3. Generar y guardar para cada pase QR `qrToken` aleatorio criptográficamente seguro y `qrActivo: true`; nunca emplear códigos secuenciales como token.
-4. Revisar y publicar manualmente las [reglas de seguridad](./docs/firestore-security-recommendations.md) con Emulator Suite. El repositorio ahora incluye `firestore.rules`, pero no se hizo ningún despliegue.
+4. Copiar primero las Rules desplegadas desde Firebase Console a `firestore.rules`, compararlas con `firestore.rules.proposed` y publicar manualmente la fusión solo después de probarla con Emulator Suite. No se hizo ningún despliegue.
 5. Configurar el dominio del portal entre los dominios permitidos de Firebase Auth y App Check/reCAPTCHA. No se cambió FirebaseConfig, ninguna key ni App Check.
 6. Servir el portal por HTTPS; `getUserMedia`, BarcodeDetector y la instalación PWA lo requieren.
 

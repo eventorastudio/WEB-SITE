@@ -10,8 +10,15 @@ los lee, escribe, sincroniza ni utiliza como fallback. Su presencia solo puede
 ser observada por herramientas de diagnóstico de solo lectura.
 
 En ADMIN, el estado activo vive en `state.event.stats` y representa exactamente
-el mapa `event.estadisticas`. Las mutaciones de invitados y check-in actualizan
-el resumen canónico y las vistas reaccionan mediante `EVENT_STATS_UPDATED`.
+el mapa `event.estadisticas`. Las mutaciones administrativas actualizan el
+resumen canónico y las vistas reaccionan mediante `EVENT_STATS_UPDATED`.
+
+El cliente Portal no tiene permiso de actualización sobre el documento padre
+del evento. Un check-in web escribe atómicamente el invitado y su documento de
+historial; las estadísticas en vivo del Portal se recalculan desde el snapshot
+de invitados. La persistencia de `event.estadisticas` después de un check-in
+debe ejecutarse desde un backend confiable o mediante la reconciliación ADMIN,
+nunca abriendo `eventos/{eventId}` a escritura general del cliente.
 
 ## Regla de Eventos en curso
 

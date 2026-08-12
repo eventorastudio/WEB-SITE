@@ -1,59 +1,57 @@
-# Propuesta de Rules para IDs secuenciales de check-in
+# Parche propuesto de Rules para check-in secuencial
 
-Este repositorio no contiene `firestore.rules`, `firebase.json` ni `.firebaserc`.
-Por eso no es seguro crear una política raíz completa: podría reemplazar permisos
-administrativos que solo existen en producción. Este fragmento debe fusionarse
-manualmente con la regla vigente y probarse en Emulator Suite. No se desplegó.
+El repositorio no contiene las Rules desplegadas. El archivo
+`firestore.rules.proposed` es una reconstrucción revisable basada en el último
+ruleset que existió en Git; **no afirma representar producción y no fue
+desplegado**. Antes de usarlo se debe copiar el ruleset real desde Firebase
+Console a `firestore.rules` y comparar ambos archivos.
 
-## Invariantes que debe añadir la regla vigente
+## Writes reales después de la corrección
 
-```javascript
-// Dentro de match /eventos/{eventId}
-function checkinIdMatchesGuest(checkinId, guestId) {
-  return guestId.matches('^INV-[0-9]{4,}$')
-    && checkinId.matches('^' + guestId + '-[0-9]{3,}$');
-}
+La transacción del Portal contiene exactamente dos escrituras:
 
-function checkinCounterAdvanced(guestId) {
-  let before = get(/databases/$(database)/documents/eventos/$(eventId)/invitados/$(guestId)).data;
-  let after = getAfter(/databases/$(database)/documents/eventos/$(eventId)/invitados/$(guestId)).data;
-  return before.checkinSecuencia is int
-    && after.checkinSecuencia is int
-    && after.checkinSecuencia == before.checkinSecuencia + 1;
-}
+1. `UPDATE eventos/{eventId}/invitados/{guestId}`.
+2. `CREATE eventos/{eventId}/checkins/{guestId}-{secuencia}`.
 
-match /invitados/{guestId} {
-  // Conservar aquí todas las condiciones actuales de usuario/evento.
-  allow update: if /* condiciones actuales */
-    && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-      'pasesUtilizados',
-      'pasesDisponibles',
-      'llegadaRegistrada',
-      'horaLlegada',
-      'estado',
-      'fechaActualizacion',
-      'checkinSecuencia'
-    ])
-    && request.resource.data.checkinSecuencia == resource.data.checkinSecuencia + 1;
-}
+El cliente Portal no actualiza `eventos/{eventId}`. Darle ese permiso permitiría
+alterar el agregado sin que la Rule del documento padre pueda descubrir qué
+invitado originó el delta. Esa reconciliación pertenece a un backend confiable.
 
-match /checkins/{checkinId} {
-  allow create: if /* condiciones actuales */
-    && request.resource.data.invitadoId is string
-    && request.resource.data.codigoInvitado == request.resource.data.invitadoId
-    && request.resource.data.checkinSecuencia is int
-    && request.resource.data.checkinSecuencia > 0
-    && checkinIdMatchesGuest(checkinId, request.resource.data.invitadoId)
-    && checkinCounterAdvanced(request.resource.data.invitadoId)
-    && getAfter(
-      /databases/$(database)/documents/eventos/$(eventId)/invitados/$(request.resource.data.invitadoId)
-    ).data.checkinSecuencia == request.resource.data.checkinSecuencia;
-}
+La whitelist del invitado es:
+
+```text
+pasesUtilizados, pasesDisponibles, llegadaRegistrada, horaLlegada, estado,
+checkinSecuencia, ultimoCheckinId, fechaActualizacion
 ```
 
-La aplicación genera y prueba el sufijo exacto con `padStart(3, "0")`. Rules
-puede validar razonablemente el prefijo, el patrón y la correlación atómica del
-contador; no debe sustituirse la autorización actual por este fragmento.
+`ultimoCheckinId` permite que la Rule del invitado use `existsAfter()` y
+`getAfter()` para exigir la creación atómica del historial correspondiente. Sin
+ese enlace, una Rule que solo valida `checkinSecuencia + 1` permitiría incrementar
+el contador sin crear un check-in.
 
-La migración administrativa usa Admin SDK y no depende de estas Rules. Antes de
-habilitar el Portal, todos los invitados deben tener `checkinSecuencia` entero.
+El documento nuevo admite exclusivamente:
+
+```text
+eventId, invitadoId, codigoInvitado, nombreInvitado, pasesRegistrados,
+pasesDisponiblesDespues, fechaHora, registradoPor, metodo, resultado,
+checkinSecuencia
+```
+
+El ID debe satisfacer `^INV-[0-9]{4,}-[0-9]{3,}$`, corresponder al invitado y
+ser igual a `ultimoCheckinId`. El contador del documento debe coincidir con el
+contador incrementado del invitado.
+
+## Access calls
+
+Cada evaluación consulta como máximo el perfil, el evento y el par relacionado
+invitado/check-in. Las rutas repetidas son cacheables por Rules. La transacción
+queda debajo de los límites de 10 llamadas por operación y 20 por transacción.
+No se exige `historialAccesos` ni `seguimientoEnVivo` para registrar: solo
+cliente activo, evento asignado, `portalCliente` y `checkInQR`.
+
+## Publicación
+
+No se debe copiar la propuesta a producción a ciegas. Primero hay que fusionar
+las rutas o roles adicionales presentes en las Rules reales y ejecutar las
+pruebas con Emulator Suite. El repositorio no contiene `firebase.json`, por lo
+que el archivo propuesto tampoco queda conectado accidentalmente a un deploy.

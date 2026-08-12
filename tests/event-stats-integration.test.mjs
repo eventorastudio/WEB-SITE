@@ -62,12 +62,12 @@ test('CREATE UPDATE DELETE e IMPORT reconcilian el resumen después de escribir'
     assert.match(source, /createEventStatsMutation/);
 });
 
-test('check-in actualiza invitado, historial y resumen del evento en la misma transacción', async () => {
+test('check-in limita al cliente Portal a invitado e historial, sin write sobre el evento padre', async () => {
     const source = await read('portal/services/checkin-service.js');
     const guestWrite = source.indexOf('transaction.update(guestRef');
     const checkinWrite = source.indexOf('transaction.set(checkinRef');
-    const statsWrite = source.indexOf('transaction.update(eventRef, createEventStatsMutation');
-    assert.ok(guestWrite > 0 && checkinWrite > guestWrite && statsWrite > checkinWrite);
+    assert.ok(guestWrite > 0 && checkinWrite > guestWrite);
+    assert.doesNotMatch(source, /transaction\.update\(eventRef|createEventStatsMutation/);
 });
 
 test('las etiquetas distinguen registros de invitados y pases', async () => {

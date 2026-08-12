@@ -13,6 +13,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import {
     buildCheckinMutation,
+    getGuestAffectedFields,
     CheckinValidationError,
     getCheckinErrorMessage,
     isCheckinDebugMode,
@@ -21,7 +22,6 @@ import {
     validPassCount,
     validateQrToken
 } from './checkin-validation.js';
-import { createEventStatsMutation } from '../../shared/event-stats.js';
 
 export class CheckInError extends Error {
     constructor(code) {
@@ -64,6 +64,11 @@ export const checkinService = {
 
         const guestRef = doc(db, 'eventos', eventId, 'invitados', guestId);
         const eventRef = doc(db, 'eventos', eventId);
+        const transactionDebug = {
+            checkinId: null,
+            affectedGuestFields: [],
+            updatesEventStats: false
+        };
         try {
             return await runTransaction(db, async (transaction) => {
                 // Firestore requires all transaction reads before its writes.
@@ -100,6 +105,11 @@ export const checkinService = {
                 }
 
                 const checkinRef = doc(db, 'eventos', eventId, 'checkins', mutation.checkinId);
+                transactionDebug.checkinId = mutation.checkinId;
+                transactionDebug.affectedGuestFields = getGuestAffectedFields(
+                    guestSnapshot.data(),
+                    mutation.guestUpdate
+                );
                 const existingCheckin = await transaction.get(checkinRef);
                 if (existingCheckin.exists()) throw new CheckInError('checkin/id-conflict');
 
@@ -112,14 +122,6 @@ export const checkinService = {
                 };
                 transaction.update(guestRef, mutation.guestUpdate);
                 transaction.set(checkinRef, mutation.checkinRecord);
-                transaction.update(eventRef, createEventStatsMutation(
-                    eventSnapshot.data(),
-                    [{
-                        before: guestSnapshot.data(),
-                        after: updatedGuest
-                    }],
-                    mutation.checkinRecord.fechaHora
-                ));
                 return {
                     guest: { ...updatedGuest, id: guestId },
                     passesRegistered: mutation.passesRegistered,
@@ -129,14 +131,15 @@ export const checkinService = {
             });
         } catch (error) {
             if (isCheckinDebugMode()) {
-                console.error('[Portal Check-in] Transaction failed', {
+                console.error('[CheckIn Transaction]', {
                     code: error?.code,
                     message: error?.message,
-                    stack: error?.stack,
-                    uid: userId,
                     eventId,
                     guestId,
-                    requestedPasses
+                    uid: userId,
+                    checkinId: transactionDebug.checkinId,
+                    affectedGuestFields: transactionDebug.affectedGuestFields,
+                    updatesEventStats: transactionDebug.updatesEventStats
                 });
             }
             throw error;

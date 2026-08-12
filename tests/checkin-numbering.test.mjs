@@ -189,7 +189,7 @@ test('18. los datos usados por estadísticas no cambian al renumerar', () => {
 });
 
 test('19. la propuesta de Rules exige prefijo, contador y whitelist acotada', async () => {
-    const rules = await readFile(new URL('../portal/docs/firestore-checkin-numbering-rules-proposal.md', import.meta.url), 'utf8');
+    const rules = await readFile(new URL('../firestore.rules.proposed', import.meta.url), 'utf8');
     assert.match(rules, /checkinIdMatchesGuest/);
     assert.match(rules, /after\.checkinSecuencia == before\.checkinSecuencia \+ 1/);
     assert.match(rules, /affectedKeys\(\)\.hasOnly/);
