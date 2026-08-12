@@ -42,15 +42,42 @@ test('el portafolio conserva 11 demos y usa una sola fuente de metadatos para lo
 });
 
 test('la comunicación comercial distingue demos Prestige y alcance por paquete', async () => {
-  const [home, packages] = await Promise.all([read('principal/index.html'), read('paquetes/index.html')]);
+  const [home, packages, homeCss] = await Promise.all([read('principal/index.html'), read('paquetes/index.html'), read('principal/style.css')]);
+  const homePackagesStart = home.indexOf('<section class="packages"');
+  const homePackagesEnd = home.indexOf('<section class="testimonials"', homePackagesStart);
+  const homePackages = home.slice(homePackagesStart, homePackagesEnd);
+  const portfolioStart = home.indexOf('<section id="portafolio"');
+  const portfolioEnd = home.indexOf('<section class="benefits"', portfolioStart);
+  const portfolio = home.slice(portfolioStart, portfolioEnd);
+
   assert.match(home, /TODO LO QUE PUEDES INTEGRAR/);
   assert.match(home, /Las funcionalidades disponibles dependen del paquete seleccionado/);
-  assert.match(home, /Todas las demostraciones representan el paquete Prestige/);
-  assert.match(packages, /demostraciones del portafolio muestran la experiencia Prestige/);
+  assert.match(portfolio, /Demostraciones Prestige/);
+  assert.match(portfolio, /Nuestras demostraciones presentan la experiencia más completa de Eventora Studio/);
+  assert.equal((portfolio.match(/class="portfolio-prestige-badge">Prestige · Demo/g) || []).length, 11);
   assert.match(home, /¿Todas las demostraciones incluyen las funciones de todos los paquetes\?/);
-  assert.equal((home.match(/class="package-highlights"/g) || []).length, 3);
-  assert.equal((home.match(/class="package-highlights">[\s\S]*?<\/ul>/g) || []).every((list) => (list.match(/<li>/g) || []).length === 3), true);
-  for (const price of ['$349.00 MXN', '$649.00 MXN', '$849.00 MXN']) assert.ok(home.includes(price));
+
+  for (const name of ['Esencial', 'Premium', 'Prestige']) assert.match(homePackages, new RegExp(`<h3>${name}</h3>`));
+  assert.equal((homePackages.match(/class="package-label">PAQUETE/g) || []).length, 3);
+  assert.equal((homePackages.match(/Ver paquete →/g) || []).length, 3);
+  assert.deepEqual(
+    [...homePackages.matchAll(/href="(\/paquetes\/#(?:esencial|premium|prestige))"/g)].map((match) => match[1]),
+    ['/paquetes/#esencial', '/paquetes/#premium', '/paquetes/#prestige']
+  );
+  assert.doesNotMatch(homePackages, /\$\s*(?:349|649|849)|MXN|price-box|package-highlights|package-contact|<ul\b|incluye/i);
+  assert.match(homeCss, /\.package-btn:focus-visible/);
+  assert.match(homeCss, /\.packages-grid\s*\{[\s\S]*?grid-template-columns:repeat\(3,1fr\)/);
+  assert.match(homeCss, /@media \(min-width:769px\) and \(max-width:1100px\)/);
+  assert.match(homeCss, /@media \(max-width:768px\)[\s\S]*?\.packages-grid[\s\S]*?grid-template-columns:1fr/);
+  assert.match(homeCss, /@media \(max-width:576px\)/);
+  const packageCssStart = homeCss.indexOf('PACKAGES\n==========================*/');
+  const packageCssEnd = homeCss.indexOf('TESTIMONIOS\n==========================*/', packageCssStart);
+  assert.doesNotMatch(homeCss.slice(packageCssStart, packageCssEnd), /\.package-card\s*\{[^}]*height:/);
+
+  for (const price of ['$349.00 MXN', '$649.00 MXN', '$849.00 MXN']) assert.ok(packages.includes(price));
+  for (const id of ['esencial', 'premium', 'prestige']) assert.match(packages, new RegExp(`id="${id}"`));
+  assert.equal((packages.match(/<h4>/g) || []).length, 22);
+  assert.doesNotMatch(packages, /packages-disclosure|demostraciones del portafolio muestran la experiencia Prestige/i);
 });
 
 test('los escenarios comerciales no se presentan como testimonios reales', async () => {
@@ -69,7 +96,6 @@ test('WhatsApp lleva un mensaje estructurado y conserva contexto de paquete', as
     assert.match(html, /Colecci%C3%B3n%20de%20inter%C3%A9s%3A/);
   }
   for (const name of ['Esencial', 'Premium', 'Prestige']) {
-    assert.match(home, new RegExp(`Paquete%20de%20inter%C3%A9s%3A%20${name}`));
     assert.match(packages, new RegExp(`Paquete%20de%20inter%C3%A9s%3A%20${name}`));
   }
 });

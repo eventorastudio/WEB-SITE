@@ -140,7 +140,7 @@ test('PRESTIGE_DEMO_FEATURES está activo al 100% en las once demos y las etique
 
 test('las once tarjetas del portafolio identifican sus experiencias Prestige', async () => {
   const html = await read('principal/index.html');
-  assert.equal((html.match(/class="portfolio-prestige-badge">Demo Prestige/g) || []).length, DEMOS.length);
+  assert.equal((html.match(/class="portfolio-prestige-badge">Prestige · Demo/g) || []).length, DEMOS.length);
 });
 
 test('las once colecciones conservan sitios independientes y comparten únicamente el runtime', async () => {

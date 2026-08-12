@@ -578,39 +578,6 @@ nav a:hover{
     to{opacity:1;transform:translateY(0)}
 }
 
-.package-highlights{
-    margin:26px 0 30px !important;
-}
-
-.package-highlights li{
-    align-items:flex-start;
-    margin:13px 0;
-    line-height:1.5;
-}
-
-.package-highlights li::before{
-    content:"✓";
-    flex:0 0 auto;
-    color:#9b7b3f;
-    font-weight:800;
-}
-
-.package-contact{
-    display:block;
-    margin-top:15px;
-    color:#7c6336;
-    text-align:center;
-    text-underline-offset:4px;
-    font-size:.9rem;
-    font-weight:600;
-}
-
-.package-contact:focus-visible{
-    outline:3px solid rgba(182,146,79,.34);
-    outline-offset:4px;
-    border-radius:4px;
-}
-
 .experience-card > svg{
     width:38px;
     height:38px;
@@ -1729,7 +1696,7 @@ PACKAGES
 
     max-width:720px;
     margin:auto;
-    margin-bottom:70px;
+    margin-bottom:52px;
 
     text-align:center;
 
@@ -1747,7 +1714,7 @@ PACKAGES
 
     gap:35px;
 
-    align-items:stretch;
+    align-items:center;
 
 }
 
@@ -1757,13 +1724,12 @@ PACKAGES
 
     display:flex;
     flex-direction:column;
-    height:100%;
 
     background:white;
 
     border-radius:28px;
 
-    padding:48px 36px;
+    padding:40px 32px;
 
     border:1px solid #ececec;
 
@@ -1808,7 +1774,7 @@ PACKAGES
 
     gap:8px;
 
-    padding:12px 22px;
+    padding:9px 16px;
 
     border-radius:999px;
 
@@ -1816,7 +1782,7 @@ PACKAGES
 
     color:#fff;
 
-    font-size:.9rem;
+    font-size:.76rem;
 
     font-weight:600;
 
@@ -1836,18 +1802,36 @@ PACKAGES
 
     display:flex;
     justify-content:center;
-    margin-bottom:16px 0 24px;
+    margin:0 0 16px;
+
+}
+
+.package-label{
+
+    display:block;
+
+    margin-bottom:8px;
+
+    color:#9b7b3f;
+
+    text-align:center;
+
+    font-size:.68rem;
+
+    font-weight:700;
+
+    letter-spacing:.2em;
 
 }
 
 .package-card h3{
 
-text-align:center;
+    text-align:center;
 
-    font-size:2rem;
+    font-size:2.25rem;
     font-weight:700;
     line-height:1.1;
-    margin:0 0 14px;
+    margin:0 0 12px;
 }
 
 .package-subtitle{
@@ -1858,85 +1842,11 @@ text-align:center;
 
     line-height:1.7;
 
-    min-height:70px;
+    min-height:58px;
 
-    margin:22px 0 32px;
+    max-width:310px;
 
-}
-
-.price{
-
-    text-align:center;
-
-    font-size:3rem;
-
-    font-weight:700;
-
-    color:#1b1b1b;
-
-    margin:30px 0;
-
-}
-
-.price span{
-
-    font-size:1rem;
-
-    color:#777;
-
-}
-
-.included{
-
-    background:#f8f8f8;
-
-    border-radius:15px;
-
-    padding:14px;
-
-    margin-bottom:28px;
-
-    text-align:center;
-
-    color:#555;
-
-    font-size:.95rem;
-
-}
-
-.package-card ul{
-
-    list-style:none;
-
-    padding:0;
-
-    margin:0;
-
-}
-
-.package-card li{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:12px;
-
-    margin:18px 0;
-
-    color:#444;
-
-}
-
-.package-card li svg{
-
-    width:20px;
-
-    height:20px;
-
-    color:#22c55e;
-
-    flex-shrink:0;
+    margin:6px auto 26px;
 
 }
 
@@ -1948,7 +1858,7 @@ text-align:center;
 
     text-align:center;
 
-    margin-top:auto;
+    margin-top:0;
 
     padding:16px;
 
@@ -1963,6 +1873,14 @@ text-align:center;
     border:2px solid #ddd;
 
     transition:.3s;
+
+}
+
+.package-btn:focus-visible{
+
+    outline:3px solid rgba(182,146,79,.42);
+
+    outline-offset:4px;
 
 }
 
@@ -1989,6 +1907,35 @@ text-align:center;
 .featured-btn:hover{
 
     background:#bf9722;
+
+}
+
+@media (min-width:769px) and (max-width:1100px){
+
+    .packages-grid{
+
+        gap:22px;
+
+    }
+
+    .package-card{
+
+        padding-right:24px;
+        padding-left:24px;
+
+    }
+
+    .featured{
+
+        transform:scale(1.02);
+
+    }
+
+    .featured:hover{
+
+        transform:translateY(-8px) scale(1.02);
+
+    }
 
 }
 
@@ -3605,7 +3552,7 @@ TABLET · 768px AND BELOW
 
     .package-card{
 
-        padding:42px 28px;
+        padding:36px 26px;
 
     }
 
@@ -3618,7 +3565,13 @@ TABLET · 768px AND BELOW
 
     .package-btn{
 
-        margin-top:32px;
+        margin-top:0;
+
+    }
+
+    .package-subtitle{
+
+        min-height:0;
 
     }
 
@@ -3993,13 +3946,7 @@ MOBILE · 576px AND BELOW
 
     .package-card{
 
-        padding:38px 22px;
-
-    }
-
-    .package-card li{
-
-        margin:15px 0;
+        padding:32px 22px;
 
     }
 
