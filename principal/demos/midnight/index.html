@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Demostración Midnight de Eventora Studio.">
+  <title>XV Valentina · Midnight</title>
+  <link rel="icon" href="../../favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600&family=Prata&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="locked">
+  <div class="opening" id="opening" role="dialog" aria-modal="true" aria-labelledby="opening-title"><div class="halo" aria-hidden="true"></div><div class="opening-content"><p>Midnight presents</p><h1 id="opening-title">XV Valentina</h1><span id="opening-guest">Esta noche también es para ti.</span><button id="open-invitation" type="button">Entrar a la noche</button></div></div>
+  <button class="music-control" id="music-control" type="button" aria-label="Pausar música" hidden><span class="music-dot"></span><span class="music-label">Pausar</span></button>
+  <audio id="event-music" loop preload="none"></audio>
+  <main id="invitation" aria-hidden="true">
+    <header class="hero"><div class="stars" aria-hidden="true"></div><nav><span>XV · V</span><a href="#rsvp">RSVP</a></nav><div class="hero-copy"><p>04 · 12 · 2027</p><h2><small>XV</small> Valentina</h2><div class="beam"></div><p data-guest-message></p><strong data-pass-message></strong></div><a class="scroll-cue" href="#details">Descubre la noche <span>↓</span></a></header>
+
+    <section class="countdown-panel reveal"><p>La cuenta regresiva comenzó</p><div class="countdown" data-countdown aria-live="polite"></div></section>
+    <section class="details reveal" id="details"><div class="oversize">04</div><div><p class="label">Diciembre · 2027</p><h2>Una noche para recordar</h2><p>Recepción 20:00 · Inicio 21:00<br>Gran Salón Metropolitano · Monterrey</p><a data-location target="_blank" rel="noopener">Abrir coordenadas ↗</a></div></section>
+
+    <section class="schedule reveal"><p class="label">Line-up</p><h2>La noche</h2><div class="schedule-track"><article><time>20:00</time><span>Recepción</span></article><article><time>21:00</time><span>Presentación</span></article><article><time>22:00</time><span>Cena</span></article><article><time>23:30</time><span>Dance floor</span></article></div></section>
+
+    <section class="dress reveal"><div class="silver-orbit" aria-hidden="true"></div><div><p class="label">Dress code</p><h2>Formal nocturno</h2><p>Negro, plata y azul profundo. Deja que la luz haga el resto.</p></div></section>
+    <section class="night-gallery reveal" aria-label="Galería nocturna decorativa"><article><span>01</span><p>Luces de ciudad</p></article><article><span>02</span><p>El instante</p></article><article><span>03</span><p>Después de medianoche</p></article></section>
+
+    <section class="rsvp reveal" id="rsvp"><span class="flare" aria-hidden="true"></span><p class="label">Guest list</p><h2>Confirma tu acceso</h2><p>Tu nombre ya forma parte de esta noche.</p><a data-rsvp target="_blank" rel="noopener">Reservar mi lugar</a></section>
+  </main>
+  <footer><strong>EVENTORA STUDIO</strong><span>MIDNIGHT / 01</span></footer>
+  <script src="script.js"></script>
+</body>
+</html>

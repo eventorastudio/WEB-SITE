@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Demostración Romance de Eventora Studio.">
+  <title>Sofía & Mateo · Romance</title>
+  <link rel="icon" href="../../favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Gilda+Display&family=Parisienne&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="locked">
+  <div class="opening" id="opening" role="dialog" aria-modal="true" aria-labelledby="opening-title"><div class="letter"><p class="script">Para ti</p><h1 id="opening-title">Tenemos algo que contarte</h1><p id="opening-guest">Con mucho cariño, queremos invitarte.</p><span class="signature">Sofía & Mateo</span><button id="open-invitation" type="button">Leer nuestra carta</button></div></div>
+  <button class="music-control" id="music-control" type="button" aria-label="Pausar música" hidden><span aria-hidden="true">♪</span><span class="music-label">Pausar</span></button>
+  <audio id="event-music" loop preload="none"></audio>
+  <main id="invitation" aria-hidden="true">
+    <header class="hero"><div class="portrait" role="img" aria-label="Composición editorial abstracta para fotografía de la pareja"><span>fotografía<br>de la pareja</span></div><div class="hero-copy"><p class="overline">Nuestra boda</p><h2>Sofía <i>&</i> Mateo</h2><p class="date">07 · AGOSTO · 2027</p><p data-guest-message></p><strong data-pass-message></strong></div></header>
+    <section class="love-note reveal"><p class="script">Nuestra historia</p><blockquote>Nos elegimos en los días sencillos, en las aventuras inesperadas y en todos los futuros que imaginamos juntos.</blockquote></section>
+    <section class="countdown-wrap reveal"><div class="countdown-intro"><p class="overline">Hasta volver a encontrarnos</p><h2>El gran día</h2></div><div class="countdown" data-countdown aria-live="polite"></div></section>
+
+    <section class="story reveal"><article><span>2019</span><h2>El comienzo</h2><p>Una conversación que no queríamos terminar.</p></article><article><span>2024</span><h2>La promesa</h2><p>Un sí frente al mar, justo antes del atardecer.</p></article><article><span>2027</span><h2>Nuestro día</h2><p>La página que queremos escribir contigo.</p></article></section>
+
+    <section class="venues reveal"><div class="venue-card"><p class="overline">Ceremonia</p><h2>Parroquia del Sagrado Corazón</h2><p>17:30 · Saltillo, Coahuila</p></div><div class="venue-card featured"><p class="overline">Recepción</p><h2>Hacienda San Carlos</h2><p>19:30 · Arteaga, Coahuila</p><a data-location target="_blank" rel="noopener">Ver ubicación</a></div></section>
+
+    <section class="photo-story reveal" aria-label="Galería romántica decorativa"><div><span>un instante</span></div><div><span>mil recuerdos</span></div><div><span>toda una vida</span></div></section>
+    <section class="dress-gifts reveal"><article><p class="overline">Dress code</p><h2>Formal</h2><p>Una paleta de vino, blush y tonos neutros. El blanco está reservado para la novia.</p></article><article><p class="overline">Regalos</p><h2>Su compañía es suficiente</h2><p>Si deseas obsequiarnos algo, contaremos con lluvia de sobres.</p></article></section>
+    <section class="rsvp reveal"><p class="script">¿Nos acompañas?</p><h2>Queremos abrazarte ese día</h2><p>Confirma antes del 7 de julio.</p><a data-rsvp target="_blank" rel="noopener">Responder a la invitación</a></section>
+  </main>
+  <footer><span>S & M</span><small>CON AMOR · EVENTORA STUDIO</small></footer>
+  <script src="script.js"></script>
+</body>
+</html>

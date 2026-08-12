@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Demostración Minimal de Eventora Studio.">
+  <title>Camila & Diego · Minimal</title>
+  <link rel="icon" href="../../favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="locked">
+  <div class="opening" id="opening" role="dialog" aria-modal="true" aria-labelledby="opening-title"><div><p>15 · 11 · 2027</p><h1 id="opening-title">CAMILA<br><span>&</span><br>DIEGO</h1><p id="opening-guest">Esta invitación es para ti.</p><button id="open-invitation" type="button">ABRIR INVITACIÓN ↗</button></div></div>
+  <button class="music-control" id="music-control" type="button" aria-label="Pausar música" hidden><span class="music-label">PAUSAR AUDIO</span></button>
+  <audio id="event-music" loop preload="none"></audio>
+  <main id="invitation" aria-hidden="true">
+    <header class="hero"><nav><b>CD/27</b><span>INVITACIÓN DIGITAL</span></nav><div class="hero-grid"><h2>CAMILA<br><span>&</span> DIEGO</h2><div class="hero-meta"><p>15 NOV 2027<br>17:00 H</p><p data-guest-message></p><strong data-pass-message></strong></div></div><a href="#info">SCROLL ↓</a></header>
+
+    <section class="statement reveal"><span>01</span><p>Dos personas.<br>Una decisión.<br>Un día para compartir.</p></section>
+    <section class="info reveal" id="info"><div class="section-index">02 / INFORMACIÓN</div><div class="info-grid"><article><h2>Ceremonia civil</h2><p>17:00 H<br>Casa Estudio Norte<br>Saltillo, Coahuila</p></article><article><h2>Recepción</h2><p>18:30 H<br>Cena · brindis · música</p></article></div><a data-location target="_blank" rel="noopener">VER MAPA ↗</a></section>
+
+    <section class="countdown-wrap reveal"><div class="section-index">03 / CUENTA REGRESIVA</div><div class="countdown" data-countdown aria-live="polite"></div></section>
+
+    <section class="editorial-image reveal" role="img" aria-label="Espacio preparado para una fotografía editorial de la pareja"><span>IMAGEN EDITORIAL<br>01 / 03</span></section>
+
+    <section class="dress reveal"><div class="section-index">04 / DRESS CODE</div><div><h2>FORMAL<br>CONTEMPORÁNEO</h2><p>Negro, gris y tonos naturales.<br>Sin códigos complicados.</p></div></section>
+    <section class="gallery reveal" aria-label="Galería editorial abstracta"><div><span>02 / 03</span></div><div><span>03 / 03</span></div></section>
+
+    <section class="rsvp reveal"><div class="section-index">05 / RSVP</div><h2>¿VIENES?</h2><p>Confirma antes del 15 de octubre.</p><a data-rsvp target="_blank" rel="noopener">CONFIRMAR ASISTENCIA ↗</a></section>
+  </main>
+  <footer><b>EVENTORA STUDIO</b><span>MINIMAL COLLECTION / 2027</span></footer>
+  <script src="script.js"></script>
+</body>
+</html>

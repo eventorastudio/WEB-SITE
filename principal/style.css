@@ -375,6 +375,129 @@ nav a:hover{
 
 }
 
+.portfolio-card:focus-visible{
+
+    outline:3px solid #C7A86D;
+    outline-offset:5px;
+
+}
+
+.portfolio-cover{
+
+    position:relative;
+    width:100%;
+    height:260px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    isolation:isolate;
+
+}
+
+.cover-midnight{
+    color:#edf5ff;
+    background:radial-gradient(circle at 50% 42%,#234f91 0,#081a3a 28%,#020711 68%);
+}
+
+.cover-midnight::before{
+    content:"";
+    position:absolute;
+    width:170px;
+    height:170px;
+    border:1px solid #91c1ff;
+    border-radius:50%;
+    box-shadow:0 0 45px #4c8fff66,inset 0 0 45px #4c8fff33;
+    z-index:-1;
+}
+
+.cover-midnight strong{
+    font-family:'Cormorant Garamond',serif;
+    font-size:3.3rem;
+    font-weight:500;
+}
+
+.cover-kicker{
+    font-size:.58rem;
+    letter-spacing:.28em;
+    text-transform:uppercase;
+}
+
+.cover-midnight i{
+    width:120px;
+    height:1px;
+    margin-top:14px;
+    background:linear-gradient(90deg,transparent,#fff,transparent);
+}
+
+.cover-romance{
+    color:#5c2030;
+    background:linear-gradient(145deg,#f2ddd7,#c99598);
+}
+
+.cover-romance::before{
+    content:"";
+    position:absolute;
+    inset:26px;
+    background:#fff5ea;
+    box-shadow:0 18px 40px #5e1c3033;
+    rotate:-2deg;
+    z-index:-1;
+}
+
+.cover-romance>span{
+    font-family:'Cormorant Garamond',serif;
+    font-style:italic;
+    font-size:1rem;
+}
+
+.cover-romance strong{
+    margin:7px 0;
+    font-family:'Cormorant Garamond',serif;
+    font-size:3.5rem;
+    font-weight:500;
+}
+
+.cover-romance i{
+    font-family:'Cormorant Garamond',serif;
+    letter-spacing:.2em;
+    font-size:.7rem;
+}
+
+.cover-minimal{
+    align-items:flex-start;
+    padding:34px;
+    color:#111;
+    background:#f5f5f1;
+    border-bottom:1px solid #111;
+}
+
+.cover-minimal::after{
+    content:"";
+    position:absolute;
+    left:34px;
+    right:34px;
+    top:57px;
+    height:1px;
+    background:#111;
+}
+
+.cover-minimal small,
+.cover-minimal span{
+    font-family:'Inter',sans-serif;
+    font-size:.55rem;
+    letter-spacing:.18em;
+}
+
+.cover-minimal strong{
+    margin:auto 0 10px;
+    font-family:'Inter',sans-serif;
+    font-size:3.5rem;
+    line-height:.8;
+    letter-spacing:-.08em;
+}
+
 .portfolio-info{
 
     padding:30px;
@@ -2752,6 +2875,12 @@ TABLET · 768px AND BELOW
 
     }
 
+    .portfolio-cover{
+
+        height:230px;
+
+    }
+
     .portfolio-info{
 
         padding:24px;
@@ -3312,6 +3441,12 @@ MOBILE · 576px AND BELOW
     }
 
     .portfolio-card img{
+
+        height:210px;
+
+    }
+
+    .portfolio-cover{
 
         height:210px;
 
