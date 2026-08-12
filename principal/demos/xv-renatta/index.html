@@ -1,102 +1,140 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>XV Renatta 🌺</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link rel="stylesheet" href="style.css?v=7">
-
-  <!-- fuentes -->
-  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Aloha, una invitación tropical premium de Eventora Studio.">
+  <title>XV Renatta · Aloha Collection</title>
+  <link rel="icon" href="../../favicon.ico">
+  <link rel="stylesheet" href="../demo-mode.css">
+  <link rel="stylesheet" href="style.css">
 </head>
-
-<body>
-
-<!-- 💌 Pantalla inicial -->
-<div id="pantallaInicio">
-  <div class="inicio-card">
-    <h1>🌺 XV Renatta 🌺</h1>
-    <p>Estás invitado a una experiencia súper especial</p>
-    <button id="abrirInvitacion">💌 Abrir invitación</button>
+<body class="locked">
+  <div class="opening" id="opening" role="dialog" aria-modal="true" aria-labelledby="opening-title">
+    <div class="opening-water" aria-hidden="true"></div>
+    <span class="opening-leaf leaf-one" aria-hidden="true"></span>
+    <span class="opening-leaf leaf-two" aria-hidden="true"></span>
+    <div class="resort-card">
+      <div class="postcard-stamp" aria-hidden="true">XV<br>27</div>
+      <p class="opening-kicker">Eventora Resort presenta</p>
+      <h1 id="opening-title">Aloha,<br><span>Renatta</span></h1>
+      <p class="opening-date">20 · JUN · 2027</p>
+      <p class="opening-guest" data-opening-guest></p>
+      <button id="open-invitation" type="button">Abrir postal tropical</button>
+      <small>Pool party · edición especial</small>
+    </div>
   </div>
 
-  <!-- 💥 capas que se parten -->
-  <div class="split left"></div>
-  <div class="split right"></div>
-</div>
+  <button class="music-control" id="music-control" type="button" aria-label="Pausar música" data-pause-label="Pausar" data-play-label="Reproducir" hidden>
+    <span class="music-disc" aria-hidden="true"></span><span class="music-label">Pausar</span>
+  </button>
+  <audio id="event-music" loop preload="none"></audio>
 
-<div class="flores"></div>
+  <main id="invitation" aria-hidden="true">
+    <header class="hero" id="inicio">
+      <nav class="island-nav" aria-label="Navegación de la invitación">
+        <a href="#itinerario">Itinerario</a><a href="#ubicacion">Lugar</a><a href="#confirmacion">Confirmar</a>
+      </nav>
+      <div class="hero-sun" aria-hidden="true"></div>
+      <div class="hero-copy">
+        <p class="eyebrow">XV · Birthday · Pool party</p>
+        <h2><span>ALOHA</span> RENATTA</h2>
+        <p class="hero-date">20 JUNIO 2027 <i>·</i> 17:00 H</p>
+        <div class="guest-ticket">
+          <p data-guest-message></p>
+          <strong data-pass-message></strong>
+        </div>
+        <a class="scroll-cue" href="#bienvenida">Sumérgete ↓</a>
+      </div>
+      <span class="hibiscus hibiscus-a" aria-hidden="true"></span>
+      <span class="hibiscus hibiscus-b" aria-hidden="true"></span>
+    </header>
 
-<div class="overlay">
+    <section class="welcome reveal" id="bienvenida">
+      <p class="section-no">01 · BIENVENIDA</p>
+      <div>
+        <p class="handwritten">Meet me by the pool</p>
+        <h2>Una tarde de sol,<br>música y color.</h2>
+      </div>
+      <p>Prepara tus lentes favoritos. Vamos a celebrar quince vueltas al sol con toda la energía del verano.</p>
+    </section>
 
-  <!-- HERO -->
-  <section class="card">
+    <section class="countdown-band reveal" aria-labelledby="countdown-title">
+      <div><p class="section-no">Tropical time</p><h2 id="countdown-title">La isla nos espera</h2></div>
+      <div class="countdown" data-countdown aria-live="polite"></div>
+    </section>
 
-    <h1 class="titulo">🌺 Aloha 🌺</h1>
+    <section class="itinerary reveal" id="itinerario">
+      <div class="section-heading"><p class="section-no">02 · ITINERARIO</p><h2>Island schedule</h2></div>
+      <ol>
+        <li><time>17:00</time><span>Welcome splash</span><small>Recepción junto a la alberca</small></li>
+        <li><time>18:00</time><span>Sunset bites</span><small>Snacks, fotos y brindis</small></li>
+        <li><time>19:30</time><span>Tropical beat</span><small>Música y pista abierta</small></li>
+        <li><time>21:30</time><span>Sweet finale</span><small>Pastel bajo las luces</small></li>
+      </ol>
+    </section>
 
-    <!-- 👋 saludo -->
-    <p id="saludo"></p>
+    <section class="location reveal" id="ubicacion">
+      <div class="location-visual" role="img" aria-label="Composición de agua y vegetación tropical">
+        <span class="pool-ring" aria-hidden="true"></span><span class="map-pin" aria-hidden="true"></span>
+      </div>
+      <div class="location-copy">
+        <p class="section-no">03 · DESTINO</p>
+        <h2>Casa Palma<br>Pool Garden</h2>
+        <p>Saltillo, Coahuila · acceso desde las 16:45 horas.</p>
+        <div class="action-row">
+          <a class="tropical-button" data-demo-action="maps">Cómo llegar</a>
+          <a class="text-action" data-demo-action="calendar">Guardar fecha</a>
+        </div>
+      </div>
+    </section>
 
-    <p>Acompáñanos a celebrar el cumpleaños de</p>
-    <h2 id="nombre">RENATTA</h2>
+    <section class="pool-note reveal">
+      <p class="section-no">04 · POOL NOTES</p>
+      <div class="pool-title"><span>WET</span><i>&</i><span>WILD</span></div>
+      <div class="pool-tips"><p>Traje de baño</p><p>Toalla ligera</p><p>Actitud tropical</p></div>
+    </section>
 
-    <p>Prepárate para una experiencia inolvidable 🌴</p>
+    <section class="dress reveal">
+      <div class="dress-copy">
+        <p class="section-no">05 · DRESS CODE</p>
+        <h2>Tropical,<br>fresh & bright</h2>
+        <p>Flores, fibras naturales y color. Elige algo cómodo para bailar junto al agua.</p>
+        <div class="swatches" aria-label="Colores sugeridos"><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <figure><img src="dresscode.png" alt="Propuesta visual de vestimenta tropical"><figcaption>Guía visual · tropical premium</figcaption></figure>
+    </section>
 
-    <div class="info">
-      <span>📅 20 Junio</span>
-      <span>⏰ 5:00pm - 10:00pm</span>
-    </div>
+    <section class="postcards reveal" aria-label="Galería tropical">
+      <div class="postcard-card postcard-one"><span>01</span><p>sun kissed</p></div>
+      <div class="postcard-card postcard-two"><span>02</span><p>pool mood</p></div>
+      <div class="postcard-card postcard-three"><span>03</span><p>aloha night</p></div>
+    </section>
 
-    <p id="contador"></p>
-    <h3 id="pases"></h3>
+    <section class="envelope-section reveal">
+      <div class="css-envelope" aria-hidden="true"><span>R</span></div>
+      <div><p class="section-no">06 · CON CARIÑO</p><h2>Lluvia de sobres</h2><p>Tu presencia es el mejor regalo. Si deseas tener un detalle conmigo, habrá un espacio especial durante la celebración.</p></div>
+    </section>
 
-    <button id="toggleMusica" class="btn">🎵 Pausar música</button>
+    <section class="social-strip reveal">
+      <p>Comparte el color del día</p><strong>#ALOHArenatta</strong>
+      <a data-demo-action="instagram">Ver Instagram</a>
+    </section>
 
-  </section>
+    <section class="rsvp reveal" id="confirmacion">
+      <span class="rsvp-flower" aria-hidden="true"></span>
+      <p class="section-no">07 · RSVP</p>
+      <h2>¿Te unes<br>a la ola?</h2>
+      <p>Confirma antes del 20 de mayo.</p>
+      <a class="tropical-button" data-demo-action="rsvp">Confirmar asistencia</a>
+    </section>
+  </main>
 
-  <!-- 👗 DRESS CODE -->
-  <section class="card">
-    <h2>🌸 Dress Code</h2>
-    <p>Tropical / Floral 🌴</p>
-    <img src="dresscode.png?v=2" class="imagen">
-  </section>
-
-  <section class="card">
-    <h2>🌺 Pool Party</h2>
-    <p>
-    Prepárate para disfrutar la alberca 🌊✨
-    </p>
-    <p>
-    Trae tu traje de baño y vibra tropical 🌴
-    </p>
-  </section>
-
-  <!-- 💌 SOBRE -->
-  <section class="card">
-    <h2>💌 Lluvia De Sobres</h2>
-    <img src="sobre.png" class="imagen">
-  </section>
-
-  <!-- 📍 UBICACIÓN -->
-  <section class="card">
-    <h2>📍 Ubicación</h2>
-    <a id="ubicacion" class="btn" style="pointer-events: none; opacity: 0.5; cursor: default;" onclick="return false;">Ver ubicación</a>
-  </section>
-
-  <!-- 📲 CONFIRMAR -->
-  <section class="card">
-    <h2>📲 Confirmar Asistencia</h2>
-    <a id="whatsapp" class="btn" style="pointer-events: none; opacity: 0.5; cursor: default;" onclick="return false;">Confirmar por WhatsApp</a>
-  </section>
-
-</div>
-
-<audio id="musica" loop>
-  <source src="musica.mp3" type="audio/mpeg">
-</audio>
-
-<script src="script.js?v=9"></script>
-
+  <footer>
+    <b>EVENTORA STUDIO</b><span>ALOHA COLLECTION · 2027</span>
+    <p class="demo-legend">Esta es una demostración interactiva. Los enlaces externos muestran su función sin salir de la invitación.</p>
+  </footer>
+  <script src="../demo-runtime.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>

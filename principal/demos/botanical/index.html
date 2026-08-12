@@ -1,39 +1,15 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Demostración Botanical de Eventora Studio.">
-  <title>Regina & Sebastián · Botanical</title>
-  <link rel="icon" href="../../favicon.ico">
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-</head>
-<body class="locked">
-  <div class="opening" id="opening" role="dialog" aria-modal="true" aria-labelledby="opening-title">
-    <span class="branch branch-left" aria-hidden="true"></span><span class="branch branch-right" aria-hidden="true"></span>
-    <div class="paper"><p class="kicker">Una invitación entre hojas</p><h1 id="opening-title">Regina <i>&</i> Sebastián</h1><p id="opening-guest">Nos encantará compartir este día contigo.</p><button id="open-invitation" type="button">Descubrir invitación</button></div>
-  </div>
-  <button class="music-control" id="music-control" type="button" aria-label="Pausar música" hidden><span class="music-symbol" aria-hidden="true">∿</span><span class="music-label">Pausar</span></button>
-  <audio id="event-music" loop preload="none"></audio>
-
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Botanical, jardín editorial contemporáneo de Eventora Studio."><title>Regina & Sebastián · Botanical</title><link rel="icon" href="../../favicon.ico"><link rel="stylesheet" href="../demo-mode.css"><link rel="stylesheet" href="style.css"></head><body class="locked">
+  <div class="opening" id="opening" role="dialog" aria-modal="true" aria-labelledby="opening-title"><span class="branch branch-left" aria-hidden="true"><i></i><i></i><i></i></span><span class="branch branch-right" aria-hidden="true"><i></i><i></i><i></i></span><div class="paper"><p class="kicker">Una invitación entre hojas</p><h1 id="opening-title">Regina <i>&</i><br>Sebastián</h1><p data-opening-guest></p><button id="open-invitation" type="button">Desplegar la papelería</button><small>24 · ABRIL · 2027</small></div></div>
+  <button class="music-control" id="music-control" type="button" aria-label="Pausar música" hidden><span class="music-symbol" aria-hidden="true">∿</span><span class="music-label">Pausar</span></button><audio id="event-music" loop preload="none"></audio>
   <main id="invitation" aria-hidden="true">
-    <header class="hero"><span class="leaf-corner leaf-a" aria-hidden="true"></span><span class="leaf-corner leaf-b" aria-hidden="true"></span><div class="hero-paper"><p class="kicker">Nuestra boda · 24 abril 2027</p><h2>Regina <i>&</i> Sebastián</h2><p data-guest-message></p><p class="passes" data-pass-message></p><span class="botanical-mark" aria-hidden="true">❧</span></div></header>
-
-    <section class="intro reveal"><p>Hay historias que florecen sin prisa, encuentran su estación y se convierten en hogar.</p></section>
-    <section class="countdown-wrap reveal"><div><p class="kicker">Cuenta regresiva</p><h2>El jardín nos espera</h2></div><div class="countdown" data-countdown aria-live="polite"></div></section>
-
-    <section class="places reveal"><article><span class="number">01</span><h2>Ceremonia</h2><p>Capilla del Bosque</p><time>16:30</time></article><div class="stem" aria-hidden="true"></div><article><span class="number">02</span><h2>Recepción</h2><p>Jardín Casa Oliva</p><time>18:00</time></article></section>
-
-    <section class="itinerary reveal"><p class="kicker">El día</p><h2>Itinerario</h2><ol><li><time>16:00</time><span>Bienvenida</span></li><li><time>16:30</time><span>Ceremonia</span></li><li><time>18:00</time><span>Cóctel en el jardín</span></li><li><time>19:30</time><span>Cena y celebración</span></li></ol></section>
-
-    <section class="botanical-grid reveal"><article><p class="kicker">Código de vestimenta</p><h2>Garden formal</h2><p>Tonos suaves, telas naturales y calzado cómodo para jardín. Evita blanco y verde salvia.</p><div class="swatches" aria-label="Paleta sugerida"><i></i><i></i><i></i><i></i></div></article><article><p class="kicker">Ubicación</p><h2>Jardín Casa Oliva</h2><p>Arteaga, Coahuila · acceso desde las 16:00 horas.</p><a class="leaf-button" data-location target="_blank" rel="noopener">Cómo llegar</a></article></section>
-
-    <section class="memory-strip reveal" role="img" aria-label="Galería botánica decorativa"><span>raíces</span><span>estaciones</span><span>hogar</span><span>siempre</span></section>
-    <section class="gifts reveal"><p class="kicker">Con cariño</p><h2>El mejor regalo es compartir el día</h2><p>Si deseas acompañarnos con un detalle, tendremos lluvia de sobres durante la recepción.</p></section>
-    <section class="rsvp reveal"><div class="wreath" aria-hidden="true"></div><p class="kicker">Confirmación</p><h2>Reserva tu lugar entre nosotros</h2><p>Confirma antes del 24 de marzo.</p><a class="leaf-button" data-rsvp target="_blank" rel="noopener">Confirmar asistencia</a></section>
-  </main>
-  <footer><strong>EVENTORA</strong><span>STUDIO · BOTANICAL COLLECTION</span></footer>
-  <script src="script.js"></script>
-</body>
-</html>
+    <header class="hero"><nav><b>R & S</b><a href="#historia">Nuestra historia</a><a href="#dia">El día</a></nav><div class="hero-art" role="img" aria-label="Ilustración botánica editorial"><span class="stem-main"></span><i class="leaf l1"></i><i class="leaf l2"></i><i class="leaf l3"></i><i class="leaf l4"></i><i class="flower"></i><small>BOTANICAL STUDY · 04</small></div><div class="hero-paper"><p class="kicker">Nuestra boda · Primavera 2027</p><h2>Regina <i>&</i><br>Sebastián</h2><p data-guest-message></p><strong data-pass-message></strong><span class="botanical-mark" aria-hidden="true">❧</span></div></header>
+    <section class="intro reveal" id="historia"><span class="chapter-no">01</span><div><p class="kicker">La historia</p><p>Hay historias que florecen sin prisa, encuentran su estación y se convierten en hogar.</p></div><small>REGINA + SEBASTIÁN<br>ARTEAGA, COAHUILA</small></section>
+    <section class="countdown-wrap reveal"><div><p class="kicker">02 · Cuenta regresiva</p><h2>El jardín<br>nos espera</h2><a data-demo-action="calendar">Guardar la fecha</a></div><div class="countdown" data-countdown aria-live="polite"></div></section>
+    <section class="places reveal" id="dia"><article><span class="number">03/A</span><p class="kicker">Ceremonia</p><h2>Capilla<br>del Bosque</h2><time>16:30</time><a data-demo-action="maps">Cómo llegar</a></article><div class="stem" aria-hidden="true"><i></i><i></i><i></i></div><article><span class="number">03/B</span><p class="kicker">Recepción</p><h2>Jardín<br>Casa Oliva</h2><time>18:00</time><a data-demo-action="maps">Ver ubicación</a></article></section>
+    <section class="itinerary reveal"><p class="kicker">04 · El día</p><h2>Un ritmo natural</h2><ol><li><time>16:00</time><span>Bienvenida</span></li><li><time>16:30</time><span>Ceremonia</span></li><li><time>18:00</time><span>Cóctel en el jardín</span></li><li><time>19:30</time><span>Cena y celebración</span></li></ol></section>
+    <section class="botanical-grid reveal"><article><p class="kicker">05 · Código de vestimenta</p><h2>Garden formal</h2><p>Tonos suaves, telas naturales y calzado cómodo para jardín. Evita blanco y verde salvia.</p><div class="swatches" aria-label="Paleta sugerida"><i></i><i></i><i></i><i></i></div></article><div class="garden-frame" role="img" aria-label="Espacio orgánico para fotografía en el jardín"><span>una tarde<br>entre olivos</span></div></section>
+    <section class="memory-strip reveal" aria-label="Galería botánica"><div><span>01</span><p>raíces</p></div><div><span>02</span><p>estaciones</p></div><div><span>03</span><p>hogar</p></div></section>
+    <section class="gifts reveal"><p class="kicker">06 · Con cariño</p><h2>El mejor regalo<br>es compartir el día.</h2><p>También puedes conocer la opción elegida por los anfitriones.</p><a class="leaf-button" data-demo-action="gifts">Mesa de regalos</a></section>
+    <section class="rsvp reveal"><div class="wreath" aria-hidden="true"></div><p class="kicker">07 · Confirmación</p><h2>Reserva tu lugar<br>entre nosotros</h2><p>Confirma antes del 24 de marzo.</p><a class="leaf-button" data-demo-action="rsvp">Confirmar asistencia</a></section>
+  </main><footer><div><strong>EVENTORA</strong><span>STUDIO · BOTANICAL COLLECTION</span></div><p class="demo-legend">Demostración interactiva. Los enlaces externos explican su función sin salir de la invitación.</p></footer><script src="../demo-runtime.js"></script><script src="script.js"></script>
+</body></html>

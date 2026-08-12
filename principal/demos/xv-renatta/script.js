@@ -1,106 +1,25 @@
-document.addEventListener("DOMContentLoaded", () => {
-
-  const params = new URLSearchParams(window.location.search);
-
-  const nombre = decodeURIComponent(
-    params.get("nombre") || "Invitado"
-  );
-
-  const pases = params.get("pases") || "1";
-
-  const nombreQuince = "RENATTA";
-
-  // 👋 saludo
-  if (nombre) {
-    document.getElementById("saludo").textContent =
-      "Hola " + nombre;
+const EVENT = Object.freeze({
+  demoMode: true,
+  title: 'los XV de Renatta',
+  date: '2027-06-20T17:00:00-06:00',
+  music: 'musica.mp3',
+  links: {
+    maps: 'https://maps.app.goo.gl/o7g5fjQbHxmXxnxK7',
+    calendar: 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=XV+Renatta',
+    instagram: 'https://www.instagram.com/',
+    rsvp: ({ guestName, passes }) => `https://wa.me/528443884334?text=${encodeURIComponent(`Hola, confirmo mi asistencia a ${EVENT.title}. Soy ${guestName} y tenemos ${passes} ${passes === 1 ? 'lugar reservado' : 'lugares reservados'}.`)}`
+  },
+  copy: {
+    opening: ({ guestName }) => `Una postal reservada para ${guestName}.`,
+    guest: ({ guestName }) => `Aloha, ${guestName}. Esta celebración tiene tu nombre en la lista.`,
+    passes: ({ passes }) => passes === 1 ? '1 acceso reservado para ti' : `${passes} accesos reservados para ustedes`
+  },
+  messages: {
+    maps: 'En la invitación real, este botón abrirá Google Maps con la ubicación de la pool party.',
+    calendar: 'En la invitación real, esta opción permitirá guardar los XV de Renatta en el calendario.',
+    instagram: 'En la invitación final, este enlace podrá dirigir al perfil y hashtag de la celebración.',
+    rsvp: 'En la invitación real, este botón permitirá confirmar asistencia directamente por WhatsApp.'
   }
-
-  // 🎟️ pases
-  document.getElementById("pases").textContent =
-    "🎟️ Acceso reservado para " + pases + " persona(s)";
-
-  // 📍 ubicación
-  document.getElementById("ubicacion").href =
-    "https://maps.app.goo.gl/o7g5fjQbHxmXxnxK7";
-
-  // 📲 whatsapp
-  document.getElementById("whatsapp").href =
-    "https://wa.me/528443884334?text=" +
-    encodeURIComponent(
-      "Hola 😊 confirmo asistencia a los XV de Renatta.\n" +
-      "Reservamos " + pases + " lugar(es) para ti.\n" +
-      "Confirma número de asistentes: "
-    );
-
-  // 🌺 flores
-  function lanzarFlores() {
-    const contenedor = document.querySelector(".flores");
-    const emojis = ["🌺","🌸","🌼"];
-
-    for (let i = 0; i < 25; i++) {
-      const flor = document.createElement("span");
-      flor.textContent = emojis[Math.floor(Math.random()*3)];
-      flor.style.left = Math.random()*100+"vw";
-      flor.style.fontSize = (Math.random()*15+15)+"px";
-      flor.style.animationDuration = (Math.random()*2+2)+"s";
-
-      contenedor.appendChild(flor);
-
-      setTimeout(() => flor.remove(), 3000);
-    }
-  }
-
-  // 💌 animación apertura
-  const pantalla = document.getElementById("pantallaInicio");
-  const boton = document.getElementById("abrirInvitacion");
-  const audio = document.getElementById("musica");
-
-  boton.addEventListener("click", () => {
-
-    document.querySelector(".inicio-card").style.opacity = "0";
-
-    document.querySelector(".overlay").style.display = "flex";
-
-    lanzarFlores();
-
-    pantalla.classList.add("abrir");
-
-    audio.play().catch(()=>{});
-
-    setTimeout(()=>{
-      pantalla.style.display="none";
-    },1000);
-  });
-
-  // 🎶 música
-  const toggle = document.getElementById("toggleMusica");
-  let play = true;
-
-  toggle.addEventListener("click", ()=>{
-    if(play){
-      audio.pause();
-      toggle.textContent="🔇 Activar música";
-    } else {
-      audio.play();
-      toggle.textContent="🎵 Pausar música";
-    }
-    play=!play;
-  });
-
-  // ⏳ contador
-  const fecha = new Date("June 20, 2026 17:00:00").getTime();
-
-  setInterval(()=>{
-    const now = new Date().getTime();
-    const diff = fecha - now;
-
-    const d = Math.floor(diff/(1000*60*60*24));
-    const h = Math.floor((diff/(1000*60*60))%24);
-    const m = Math.floor((diff/(1000*60))%60);
-
-    document.getElementById("contador").innerHTML =
-      `⏳ <b>${d}</b> días • <b>${h}</b> hrs • <b>${m}</b> min`;
-  },1000);
-
 });
+
+EventoraDemo.mount(EVENT);

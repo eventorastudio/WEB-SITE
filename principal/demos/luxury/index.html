@@ -1,70 +1,22 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Demostración Luxury Collection de Eventora Studio.">
+<!doctype html><html lang="es"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Luxury Collection, editorial black-tie de Eventora Studio.">
   <title>Victoria & Alejandro · Luxury Collection</title>
-  <link rel="icon" href="../../favicon.ico">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-</head>
-<body class="locked">
-  <div class="opening" id="opening" role="dialog" aria-modal="true" aria-labelledby="opening-title">
-    <div class="envelope" aria-hidden="true"><span class="flap"></span><span class="seal">V·A</span></div>
-    <p class="eyebrow">Luxury Collection</p>
-    <h1 id="opening-title">Una celebración extraordinaria</h1>
-    <p id="opening-guest">Una invitación reservada especialmente para ti.</p>
-    <button class="button button-gold" id="open-invitation" type="button">Abrir invitación</button>
-  </div>
-
-  <button class="music-control" id="music-control" type="button" aria-label="Pausar música" hidden><span aria-hidden="true">Ⅱ</span><span class="music-label">Pausar</span></button>
-  <audio id="event-music" loop preload="none"></audio>
-
+  <link rel="icon" href="../../favicon.ico"><link rel="stylesheet" href="../demo-mode.css"><link rel="stylesheet" href="style.css">
+</head><body class="locked">
+  <div class="opening" id="opening" role="dialog" aria-modal="true" aria-labelledby="opening-title"><span class="opening-panel panel-left" aria-hidden="true"></span><span class="opening-panel panel-right" aria-hidden="true"></span><div class="envelope-wrap"><div class="envelope" aria-hidden="true"><span class="flap"></span><span class="seal">V·A</span></div><p class="eyebrow">Private edition · 018</p><h1 id="opening-title">The invitation<br><i>of a lifetime</i></h1><p data-opening-guest></p><button class="button button-gold" id="open-invitation" type="button">Romper el sello</button></div></div>
+  <button class="music-control" id="music-control" type="button" aria-label="Pausar música" hidden><span aria-hidden="true">Ⅱ</span><span class="music-label">Pausar</span></button><audio id="event-music" loop preload="none"></audio>
   <main id="invitation" aria-hidden="true">
-    <header class="hero">
-      <div class="hero-frame">
-        <p class="eyebrow">Save the date · 18 octubre 2027</p>
-        <h2><span>Victoria</span><i>&</i><span>Alejandro</span></h2>
-        <p class="hero-copy">Celebramos el privilegio de encontrarnos.</p>
-        <div class="gold-line"></div>
-        <p class="personal-message" data-guest-message></p>
-        <p class="passes" data-pass-message></p>
-      </div>
-    </header>
-
-    <section class="countdown-section reveal" aria-labelledby="countdown-title">
-      <p class="eyebrow">Faltan</p><h2 id="countdown-title">Para nuestro sí</h2>
-      <div class="countdown" data-countdown aria-live="polite"></div>
-    </section>
-
-    <section class="editorial-quote reveal">
-      <p>“El amor no se mira: se mira juntos en la misma dirección.”</p>
-      <span>Una historia escrita a dos voces</span>
-    </section>
-
-    <section class="venues reveal" aria-label="Ceremonia y recepción">
-      <article><span>01</span><p class="eyebrow">Ceremonia</p><h2>Templo de San Francisco</h2><p>17:00 horas</p><p>Centro Histórico · Saltillo</p></article>
-      <article><span>02</span><p class="eyebrow">Recepción</p><h2>Casa Madero</h2><p>19:00 horas</p><p>Parras de la Fuente · Coahuila</p></article>
-    </section>
-
-    <section class="dress reveal"><div><p class="eyebrow">Dress code</p><h2>Black tie</h2><p>Elegancia formal en negro y tonos neutros. El blanco queda reservado para la novia.</p></div><div class="dress-mark" aria-hidden="true">V A</div></section>
-
-    <section class="gallery reveal" aria-labelledby="gallery-title">
-      <div class="section-heading"><p class="eyebrow">Instantes</p><h2 id="gallery-title">Nuestra historia</h2></div>
-      <div class="gallery-grid" role="img" aria-label="Galería editorial decorativa de la pareja"><span>El encuentro</span><span>La promesa</span><span>El viaje</span></div>
-    </section>
-
-    <section class="details reveal">
-      <article><p class="eyebrow">Mesa de regalos</p><h2>Su presencia es nuestro mejor regalo</h2><p>Para quienes deseen tener un detalle, hemos preparado una mesa de regalos de demostración.</p><a class="text-link" href="https://www.amazon.com.mx/" target="_blank" rel="noopener">Consultar mesa →</a></article>
-      <article><p class="eyebrow">Ubicación</p><h2>Traza tu llegada</h2><p>Consulta el punto de encuentro y planea tu recorrido con anticipación.</p><a class="button button-outline" data-location target="_blank" rel="noopener">Abrir mapa</a></article>
-    </section>
-
-    <section class="rsvp reveal"><p class="eyebrow">Répondez s'il vous plaît</p><h2>Nos encantará celebrar contigo</h2><p>Confirma tu asistencia y los lugares reservados antes del 18 de septiembre.</p><a class="button button-gold" data-rsvp target="_blank" rel="noopener">Confirmar asistencia</a></section>
+    <header class="hero" id="inicio"><nav class="editorial-nav" aria-label="Navegación de la invitación"><b>V/A</b><span>18 · 10 · 27</span><a href="#celebracion">La celebración ↓</a></nav><div class="hero-visual" role="img" aria-label="Espacio preparado para fotografía editorial de los anfitriones"><span class="image-index">FIG. 01</span><span class="vertical-caption">BLACK TIE · PARRAS</span></div><div class="hero-frame"><p class="eyebrow">A wedding in seven chapters</p><h2><span>Victoria</span><i>&</i><span>Alejandro</span></h2><p class="hero-copy">Celebramos el privilegio de encontrarnos.</p><div class="gold-line"></div><p data-guest-message></p><strong class="passes" data-pass-message></strong></div></header>
+    <section class="chapter reveal" id="celebracion"><span>01</span><div><p class="eyebrow">La celebración</p><h2>Una noche escrita<br>en negro y oro.</h2></div><p>Una cena bajo las estrellas, arquitectura histórica y las personas que han dado sentido a nuestra historia.</p></section>
+    <section class="countdown-section reveal" aria-labelledby="countdown-title"><p class="eyebrow">02 · Save the date</p><h2 id="countdown-title">Hasta nuestro sí</h2><div class="countdown" data-countdown aria-live="polite"></div><a class="text-link" data-demo-action="calendar">Guardar en calendario</a></section>
+    <section class="editorial-quote reveal"><span class="quote-number">03</span><p>“Hay encuentros que cambian para siempre la forma de mirar el mundo.”</p><small>VICTORIA · ALEJANDRO</small></section>
+    <section class="venues reveal" aria-label="Ceremonia y recepción"><article><span>04/A</span><p class="eyebrow">Ceremonia</p><h2>Templo de<br>San Francisco</h2><p>17:00 horas · Centro Histórico, Saltillo</p><a class="text-link" data-demo-action="maps">Ver ubicación</a></article><article class="venue-photo"><span>04/B</span><p class="eyebrow">Recepción</p><h2>Casa<br>Madero</h2><p>19:00 horas · Parras de la Fuente</p><a class="text-link" data-demo-action="maps">Trazar llegada</a></article></section>
+    <section class="dress reveal"><div><p class="eyebrow">05 · The attire</p><h2>Black tie,<br>after dark.</h2><p>Siluetas formales, textiles profundos y joyería contenida. Negro y tonos neutros; el blanco queda reservado para la novia.</p><div class="luxury-palette" aria-label="Paleta sugerida"><i></i><i></i><i></i><i></i></div></div><div class="dress-figures" aria-label="Siluetas editoriales de vestimenta" role="img"><i></i><i></i><span>EVENING FORMAL</span></div></section>
+    <section class="gallery reveal" aria-labelledby="gallery-title"><div class="section-heading"><p class="eyebrow">06 · The archive</p><h2 id="gallery-title">Our story,<br>in frames.</h2></div><div class="gallery-grid" role="img" aria-label="Espacios para fotografía editorial"><span>01 · El encuentro</span><span>02 · La promesa</span><span>03 · El viaje</span></div></section>
+    <section class="concierge reveal"><p class="eyebrow">07 · Concierge</p><h2>Todo lo que necesitas<br>para la noche.</h2><div class="concierge-links"><a data-demo-action="hotel">Hotel sugerido</a><a data-demo-action="gifts">Mesa de regalos</a><a data-demo-action="calendar">Guardar fecha</a></div></section>
+    <section class="rsvp reveal"><p class="eyebrow">Répondez s'il vous plaît</p><h2>Take your seat<br>at the table.</h2><p>Confirma tu asistencia antes del 18 de septiembre.</p><a class="button button-gold" data-demo-action="rsvp">Confirmar asistencia</a></section>
   </main>
-  <footer><span>EVENTORA</span><small>STUDIO · EXPERIENCIAS DIGITALES</small></footer>
-  <script src="script.js"></script>
-</body>
-</html>
+  <footer><div><span>EVENTORA</span><small>STUDIO · LUXURY COLLECTION</small></div><p class="demo-legend">Demostración interactiva. Las acciones externas muestran su función sin abandonar la experiencia.</p></footer>
+  <script src="../demo-runtime.js"></script><script src="script.js"></script>
+</body></html>

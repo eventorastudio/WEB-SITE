@@ -2,16 +2,22 @@
 
 Primera etapa del portafolio Eventora Studio:
 
-- `xv-renatta/`: Colección Aloha existente, conservada sin cambios.
+- `xv-renatta/`: celebración tropical premium Aloha de Renatta.
 - `luxury/`: boda editorial oscura de Victoria y Alejandro.
 - `botanical/`: boda de jardín de Regina y Sebastián.
 - `midnight/`: XV nocturnos de Valentina.
 - `romance/`: boda narrativa de Sofía y Mateo.
 - `minimal/`: ceremonia contemporánea de Camila y Diego.
 
-Todas las nuevas colecciones aceptan `?nombre=Andrea&pases=2`, usan fallback
-seguro, reproducen audio solo después de abrir la invitación y mantienen evento,
-ubicación, WhatsApp y música en el objeto `EVENT` de su propio `script.js`.
+Las seis colecciones aceptan `?nombre=Andrea&pases=2`, usan fallback seguro y
+reproducen audio únicamente después de abrir la invitación. El archivo compartido
+`demo-runtime.js` concentra personalización, apertura, música, countdown, reveals
+y el modo de demostración; cada `script.js` conserva su propio objeto `EVENT`.
+
+Todas las demos públicas usan `demoMode: true`. Maps, WhatsApp, mesa de regalos,
+hotel, Instagram y calendario abren un aviso interno accesible en vez de salir de
+la página. Para convertir una colección en invitación real basta configurar sus
+URLs y cambiar a `demoMode: false`; el runtime restaura los enlaces reales.
 
 Las galerías de esta etapa son composiciones CSS locales preparadas para recibir
 fotografías definitivas. Antes de convertirlas en plantillas de cliente conviene

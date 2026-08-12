@@ -1,32 +1,15 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Demostración Romance de Eventora Studio.">
-  <title>Sofía & Mateo · Romance</title>
-  <link rel="icon" href="../../favicon.ico">
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Gilda+Display&family=Parisienne&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-</head>
-<body class="locked">
-  <div class="opening" id="opening" role="dialog" aria-modal="true" aria-labelledby="opening-title"><div class="letter"><p class="script">Para ti</p><h1 id="opening-title">Tenemos algo que contarte</h1><p id="opening-guest">Con mucho cariño, queremos invitarte.</p><span class="signature">Sofía & Mateo</span><button id="open-invitation" type="button">Leer nuestra carta</button></div></div>
-  <button class="music-control" id="music-control" type="button" aria-label="Pausar música" hidden><span aria-hidden="true">♪</span><span class="music-label">Pausar</span></button>
-  <audio id="event-music" loop preload="none"></audio>
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Romance, una carta de amor convertida en invitación por Eventora Studio."><title>Sofía & Mateo · Romance</title><link rel="icon" href="../../favicon.ico"><link rel="stylesheet" href="../demo-mode.css"><link rel="stylesheet" href="style.css"></head><body class="locked">
+  <div class="opening" id="opening" role="dialog" aria-modal="true" aria-labelledby="opening-title"><div class="envelope-back" aria-hidden="true"></div><div class="letter"><p class="script">Para <span data-opening-guest></span></p><h1 id="opening-title">Hay historias que<br>merecen celebrarse…</h1><p>Nosotros encontramos la nuestra.</p><span class="signature">Sofía & Mateo</span><button id="open-invitation" type="button">Abrir nuestra carta</button><small>07 · 08 · 2027</small></div></div>
+  <button class="music-control" id="music-control" type="button" aria-label="Pausar música" hidden><span aria-hidden="true">♪</span><span class="music-label">Pausar</span></button><audio id="event-music" loop preload="none"></audio>
   <main id="invitation" aria-hidden="true">
-    <header class="hero"><div class="portrait" role="img" aria-label="Composición editorial abstracta para fotografía de la pareja"><span>fotografía<br>de la pareja</span></div><div class="hero-copy"><p class="overline">Nuestra boda</p><h2>Sofía <i>&</i> Mateo</h2><p class="date">07 · AGOSTO · 2027</p><p data-guest-message></p><strong data-pass-message></strong></div></header>
-    <section class="love-note reveal"><p class="script">Nuestra historia</p><blockquote>Nos elegimos en los días sencillos, en las aventuras inesperadas y en todos los futuros que imaginamos juntos.</blockquote></section>
-    <section class="countdown-wrap reveal"><div class="countdown-intro"><p class="overline">Hasta volver a encontrarnos</p><h2>El gran día</h2></div><div class="countdown" data-countdown aria-live="polite"></div></section>
-
-    <section class="story reveal"><article><span>2019</span><h2>El comienzo</h2><p>Una conversación que no queríamos terminar.</p></article><article><span>2024</span><h2>La promesa</h2><p>Un sí frente al mar, justo antes del atardecer.</p></article><article><span>2027</span><h2>Nuestro día</h2><p>La página que queremos escribir contigo.</p></article></section>
-
-    <section class="venues reveal"><div class="venue-card"><p class="overline">Ceremonia</p><h2>Parroquia del Sagrado Corazón</h2><p>17:30 · Saltillo, Coahuila</p></div><div class="venue-card featured"><p class="overline">Recepción</p><h2>Hacienda San Carlos</h2><p>19:30 · Arteaga, Coahuila</p><a data-location target="_blank" rel="noopener">Ver ubicación</a></div></section>
-
-    <section class="photo-story reveal" aria-label="Galería romántica decorativa"><div><span>un instante</span></div><div><span>mil recuerdos</span></div><div><span>toda una vida</span></div></section>
-    <section class="dress-gifts reveal"><article><p class="overline">Dress code</p><h2>Formal</h2><p>Una paleta de vino, blush y tonos neutros. El blanco está reservado para la novia.</p></article><article><p class="overline">Regalos</p><h2>Su compañía es suficiente</h2><p>Si deseas obsequiarnos algo, contaremos con lluvia de sobres.</p></article></section>
-    <section class="rsvp reveal"><p class="script">¿Nos acompañas?</p><h2>Queremos abrazarte ese día</h2><p>Confirma antes del 7 de julio.</p><a data-rsvp target="_blank" rel="noopener">Responder a la invitación</a></section>
-  </main>
-  <footer><span>S & M</span><small>CON AMOR · EVENTORA STUDIO</small></footer>
-  <script src="script.js"></script>
-</body>
-</html>
+    <header class="hero"><nav><b>S & M</b><a href="#historia">Nuestra historia</a><a href="#detalles">Los detalles</a></nav><div class="portrait" role="img" aria-label="Espacio para fotografía editorial de la pareja"><span>PHOTO<br>01</span></div><div class="hero-copy"><p class="overline">Nuestra boda · Capítulo final</p><h2>Sofía <i>&</i><br>Mateo</h2><p class="date">07 · AGOSTO · 2027</p><p data-guest-message></p><strong data-pass-message></strong></div><p class="margin-note">A LOVE LETTER · VOL. 07</p></header>
+    <section class="love-note reveal"><p class="script">Querida vida,</p><blockquote>Nos elegimos en los días sencillos, en las aventuras inesperadas y en todos los futuros que imaginamos juntos.</blockquote><p>Ahora queremos escribir la siguiente página contigo.</p></section>
+    <section class="countdown-wrap reveal"><div class="countdown-intro"><p class="overline">Hasta volver a encontrarnos</p><h2>El gran día</h2><a data-demo-action="calendar">Guardar esta fecha</a></div><div class="countdown" data-countdown aria-live="polite"></div></section>
+    <section class="story reveal" id="historia"><div class="story-title"><p class="overline">Tres escenas</p><h2>Así llegamos<br>hasta aquí.</h2></div><article><span>2019</span><h3>Nos conocimos</h3><p>Una conversación que ninguno quería terminar.</p></article><article><span>2024</span><h3>Nos elegimos</h3><p>Un sí frente al mar, justo antes del atardecer.</p></article><article><span>2027</span><h3>Lo celebramos contigo</h3><p>La página que queremos escribir juntos.</p></article></section>
+    <section class="venues reveal" id="detalles"><div class="venue-card"><p class="overline">01 · Ceremonia</p><h2>Parroquia del<br>Sagrado Corazón</h2><p>17:30 · Saltillo, Coahuila</p><a data-demo-action="maps">Ver ubicación</a></div><div class="venue-card featured"><p class="overline">02 · Recepción</p><h2>Hacienda<br>San Carlos</h2><p>19:30 · Arteaga, Coahuila</p><a data-demo-action="maps">Cómo llegar</a></div></section>
+    <section class="photo-story reveal" aria-label="Collage romántico"><div><span>01 · un instante</span></div><div><span>02 · mil recuerdos</span></div><div><span>03 · toda una vida</span></div><p class="caption">Somewhere between then and forever.</p></section>
+    <section class="dress-gifts reveal"><article><p class="overline">03 · Dress code</p><h2>Formal,<br>con intención.</h2><p>Vino, blush, champagne y tonos neutros. El blanco está reservado para la novia.</p><div class="palette"><i></i><i></i><i></i><i></i></div></article><article><p class="overline">04 · Regalos</p><h2>Tu compañía<br>es suficiente.</h2><p>Si deseas obsequiarnos algo, puedes consultar la opción elegida.</p><a data-demo-action="gifts">Mesa de regalos</a></article></section>
+    <section class="small-notes reveal"><p>Una fecha para guardar.</p><a data-demo-action="instagram">Nuestra historia en Instagram</a><a data-demo-action="calendar">Agregar al calendario</a></section>
+    <section class="rsvp reveal"><p class="script">¿Nos acompañas?</p><h2>Queremos abrazarte<br>ese día.</h2><p>Confirma antes del 7 de julio.</p><a data-demo-action="rsvp">Responder a la invitación</a></section>
+  </main><footer><div><span>S & M</span><small>CON AMOR · EVENTORA STUDIO</small></div><p class="demo-legend">Esta carta es una demostración interactiva. Sus enlaces externos permanecen dentro de la experiencia.</p></footer><script src="../demo-runtime.js"></script><script src="script.js"></script>
+</body></html>
