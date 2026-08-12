@@ -50,72 +50,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 
-    const initializeDemoQr = () => {
-        const select = document.querySelector("#demo-qr-select");
-        const openButton = document.querySelector("#demo-qr-open");
-        const dialog = document.querySelector("#demo-qr-dialog");
-        const image = document.querySelector("#demo-qr-image");
-        const name = document.querySelector("#demo-qr-name");
-        const link = document.querySelector("#demo-qr-link");
-        const contact = document.querySelector("#demo-qr-contact");
-
-        if (!select || !openButton || !dialog || !image || !name || !link || !contact) return;
-
-        let libraryPromise;
-        const loadLibrary = () => {
-            if (typeof globalThis.qrcode === "function") return Promise.resolve();
-            if (libraryPromise) return libraryPromise;
-
-            libraryPromise = new Promise((resolve, reject) => {
-                const script = document.createElement("script");
-                script.src = new URL("vendor/qrcode-generator.js", document.baseURI).href;
-                script.onload = () => typeof globalThis.qrcode === "function" ? resolve() : reject(new Error("qr/library-unavailable"));
-                script.onerror = () => reject(new Error("qr/library-load-failed"));
-                document.head.append(script);
-            });
-            return libraryPromise;
-        };
-
-        openButton.addEventListener("click", async () => {
-            const selectedOption = select.options[select.selectedIndex];
-            const targetUrl = new URL(select.value, document.baseURI).href;
-            const originalLabel = openButton.textContent;
-
-            openButton.disabled = true;
-            openButton.textContent = "Preparando QR…";
-
-            try {
-                await loadLibrary();
-                const qr = globalThis.qrcode(0, "M");
-                qr.addData(targetUrl, "Byte");
-                qr.make();
-
-                image.src = qr.createDataURL(7, 4);
-                image.alt = `Código QR para abrir la colección ${selectedOption.textContent}`;
-                name.textContent = selectedOption.textContent;
-                link.href = targetUrl;
-                const contactMessage = `Hola, vi Eventora Studio y quiero información para mi evento.\n\nTipo de evento: \nFecha aproximada: \nPaquete de interés: \nColección de interés: ${selectedOption.textContent}`;
-                contact.href = `https://wa.me/5215638830691?text=${encodeURIComponent(contactMessage)}`;
-
-                if (typeof dialog.showModal === "function") dialog.showModal();
-                else dialog.setAttribute("open", "");
-            } catch {
-                name.textContent = "No fue posible generar el código. Puedes abrir la demostración desde su tarjeta.";
-                if (typeof dialog.showModal === "function") dialog.showModal();
-                else dialog.setAttribute("open", "");
-            } finally {
-                openButton.disabled = false;
-                openButton.textContent = originalLabel;
-            }
-        });
-
-        dialog.addEventListener("click", (event) => {
-            const bounds = dialog.getBoundingClientRect();
-            const outside = event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom;
-            if (outside) dialog.close();
-        });
-    };
-
     const initializeProcessAnimation = () => {
         const section = document.querySelector(".process");
         const timeline = document.querySelector(".timeline-line");
@@ -325,7 +259,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     initializePortfolioFilters();
-    initializeDemoQr();
     initializeProcessAnimation();
     initializeFeaturesAnimation();
     initializeFaq();

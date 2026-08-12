@@ -69,8 +69,14 @@ test('el portafolio conserva 11 demos y usa una sola fuente de metadatos para lo
     read('principal/script.js'),
     read('principal/style.css')
   ]);
+  const portfolioStart = html.indexOf('<section id="portafolio"');
+  const portfolioEnd = html.indexOf('<section class="benefits"', portfolioStart);
+  const portfolio = html.slice(portfolioStart, portfolioEnd);
   const cards = [...html.matchAll(/class="portfolio-card" data-event-types="([^"]+)"/g)];
+  const cardTargets = [...portfolio.matchAll(/<a href="(demos\/[^"]+)" class="portfolio-card"/g)];
   assert.equal(cards.length, 11);
+  assert.equal(cardTargets.length, 11);
+  assert.equal((portfolio.match(/<span>Ver demostraci[^<]*<\/span>/g) || []).length, 11);
   assert.equal((html.match(/class="portfolio-filter/g) || []).length, 5); // contenedor + 4 botones
   for (const filter of ['todas', 'bodas', 'xv', 'celebraciones']) assert.match(html, new RegExp(`data-filter="${filter}"`));
   for (const card of cards) assert.match(card[1], /^(?:bodas|xv|celebraciones)(?: (?:bodas|xv|celebraciones))*$/);
@@ -79,11 +85,17 @@ test('el portafolio conserva 11 demos y usa una sola fuente de metadatos para lo
   assert.match(script, /ArrowLeft/);
   assert.match(script, /emptyState\.hidden/);
   assert.match(css, /\.portfolio-card\[hidden\]/);
-  assert.equal((html.match(/<option value="demos\//g) || []).length, 11);
-  assert.match(html, /id="demo-qr-dialog"/);
-  assert.match(script, /vendor\/qrcode-generator\.js/);
-  assert.match(script, /qr\.createDataURL/);
-  await access(new URL('../principal/vendor/qrcode-generator.js', import.meta.url));
+
+  assert.ok(portfolio.indexOf('portfolio-disclosure') < portfolio.indexOf('portfolio-filters'));
+  assert.ok(portfolio.indexOf('portfolio-filters') < portfolio.indexOf('portfolio-results'));
+  assert.ok(portfolio.indexOf('portfolio-results') < portfolio.indexOf('portfolio-grid'));
+  assert.doesNotMatch(portfolio, /Abrir una demo en tu celular|Ver en tu celular|demo-qr-|portfolio-device/);
+  assert.doesNotMatch(script, /initializeDemoQr|demo-qr-|qrcode-generator|globalThis\.qrcode|createDataURL/);
+  assert.doesNotMatch(css, /demo-qr-|portfolio-device/);
+  await assert.rejects(
+    access(new URL('../principal/vendor/qrcode-generator.js', import.meta.url)),
+    (error) => error?.code === 'ENOENT'
+  );
 });
 
 test('la comunicación comercial distingue demos Prestige y alcance por paquete', async () => {
