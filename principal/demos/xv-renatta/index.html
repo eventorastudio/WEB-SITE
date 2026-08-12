@@ -1,149 +1,350 @@
 <!doctype html>
 <html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Aloha, una invitación tropical premium de Eventora Studio.">
-  <title>XV Renatta · Aloha Collection</title><link rel="canonical" href="https://eventorastudio.com/principal/demos/xv-renatta/">
-  <link rel="icon" href="../../favicon.ico">
-  <link rel="stylesheet" href="../demo-mode.css">
-  <link rel="stylesheet" href="style.css">
-</head>
-<body class="locked" data-prestige-features="opening hero internal-navigation personalized-design responsive premium-animations advanced-personalization demo-notice footer-disclosure">
-  <div class="opening" id="opening" role="dialog" aria-modal="true" aria-labelledby="opening-title">
-    <div class="opening-water" aria-hidden="true"></div>
-    <span class="opening-leaf leaf-one" aria-hidden="true"></span>
-    <span class="opening-leaf leaf-two" aria-hidden="true"></span>
-    <div class="resort-card">
-      <span class="prestige-badge">Prestige · Demo</span>
-      <div class="postcard-stamp" aria-hidden="true">XV<br>27</div>
-      <p class="opening-kicker">Eventora Resort presenta</p>
-      <h1 id="opening-title">Aloha,<br><span>Renatta</span></h1>
-      <p class="opening-date">20 · JUN · 2027</p>
-      <p class="opening-guest" data-opening-guest></p>
-      <button id="open-invitation" type="button">Abrir postal tropical</button>
-      <small>Pool party · edición especial</small>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Aloha, una invitación tropical premium de Eventora Studio."
+    />
+    <title>XV Renatta · Aloha Collection</title>
+    <link rel="canonical" href="https://eventorastudio.com/principal/demos/xv-renatta/">
+    <link rel="icon" href="../../favicon.ico" />
+    <link rel="stylesheet" href="../demo-mode.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="../assets/demo-photos.css" />
+  </head>
+  <body
+    class="locked"
+    data-prestige-features="opening hero internal-navigation personalized-design responsive premium-animations advanced-personalization demo-notice footer-disclosure"
+  >
+    <div
+      class="opening"
+      id="opening"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="opening-title"
+    >
+      <div class="opening-water" aria-hidden="true"></div>
+      <span class="opening-leaf leaf-one" aria-hidden="true"></span>
+      <span class="opening-leaf leaf-two" aria-hidden="true"></span>
+      <div class="resort-card">
+        <span class="prestige-badge">Prestige · Demo</span>
+        <div class="postcard-stamp" aria-hidden="true">XV<br />27</div>
+        <p class="opening-kicker">Eventora Resort presenta</p>
+        <h1 id="opening-title">Aloha,<br /><span>Renatta</span></h1>
+        <p class="opening-date">20 · JUN · 2027</p>
+        <p class="opening-guest" data-opening-guest></p>
+        <button id="open-invitation" type="button">
+          Abrir postal tropical
+        </button>
+        <small>Pool party · edición especial</small>
+      </div>
     </div>
-  </div>
 
-  <button class="music-control" id="music-control" type="button" aria-label="Pausar música" data-pause-label="Pausar" data-play-label="Reproducir" hidden>
-    <span class="music-disc" aria-hidden="true"></span><span class="music-label">Pausar</span>
-  </button>
-  <audio id="event-music" loop preload="none" data-prestige-feature="music"></audio>
+    <button
+      class="music-control"
+      id="music-control"
+      type="button"
+      aria-label="Pausar música"
+      data-pause-label="Pausar"
+      data-play-label="Reproducir"
+      hidden
+    >
+      <span class="music-disc" aria-hidden="true"></span
+      ><span class="music-label">Pausar</span>
+    </button>
+    <audio
+      id="event-music"
+      loop
+      preload="none"
+      data-prestige-feature="music"
+    ></audio>
 
-  <main id="invitation" aria-hidden="true">
-    <header class="hero" id="inicio">
-      <nav class="island-nav" aria-label="Navegación de la invitación">
-        <a href="#itinerario">Itinerario</a><a href="#ubicacion">Lugar</a><a href="#confirmacion">Confirmar</a>
-      </nav>
-      <div class="hero-sun" aria-hidden="true"></div>
-      <div class="hero-copy">
-        <p class="eyebrow">XV · Birthday · Pool party</p>
-        <h2><span>ALOHA</span> RENATTA</h2>
-        <p class="hero-date">20 JUNIO 2027 <i>·</i> 17:00 H</p>
-        <div class="guest-ticket">
-          <p data-guest-message data-prestige-feature="guest-personalization"></p>
-          <strong data-pass-message data-prestige-feature="personalized-passes"></strong>
+    <main id="invitation" aria-hidden="true">
+    <header class="hero photo-frame" id="inicio" style="--photo-position: 50% 68%">
+      <img class="demo-photo" src="../assets/images/aloha/aloha-palm-pool.webp" alt="Alberca turquesa frente al mar entre palmeras" width="1200" height="1600" fetchpriority="high" decoding="async">
+      <span class="photo-scrim" aria-hidden="true" style="--photo-scrim: linear-gradient(90deg, rgb(0 54 72 / 74%), rgb(0 45 59 / 18%)), linear-gradient(0deg, rgb(0 34 46 / 38%), transparent 48%)"></span>
+        <nav class="island-nav" aria-label="Navegación de la invitación">
+          <a href="#itinerario">Itinerario</a><a href="#ubicacion">Lugar</a
+          ><a href="#confirmacion">Confirmar</a>
+        </nav>
+        <div class="hero-sun" aria-hidden="true"></div>
+        <div class="hero-copy">
+          <p class="eyebrow">XV · Birthday · Pool party</p>
+          <h2><span>ALOHA</span> RENATTA</h2>
+          <p class="hero-date">20 JUNIO 2027 <i>·</i> 17:00 H</p>
+          <div class="guest-ticket">
+            <p
+              data-guest-message
+              data-prestige-feature="guest-personalization"
+            ></p>
+            <strong
+              data-pass-message
+              data-prestige-feature="personalized-passes"
+            ></strong>
+          </div>
+          <a class="scroll-cue" href="#bienvenida">Sumérgete ↓</a>
         </div>
-        <a class="scroll-cue" href="#bienvenida">Sumérgete ↓</a>
-      </div>
-      <span class="hibiscus hibiscus-a" aria-hidden="true"></span>
-      <span class="hibiscus hibiscus-b" aria-hidden="true"></span>
-    </header>
+        <span class="hibiscus hibiscus-a" aria-hidden="true"></span>
+        <span class="hibiscus hibiscus-b" aria-hidden="true"></span>
+      </header>
 
-    <section class="welcome reveal" id="bienvenida">
-      <p class="section-no">01 · BIENVENIDA</p>
-      <div>
-        <p class="handwritten">Meet me by the pool</p>
-        <h2>Una tarde de sol,<br>música y color.</h2>
-      </div>
-      <p>Prepara tus lentes favoritos. Vamos a celebrar quince vueltas al sol con toda la energía del verano.</p>
-    </section>
-
-    <section class="tropical-film reveal" data-prestige-feature="welcome-video" aria-label="Video de bienvenida">
-      <div class="film-poster" aria-hidden="true"><span>ALOHA</span><i>15</i></div>
-      <div><p class="section-no">WELCOME FILM · VIDEO</p><h2>Un vistazo<br>al verano.</h2><p>Esta escena muestra cómo puede integrarse un video de bienvenida personalizado.</p><button class="prestige-video-button" type="button" data-demo-video>Reproducir vista previa</button><span class="prestige-video-status" data-video-status aria-live="polite">Vista previa audiovisual preparada.</span></div>
-    </section>
-
-    <section class="countdown-band reveal" aria-labelledby="countdown-title" data-prestige-feature="countdown">
-      <div><p class="section-no">Tropical time</p><h2 id="countdown-title">La isla nos espera</h2></div>
-      <div class="countdown" data-countdown aria-live="polite"></div>
-    </section>
-
-    <section class="itinerary reveal" id="itinerario" data-prestige-feature="itinerary">
-      <div class="section-heading"><p class="section-no">02 · ITINERARIO</p><h2>Island schedule</h2></div>
-      <ol>
-        <li><time>17:00</time><span>Welcome splash</span><small>Recepción junto a la alberca</small></li>
-        <li><time>18:00</time><span>Sunset bites</span><small>Snacks, fotos y brindis</small></li>
-        <li><time>19:30</time><span>Tropical beat</span><small>Música y pista abierta</small></li>
-        <li><time>21:30</time><span>Sweet finale</span><small>Pastel bajo las luces</small></li>
-      </ol>
-    </section>
-
-    <section class="location reveal" id="ubicacion" data-prestige-feature="multiple-locations">
-      <div class="location-visual" role="img" aria-label="Composición de agua y vegetación tropical">
-        <span class="pool-ring" aria-hidden="true"></span><span class="map-pin" aria-hidden="true"></span>
-      </div>
-      <div class="location-copy">
-        <p class="section-no">03 · DESTINO</p>
-        <h2>Casa Palma<br>Pool Garden</h2>
-        <p>Saltillo, Coahuila · dos momentos, una misma celebración.</p>
-        <div class="location-stops"><p><strong>Casa Palma</strong><br>Recepción · 16:45</p><p><strong>Terraza Coral</strong><br>After glow · 21:30</p></div>
-        <div class="action-row">
-          <a class="tropical-button" data-demo-action="maps" data-prestige-feature="maps">Cómo llegar</a>
-          <a class="text-action" data-demo-action="calendar">Guardar fecha</a>
+      <section class="welcome reveal" id="bienvenida">
+        <p class="section-no">01 · BIENVENIDA</p>
+        <div>
+          <p class="handwritten">Meet me by the pool</p>
+          <h2>Una tarde de sol,<br />música y color.</h2>
         </div>
-      </div>
-    </section>
+        <p>
+          Prepara tus lentes favoritos. Vamos a celebrar quince vueltas al sol
+          con toda la energía del verano.
+        </p>
+      </section>
 
-    <section class="pool-note reveal">
-      <p class="section-no">04 · POOL NOTES</p>
-      <div class="pool-title"><span>WET</span><i>&</i><span>WILD</span></div>
-      <div class="pool-tips"><p>Traje de baño</p><p>Toalla ligera</p><p>Actitud tropical</p></div>
-    </section>
+      <section
+        class="tropical-film reveal"
+        data-prestige-feature="welcome-video"
+        aria-label="Video de bienvenida"
+      >
+        <div class="film-poster" aria-hidden="true">
+          <span>ALOHA</span><i>15</i>
+        </div>
+        <div>
+          <p class="section-no">WELCOME FILM · VIDEO</p>
+          <h2>Un vistazo<br />al verano.</h2>
+          <p>
+            Esta escena muestra cómo puede integrarse un video de bienvenida
+            personalizado.
+          </p>
+          <button class="prestige-video-button" type="button" data-demo-video>
+            Reproducir vista previa</button
+          ><span
+            class="prestige-video-status"
+            data-video-status
+            aria-live="polite"
+            >Vista previa audiovisual preparada.</span
+          >
+        </div>
+      </section>
 
-    <section class="dress reveal" data-prestige-feature="dress-code">
-      <div class="dress-copy">
-        <p class="section-no">05 · DRESS CODE</p>
-        <h2>Tropical,<br>fresh & bright</h2>
-        <p>Flores, fibras naturales y color. Elige algo cómodo para bailar junto al agua.</p>
-        <div class="swatches" aria-label="Colores sugeridos"><i></i><i></i><i></i><i></i><i></i></div>
-      </div>
-      <figure><img src="dresscode.png" alt="Propuesta visual de vestimenta tropical"><figcaption>Guía visual · tropical premium</figcaption></figure>
-    </section>
+      <section
+        class="countdown-band reveal"
+        aria-labelledby="countdown-title"
+        data-prestige-feature="countdown"
+      >
+        <div>
+          <p class="section-no">Tropical time</p>
+          <h2 id="countdown-title">La isla nos espera</h2>
+        </div>
+        <div class="countdown" data-countdown aria-live="polite"></div>
+      </section>
 
-    <section class="postcards reveal" aria-label="Galería tropical" data-prestige-feature="gallery">
-      <div class="postcard-card postcard-one"><span>01</span><p>sun kissed</p></div>
-      <div class="postcard-card postcard-two"><span>02</span><p>pool mood</p></div>
-      <div class="postcard-card postcard-three"><span>03</span><p>aloha night</p></div>
-    </section>
+      <section
+        class="itinerary reveal"
+        id="itinerario"
+        data-prestige-feature="itinerary"
+      >
+        <div class="section-heading">
+          <p class="section-no">02 · ITINERARIO</p>
+          <h2>Island schedule</h2>
+        </div>
+        <ol>
+          <li>
+            <time>17:00</time><span>Welcome splash</span
+            ><small>Recepción junto a la alberca</small>
+          </li>
+          <li>
+            <time>18:00</time><span>Sunset bites</span
+            ><small>Snacks, fotos y brindis</small>
+          </li>
+          <li>
+            <time>19:30</time><span>Tropical beat</span
+            ><small>Música y pista abierta</small>
+          </li>
+          <li>
+            <time>21:30</time><span>Sweet finale</span
+            ><small>Pastel bajo las luces</small>
+          </li>
+        </ol>
+      </section>
 
-    <section class="envelope-section reveal" data-prestige-feature="gift-registry">
-      <div class="css-envelope" aria-hidden="true"><span>R</span></div>
-      <div><p class="section-no">06 · CON CARIÑO</p><h2>Mesa de regalos</h2><p>Tu presencia es el mejor regalo. También puedes consultar la opción tropical elegida por los anfitriones.</p><a class="tropical-button" data-demo-action="gifts">Ver mesa de regalos</a></div>
-    </section>
+      <section
+        class="location reveal"
+        id="ubicacion"
+        data-prestige-feature="multiple-locations"
+      >
+        <div class="location-visual photo-frame" style="--photo-position: 48% 58%">
+          <img class="demo-photo" src="../assets/images/aloha/aloha-resort-hero.webp" alt="Resort tropical con alberca y vegetación" width="1800" height="1200" loading="lazy" decoding="async">
+          <span class="pool-ring" aria-hidden="true"></span
+          ><span class="map-pin" aria-hidden="true"></span>
+        </div>
+        <div class="location-copy">
+          <p class="section-no">03 · DESTINO</p>
+          <h2>Casa Palma<br />Pool Garden</h2>
+          <p>Saltillo, Coahuila · dos momentos, una misma celebración.</p>
+          <div class="location-stops">
+            <p><strong>Casa Palma</strong><br />Recepción · 16:45</p>
+            <p><strong>Terraza Coral</strong><br />After glow · 21:30</p>
+          </div>
+          <div class="action-row">
+            <a
+              class="tropical-button"
+              data-demo-action="maps"
+              data-prestige-feature="maps"
+              >Cómo llegar</a
+            >
+            <a class="text-action" data-demo-action="calendar">Guardar fecha</a>
+          </div>
+        </div>
+      </section>
 
-    <section class="social-strip reveal">
-      <p>Comparte el color del día</p><strong>#ALOHArenatta</strong>
-      <a data-demo-action="instagram">Ver Instagram</a>
-    </section>
+      <section class="pool-note reveal">
+        <p class="section-no">04 · POOL NOTES</p>
+        <div class="pool-title"><span>WET</span><i>&</i><span>WILD</span></div>
+        <div class="pool-tips">
+          <p>Traje de baño</p>
+          <p>Toalla ligera</p>
+          <p>Actitud tropical</p>
+        </div>
+      </section>
 
-    <section class="rsvp reveal" id="confirmacion" data-prestige-feature="guest-control">
-      <span class="rsvp-flower" aria-hidden="true"></span>
-      <p class="section-no">07 · RSVP</p>
-      <h2>¿Te unes<br>a la ola?</h2>
-      <p>Confirma antes del 20 de mayo.</p>
-      <div class="island-pass" data-access-preview data-prestige-feature="access-preview"><div class="island-pass-tabs" role="group" aria-label="Vista de acceso"><button type="button" data-access-mode="digital" aria-pressed="true">Pase digital</button><button type="button" data-access-mode="printed" aria-pressed="false">Postal impresa</button></div><article data-access-view="digital"><span class="island-code" aria-hidden="true"></span><div><small>ISLAND ACCESS</small><strong data-access-guest></strong><p data-access-passes></p></div></article><article data-access-view="printed" hidden><small>BOARDING POSTCARD · XV 27</small><strong data-access-guest></strong><p data-access-passes></p><span>Presenta esta postal al llegar.</span></article></div>
-      <div data-pass-selector data-prestige-feature="pass-selection"></div>
-      <a class="tropical-button" data-demo-action="rsvp" data-prestige-feature="rsvp">Confirmar asistencia</a>
-    </section>
-  </main>
+      <section class="dress reveal" data-prestige-feature="dress-code">
+        <div class="dress-copy">
+          <p class="section-no">05 · DRESS CODE</p>
+          <h2>Tropical,<br />fresh & bright</h2>
+          <p>
+            Flores, fibras naturales y color. Elige algo cómodo para bailar
+            junto al agua.
+          </p>
+          <div class="swatches" aria-label="Colores sugeridos">
+            <i></i><i></i><i></i><i></i><i></i>
+          </div>
+        </div>
+        <figure>
+          <img
+            src="dresscode.webp"
+            alt="Propuesta visual de vestimenta tropical"
+            width="1536"
+            height="1024"
+            loading="lazy"
+            decoding="async"
+          />
+          <figcaption>Guía visual · tropical premium</figcaption>
+        </figure>
+      </section>
 
-  <footer>
-    <b>EVENTORA STUDIO</b><span>ALOHA COLLECTION · 2027</span>
-    <p class="demo-legend"><strong>Demostración Prestige.</strong> Esta experiencia muestra funciones disponibles en el paquete Prestige. Los enlaces externos están simulados y las funciones pueden variar según el paquete contratado.</p>
-  </footer>
-  <script src="../demo-runtime.js"></script>
-  <script src="script.js"></script>
-</body>
+      <section
+        class="postcards reveal"
+        aria-label="Galería tropical"
+        data-prestige-feature="gallery"
+      >
+        <div class="postcard-card postcard-one photo-frame">
+          <img class="demo-photo" src="../assets/images/aloha/aloha-sunset-pool.webp" alt="Atardecer dorado sobre una alberca con palmeras" width="1200" height="802" loading="lazy" decoding="async">
+          <span>01</span>
+          <p>sun kissed</p>
+        </div>
+        <div class="postcard-card postcard-two photo-frame" style="--photo-position: 50% 58%">
+          <img class="demo-photo" src="../assets/images/aloha/aloha-hibiscus-cocktail.webp" alt="Cóctel rojo adornado con una flor tropical" width="1200" height="1602" loading="lazy" decoding="async">
+          <span>02</span>
+          <p>pool mood</p>
+        </div>
+        <div class="postcard-card postcard-three">
+          <span>03</span>
+          <p>aloha night</p>
+        </div>
+      </section>
+
+      <section
+        class="envelope-section reveal"
+        data-prestige-feature="gift-registry"
+      >
+        <div class="css-envelope" aria-hidden="true"><span>R</span></div>
+        <div>
+          <p class="section-no">06 · CON CARIÑO</p>
+          <h2>Mesa de regalos</h2>
+          <p>
+            Tu presencia es el mejor regalo. También puedes consultar la opción
+            tropical elegida por los anfitriones.
+          </p>
+          <a class="tropical-button" data-demo-action="gifts"
+            >Ver mesa de regalos</a
+          >
+        </div>
+      </section>
+
+      <section class="social-strip reveal">
+        <p>Comparte el color del día</p>
+        <strong>#ALOHArenatta</strong>
+        <a data-demo-action="instagram">Ver Instagram</a>
+      </section>
+
+      <section
+        class="rsvp reveal"
+        id="confirmacion"
+        data-prestige-feature="guest-control"
+      >
+        <span class="rsvp-flower" aria-hidden="true"></span>
+        <p class="section-no">07 · RSVP</p>
+        <h2>¿Te unes<br />a la ola?</h2>
+        <p>Confirma antes del 20 de mayo.</p>
+        <div
+          class="island-pass"
+          data-access-preview
+          data-prestige-feature="access-preview"
+        >
+          <div
+            class="island-pass-tabs"
+            role="group"
+            aria-label="Vista de acceso"
+          >
+            <button
+              type="button"
+              data-access-mode="digital"
+              aria-pressed="true"
+            >
+              Pase digital</button
+            ><button
+              type="button"
+              data-access-mode="printed"
+              aria-pressed="false"
+            >
+              Postal impresa
+            </button>
+          </div>
+          <article data-access-view="digital">
+            <span class="island-code" aria-hidden="true"></span>
+            <div>
+              <small>ISLAND ACCESS</small><strong data-access-guest></strong>
+              <p data-access-passes></p>
+            </div>
+          </article>
+          <article data-access-view="printed" hidden>
+            <small>BOARDING POSTCARD · XV 27</small
+            ><strong data-access-guest></strong>
+            <p data-access-passes></p>
+            <span>Presenta esta postal al llegar.</span>
+          </article>
+        </div>
+        <div data-pass-selector data-prestige-feature="pass-selection"></div>
+        <a
+          class="tropical-button"
+          data-demo-action="rsvp"
+          data-prestige-feature="rsvp"
+          >Confirmar asistencia</a
+        >
+      </section>
+    </main>
+
+    <footer>
+      <b>EVENTORA STUDIO</b><span>ALOHA COLLECTION · 2027</span>
+      <p class="demo-legend">
+        <strong>Demostración Prestige.</strong> Esta experiencia muestra
+        funciones disponibles en el paquete Prestige. Los enlaces externos están
+        simulados y las funciones pueden variar según el paquete contratado.
+      </p>
+    </footer>
+    <script src="../demo-runtime.js"></script>
+    <script src="script.js"></script>
+  </body>
 </html>

@@ -344,7 +344,7 @@ test('cada identidad tiene composición, storytelling y galería propios', async
     luxury: [/envelope-wrap/, /hero-visual/, /gallery-grid/, /black-tie-agenda/, /dress-figures/, /concierge/, /seat-pass/, /button-gold/],
     botanical: [/class="paper"/, /hero-art/, /memory-strip/, /itinerary/, /garden-frame/, /class="gifts/, /pressed-pass/, /leaf-button/],
     midnight: [/class="darkness"/, /hero-light/, /night-gallery/, /timeline/, /silhouettes/, /night-services/, /night-pass/, /class="rsvp/],
-    romance: [/class="letter"/, /class="portrait"/, /photo-story/, /romance-itinerary/, /dress-gifts/, /small-notes/, /letter-pass/, /class="rsvp/],
+    romance: [/class="letter"/, /class="portrait(?:\s|")/, /photo-story/, /romance-itinerary/, /dress-gifts/, /small-notes/, /letter-pass/, /class="rsvp/],
     minimal: [/open-grid/, /hero-grid/, /class="gallery/, /minimal-itinerary/, /class="dress/, /class="registry/, /access-index/, /class="rsvp/],
     celestial: [/constellation-mark/, /class="moon"/, /floating-archive/, /star-itinerary/, /night-code/, /celestial-gifts/, /celestial-pass/, /celestial-button/],
     vintage: [/class="postcard"/, /masthead/, /analog-album/, /printed-program/, /fashion-plate/, /registry-letter/, /classic-ticket/, /vintage-button/],
@@ -406,6 +406,37 @@ test('los assets locales declarados por cada demo existen y no hay fuentes remot
     assert.ok(music);
     await access(new URL(`../principal/demos/${demo}/${music}`, import.meta.url));
   }
+});
+
+test('la curaduría fotográfica usa cuatro WebP locales por demo con dimensiones y carga responsable', async () => {
+  const referenced = new Set();
+  for (const demo of DEMOS) {
+    const html = await read(`principal/demos/${demo}/index.html`);
+    const photos = [...html.matchAll(/<img\b[^>]*class="demo-photo"[^>]*>/g)].map((match) => match[0]);
+    assert.equal(photos.length, 4, `${demo} debe integrar cuatro fotografías curadas`);
+    assert.match(html, /\.\.\/assets\/demo-photos\.css/);
+    assert.doesNotMatch(html, /<img\b[^>]*src="https?:\/\//i);
+
+    for (const photo of photos) {
+      const source = photo.match(/src="([^"]+)"/)?.[1];
+      const alt = photo.match(/alt="([^"]*)"/)?.[1];
+      assert.ok(source?.endsWith('.webp'), `${demo} debe servir fotografía WebP local`);
+      assert.ok(alt !== undefined, `${source} necesita atributo alt`);
+      assert.match(photo, /\bwidth="\d+"/);
+      assert.match(photo, /\bheight="\d+"/);
+      assert.match(photo, /\bdecoding="async"/);
+      if (!/fetchpriority="high"/.test(photo)) assert.match(photo, /loading="lazy"/);
+      await access(new URL(`../principal/demos/${demo}/${source}`, import.meta.url));
+      assert.equal(referenced.has(source), false, `No se reutilizan fotos entre colecciones: ${source}`);
+      referenced.add(source);
+    }
+  }
+  assert.equal(referenced.size, 44);
+
+  const sources = await read('principal/demos/assets/images/IMAGE_SOURCES.md');
+  assert.match(sources, /Pexels License/);
+  assert.match(sources, /2026-08-12/);
+  for (const source of referenced) assert.match(sources, new RegExp(source.split('/').at(-1).replace('.', '\\.')));
 });
 
 test('el portafolio publica exactamente las once colecciones Prestige activas', async () => {

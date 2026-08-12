@@ -1,48 +1,314 @@
 <!doctype html>
 <html lang="es">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Celestial, una boda bajo las estrellas en formato Prestige por Eventora Studio.">
-  <title>Isabella & Santiago · Celestial</title><link rel="canonical" href="https://eventorastudio.com/principal/demos/celestial/">
-  <link rel="icon" href="../../favicon.ico"><link rel="stylesheet" href="../demo-mode.css"><link rel="stylesheet" href="style.css">
-</head>
-<body class="locked" data-prestige-features="opening hero internal-navigation personalized-design responsive premium-animations advanced-personalization demo-notice footer-disclosure">
-  <div class="opening" id="opening" role="dialog" aria-modal="true" aria-labelledby="opening-title">
-    <div class="constellation-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><span>I · S</span></div>
-    <div class="opening-copy"><span class="prestige-badge">Prestige · Demo</span><p class="celestial-label">CARTA CELESTE · 27.05.28</p><h1 id="opening-title">Una noche escrita<br><em>en las estrellas.</em></h1><p data-opening-guest></p><button id="open-invitation" type="button">Revelar la constelación</button></div>
-  </div>
-  <button class="music-control" id="music-control" type="button" aria-label="Pausar música" hidden><span class="music-orbit" aria-hidden="true"></span><span class="music-label">Pausar</span></button><audio id="event-music" loop preload="none" data-prestige-feature="music"></audio>
-  <main id="invitation" aria-hidden="true">
-    <header class="hero" id="inicio">
-      <nav class="orbit-nav" aria-label="Navegación de la invitación"><b>I/S</b><a href="#orbita">Órbita</a><a href="#coordenadas">Coordenadas</a><a href="#acceso">Acceso</a></nav>
-      <div class="moon" aria-hidden="true"><span></span></div><p class="coordinates">25.4508° N · 100.6347° W</p>
-      <div class="hero-copy"><p class="celestial-label">BAJO EL MISMO CIELO</p><h2>Isabella <i>&</i><br>Santiago</h2><p class="hero-date">27 · MAYO · 2028 <span>18:00</span></p><div class="star-message"><p data-guest-message data-prestige-feature="guest-personalization"></p><strong data-pass-message data-prestige-feature="personalized-passes"></strong></div></div>
-      <a class="falling-cue" href="#orbita">SIGUE LA ÓRBITA ↓</a>
-    </header>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="Celestial, una boda bajo las estrellas en formato Prestige por Eventora Studio."
+    />
+    <title>Isabella & Santiago · Celestial</title>
+    <link rel="canonical" href="https://eventorastudio.com/principal/demos/celestial/">
+    <link rel="icon" href="../../favicon.ico" />
+    <link rel="stylesheet" href="../demo-mode.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="../assets/demo-photos.css" />
+  </head>
+  <body
+    class="locked"
+    data-prestige-features="opening hero internal-navigation personalized-design responsive premium-animations advanced-personalization demo-notice footer-disclosure"
+  >
+    <div
+      class="opening"
+      id="opening"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="opening-title"
+    >
+      <div class="constellation-mark" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i><span>I · S</span>
+      </div>
+      <div class="opening-copy">
+        <span class="prestige-badge">Prestige · Demo</span>
+        <p class="celestial-label">CARTA CELESTE · 27.05.28</p>
+        <h1 id="opening-title">
+          Una noche escrita<br /><em>en las estrellas.</em>
+        </h1>
+        <p data-opening-guest></p>
+        <button id="open-invitation" type="button">
+          Revelar la constelación
+        </button>
+      </div>
+    </div>
+    <button
+      class="music-control"
+      id="music-control"
+      type="button"
+      aria-label="Pausar música"
+      hidden
+    >
+      <span class="music-orbit" aria-hidden="true"></span
+      ><span class="music-label">Pausar</span></button
+    ><audio
+      id="event-music"
+      loop
+      preload="none"
+      data-prestige-feature="music"
+    ></audio>
+    <main id="invitation" aria-hidden="true">
+      <header class="hero photo-frame photo-night" id="inicio" style="--photo-position: 50% 54%">
+        <img class="demo-photo" src="../assets/images/celestial/celestial-night-portrait-hero.webp" alt="Pareja bajo una lluvia iluminada en la noche" width="1800" height="1200" fetchpriority="high" decoding="async">
+        <span class="photo-scrim" aria-hidden="true" style="--photo-scrim: linear-gradient(90deg, rgb(2 7 28 / 80%), rgb(4 10 29 / 24%)), linear-gradient(0deg, rgb(2 6 25 / 56%), transparent 58%)"></span>
+        <nav class="orbit-nav" aria-label="Navegación de la invitación">
+          <b>I/S</b><a href="#orbita">Órbita</a
+          ><a href="#coordenadas">Coordenadas</a><a href="#acceso">Acceso</a>
+        </nav>
+        <div class="moon" aria-hidden="true"><span></span></div>
+        <p class="coordinates">25.4508° N · 100.6347° W</p>
+        <div class="hero-copy">
+          <p class="celestial-label">BAJO EL MISMO CIELO</p>
+          <h2>Isabella <i>&</i><br />Santiago</h2>
+          <p class="hero-date">27 · MAYO · 2028 <span>18:00</span></p>
+          <div class="star-message">
+            <p
+              data-guest-message
+              data-prestige-feature="guest-personalization"
+            ></p>
+            <strong
+              data-pass-message
+              data-prestige-feature="personalized-passes"
+            ></strong>
+          </div>
+        </div>
+        <a class="falling-cue" href="#orbita">SIGUE LA ÓRBITA ↓</a>
+      </header>
 
-    <section class="vow reveal" id="orbita"><span>01</span><p>Hasta que nuestras<br>estrellas se encuentren.</p><small>ISABELLA + SANTIAGO<br>UNA CELEBRACIÓN CELESTE</small></section>
+      <section class="vow reveal" id="orbita">
+        <span>01</span>
+        <p>Hasta que nuestras<br />estrellas se encuentren.</p>
+        <small>ISABELLA + SANTIAGO<br />UNA CELEBRACIÓN CELESTE</small>
+      </section>
 
-    <section class="celestial-film reveal" data-prestige-feature="welcome-video" aria-label="Video de bienvenida">
-      <div class="eclipse-frame" aria-hidden="true"><span>I · S</span><small>FILM / 00:27</small></div><article><p class="celestial-label">02 · LUNAR FILM</p><h2>Un recuerdo<br>en luz lunar.</h2><p>Una pieza audiovisual integrada como una escena serena antes de comenzar la noche.</p><button class="prestige-video-button" type="button" data-demo-video>Reproducir vista previa</button><span class="prestige-video-status" data-video-status aria-live="polite">Vista previa audiovisual preparada.</span></article>
-    </section>
+      <section
+        class="celestial-film reveal"
+        data-prestige-feature="welcome-video"
+        aria-label="Video de bienvenida"
+      >
+        <div class="eclipse-frame photo-frame photo-night" aria-hidden="true">
+          <img class="demo-photo" src="../assets/images/celestial/celestial-starry-couple.webp" alt="" width="1200" height="1800" loading="lazy" decoding="async">
+          <span>I · S</span><small>FILM / 00:27</small>
+        </div>
+        <article>
+          <p class="celestial-label">02 · LUNAR FILM</p>
+          <h2>Un recuerdo<br />en luz lunar.</h2>
+          <p>
+            Una pieza audiovisual integrada como una escena serena antes de
+            comenzar la noche.
+          </p>
+          <button class="prestige-video-button" type="button" data-demo-video>
+            Reproducir vista previa</button
+          ><span
+            class="prestige-video-status"
+            data-video-status
+            aria-live="polite"
+            >Vista previa audiovisual preparada.</span
+          >
+        </article>
+      </section>
 
-    <section class="orbital-countdown reveal" data-prestige-feature="countdown"><div><p class="celestial-label">03 · ALINEACIÓN</p><h2>La noche<br>se acerca.</h2><a data-demo-action="calendar">Guardar coordenada temporal</a></div><div class="countdown" data-countdown aria-live="polite"></div></section>
+      <section
+        class="orbital-countdown reveal"
+        data-prestige-feature="countdown"
+      >
+        <div>
+          <p class="celestial-label">03 · ALINEACIÓN</p>
+          <h2>La noche<br />se acerca.</h2>
+          <a data-demo-action="calendar">Guardar coordenada temporal</a>
+        </div>
+        <div class="countdown" data-countdown aria-live="polite"></div>
+      </section>
 
-    <section class="sky-places reveal" id="coordenadas" data-prestige-feature="multiple-locations">
-      <div class="sky-map" role="img" aria-label="Mapa celeste abstracto con dos coordenadas"><span class="route-line"></span><i></i><i></i><small>NORTE · 27 MAY 2028</small></div>
-      <div class="place-copy"><p class="celestial-label">04 · DOS COORDENADAS</p><article><small>CEREMONIA · 18:00</small><h2>Capilla<br>del Cielo</h2><p>Sierra de Arteaga, Coahuila</p><a data-demo-action="maps" data-prestige-feature="maps">Abrir coordenadas</a></article><article><small>RECEPCIÓN · 20:00</small><h2>Observatorio<br>Alba</h2><p>Valle de los Pinos, Coahuila</p><a data-demo-action="maps">Trazar segunda órbita</a></article></div>
-    </section>
+      <section
+        class="sky-places reveal"
+        id="coordenadas"
+        data-prestige-feature="multiple-locations"
+      >
+        <div
+          class="sky-map"
+          role="img"
+          aria-label="Mapa celeste abstracto con dos coordenadas"
+        >
+          <span class="route-line"></span><i></i><i></i
+          ><small>NORTE · 27 MAY 2028</small>
+        </div>
+        <div class="place-copy">
+          <p class="celestial-label">04 · DOS COORDENADAS</p>
+          <article>
+            <small>CEREMONIA · 18:00</small>
+            <h2>Capilla<br />del Cielo</h2>
+            <p>Sierra de Arteaga, Coahuila</p>
+            <a data-demo-action="maps" data-prestige-feature="maps"
+              >Abrir coordenadas</a
+            >
+          </article>
+          <article>
+            <small>RECEPCIÓN · 20:00</small>
+            <h2>Observatorio<br />Alba</h2>
+            <p>Valle de los Pinos, Coahuila</p>
+            <a data-demo-action="maps">Trazar segunda órbita</a>
+          </article>
+        </div>
+      </section>
 
-    <section class="star-itinerary reveal" data-prestige-feature="itinerary"><div><p class="celestial-label">05 · CONSTELACIÓN DEL DÍA</p><h2>Cuatro luces,<br>un mismo destino.</h2></div><ol><li><time>18:00</time><span>Ceremonia</span><small>Primer destello</small></li><li><time>19:30</time><span>Recepción</span><small>Hora azul</small></li><li><time>21:00</time><span>Cena</span><small>Bajo las estrellas</small></li><li><time>22:30</time><span>Baile</span><small>Noche infinita</small></li></ol></section>
+      <section class="star-itinerary reveal" data-prestige-feature="itinerary">
+        <div>
+          <p class="celestial-label">05 · CONSTELACIÓN DEL DÍA</p>
+          <h2>Cuatro luces,<br />un mismo destino.</h2>
+        </div>
+        <ol>
+          <li>
+            <time>18:00</time><span>Ceremonia</span
+            ><small>Primer destello</small>
+          </li>
+          <li>
+            <time>19:30</time><span>Recepción</span><small>Hora azul</small>
+          </li>
+          <li>
+            <time>21:00</time><span>Cena</span><small>Bajo las estrellas</small>
+          </li>
+          <li>
+            <time>22:30</time><span>Baile</span><small>Noche infinita</small>
+          </li>
+        </ol>
+      </section>
 
-    <section class="night-code reveal" data-prestige-feature="dress-code"><div><p class="celestial-label">06 · CÓDIGO DE LA NOCHE</p><h2>Elegancia<br>en luz baja.</h2><p>Formal nocturno en azul tinta, plata, lavanda grisácea y tonos lunares. El marfil queda reservado para la novia.</p><div class="lunar-palette" aria-label="Paleta sugerida"><i></i><i></i><i></i><i></i></div></div><div class="orbit-wardrobe" role="img" aria-label="Siluetas de vestimenta rodeadas por órbitas"><i></i><i></i><span>NIGHT FORMAL / 06</span></div></section>
+      <section class="night-code reveal" data-prestige-feature="dress-code">
+        <div>
+          <p class="celestial-label">06 · CÓDIGO DE LA NOCHE</p>
+          <h2>Elegancia<br />en luz baja.</h2>
+          <p>
+            Formal nocturno en azul tinta, plata, lavanda grisácea y tonos
+            lunares. El marfil queda reservado para la novia.
+          </p>
+          <div class="lunar-palette" aria-label="Paleta sugerida">
+            <i></i><i></i><i></i><i></i>
+          </div>
+        </div>
+        <div
+          class="orbit-wardrobe"
+          role="img"
+          aria-label="Siluetas de vestimenta rodeadas por órbitas"
+        >
+          <i></i><i></i><span>NIGHT FORMAL / 06</span>
+        </div>
+      </section>
 
-    <section class="floating-archive reveal" aria-label="Galería cinematográfica celestial" data-prestige-feature="gallery"><header><p class="celestial-label">07 · ARCHIVO CELESTE</p><h2>Fragmentos de<br>nuestro universo.</h2></header><figure class="frame-one"><span>01</span><figcaption>la primera mirada · 22:14</figcaption></figure><figure class="frame-two"><span>02</span><figcaption>una promesa · coordenada norte</figcaption></figure><figure class="frame-three"><span>03</span><figcaption>todo el cielo · 2028</figcaption></figure></section>
+      <section
+        class="floating-archive reveal"
+        aria-label="Galería cinematográfica celestial"
+        data-prestige-feature="gallery"
+      >
+        <header>
+          <p class="celestial-label">07 · ARCHIVO CELESTE</p>
+          <h2>Fragmentos de<br />nuestro universo.</h2>
+        </header>
+        <figure class="frame-one photo-frame photo-night">
+          <img class="demo-photo" src="../assets/images/celestial/celestial-night-sky.webp" alt="Cielo nocturno cubierto de estrellas" width="1200" height="901" loading="lazy" decoding="async">
+          <span>01</span>
+          <figcaption>la primera mirada · 22:14</figcaption>
+        </figure>
+        <figure class="frame-two photo-frame photo-night">
+          <img class="demo-photo" src="../assets/images/celestial/celestial-string-lights.webp" alt="Recepción al aire libre bajo luces suspendidas" width="1200" height="800" loading="lazy" decoding="async">
+          <span>02</span>
+          <figcaption>una promesa · coordenada norte</figcaption>
+        </figure>
+        <figure class="frame-three">
+          <span>03</span>
+          <figcaption>todo el cielo · 2028</figcaption>
+        </figure>
+      </section>
 
-    <section class="celestial-gifts reveal" data-prestige-feature="gift-registry"><span class="gift-orbit" aria-hidden="true"></span><div><p class="celestial-label">08 · DESEO COMPARTIDO</p><h2>Tu presencia<br>completa el cielo.</h2><p>Si deseas acompañarnos con un detalle, puedes consultar la constelación de regalos elegida por los anfitriones.</p><div><a data-demo-action="gifts">Ver mesa de regalos</a><a data-demo-action="hotel">Hospedaje sugerido</a></div></div></section>
+      <section
+        class="celestial-gifts reveal"
+        data-prestige-feature="gift-registry"
+      >
+        <span class="gift-orbit" aria-hidden="true"></span>
+        <div>
+          <p class="celestial-label">08 · DESEO COMPARTIDO</p>
+          <h2>Tu presencia<br />completa el cielo.</h2>
+          <p>
+            Si deseas acompañarnos con un detalle, puedes consultar la
+            constelación de regalos elegida por los anfitriones.
+          </p>
+          <div>
+            <a data-demo-action="gifts">Ver mesa de regalos</a
+            ><a data-demo-action="hotel">Hospedaje sugerido</a>
+          </div>
+        </div>
+      </section>
 
-    <section class="rsvp reveal" id="acceso" data-prestige-feature="guest-control"><p class="celestial-label">09 · STAR GUEST LIST</p><h2>Tu estrella<br>está reservada.</h2><p>Confirma antes del 27 de abril.</p><div class="celestial-pass" data-access-preview data-prestige-feature="access-preview"><nav role="group" aria-label="Vista de acceso"><button type="button" data-access-mode="digital" aria-pressed="true">Celestial Pass</button><button type="button" data-access-mode="printed" aria-pressed="false">Carta estelar</button></nav><article data-access-view="digital"><span class="pass-moon" aria-hidden="true"></span><div><small>STAR GUEST · I/S 0527</small><strong data-access-guest></strong><p data-access-passes></p><i>ORBIT VERIFIED</i></div></article><article data-access-view="printed" hidden><small>CARTA CELESTE · ADMIT</small><strong data-access-guest></strong><p data-access-passes></p><span>27 MAY 2028 · COORDENADA NORTE</span></article></div><div data-pass-selector data-prestige-feature="pass-selection"></div><a class="celestial-button" data-demo-action="rsvp" data-prestige-feature="rsvp">Confirmar en la constelación</a></section>
-  </main>
-  <footer><div><b>EVENTORA STUDIO</b><span>CELESTIAL COLLECTION · 2028</span></div><p class="demo-legend"><strong>Demostración Prestige.</strong> Esta demostración presenta funcionalidades disponibles en nuestro paquete Prestige. Los enlaces externos están simulados y las funciones pueden variar según el paquete contratado.</p></footer>
-  <script src="../demo-runtime.js"></script><script src="script.js"></script>
-</body></html>
+      <section
+        class="rsvp reveal"
+        id="acceso"
+        data-prestige-feature="guest-control"
+      >
+        <p class="celestial-label">09 · STAR GUEST LIST</p>
+        <h2>Tu estrella<br />está reservada.</h2>
+        <p>Confirma antes del 27 de abril.</p>
+        <div
+          class="celestial-pass"
+          data-access-preview
+          data-prestige-feature="access-preview"
+        >
+          <nav role="group" aria-label="Vista de acceso">
+            <button
+              type="button"
+              data-access-mode="digital"
+              aria-pressed="true"
+            >
+              Celestial Pass</button
+            ><button
+              type="button"
+              data-access-mode="printed"
+              aria-pressed="false"
+            >
+              Carta estelar
+            </button>
+          </nav>
+          <article data-access-view="digital">
+            <span class="pass-moon" aria-hidden="true"></span>
+            <div>
+              <small>STAR GUEST · I/S 0527</small
+              ><strong data-access-guest></strong>
+              <p data-access-passes></p>
+              <i>ORBIT VERIFIED</i>
+            </div>
+          </article>
+          <article data-access-view="printed" hidden>
+            <small>CARTA CELESTE · ADMIT</small
+            ><strong data-access-guest></strong>
+            <p data-access-passes></p>
+            <span>27 MAY 2028 · COORDENADA NORTE</span>
+          </article>
+        </div>
+        <div data-pass-selector data-prestige-feature="pass-selection"></div>
+        <a
+          class="celestial-button"
+          data-demo-action="rsvp"
+          data-prestige-feature="rsvp"
+          >Confirmar en la constelación</a
+        >
+      </section>
+    </main>
+    <footer>
+      <div><b>EVENTORA STUDIO</b><span>CELESTIAL COLLECTION · 2028</span></div>
+      <p class="demo-legend">
+        <strong>Demostración Prestige.</strong> Esta demostración presenta
+        funcionalidades disponibles en nuestro paquete Prestige. Los enlaces
+        externos están simulados y las funciones pueden variar según el paquete contratado.
+      </p>
+    </footer>
+    <script src="../demo-runtime.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
