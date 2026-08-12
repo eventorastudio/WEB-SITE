@@ -3,15 +3,15 @@
 
 import { appCheck, auth, db } from './firebase.js';
 import { CONFIG } from './config.js';
-import { resolveRoleContext } from './core/roles.js';
+import { hasPermission, PERMISSIONS, resolveRoleContext } from './core/roles.js';
 import { createAdminAccessError, reportAdminFirebaseError } from './core/firebase-errors.js';
 import { initThemeManager } from './core/theme-manager.js';
 import { initProfileMenu } from './core/profile-menu.js';
 import {
     EVENT_STATS_SCHEMA_VERSION,
-    createEmptyEventStats,
-    getStoredEventStats
+    createEmptyEventStats
 } from '../shared/event-stats.js';
+import { getEventStatusPresentation, isEventInProgress } from '../shared/event-status.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { collection, getDocs, query, orderBy, addDoc, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getToken as getAppCheckToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js";
@@ -54,6 +54,7 @@ const valColorSecundario = document.getElementById('val-color-secundario');
 
 // Variable para guardar el nombre de la imagen localmente (por ahora)
 let fileNamePortada = '';
+let dashboardRoleContext = null;
 
 // Iconos SVG Inline Premium
 const ICONS = {
@@ -143,6 +144,7 @@ onAuthStateChanged(auth, async (user) => {
                 throw createAdminAccessError('admin/missing-role-claim', 'La sesión autenticada no contiene role ni userRole interno válido.');
             }
             await getAppCheckToken(appCheck, false);
+            dashboardRoleContext = roleContext;
             displayUserRole.textContent = roleContext.role;
         } catch (error) {
             renderDashboardFailure(error, { operation: 'bootstrap', collection: 'eventos' });
@@ -170,26 +172,16 @@ async function loadDashboardData() {
         const snapshot = await getDocs(q);
 
         const eventsList = [];
-        let stats = { activos: 0, totalPases: 0, confirmados: 0, pendientes: 0, unsyncedEvents: 0 };
+        let eventosEnCurso = 0;
 
         snapshot.forEach(doc => {
             const data = doc.data();
-            const eventData = { id: doc.id, ...data, eventStats: getStoredEventStats(data) };
+            const eventData = { id: doc.id, ...data };
             eventsList.push(eventData);
-
-            const estado = data.estadoEvento ? data.estadoEvento.toLowerCase() : (data.estado ? data.estado.toLowerCase() : '');
-            if (estado.includes('activo')) stats.activos++;
-            
-            if (!eventData.eventStats) {
-                stats.unsyncedEvents += 1;
-                return;
-            }
-            stats.totalPases += eventData.eventStats.totalPases;
-            stats.confirmados += eventData.eventStats.pasesConfirmados;
-            stats.pendientes += eventData.eventStats.pasesPendientes;
+            if (isEventInProgress(eventData)) eventosEnCurso += 1;
         });
 
-        renderStats(stats);
+        renderStats({ eventosEnCurso });
 
         if (eventsList.length === 0) {
             renderEmptyState();
@@ -217,47 +209,20 @@ function renderDashboardFailure(error, context) {
     }
 }
 
-function renderStats(stats) {
+function renderStats({ eventosEnCurso }) {
     statsContainer.innerHTML = `
-        <div class="stat-card">
-            <div class="stat-icon">${ICONS.calendar}</div>
-            <div class="stat-number" id="num-activos">0</div>
-            <div class="stat-title">Eventos Activos</div>
-            <div class="stat-desc">En curso actualmente</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">${ICONS.users}</div>
-            <div class="stat-number" id="num-invitados">0</div>
-            <div class="stat-title">Total pases</div>
-            <div class="stat-desc">Personas invitadas</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">${ICONS.check}</div>
-            <div class="stat-number" id="num-confirmados">0</div>
-            <div class="stat-title">Pases confirmados</div>
-            <div class="stat-desc">Asistencia asegurada</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">${ICONS.clock}</div>
-            <div class="stat-number" id="num-pendientes">0</div>
-            <div class="stat-title">Pases pendientes</div>
-            <div class="stat-desc">Aún sin confirmar</div>
-        </div>
+        <article class="stat-card stat-card--featured" aria-labelledby="events-in-progress-title">
+            <div class="stat-featured-icon" aria-hidden="true">${ICONS.calendar}</div>
+            <div class="stat-featured-copy">
+                <span class="stat-eyebrow">Resumen operativo</span>
+                <h2 class="stat-title" id="events-in-progress-title">Eventos en curso</h2>
+                <p class="stat-desc">${eventosEnCurso === 1 ? 'Evento activo actualmente' : 'Eventos activos actualmente'}</p>
+            </div>
+            <div class="stat-number" id="num-activos" aria-label="${eventosEnCurso} eventos en curso">0</div>
+        </article>
     `;
 
-    animateValue(document.getElementById('num-activos'), 0, stats.activos, 800);
-    if (stats.unsyncedEvents > 0) {
-        ['num-invitados', 'num-confirmados', 'num-pendientes'].forEach((id) => {
-            const element = document.getElementById(id);
-            if (element) element.textContent = '—';
-        });
-        const description = document.querySelector('#num-invitados + .stat-title + .stat-desc');
-        if (description) description.textContent = `Sincronizando ${stats.unsyncedEvents} evento(s)`;
-    } else {
-        animateValue(document.getElementById('num-invitados'), 0, stats.totalPases, 800);
-        animateValue(document.getElementById('num-confirmados'), 0, stats.confirmados, 800);
-        animateValue(document.getElementById('num-pendientes'), 0, stats.pendientes, 800);
-    }
+    animateValue(document.getElementById('num-activos'), 0, eventosEnCurso, 800);
 }
 
 function renderEmptyState() {
@@ -294,27 +259,17 @@ function formatearFecha(fechaObj) {
     };
 }
 
-function formatearEstado(estadoTxt) {
-    const estadoStr = estadoTxt ? estadoTxt.toString().toLowerCase() : 'borrador';
-    if (estadoStr.includes('activo')) return { clase: 'activo', texto: 'Activo' };
-    if (estadoStr.includes('finalizado')) return { clase: 'finalizado', texto: 'Finalizado' };
-    return { clase: 'borrador', texto: 'Borrador' };
-}
-
 function renderEvents(events) {
     eventsContainer.innerHTML = '';
     eventsContainer.style.gridTemplateColumns = '';
 
     events.forEach((event, index) => {
         const fechaData = formatearFecha(event.fecha);
-        // Compatibilidad hacia atrás con data existente y la nueva (estadoEvento)
-        const estadoBadge = formatearEstado(event.estadoEvento || event.estado);
-        const eventStats = event.eventStats ?? getStoredEventStats(event);
-        const invitados = eventStats?.totalPases ?? '—';
-        const confirmados = eventStats?.pasesConfirmados ?? '—';
+        const status = getEventStatusPresentation(event);
         const codigo = event.codigoEvento || event.codigo || 'N/A';
         const ciudad = event.ciudad || 'Por definir';
         const nombre = event.nombreEvento || event.nombre || 'Evento sin título';
+        const canDeleteEvent = hasPermission(dashboardRoleContext, PERMISSIONS.EVENTS_EDIT);
 
         const card = document.createElement('div');
         card.className = 'event-card';
@@ -323,7 +278,7 @@ function renderEvents(events) {
 
         card.innerHTML = `
             <div class="event-card-header">
-                <span class="badge ${estadoBadge.clase}">${estadoBadge.texto}</span>
+                <span class="badge ${status.className}">${status.label}</span>
                 <div class="event-date">
                     ${fechaData.dia} <span>${fechaData.mes}</span>
                 </div>
@@ -343,24 +298,15 @@ function renderEvents(events) {
                 </div>
             </div>
 
-            <div class="event-stats">
-                <div class="event-stat-box">
-                    <div class="stat-box-num">${invitados}</div>
-                    <div class="stat-box-label">Total pases</div>
-                </div>
-                <div class="event-stat-box">
-                    <div class="stat-box-num">${confirmados}</div>
-                    <div class="stat-box-label">Pases confirmados</div>
-                </div>
-            </div>
-
             <div class="event-card-footer">
                 <button class="btn-card btn-manage" data-id="${event.id}">
                     ${ICONS.settings} Administrar
                 </button>
-                <button class="btn-card delete btn-delete">
-                    ${ICONS.trash} Eliminar
-                </button>
+                ${canDeleteEvent ? `
+                    <button class="btn-card delete btn-delete">
+                        ${ICONS.trash} Eliminar
+                    </button>
+                ` : ''}
             </div>
         `;
 
@@ -371,7 +317,7 @@ function renderEvents(events) {
             const eventId = btnManage.getAttribute('data-id');
             window.location.href = `event.html?id=${eventId}`;
         });
-        btnDelete.addEventListener('click', () => { console.log("Eliminar"); });
+        btnDelete?.addEventListener('click', () => { console.log("Eliminar"); });
 
         eventsContainer.appendChild(card);
     });

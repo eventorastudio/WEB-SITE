@@ -6,7 +6,8 @@ import {
     createEmptyEventStats,
     createEventStatsMutation,
     diffEventStats,
-    getStoredEventStats
+    getStoredEventStats,
+    toEventStatsViewModel
 } from '../shared/event-stats.js';
 
 const guests = [
@@ -55,6 +56,36 @@ test('una transición pendiente a llegó mueve la categoría completa y sólo us
 test('el resumen legacy no se acepta como canónico', () => {
     assert.equal(getStoredEventStats({ totalInvitados: 2, confirmados: 0, pendientes: 2 }), null);
     assert.deepEqual(getStoredEventStats({ estadisticas: createEmptyEventStats() }), createEmptyEventStats());
+});
+
+test('la UI usa 46/15/31/12 aunque la raíz legacy contenga 2/0/2/0', () => {
+    const event = {
+        totalInvitados: 2,
+        confirmados: 0,
+        pendientes: 2,
+        llegaron: 0,
+        estadisticas: {
+            guestCount: 21,
+            totalPases: 46,
+            pasesConfirmados: 15,
+            pasesPendientes: 31,
+            pasesNoAsistiran: 0,
+            pasesUtilizados: 12,
+            pasesDisponibles: 34,
+            gruposConfirmados: 6,
+            gruposPendientes: 15,
+            gruposNoAsistiran: 0,
+            gruposConLlegada: 6
+        }
+    };
+
+    assert.deepEqual(toEventStatsViewModel(getStoredEventStats(event)), {
+        total: 46,
+        confirmed: 15,
+        pending: 31,
+        noAttendance: 0,
+        arrivals: 12
+    });
 });
 
 test('la mutación incrementa revisión aun si el evento todavía no fue reconstruido', () => {

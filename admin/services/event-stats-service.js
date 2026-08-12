@@ -11,7 +11,8 @@ import {
 import {
     EVENT_STATS_SCHEMA_VERSION,
     calculateEventStats,
-    getStoredEventStats
+    getStoredEventStats,
+    toEventStatsViewModel
 } from '../../shared/event-stats.js';
 
 const MAX_SYNC_ATTEMPTS = 4;
@@ -32,6 +33,7 @@ async function calculateFromSource(eventId) {
 
 export const eventStatsService = {
     calculateEventStats,
+    toEventStatsViewModel,
 
     async getEventStats(eventId) {
         if (!eventId) throw new Error('event-stats/invalid-event-id');

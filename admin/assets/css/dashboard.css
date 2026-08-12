@@ -312,9 +312,8 @@ body {
 /* STATS GRID PREMIUM */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 24px;
-    margin-bottom: 40px;
+    grid-template-columns: minmax(0, 1fr);
+    margin-bottom: 32px;
 }
 
 .stat-card {
@@ -328,6 +327,70 @@ body {
     flex-direction: column;
     position: relative;
     overflow: hidden;
+}
+
+.stat-card--featured {
+    min-height: 148px;
+    padding: 28px 32px;
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 24px;
+    background:
+        radial-gradient(circle at 92% 10%, color-mix(in srgb, var(--color-gold) 12%, transparent), transparent 32%),
+        var(--color-white);
+}
+
+.stat-card--featured::after {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border: 1px solid color-mix(in srgb, var(--color-gold) 18%, transparent);
+    border-radius: calc(var(--border-radius-lg) - 5px);
+    pointer-events: none;
+}
+
+.stat-featured-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: grid;
+    place-items: center;
+    color: var(--color-gold);
+    background: var(--color-black);
+    box-shadow: var(--shadow-sm);
+}
+
+.stat-featured-copy { min-width: 0; }
+
+.stat-eyebrow {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--color-gold);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.stat-card--featured .stat-title {
+    margin-bottom: 4px;
+    color: var(--color-black);
+    font-family: var(--font-serif);
+    font-size: 1.8rem;
+    font-weight: 600;
+    line-height: 1.05;
+}
+
+.stat-card--featured .stat-desc { font-size: 0.82rem; }
+
+.stat-card--featured .stat-number {
+    min-width: 88px;
+    margin: 0;
+    color: var(--color-black);
+    font-size: 4.4rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
 }
 
 .stat-card:hover {
@@ -392,7 +455,7 @@ body {
 /* MAIN ACTION BUTTON PREMIUM */
 .actions-section {
     display: flex;
-    margin-bottom: 60px;
+    margin-bottom: 48px;
 }
 
 .btn-primary {
@@ -502,7 +565,7 @@ body {
 
 .events-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 24px;
 }
 
@@ -517,6 +580,7 @@ body {
     transition: var(--transition-smooth);
     position: relative;
     box-shadow: var(--shadow-sm);
+    min-height: 250px;
 }
 
 .event-card:hover {
@@ -587,7 +651,7 @@ body {
 
 .event-card-body {
     flex-grow: 1;
-    margin-bottom: 24px;
+    margin-bottom: 26px;
 }
 
 .event-name {
@@ -614,34 +678,6 @@ body {
 
 .meta-item svg {
     color: var(--color-gray-light);
-}
-
-.event-stats {
-    display: flex;
-    background-color: var(--color-ivory);
-    border-radius: var(--border-radius-sm);
-    padding: 12px;
-    margin-bottom: 24px;
-    justify-content: space-around;
-}
-
-.event-stat-box {
-    text-align: center;
-}
-
-.stat-box-num {
-    font-family: var(--font-serif);
-    font-size: 1.4rem;
-    font-weight: 600;
-    color: var(--color-black);
-    line-height: 1.1;
-}
-
-.stat-box-label {
-    font-size: 0.7rem;
-    color: var(--color-gray-light);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
 .event-card-footer {
@@ -1078,9 +1114,7 @@ select.form-control {
 
 /* RESPONSIVE DESIGN */
 @media (max-width: 1024px) {
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+    .stat-card--featured { padding-inline: 28px; }
 }
 
 @media (max-width: 768px) {
@@ -1096,9 +1130,29 @@ select.form-control {
         font-size: 2.2rem;
     }
 
+    .welcome-hero { margin-bottom: 36px; }
+
+    .stat-card--featured {
+        min-height: 132px;
+        padding: 22px;
+        grid-template-columns: 48px minmax(0, 1fr) auto;
+        gap: 16px;
+    }
+
+    .stat-featured-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+    }
+
+    .stat-card--featured .stat-title { font-size: 1.45rem; }
+    .stat-card--featured .stat-number { min-width: 48px; font-size: 3.5rem; }
+
     .events-grid {
         grid-template-columns: 1fr;
     }
+
+    .event-card { min-height: auto; }
     
     .dropdown-menu {
         right: -10px;
@@ -1110,4 +1164,15 @@ select.form-control {
     .modal-body { padding: 24px 20px; }
     .modal-footer { flex-direction: column-reverse; padding: 20px; }
     .modal-footer button { width: 100%; }
+}
+
+@media (max-width: 430px) {
+    .dashboard-wrapper { padding-inline: 16px; }
+    .stat-card--featured { padding: 20px 18px; gap: 13px; }
+    .stat-eyebrow { font-size: 0.6rem; letter-spacing: 0.11em; }
+    .stat-card--featured .stat-title { font-size: 1.3rem; }
+    .stat-card--featured .stat-desc { font-size: 0.72rem; }
+    .stat-card--featured .stat-number { min-width: 38px; font-size: 3rem; }
+    .actions-section .btn-primary { width: 100%; }
+    .event-card { padding: 20px; }
 }

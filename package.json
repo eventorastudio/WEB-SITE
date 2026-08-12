@@ -8,6 +8,7 @@
     "renumber-guests": "node scripts/renumber-guests-alphabetically.mjs",
     "renumber-checkins": "node scripts/renumber-checkins-by-guest.mjs",
     "rebuild-event-stats": "node scripts/rebuild-event-stats.mjs",
+    "audit-legacy-event-stats": "node scripts/audit-legacy-event-stats.mjs",
     "admin-claims": "node scripts/manage-admin-claims.mjs"
   },
   "dependencies": {

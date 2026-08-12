@@ -4,6 +4,15 @@ import { normalizeStoredGuestData } from './guest-contract.js';
 // comparte entre Admin, Portal y scripts; nunca importa Firebase.
 export const EVENT_STATS_SCHEMA_VERSION = 1;
 
+// Permanecen físicamente en eventos/{eventId} durante la transición, pero
+// ningún frontend nuevo puede leerlos, escribirlos ni usarlos como fallback.
+export const LEGACY_EVENT_STATS_FIELDS = Object.freeze([
+    'totalInvitados',
+    'confirmados',
+    'pendientes',
+    'llegaron'
+]);
+
 export const EVENT_STATS_FIELDS = Object.freeze([
     'guestCount',
     'totalPases',
@@ -65,6 +74,18 @@ export function calculateEventStats(guests = []) {
 /** Lee únicamente el resumen canónico; deliberadamente no acepta campos legacy. */
 export function getStoredEventStats(eventData = {}) {
     return normalizeEventStats(eventData?.estadisticas);
+}
+
+export function toEventStatsViewModel(value) {
+    const stats = normalizeEventStats(value);
+    if (!stats) return null;
+    return {
+        total: stats.totalPases,
+        confirmed: stats.pasesConfirmados,
+        pending: stats.pasesPendientes,
+        noAttendance: stats.pasesNoAsistiran,
+        arrivals: stats.pasesUtilizados
+    };
 }
 
 export function normalizeEventStats(value) {

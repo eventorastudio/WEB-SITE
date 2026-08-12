@@ -1,5 +1,6 @@
 // admin/modules/event-controller.js
 import { EVENT_TYPES } from '../core/event-types.js';
+import { getEventStatusPresentation } from '../../shared/event-status.js';
 
 /* ========================================================================== 
  * Variables privadas
@@ -172,7 +173,7 @@ function renderHeader(eventData) {
     const name = getEventName(eventData);
     const city = getDisplayValue(eventData.ciudad, 'Por definir');
     const date = formatEventDate(eventData.fecha);
-    const status = formatEventStatus(eventData.estadoEvento ?? eventData.estado);
+    const status = formatEventStatus(eventData);
 
     setText('val-nombre', name);
     setText('val-ciudad', city);
@@ -198,7 +199,7 @@ function renderInformation(eventData) {
     setText('info-fecha', formatEventDate(eventData.fecha));
     setText('info-hora', formatEventTime(eventData.hora));
     setText('info-ubicacion', formatLocation(eventData));
-    setText('info-estado', formatEventStatus(eventData.estadoEvento ?? eventData.estado).label);
+    setText('info-estado', formatEventStatus(eventData).label);
     setText('info-descripcion', getDisplayValue(eventData.descripcion, 'Sin descripción.'));
 }
 
@@ -926,7 +927,7 @@ function formatGuestDate(value) {
 function renderConfiguration(eventData) {
     const eventId = getDisplayValue(eventData.codigoEvento ?? eventData.id ?? deps.eventContext.eventId, '--');
 
-    setText('conf-estado', formatEventStatus(eventData.estadoEvento ?? eventData.estado).label);
+    setText('conf-estado', formatEventStatus(eventData).label);
     setText('conf-acceso', getDisplayValue(eventData.tipoAcceso, 'Por definir'));
     setText('conf-codigo', eventId);
     setText('conf-clave', getDisplayValue(eventData.claveAcceso, 'No configurada'));
@@ -1600,11 +1601,8 @@ function formatLocation(eventData) {
  * @param {*} value - Estado almacenado del evento.
  * @returns {{ label: string, className: string }} Etiqueta y clase de estado.
  */
-function formatEventStatus(value) {
-    const normalized = normalizeText(value);
-    if (normalized.includes('activo')) return { label: 'Activo', className: 'activo' };
-    if (normalized.includes('finalizado')) return { label: 'Finalizado', className: 'finalizado' };
-    return { label: 'Borrador', className: 'borrador' };
+function formatEventStatus(eventData) {
+    return getEventStatusPresentation(eventData);
 }
 
 /**
@@ -1615,13 +1613,8 @@ function formatEventStatus(value) {
 function getStatistics(eventData) {
     const stats = deps.state.getState('event.stats');
     if (!isPlainObject(stats)) return createEmptyStats();
-    return normalizeStatistics({
-        total: stats.totalPases,
-        confirmed: stats.pasesConfirmados,
-        noAttendance: stats.pasesNoAsistiran,
-        arrivals: stats.pasesUtilizados,
-        pending: stats.pasesPendientes
-    });
+    const viewModel = deps.services.stats.toEventStatsViewModel(stats);
+    return viewModel ? normalizeStatistics(viewModel) : createEmptyStats();
 }
 
 /**

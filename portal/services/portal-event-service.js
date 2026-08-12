@@ -1,6 +1,7 @@
 import { db } from '../firebase.js';
 import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { getPortalEntitlements } from '../core/entitlement-guard.js';
+import { getEventStatusPresentation } from '../../shared/event-status.js';
 
 const PORTAL_ROLES = new Set(['cliente']);
 
@@ -44,7 +45,7 @@ function sanitizeEvent(snapshot) {
         fecha: toIso(data.fecha) || text(data.fecha, 40) || null,
         hora: text(data.hora, 20),
         ubicacion: [data.ciudad, data.estado, data.pais].map((item) => text(item, 80)).filter(Boolean).join(', ') || 'Ubicación por confirmar',
-        estado: text(data.estadoEvento ?? data.estado, 50) || 'Borrador',
+        estado: getEventStatusPresentation(data).label,
         clienteNombre: text(data.clienteNombre ?? data.cliente ?? data.organizador, 120),
         funcionalidades: getPortalEntitlements(data)
     };
