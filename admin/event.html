@@ -127,6 +127,7 @@
         <nav class="tabs-nav anim-stagger delay-2">
             <button class="tab-btn active" data-target="info">Información</button>
             <button class="tab-btn" data-target="invitados">Invitados</button>
+            <button class="tab-btn" data-target="qr" hidden>Códigos QR</button>
             <button class="tab-btn" data-target="invitacion">Invitación</button>
             <button class="tab-btn" data-target="estadisticas">Estadísticas</button>
             <button class="tab-btn" data-target="configuracion">Configuración</button>
@@ -263,6 +264,43 @@
                         <button class="btn-primary ripple" id="btn-empty-add-guest">Agregar primer invitado</button>
                     </div>
                 </div>
+            </div>
+
+            <!-- PESTAÑA PRIVADA: CÓDIGOS QR -->
+            <div id="tab-qr" class="tab-pane qr-pane" aria-labelledby="qr-title">
+                <header class="qr-header">
+                    <div>
+                        <p class="section-kicker">PASES PRIVADOS · CEO</p>
+                        <h2 id="qr-title">Códigos QR</h2>
+                        <p>Genera y administra los pases QR vinculados a los invitados de este evento.</p>
+                    </div>
+                    <div class="qr-header-actions">
+                        <button id="qr-download-all" class="btn-primary" type="button">Descargar todos</button>
+                        <button id="qr-cancel-download" class="btn-secondary" type="button" hidden>Cancelar generación</button>
+                    </div>
+                </header>
+                <section class="qr-summary" aria-label="Resumen de códigos QR">
+                    <article><span>Total invitados</span><strong id="qr-count-total">0</strong></article>
+                    <article><span>QR disponibles</span><strong id="qr-count-available">0</strong></article>
+                    <article><span>QR desactivados</span><strong id="qr-count-disabled">0</strong></article>
+                    <article><span>Sin QR</span><strong id="qr-count-missing">0</strong></article>
+                    <article><span>Generados en esta sesión</span><strong id="qr-count-generated">0</strong></article>
+                </section>
+                <section class="qr-toolbar" aria-label="Filtros de códigos QR">
+                    <label>Buscar<input id="qr-search" class="form-control" type="search" placeholder="Nombre o código" autocomplete="off"></label>
+                    <label>Estado<select id="qr-status-filter" class="form-control"><option value="all">Todos</option><option value="available">QR activos</option><option value="disabled">QR desactivados</option><option value="missing">Sin QR</option></select></label>
+                    <label>Mesa<select id="qr-table-filter" class="form-control"><option value="all">Todas</option></select></label>
+                    <label>Orden<select id="qr-sort" class="form-control"><option value="code">Código</option><option value="name">Nombre</option><option value="table">Mesa</option></select></label>
+                </section>
+                <p id="qr-state" class="qr-state" data-state="idle">Abre la pestaña para cargar los códigos autorizados.</p>
+                <p id="qr-empty" class="qr-state" hidden>No hay resultados para estos filtros.</p>
+                <div class="qr-table-wrap">
+                    <table class="premium-table qr-table">
+                        <thead><tr><th>Invitado</th><th>Código</th><th>Mesa</th><th>Pases</th><th>Tipo de acceso</th><th>QR</th><th>Estado</th><th>Acciones</th></tr></thead>
+                        <tbody id="qr-list"></tbody>
+                    </table>
+                </div>
+                <div id="qr-card-list" class="qr-card-list"></div>
             </div>
 
             <!-- PESTAÑA: INVITACIÓN (MÓDULO 8 - EDITOR VISUAL) -->
@@ -787,6 +825,8 @@
         </div>
     </div>
 
+    <script src="./vendor/qrcode-generator.js"></script>
+    <script src="./vendor/jszip.min.js"></script>
     <script type="module" src="event.js"></script>
 </body>
 </html>

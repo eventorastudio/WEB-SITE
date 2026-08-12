@@ -14,12 +14,12 @@ test('un invitado antes incompleto puede recorrer el contrato de check-in', () =
         pases: '4',
         mesa: '5',
         tipoAcceso: 'ambos'
-    }, { documentId: 'legacyAbuelaSol' });
+    }, { documentId: 'INV-0001' });
     const timestamp = { serverTimestamp: true };
     const mutation = buildCheckinMutation({
         guest,
         eventId: 'EVT-0001',
-        guestId: 'legacyAbuelaSol',
+        guestId: 'INV-0001',
         requestedPasses: 1,
         method: 'qr',
         qrToken: guest.qrToken,
@@ -27,12 +27,13 @@ test('un invitado antes incompleto puede recorrer el contrato de check-in', () =
         timestamp
     });
 
-    assert.equal(guest.codigoInvitado, 'INV-legacyAbuelaSol');
+    assert.equal(guest.codigoInvitado, 'INV-0001');
     assert.equal(mutation.guestUpdate.pasesUtilizados, 1);
     assert.equal(mutation.guestUpdate.pasesDisponibles, 3);
     assert.equal(mutation.guestUpdate.llegadaRegistrada, true);
     assert.equal(mutation.guestUpdate.horaLlegada, timestamp);
-    assert.equal(mutation.checkinRecord.invitadoId, 'legacyAbuelaSol');
+    assert.equal(mutation.checkinRecord.invitadoId, 'INV-0001');
+    assert.equal(mutation.checkinId, 'INV-0001-001');
     assert.equal(mutation.checkinRecord.pasesRegistrados, 1);
     assert.equal(mutation.checkinRecord.pasesDisponiblesDespues, 3);
     assert.equal(mutation.checkinRecord.resultado, 'parcial');

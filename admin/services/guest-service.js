@@ -2,20 +2,19 @@
 // compartido antes de llegar a Firestore.
 
 import { db } from '../firebase.js';
+import { authService } from './auth-service.js';
+import { USER_ROLES } from '../core/roles.js';
 import {
     collection,
-    deleteDoc,
     doc,
     getDoc,
     getDocs,
     onSnapshot,
     query,
+    runTransaction,
     serverTimestamp,
-    setDoc,
-    updateDoc,
     where,
-    limit,
-    writeBatch
+    limit
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import {
     GUEST_ACCESS_TYPES,
@@ -30,6 +29,9 @@ import {
     resolveGuestPassState,
     supportsQrAccess
 } from '../../shared/guest-contract.js';
+import {
+    findNextAvailableGuestSequence
+} from '../../shared/guest-numbering.js';
 
 export {
     GUEST_ACCESS_TYPES,
@@ -45,16 +47,48 @@ export {
 const IMPORT_BATCH_SIZE = 400;
 const UNIQUE_GENERATION_ATTEMPTS = 8;
 
-function sanitizeGuestDoc(docSnap) {
+async function getGuestNumberingState(eventId) {
+    const snapshot = await getDoc(doc(db, 'eventos', eventId));
+    if (!snapshot.exists()) throw new Error('guest/event-not-found');
+    const data = snapshot.data();
+    if (data.guestRenumberingInProgress === true || data.checkinRenumberingInProgress === true) {
+        throw new Error('guest/renumbering-in-progress');
+    }
+    return {
+        finalized: data.guestListFinalized === true,
+        sequence: Number.isSafeInteger(data.guestSequence) && data.guestSequence >= 0 ? data.guestSequence : 0
+    };
+}
+
+function assertTemporaryNumberingAllowed(eventSnapshot) {
+    if (!eventSnapshot.exists()) throw new Error('guest/event-not-found');
+    const event = eventSnapshot.data();
+    if (event.guestRenumberingInProgress === true || event.checkinRenumberingInProgress === true) {
+        throw new Error('guest/renumbering-in-progress');
+    }
+    if (event.guestListFinalized === true) throw new Error('guest/list-finalized-retry');
+}
+
+function assertNoRenumbering(eventSnapshot) {
+    if (!eventSnapshot.exists()) throw new Error('guest/event-not-found');
+    if (eventSnapshot.data().guestRenumberingInProgress === true
+        || eventSnapshot.data().checkinRenumberingInProgress === true) {
+        throw new Error('guest/renumbering-in-progress');
+    }
+}
+
+function sanitizeGuestDoc(docSnap, { includeQrToken = false } = {}) {
     if (!docSnap.exists()) return null;
     const data = docSnap.data();
-    return {
+    const guest = {
         ...normalizeStoredGuestData(data, { documentId: docSnap.id }),
         id: docSnap.id,
         fechaCreacion: toIsoString(data.fechaCreacion),
         fechaActualizacion: toIsoString(data.fechaActualizacion),
         horaLlegada: toIsoString(data.horaLlegada)
     };
+    if (!includeQrToken) delete guest.qrToken;
+    return guest;
 }
 
 function toIsoString(value) {
@@ -64,7 +98,7 @@ function toIsoString(value) {
 function cleanGuestInput(guest) {
     const payload = {};
     Object.entries(guest || {}).forEach(([key, value]) => {
-        if (['id', 'fechaCreacion', 'fechaActualizacion'].includes(key) || value === undefined) return;
+        if (['id', 'fechaCreacion', 'fechaActualizacion', 'checkinSecuencia'].includes(key) || value === undefined) return;
         if (key === 'codigoInvitado' && value === '') return;
         payload[key] = value;
     });
@@ -80,6 +114,7 @@ function toFirestoreGuest(guest) {
         pases: guest.pases,
         pasesUtilizados: guest.pasesUtilizados,
         pasesDisponibles: guest.pasesDisponibles,
+        checkinSecuencia: guest.checkinSecuencia,
         mesa: guest.mesa,
         estado: guest.estado,
         confirmado: guest.confirmado,
@@ -122,6 +157,68 @@ async function prepareGuestForCreate(eventId, documentRef, input) {
         token = generateGuestQrToken();
     }
     throw new GuestContractError('guest/unique-token-unavailable');
+}
+
+async function prepareUniqueQrToken(eventId, input) {
+    const ownInput = cleanGuestInput(input);
+    const suppliedToken = typeof ownInput.qrToken === 'string' && ownInput.qrToken.trim()
+        ? ownInput.qrToken.trim()
+        : null;
+    let token = suppliedToken;
+    for (let attempt = 0; attempt < UNIQUE_GENERATION_ATTEMPTS; attempt += 1) {
+        const preview = normalizeGuestForCreate({
+            ...ownInput,
+            codigoInvitado: 'INV-PENDING',
+            ...(token ? { qrToken: token } : {})
+        }, { documentId: 'INV-PENDING' });
+        if (!preview.qrToken || !(await fieldValueExists(eventId, 'qrToken', preview.qrToken))) {
+            return preview.qrToken;
+        }
+        if (suppliedToken) throw new GuestContractError('guest/duplicate-qr-token');
+        token = generateGuestQrToken();
+    }
+    throw new GuestContractError('guest/unique-token-unavailable');
+}
+
+async function createFinalizedGuest(eventId, input) {
+    const ownInput = cleanGuestInput(input);
+    const token = await prepareUniqueQrToken(eventId, ownInput);
+    const eventRef = doc(db, 'eventos', eventId);
+    return runTransaction(db, async (transaction) => {
+        const eventSnapshot = await transaction.get(eventRef);
+        if (!eventSnapshot.exists()) throw new Error('guest/event-not-found');
+        const event = eventSnapshot.data();
+        if (event.guestRenumberingInProgress === true || event.checkinRenumberingInProgress === true) {
+            throw new Error('guest/renumbering-in-progress');
+        }
+        if (event.guestListFinalized !== true) throw new Error('guest/list-not-finalized');
+
+        const currentSequence = Number.isSafeInteger(event.guestSequence) && event.guestSequence >= 0
+            ? event.guestSequence
+            : 0;
+        const allocation = await findNextAvailableGuestSequence(currentSequence, async (candidateId) => {
+            const candidateRef = doc(db, 'eventos', eventId, 'invitados', candidateId);
+            const candidateSnapshot = await transaction.get(candidateRef);
+            return candidateSnapshot.exists();
+        });
+        const guestRef = doc(db, 'eventos', eventId, 'invitados', allocation.id);
+        const guest = normalizeGuestForCreate({
+            ...ownInput,
+            codigoInvitado: allocation.id,
+            ...(token ? { qrToken: token } : {})
+        }, { documentId: allocation.id });
+
+        transaction.set(guestRef, {
+            ...toFirestoreGuest(guest),
+            fechaCreacion: serverTimestamp(),
+            fechaActualizacion: serverTimestamp()
+        });
+        transaction.update(eventRef, {
+            guestSequence: allocation.sequence,
+            fechaActualizacion: serverTimestamp()
+        });
+        return { id: allocation.id, guest };
+    });
 }
 
 function buildExistingIdentityIndex(snapshot) {
@@ -188,7 +285,10 @@ function wrapGuestServiceError(operation, error) {
     if (error instanceof GuestContractError || String(error?.code || error?.message || '').startsWith('guest/')) {
         throw error;
     }
-    throw new Error(`guest/${operation}-failed: ${error?.message || 'unknown'}`);
+    const wrapped = new Error(error?.message || `guest/${operation}-failed`);
+    wrapped.code = error?.code || `guest/${operation}-failed`;
+    wrapped.cause = error;
+    throw wrapped;
 }
 
 export const guestService = {
@@ -206,6 +306,22 @@ export const guestService = {
         }
     },
 
+    async getQrGuests(eventId) {
+        if (!eventId) throw new Error('guest/invalid-event-id');
+        const roleContext = await authService.getRoleContext({ forceRefresh: false });
+        if (roleContext.role !== USER_ROLES.CEO || roleContext.source !== 'custom-claim') {
+            throw new Error('qr/permission-denied');
+        }
+        try {
+            const snapshot = await getDocs(collection(db, 'eventos', eventId, 'invitados'));
+            return sortGuestsByName(snapshot.docs
+                .map((item) => sanitizeGuestDoc(item, { includeQrToken: true }))
+                .filter(Boolean));
+        } catch (error) {
+            wrapGuestServiceError('fetch-qr', error);
+        }
+    },
+
     async getGuestById(eventId, guestId) {
         if (!eventId || !guestId) throw new Error('guest/invalid-parameters');
         try {
@@ -218,12 +334,22 @@ export const guestService = {
     async createGuest(eventId, guestData) {
         if (!eventId) throw new Error('guest/invalid-event-id');
         try {
+            const numbering = await getGuestNumberingState(eventId);
+            if (numbering.finalized) {
+                const created = await createFinalizedGuest(eventId, guestData);
+                return created.id;
+            }
             const docRef = doc(collection(db, 'eventos', eventId, 'invitados'));
             const guest = await prepareGuestForCreate(eventId, docRef, guestData);
-            await setDoc(docRef, {
-                ...toFirestoreGuest(guest),
-                fechaCreacion: serverTimestamp(),
-                fechaActualizacion: serverTimestamp()
+            const eventRef = doc(db, 'eventos', eventId);
+            await runTransaction(db, async (transaction) => {
+                const eventSnapshot = await transaction.get(eventRef);
+                assertTemporaryNumberingAllowed(eventSnapshot);
+                transaction.set(docRef, {
+                    ...toFirestoreGuest(guest),
+                    fechaCreacion: serverTimestamp(),
+                    fechaActualizacion: serverTimestamp()
+                });
             });
             return docRef.id;
         } catch (error) {
@@ -247,9 +373,23 @@ export const guestService = {
                 && await fieldValueExists(eventId, 'qrToken', guest.qrToken, guestId)) {
                 throw new GuestContractError('guest/duplicate-qr-token');
             }
-            await updateDoc(docRef, {
-                ...toFirestoreGuest(guest),
-                fechaActualizacion: serverTimestamp()
+            const eventRef = doc(db, 'eventos', eventId);
+            await runTransaction(db, async (transaction) => {
+                const [eventSnapshot, latest] = await Promise.all([
+                    transaction.get(eventRef),
+                    transaction.get(docRef)
+                ]);
+                assertNoRenumbering(eventSnapshot);
+                if (!latest.exists()) throw new Error('guest/not-found');
+                const latestGuest = normalizeGuestForUpdate(
+                    cleanGuestInput(guestData),
+                    latest.data(),
+                    { documentId: guestId }
+                );
+                transaction.update(docRef, {
+                    ...toFirestoreGuest(latestGuest),
+                    fechaActualizacion: serverTimestamp()
+                });
             });
         } catch (error) {
             wrapGuestServiceError('update', error);
@@ -259,7 +399,13 @@ export const guestService = {
     async deleteGuest(eventId, guestId) {
         if (!eventId || !guestId) throw new Error('guest/invalid-parameters');
         try {
-            await deleteDoc(doc(db, 'eventos', eventId, 'invitados', guestId));
+            const eventRef = doc(db, 'eventos', eventId);
+            const guestRef = doc(db, 'eventos', eventId, 'invitados', guestId);
+            await runTransaction(db, async (transaction) => {
+                const eventSnapshot = await transaction.get(eventRef);
+                assertNoRenumbering(eventSnapshot);
+                transaction.delete(guestRef);
+            });
         } catch (error) {
             wrapGuestServiceError('delete', error);
         }
@@ -267,6 +413,33 @@ export const guestService = {
 
     async importGuestsBatch(eventId, guestsArray, { onProgress } = {}) {
         if (!eventId || !Array.isArray(guestsArray)) throw new Error('guest/invalid-batch-params');
+        const numbering = await getGuestNumberingState(eventId);
+        if (numbering.finalized) {
+            const inputs = guestsArray.filter((guest) => guest && typeof guest === 'object');
+            const summary = { guests: [], completedBatches: 0, totalBatches: inputs.length };
+            try {
+                for (const input of inputs) {
+                    const created = await createFinalizedGuest(eventId, input);
+                    summary.completedBatches += 1;
+                    summary.guests.push({
+                        ...created.guest,
+                        id: created.id,
+                        fechaCreacion: null,
+                        fechaActualizacion: null,
+                        horaLlegada: created.guest.horaLlegada ?? null
+                    });
+                    notifyProgress(onProgress, {
+                        completedBatches: summary.completedBatches,
+                        totalBatches: summary.totalBatches,
+                        importedCount: summary.guests.length,
+                        totalCount: inputs.length
+                    });
+                }
+                return { ...summary, importedCount: summary.guests.length };
+            } catch (error) {
+                throw createImportError(error, summary);
+            }
+        }
         let prepared;
         try {
             // This is the Excel creation boundary too: every row receives the
@@ -290,25 +463,26 @@ export const guestService = {
         try {
             for (let offset = 0; offset < prepared.length; offset += IMPORT_BATCH_SIZE) {
                 const chunk = prepared.slice(offset, offset + IMPORT_BATCH_SIZE);
-                const batch = writeBatch(db);
                 const createdInBatch = [];
-
-                chunk.forEach(({ guestRef, guest }) => {
-                    batch.set(guestRef, {
-                        ...toFirestoreGuest(guest),
-                        fechaCreacion: serverTimestamp(),
-                        fechaActualizacion: serverTimestamp()
-                    });
-                    createdInBatch.push({
-                        ...guest,
-                        id: guestRef.id,
-                        fechaCreacion: null,
-                        fechaActualizacion: null,
-                        horaLlegada: null
+                const eventRef = doc(db, 'eventos', eventId);
+                await runTransaction(db, async (transaction) => {
+                    const eventSnapshot = await transaction.get(eventRef);
+                    assertTemporaryNumberingAllowed(eventSnapshot);
+                    chunk.forEach(({ guestRef, guest }) => {
+                        transaction.set(guestRef, {
+                            ...toFirestoreGuest(guest),
+                            fechaCreacion: serverTimestamp(),
+                            fechaActualizacion: serverTimestamp()
+                        });
+                        createdInBatch.push({
+                            ...guest,
+                            id: guestRef.id,
+                            fechaCreacion: null,
+                            fechaActualizacion: null,
+                            horaLlegada: null
+                        });
                     });
                 });
-
-                await batch.commit();
                 summary.completedBatches += 1;
                 summary.guests.push(...createdInBatch);
                 notifyProgress(onProgress, {

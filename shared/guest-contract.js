@@ -1,3 +1,5 @@
+import { normalizeCheckinSequence } from './checkin-numbering.js';
+
 // Contrato canónico compartido para todas las superficies de Eventora Studio.
 // Es un módulo puro: no importa Firebase, no consulta red y no escribe datos.
 
@@ -13,6 +15,7 @@ export const GUEST_FIELD_DEFINITIONS = Object.freeze({
     pases: field('number', 'Pases totales', true, false, 'Conservar y convertir solo enteros inequívocos.'),
     pasesUtilizados: field('number', 'Pases con entrada registrada', true, false, 'Conservar si es válido; si falta, sumar check-ins confiables.'),
     pasesDisponibles: field('number', 'Pases restantes', true, false, 'Calcular como pases - pasesUtilizados, nunca negativo.'),
+    checkinSecuencia: field('number', 'Última secuencia de check-in asignada', true, false, 'Iniciar en 0 e incrementar solo en la transacción de check-in.'),
     mesa: field('number|null', 'Mesa asignada', true, false, 'Conservar la propia; null cuando no hay asignación.'),
     estado: field('string', 'Estado canónico de asistencia', true, false, 'Conservar y normalizar a un estado existente del contrato.'),
     confirmado: field('boolean', 'Confirmación derivada del estado', true, false, 'Derivar de estado para evitar contradicciones.'),
@@ -52,6 +55,12 @@ export function normalizeGuestData(data = {}, { requireName = false, strict = fa
     const llegadaRegistrada = estado === 'llego';
     const confirmado = estado === 'confirmado' || estado === 'llego';
     const horaLlegada = llegadaRegistrada ? normalizeArrivalTime(source.horaLlegada) : null;
+    let checkinSecuencia;
+    try {
+        checkinSecuencia = normalizeCheckinSequence(source.checkinSecuencia, { strict });
+    } catch {
+        throw new GuestContractError('guest/invalid-checkin-sequence');
+    }
 
     if (requireName && !nombre) throw new GuestContractError('guest/invalid-name');
     if (strict && correo && !isValidEmail(correo)) throw new GuestContractError('guest/invalid-email');
@@ -63,6 +72,7 @@ export function normalizeGuestData(data = {}, { requireName = false, strict = fa
         correo,
         telefono,
         pases,
+        checkinSecuencia,
         mesa,
         estado,
         confirmado,
@@ -104,6 +114,7 @@ export function normalizeGuestForCreate(data = {}, { documentId = '' } = {}) {
     return {
         ...guest,
         codigoInvitado: guest.codigoInvitado || generateGuestVisibleCode(documentId),
+        checkinSecuencia: 0,
         pasesUtilizados: isAlreadyArrived ? guest.pases : 0,
         pasesDisponibles: isAlreadyArrived ? 0 : guest.pases,
         llegadaRegistrada: isAlreadyArrived,
@@ -147,6 +158,7 @@ export function normalizeGuestForUpdate(data = {}, current = {}, { documentId = 
         codigoInvitado: existingCode || requestedCode || generateGuestVisibleCode(documentId),
         pasesUtilizados: currentState.pasesUtilizados,
         pasesDisponibles: guest.pases - currentState.pasesUtilizados,
+        checkinSecuencia: normalizeStoredCheckinSequence(source.checkinSecuencia),
         horaLlegada: guest.llegadaRegistrada
             ? (normalizeArrivalTime(source.horaLlegada) ?? normalizeArrivalTime(cleanInput.horaLlegada))
             : null,
@@ -166,6 +178,7 @@ export function normalizeGuestForRead(data = {}, { documentId = '' } = {}) {
         ...guest,
         codigoInvitado: guest.codigoInvitado || normalizeStoredCode(source, documentId),
         ...passState,
+        checkinSecuencia: normalizeStoredCheckinSequence(source.checkinSecuencia),
         qrToken: token,
         qrActivo: qrEnabled && source.qrActivo === true && isValidQrToken(token)
     };
@@ -214,6 +227,7 @@ export function normalizeLegacyGuest(data = {}, options = {}) {
     const {
         documentId = '',
         checkinPasses = 0,
+        checkinCount = null,
         firstCheckinAt = null,
         generateCode = false,
         generateTokens = false
@@ -261,6 +275,12 @@ export function normalizeLegacyGuest(data = {}, options = {}) {
     const available = total - used;
     if (source.pasesUtilizados !== used) patch.pasesUtilizados = used;
     if (source.pasesDisponibles !== available) patch.pasesDisponibles = available;
+
+    const desiredCheckinSequence = checkinCount === null
+        ? normalizeStoredCheckinSequence(source.checkinSecuencia)
+        : normalizeMigrationCheckinCount(checkinCount);
+    if (desiredCheckinSequence === null) return invalidLegacy('guest/invalid-checkin-sequence');
+    if (source.checkinSecuencia !== desiredCheckinSequence) patch.checkinSecuencia = desiredCheckinSequence;
 
     let guest;
     try {
@@ -385,6 +405,14 @@ function normalizeTable(value, { strict }) {
 
 function normalizeArrivalTime(value) {
     return hasValue(value) ? value : null;
+}
+
+function normalizeStoredCheckinSequence(value) {
+    return normalizeCheckinSequence(value, { strict: false });
+}
+
+function normalizeMigrationCheckinCount(value) {
+    return Number.isSafeInteger(value) && value >= 0 ? value : null;
 }
 
 function normalizeStoredCode(source, documentId = '') {

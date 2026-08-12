@@ -2,6 +2,7 @@
 // Servicio exclusivo para la gestión de Autenticación de Firebase
 
 import { auth } from '../firebase.js';
+import { resolveRoleContext } from '../core/roles.js';
 import { 
     signInWithEmailAndPassword, 
     signOut, 
@@ -44,7 +45,7 @@ export const authService = {
             return sanitizeUser(userCredential.user);
         } catch (error) {
             // Se lanza el error limpio sin manipular UI ni mostrar alertas
-            throw new Error(error.code || 'auth/unknown-error');
+            throw error;
         }
     },
 
@@ -56,7 +57,7 @@ export const authService = {
         try {
             await signOut(auth);
         } catch (error) {
-            throw new Error(error.code || 'auth/logout-failed');
+            throw error;
         }
     },
 
@@ -66,6 +67,11 @@ export const authService = {
      */
     getCurrentUser() {
         return sanitizeUser(auth.currentUser);
+    },
+
+    async getRoleContext({ forceRefresh = false } = {}) {
+        if (!auth.currentUser) return { role: null, permissions: [], source: 'unauthenticated', isInternal: false, isCeo: false };
+        return resolveRoleContext(auth.currentUser, { forceRefresh });
     },
 
     /**

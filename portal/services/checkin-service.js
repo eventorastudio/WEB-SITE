@@ -62,11 +62,21 @@ export const checkinService = {
         if (method === 'qr') validateQrToken(qrToken);
 
         const guestRef = doc(db, 'eventos', eventId, 'invitados', guestId);
-        const checkinRef = doc(collection(db, 'eventos', eventId, 'checkins'));
+        const eventRef = doc(db, 'eventos', eventId);
         try {
             return await runTransaction(db, async (transaction) => {
                 // Firestore requires all transaction reads before its writes.
-                const guestSnapshot = await transaction.get(guestRef);
+                const [eventSnapshot, guestSnapshot] = await Promise.all([
+                    transaction.get(eventRef),
+                    transaction.get(guestRef)
+                ]);
+                if (!eventSnapshot.exists()) throw new CheckInError('checkin/event-not-found');
+                if (eventSnapshot.data().guestRenumberingInProgress === true) {
+                    throw new CheckInError('checkin/guest-renumbering-in-progress');
+                }
+                if (eventSnapshot.data().checkinRenumberingInProgress === true) {
+                    throw new CheckInError('checkin/renumbering-in-progress');
+                }
                 if (!guestSnapshot.exists()) throw new CheckInError('checkin/guest-not-found');
 
                 let mutation;
@@ -88,13 +98,17 @@ export const checkinService = {
                     throw error;
                 }
 
+                const checkinRef = doc(db, 'eventos', eventId, 'checkins', mutation.checkinId);
+                const existingCheckin = await transaction.get(checkinRef);
+                if (existingCheckin.exists()) throw new CheckInError('checkin/id-conflict');
+
                 transaction.update(guestRef, mutation.guestUpdate);
                 transaction.set(checkinRef, mutation.checkinRecord);
                 return {
                     guest: { ...mutation.guest, id: guestId },
                     passesRegistered: mutation.passesRegistered,
                     result: mutation.result,
-                    checkinId: checkinRef.id
+                    checkinId: mutation.checkinId
                 };
             });
         } catch (error) {

@@ -37,6 +37,7 @@ function canonicalReference(overrides = {}) {
         pases: 2,
         pasesUtilizados: 0,
         pasesDisponibles: 2,
+        checkinSecuencia: 0,
         mesa: 15,
         estado: 'pendiente',
         confirmado: false,

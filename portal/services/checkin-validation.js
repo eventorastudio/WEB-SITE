@@ -3,6 +3,8 @@ import {
     normalizeGuestData,
     resolveGuestPassState
 } from '../../shared/guest-contract.js';
+import { allocateNextCheckin } from '../../shared/checkin-numbering.js';
+import { parseQrPayloadValue } from '../../shared/qr-code.js';
 
 export class CheckinValidationError extends Error {
     constructor(code) {
@@ -68,6 +70,13 @@ export function buildCheckinMutation({
         throw new CheckinValidationError(raw.qrActivo === false ? 'checkin/qr-disabled' : 'checkin/invalid-token');
     }
 
+    let allocation;
+    try {
+        allocation = allocateNextCheckin(guestId, raw.checkinSecuencia);
+    } catch {
+        throw new CheckinValidationError('checkin/invalid-sequence');
+    }
+
     const { pasesTotales, pasesUtilizados, pasesDisponibles } = normalizeCheckinPassState(raw);
     if (pasesDisponibles <= 0) throw new CheckinValidationError('checkin/passes-already-used');
     if (requestedPasses > pasesDisponibles) throw new CheckinValidationError('checkin/insufficient-passes');
@@ -81,7 +90,8 @@ export function buildCheckinMutation({
             ...canonicalGuest,
             pases: pasesTotales,
             pasesUtilizados: pasesUtilizadosDespues,
-            pasesDisponibles: pasesDisponiblesDespues
+            pasesDisponibles: pasesDisponiblesDespues,
+            checkinSecuencia: allocation.sequence
         },
         guestUpdate: {
             pasesUtilizados: pasesUtilizadosDespues,
@@ -89,6 +99,7 @@ export function buildCheckinMutation({
             llegadaRegistrada: true,
             horaLlegada: raw.horaLlegada ?? timestamp,
             estado: 'llego',
+            checkinSecuencia: allocation.sequence,
             fechaActualizacion: timestamp
         },
         checkinRecord: {
@@ -101,48 +112,23 @@ export function buildCheckinMutation({
             fechaHora: timestamp,
             registradoPor: userId,
             metodo: method,
-            resultado
+            resultado,
+            checkinSecuencia: allocation.sequence
         },
+        checkinId: allocation.id,
+        checkinSequence: allocation.sequence,
         passesRegistered: requestedPasses,
         result: resultado
     };
 }
 
 export function parseQrPayload(rawValue) {
-    const raw = String(rawValue ?? '').trim();
-    if (!raw) throw new CheckinValidationError('checkin/empty-qr');
-
     try {
-        const data = JSON.parse(raw);
-        if (data && typeof data === 'object' && typeof data.token === 'string') {
-            const token = data.token.trim();
-            validateQrToken(token);
-            return {
-                token,
-                eventId: typeof data.eventId === 'string' ? data.eventId.trim() || null : null
-            };
-        }
-    } catch {
-        // A secure pass URL or a direct token is also supported below.
+        return parseQrPayloadValue(rawValue);
+    } catch (error) {
+        const code = error?.message === 'qr/empty-payload' ? 'checkin/empty-qr' : 'checkin/invalid-qr-format';
+        throw new CheckinValidationError(code);
     }
-
-    try {
-        const url = new URL(raw);
-        const token = url.searchParams.get('t')?.trim();
-        if (token) {
-            validateQrToken(token);
-            return {
-                token,
-                eventId: url.searchParams.get('eventId')?.trim()
-                    || url.searchParams.get('event')?.trim()
-                    || null
-            };
-        }
-    } catch {
-        if (/^[A-Za-z0-9_-]{16,256}$/.test(raw)) return { token: raw, eventId: null };
-    }
-
-    throw new CheckinValidationError('checkin/invalid-qr-format');
 }
 
 export function validateQrToken(token) {
@@ -176,6 +162,11 @@ export function getCheckinErrorMessage(error, { debug = isCheckinDebugMode() } =
         'checkin/invalid-method': 'Los datos de entrada no son válidos.',
         'checkin/invalid-pass-count': 'Los datos de entrada no son válidos.',
         'checkin/invalid-guest-pass-data': 'El pase tiene campos numéricos inválidos y no puede registrarse.',
+        'checkin/invalid-sequence': 'El contador de check-ins no está inicializado correctamente. Ejecuta primero la migración preparada.',
+        'checkin/id-conflict': 'El siguiente ID de check-in ya existe. Detén los registros y revisa la secuencia del invitado.',
+        'checkin/renumbering-in-progress': 'El historial de entradas se está renumerando. Intenta nuevamente en unos minutos.',
+        'checkin/guest-renumbering-in-progress': 'La numeración de invitados se está finalizando. Intenta nuevamente en unos minutos.',
+        'checkin/event-not-found': 'El evento ya no existe o no está disponible.',
         'checkin/guest-not-found': 'El invitado ya no existe o fue eliminado.',
         'checkin/passes-already-used': 'Todos los pases de este invitado ya fueron utilizados.',
         'checkin/insufficient-passes': 'La cantidad solicitada supera los pases disponibles.',

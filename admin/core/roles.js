@@ -11,6 +11,11 @@ export const USER_ROLES = Object.freeze({
 });
 
 export const PERMISSIONS = Object.freeze({
+    EVENTS_VIEW: 'events:view',
+    EVENTS_EDIT: 'events:edit',
+    GUESTS_VIEW: 'guests:view',
+    GUESTS_EDIT: 'guests:edit',
+    QR_EXPORT: 'qr:export',
     PROFILE_VIEW: 'profile:view',
     PROFILE_EDIT: 'profile:edit',
     SETTINGS_VIEW: 'settings:view',
@@ -21,36 +26,41 @@ export const PERMISSIONS = Object.freeze({
 
 const ROLE_PERMISSIONS = Object.freeze({
     [USER_ROLES.CEO]: Object.values(PERMISSIONS),
-    [USER_ROLES.ADMINISTRADOR]: [PERMISSIONS.PROFILE_VIEW, PERMISSIONS.PROFILE_EDIT, PERMISSIONS.SETTINGS_VIEW, PERMISSIONS.SETTINGS_EDIT],
-    [USER_ROLES.DISENADOR]: [PERMISSIONS.PROFILE_VIEW, PERMISSIONS.PROFILE_EDIT, PERMISSIONS.SETTINGS_VIEW],
-    [USER_ROLES.VENTAS]: [PERMISSIONS.PROFILE_VIEW, PERMISSIONS.PROFILE_EDIT],
-    [USER_ROLES.SOPORTE]: [PERMISSIONS.PROFILE_VIEW, PERMISSIONS.PROFILE_EDIT],
+    [USER_ROLES.ADMINISTRADOR]: [PERMISSIONS.EVENTS_VIEW, PERMISSIONS.EVENTS_EDIT, PERMISSIONS.GUESTS_VIEW, PERMISSIONS.GUESTS_EDIT, PERMISSIONS.PROFILE_VIEW, PERMISSIONS.PROFILE_EDIT, PERMISSIONS.SETTINGS_VIEW, PERMISSIONS.SETTINGS_EDIT],
+    [USER_ROLES.DISENADOR]: [PERMISSIONS.EVENTS_VIEW, PERMISSIONS.PROFILE_VIEW, PERMISSIONS.PROFILE_EDIT, PERMISSIONS.SETTINGS_VIEW],
+    [USER_ROLES.VENTAS]: [PERMISSIONS.EVENTS_VIEW, PERMISSIONS.GUESTS_VIEW, PERMISSIONS.PROFILE_VIEW, PERMISSIONS.PROFILE_EDIT],
+    [USER_ROLES.SOPORTE]: [PERMISSIONS.EVENTS_VIEW, PERMISSIONS.PROFILE_VIEW, PERMISSIONS.PROFILE_EDIT],
     [USER_ROLES.CLIENTE]: []
 });
 
 /**
- * Resuelve el rol desde custom claims cuando existan. Mientras el panel tenga
- * exclusivamente al CEO, el rol inicial documentado por producto es CEO.
+ * Resuelve el rol exclusivamente desde custom claims firmados por Firebase.
+ * Nunca eleva a CEO por ausencia de claim ni por datos aportados por la UI.
  * @param {import('firebase/auth').User|null} user
  * @returns {Promise<{role: string, permissions: string[], source: string}>}
  */
-export async function resolveRoleContext(user) {
+export async function resolveRoleContext(user, { forceRefresh = false } = {}) {
     let claimedRole = null;
 
     try {
-        const tokenResult = await user?.getIdTokenResult?.();
+        const tokenResult = await user?.getIdTokenResult?.(forceRefresh);
         claimedRole = tokenResult?.claims?.role ?? tokenResult?.claims?.userRole ?? null;
     } catch (error) {
-        console.warn('[Roles] No fue posible leer los custom claims del usuario.', error);
+        const wrapped = new Error(error?.message || 'No fue posible leer los custom claims.');
+        wrapped.code = error?.code || 'admin/claims-unavailable';
+        wrapped.cause = error;
+        throw wrapped;
     }
 
     const normalizedRole = normalizeRole(claimedRole);
-    const role = normalizedRole ?? USER_ROLES.CEO;
+    const role = normalizedRole;
 
     return {
         role,
         permissions: [...(ROLE_PERMISSIONS[role] ?? [])],
-        source: normalizedRole ? 'custom-claim' : 'current-ceo-bootstrap'
+        source: normalizedRole ? 'custom-claim' : 'missing-claim',
+        isInternal: Boolean(normalizedRole && normalizedRole !== USER_ROLES.CLIENTE),
+        isCeo: normalizedRole === USER_ROLES.CEO
     };
 }
 
@@ -69,10 +79,10 @@ export function hasPermission(roleContext, permission) {
  * @param {*} value
  * @returns {string|null}
  */
-function normalizeRole(value) {
+export function normalizeRole(value) {
     if (typeof value !== 'string') return null;
 
-    const candidate = value.trim().toUpperCase().replace(/[ÁÀÄ]/g, 'A').replace(/Ñ/g, 'N').replace(/[ÉÈË]/g, 'E').replace(/[ÍÌÏ]/g, 'I').replace(/[ÓÒÖ]/g, 'O').replace(/[ÚÙÜ]/g, 'U');
+    const candidate = value.trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     const aliases = {
         CEO: USER_ROLES.CEO,
         ADMIN: USER_ROLES.ADMINISTRADOR,

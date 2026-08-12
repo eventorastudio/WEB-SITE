@@ -9,6 +9,8 @@ import { eventBus } from './core/event-bus.js';
 import { EVENT_TYPES } from './core/event-types.js';
 import { CONFIG } from './config.js';
 import { initThemeManager } from './core/theme-manager.js';
+import { createAdminAccessError, reportAdminFirebaseError } from './core/firebase-errors.js';
+import { hasPermission, PERMISSIONS } from './core/roles.js';
 
 // --- RUTAS CORREGIDAS ---
 import { initExcelImport, destroyExcelImport } from './modules/guests/excel-import.js';
@@ -20,6 +22,7 @@ import {
     initEventController,
     destroy as destroyEventController
 } from './modules/event-controller.js';
+import { initQrManager, destroyQrManager } from './modules/qr/qr-manager.js';
 
 let activeModulesDestroyers = [];
 
@@ -36,18 +39,18 @@ async function boot() {
         const eventId = extractEventIdFromUrl();
         if (!eventId) return;
 
-        const currentUser = await authenticateUser();
-        if (!currentUser) return;
+        const session = await authenticateUser();
+        if (!session) return;
 
-        await loadEventData(currentUser, eventId);
+        await loadEventData(session, eventId);
 
     } catch (error) {
         ui.hideLoader();
-        console.error('[Event Orchestrator] Error crítico en el boot:', error);
+        const detail = reportAdminFirebaseError(error, { operation: 'event/boot', collection: 'eventos' });
         ui.showError({
-            title: 'Error de sistema',
-            description: 'Ocurrió un fallo inesperado al inicializar el panel.',
-            code: 'ERR_ORCHESTRATOR_BOOT'
+            title: detail.title,
+            description: detail.userMessage,
+            code: detail.code
         });
     }
 }
@@ -72,7 +75,7 @@ function extractEventIdFromUrl() {
 }
 
 async function authenticateUser() {
-    return new Promise((resolve) => {
+    const user = await new Promise((resolve) => {
         const currentUser = authService.getCurrentUser();
         if (currentUser) {
             resolve(currentUser);
@@ -89,17 +92,17 @@ async function authenticateUser() {
             }
         });
     });
+    if (!user) return null;
+    const roleContext = await authService.getRoleContext({ forceRefresh: true });
+    if (!roleContext.isInternal) {
+        throw createAdminAccessError('admin/missing-role-claim', 'La sesión no contiene role ni userRole interno válido.');
+    }
+    return { user, roleContext };
 }
 
-async function loadEventData(currentUser, eventId) {
+async function loadEventData(session, eventId) {
     try {
-        console.debug('[TEMP DEBUG][Event Orchestrator] getEventById:start', { eventId });
         const eventData = await eventService.getEventById(eventId);
-        console.debug('[TEMP DEBUG][Event Orchestrator] getEventById:end', {
-            eventId,
-            isValidPojo: Boolean(eventData) && typeof eventData === 'object',
-            keys: eventData ? Object.keys(eventData) : []
-        });
 
         if (!eventData) {
             ui.hideLoader();
@@ -114,25 +117,24 @@ async function loadEventData(currentUser, eventId) {
             return;
         }
 
-        storeStateAndContext(currentUser, eventId, eventData);
+        storeStateAndContext(session, eventId, eventData);
 
     } catch (error) {
         ui.hideLoader();
-        console.error('[Event Orchestrator] Error obteniendo documento del evento:', error);
+        const detail = reportAdminFirebaseError(error, { operation: 'getDoc', collection: `eventos/${eventId}` });
         ui.showError({
-            title: 'Error de conexión',
-            description: 'No fue posible comunicarse con la base de datos.',
-            code: 'ERR_EVENT_LOAD'
+            title: detail.title,
+            description: detail.userMessage,
+            code: detail.code
         });
     }
 }
 
-function storeStateAndContext(currentUser, eventId, eventData) {
-    console.debug('[TEMP DEBUG][Event Orchestrator] state:set:start', { eventId });
+function storeStateAndContext(session, eventId, eventData) {
     state.setState('auth', {
-        user: currentUser,
+        user: session.user,
         isAuthenticated: true,
-        role: 'admin'
+        role: session.roleContext.role
     });
 
     state.setState('event', {
@@ -140,23 +142,8 @@ function storeStateAndContext(currentUser, eventId, eventData) {
         data: eventData,
         isLoaded: true
     });
-    console.debug('[TEMP DEBUG][Event Orchestrator] state:set:end', {
-        eventId,
-        isLoaded: true
-    });
-
-    console.debug('[TEMP DEBUG][Event Orchestrator] ui:update:skipped', {
-        reason: 'No updateUI/render function is defined or invoked by event.js.'
-    });
-    console.debug('[TEMP DEBUG][Event Orchestrator] bindEvents:skipped', {
-        reason: 'No bindEvents function is defined or invoked by event.js.'
-    });
-
-    const dependencyContainer = createDependencyContainer(eventId, eventData, currentUser);
-    
-    console.debug('[TEMP DEBUG][Event Orchestrator] prepareModules:start');
+    const dependencyContainer = createDependencyContainer(eventId, eventData, session);
     prepareModules(dependencyContainer);
-    console.debug('[TEMP DEBUG][Event Orchestrator] prepareModules:end');
 
     completeEventBoot();
     registerLifecycleCleanup();
@@ -201,7 +188,7 @@ function showEventView() {
     mainView.style.opacity = '1';
 }
 
-function createDependencyContainer(eventId, eventData, currentUser) {
+function createDependencyContainer(eventId, eventData, session) {
     const services = {
         auth: authService,
         event: eventService,
@@ -212,8 +199,13 @@ function createDependencyContainer(eventId, eventData, currentUser) {
     const eventContext = {
         eventId,
         eventData,
-        currentUser,
-        permissions: { canEdit: true, canDelete: true, canExport: true },
+        currentUser: session.user,
+        roleContext: session.roleContext,
+        permissions: {
+            canEdit: hasPermission(session.roleContext, PERMISSIONS.EVENTS_EDIT),
+            canDelete: hasPermission(session.roleContext, PERMISSIONS.EVENTS_EDIT),
+            canExport: hasPermission(session.roleContext, PERMISSIONS.QR_EXPORT)
+        },
         settings: { currency: 'MXN', timezone: 'America/Monterrey' }
     };
 
@@ -250,6 +242,11 @@ function prepareModules(container) {
         if (typeof initEventController === 'function') {
             initEventController(container);
             registerModuleDestroyer(destroyEventController);
+        }
+
+        if (typeof initQrManager === 'function') {
+            initQrManager(container);
+            registerModuleDestroyer(destroyQrManager);
         }
 
         console.info('[Event Orchestrator] Todos los submódulos fueron inicializados correctamente.');

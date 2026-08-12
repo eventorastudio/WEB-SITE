@@ -295,6 +295,7 @@ export function auditReference({ data, keys, documentId, history }) {
     const plan = normalizeLegacyGuest(data, {
         documentId,
         checkinPasses: history?.passes || 0,
+        checkinCount: history?.count || 0,
         firstCheckinAt: history?.firstAt || null
     });
     const differences = buildFieldDiffs({
@@ -369,6 +370,7 @@ export function analyseGuest({ snapshot, referenceKeys, history, duplicateCodes 
     const plan = normalizeLegacyGuest(source, {
         documentId: id,
         checkinPasses: history?.passes || 0,
+        checkinCount: history?.count || 0,
         firstCheckinAt: history?.firstAt || null
     });
     if (plan.status === 'invalid') reasons.push(plan.reason);

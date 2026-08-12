@@ -66,7 +66,7 @@ export const themeService = {
             });
             return themes;
         } catch (error) {
-            throw new Error(`theme/fetch-all-failed: ${error.message}`);
+            throw preserveFirebaseError(error, 'theme/fetch-all-failed');
         }
     },
 
@@ -82,7 +82,7 @@ export const themeService = {
             const docSnap = await getDoc(docRef);
             return sanitizeThemeDoc(docSnap);
         } catch (error) {
-            throw new Error(`theme/fetch-one-failed: ${error.message}`);
+            throw preserveFirebaseError(error, 'theme/fetch-one-failed');
         }
     },
 
@@ -110,7 +110,7 @@ export const themeService = {
             await setDoc(docRef, payload, { merge: true });
             return docRef.id;
         } catch (error) {
-            throw new Error(`theme/save-failed: ${error.message}`);
+            throw preserveFirebaseError(error, 'theme/save-failed');
         }
     },
 
@@ -125,7 +125,7 @@ export const themeService = {
             const docRef = doc(db, 'themes', themeId);
             await deleteDoc(docRef);
         } catch (error) {
-            throw new Error(`theme/delete-failed: ${error.message}`);
+            throw preserveFirebaseError(error, 'theme/delete-failed');
         }
     },
 
@@ -143,7 +143,7 @@ export const themeService = {
             
             return await this.saveTheme(null, newThemeData);
         } catch (error) {
-            throw new Error(`theme/duplicate-failed: ${error.message}`);
+            throw preserveFirebaseError(error, 'theme/duplicate-failed');
         }
     },
 
@@ -170,3 +170,10 @@ export const themeService = {
         });
     }
 };
+
+function preserveFirebaseError(error, fallbackCode) {
+    const wrapped = new Error(error?.message || fallbackCode);
+    wrapped.code = error?.code || fallbackCode;
+    wrapped.cause = error;
+    return wrapped;
+}

@@ -4,9 +4,14 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
-    "normalize-guests": "node scripts/normalize-guests-from-reference.mjs"
+    "normalize-guests": "node scripts/normalize-guests-from-reference.mjs",
+    "renumber-guests": "node scripts/renumber-guests-alphabetically.mjs",
+    "renumber-checkins": "node scripts/renumber-checkins-by-guest.mjs",
+    "admin-claims": "node scripts/manage-admin-claims.mjs"
   },
   "dependencies": {
-    "firebase-admin": "^13.0.0"
+    "firebase-admin": "^13.0.0",
+    "jszip": "^3.10.1",
+    "qrcode-generator": "^1.4.4"
   }
 }

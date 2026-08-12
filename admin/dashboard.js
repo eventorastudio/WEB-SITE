@@ -1,12 +1,15 @@
 // dashboard.js
 // Lógica de Módulo 2 y 3: Experiencia SaaS, Firestore, Animaciones y Creación de Eventos
 
-import { auth, db } from './firebase.js';
+import { appCheck, auth, db } from './firebase.js';
 import { CONFIG } from './config.js';
+import { resolveRoleContext } from './core/roles.js';
+import { createAdminAccessError, reportAdminFirebaseError } from './core/firebase-errors.js';
 import { initThemeManager } from './core/theme-manager.js';
 import { initProfileMenu } from './core/profile-menu.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { collection, getDocs, query, orderBy, addDoc, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getToken as getAppCheckToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js";
 
 initThemeManager();
 
@@ -19,6 +22,7 @@ const uiLogo = document.getElementById('ui-logo');
 const btnLogout = document.getElementById('btn-logout');
 const userProfileTrigger = document.getElementById('user-profile-trigger');
 const displayUserName = document.getElementById('display-user-name');
+const displayUserRole = document.getElementById('display-user-role');
 const userAvatar = document.getElementById('user-avatar');
 const welcomeSection = document.getElementById('welcome-section');
 const btnCreateEvent = document.getElementById('btn-create-event');
@@ -124,10 +128,22 @@ function renderWelcomeHero(user) {
     }
 }
 
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     if (!user) {
         window.location.href = CONFIG.LOGOUT_REDIRECT;
     } else {
+        try {
+            const roleContext = await resolveRoleContext(user, { forceRefresh: true });
+            if (!roleContext.isInternal) {
+                throw createAdminAccessError('admin/missing-role-claim', 'La sesión autenticada no contiene role ni userRole interno válido.');
+            }
+            await getAppCheckToken(appCheck, false);
+            displayUserRole.textContent = roleContext.role;
+        } catch (error) {
+            renderDashboardFailure(error, { operation: 'bootstrap', collection: 'eventos' });
+            return;
+        }
+
         authGuard.style.opacity = '0';
         setTimeout(() => {
             authGuard.style.display = 'none';
@@ -176,9 +192,22 @@ async function loadDashboardData() {
         }
 
     } catch (error) {
-        console.error("Error obteniendo datos de Firestore:", error);
-        statsContainer.innerHTML = `<div class="stat-title" style="grid-column: 1/-1; color: #D32F2F;">Error de conexión. Recarga la página.</div>`;
-        eventsContainer.innerHTML = ``;
+        renderDashboardFailure(error, { operation: 'getDocs/orderBy(fecha desc)', collection: 'eventos' });
+    }
+}
+
+function renderDashboardFailure(error, context) {
+    const detail = reportAdminFirebaseError(error, context);
+    const message = document.createElement('div');
+    message.className = 'stat-title dashboard-firebase-error';
+    message.style.gridColumn = '1 / -1';
+    message.style.color = '#D32F2F';
+    message.textContent = `${detail.title}. ${detail.userMessage} Código: ${detail.code}.`;
+    statsContainer.replaceChildren(message);
+    eventsContainer.replaceChildren();
+    if (authGuard) {
+        authGuard.classList.add('auth-guard-message');
+        authGuard.textContent = detail.userMessage;
     }
 }
 
@@ -552,6 +581,10 @@ async function submitNewEvent(e) {
             confirmados: 0,
             pendientes: totalInvitadosNum,
             llegaron: 0,
+            // Numeración estable de invitados: los IDs automáticos se usan
+            // hasta que la lista sea finalizada explícitamente.
+            guestListFinalized: false,
+            guestSequence: 0,
             // Metadatos
             fechaCreacion: serverTimestamp(),
             fechaActualizacion: serverTimestamp(),
@@ -577,11 +610,11 @@ async function submitNewEvent(e) {
         await loadDashboardData(); // Refresca lista y stats sin location.reload()
 
     } catch (error) {
-        console.error("Error al crear evento:", error);
+        const detail = reportAdminFirebaseError(error, { operation: 'addDoc', collection: 'eventos' });
         // Opcional: Mostrar error en el UI
         const mainError = document.createElement('span');
         mainError.className = 'error-msg';
-        mainError.textContent = 'Ocurrió un error al guardar. Intenta nuevamente.';
+        mainError.textContent = `${detail.title}. ${detail.userMessage} Código: ${detail.code}.`;
         mainError.style.display = 'block';
         mainError.style.textAlign = 'right';
         mainError.style.marginTop = '10px';

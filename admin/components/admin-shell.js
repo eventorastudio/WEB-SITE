@@ -6,6 +6,7 @@ import { auth } from '../firebase.js';
 import { CONFIG } from '../config.js';
 import { hasPermission, PERMISSIONS, USER_ROLES, resolveRoleContext } from '../core/roles.js';
 import { destroyProfileMenu, initProfileMenu } from '../core/profile-menu.js';
+import { reportAdminFirebaseError } from '../core/firebase-errors.js';
 
 let cleanups = [];
 let isShellBound = false;
@@ -24,7 +25,14 @@ export function initAdminShell({ requiredPermission, onReady }) {
             return;
         }
 
-        const roleContext = await resolveRoleContext(auth.currentUser ?? user);
+        let roleContext;
+        try {
+            roleContext = await resolveRoleContext(auth.currentUser ?? user, { forceRefresh: true });
+        } catch (error) {
+            reportAdminFirebaseError(error, { operation: 'getIdTokenResult', collection: 'Authentication claims' });
+            showAccessDenied();
+            return;
+        }
         if (!hasPermission(roleContext, requiredPermission)) {
             showAccessDenied();
             return;
@@ -37,7 +45,7 @@ export function initAdminShell({ requiredPermission, onReady }) {
         try {
             await onReady({ user, roleContext });
         } catch (error) {
-            console.error('[Admin Shell] No se pudo inicializar el módulo de la página.', error);
+            reportAdminFirebaseError(error, { operation: 'admin-shell/onReady' });
             showPageError();
         }
     });

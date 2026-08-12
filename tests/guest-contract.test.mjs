@@ -46,7 +46,7 @@ test('pendiente con confirmado false booleano ya cumple el contrato legado', () 
         pasesUtilizados: 0, pasesDisponibles: 2, mesa: null,
         estado: 'pendiente', confirmado: false, llegadaRegistrada: false,
         horaLlegada: null, tipoAcceso: 'manual', qrToken: null,
-        qrActivo: false, notas: '', codigoInvitado: 'INV-0001'
+        qrActivo: false, notas: '', codigoInvitado: 'INV-0001', checkinSecuencia: 0
     }, { documentId: 'INV-0001' });
 
     assert.equal(plan.status, 'correct');
@@ -152,7 +152,7 @@ test('un QR desactivado explícitamente no se reactiva', () => {
         pasesUtilizados: 0, pasesDisponibles: 1, mesa: null,
         estado: 'pendiente', confirmado: false, llegadaRegistrada: false,
         horaLlegada: null, tipoAcceso: 'qr', qrToken: 'Abcdefghijklmnop_1234',
-        qrActivo: false, notas: '', codigoInvitado: 'INV-0002'
+        qrActivo: false, notas: '', codigoInvitado: 'INV-0002', checkinSecuencia: 0
     }, { documentId: 'INV-0002' });
 
     assert.equal(plan.status, 'correct');

@@ -52,7 +52,7 @@ export const eventService = {
             });
             return events;
         } catch (error) {
-            throw new Error(`event/fetch-all-failed: ${error.message}`);
+            throw preserveFirebaseError(error, 'event/fetch-all-failed');
         }
     },
 
@@ -64,18 +64,11 @@ export const eventService = {
     async getEventById(eventId) {
         if (!eventId) throw new Error('event/invalid-id');
         try {
-            console.debug('[TEMP DEBUG][event-service] getEventById:start', { eventId });
             const docRef = doc(db, 'eventos', eventId);
             const docSnap = await getDoc(docRef);
-            const eventData = sanitizeEventDoc(docSnap);
-            console.debug('[TEMP DEBUG][event-service] getEventById:end', {
-                eventId,
-                exists: docSnap.exists(),
-                isValidPojo: Boolean(eventData) && typeof eventData === 'object'
-            });
-            return eventData;
+            return sanitizeEventDoc(docSnap);
         } catch (error) {
-            throw new Error(`event/fetch-one-failed: ${error.message}`);
+            throw preserveFirebaseError(error, 'event/fetch-one-failed');
         }
     },
 
@@ -88,13 +81,15 @@ export const eventService = {
         try {
             const payload = {
                 ...eventData,
+                guestListFinalized: false,
+                guestSequence: 0,
                 fechaCreacion: serverTimestamp(),
                 fechaActualizacion: serverTimestamp()
             };
             const docRef = await addDoc(collection(db, 'eventos'), payload);
             return docRef.id;
         } catch (error) {
-            throw new Error(`event/create-failed: ${error.message}`);
+            throw preserveFirebaseError(error, 'event/create-failed');
         }
     },
 
@@ -114,7 +109,7 @@ export const eventService = {
             };
             await updateDoc(docRef, payload);
         } catch (error) {
-            throw new Error(`event/update-failed: ${error.message}`);
+            throw preserveFirebaseError(error, 'event/update-failed');
         }
     },
 
@@ -129,7 +124,7 @@ export const eventService = {
             const docRef = doc(db, 'eventos', eventId);
             await deleteDoc(docRef);
         } catch (error) {
-            throw new Error(`event/delete-failed: ${error.message}`);
+            throw preserveFirebaseError(error, 'event/delete-failed');
         }
     },
 
@@ -146,7 +141,14 @@ export const eventService = {
             if (snapshot.empty) return null;
             return snapshot.docs[0].data().codigoEvento || null;
         } catch (error) {
-            throw new Error(`event/last-code-failed: ${error.message}`);
+            throw preserveFirebaseError(error, 'event/last-code-failed');
         }
     }
 };
+
+function preserveFirebaseError(error, fallbackCode) {
+    const wrapped = new Error(error?.message || fallbackCode);
+    wrapped.code = error?.code || fallbackCode;
+    wrapped.cause = error;
+    return wrapped;
+}
