@@ -6,23 +6,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Eventora Studio | Página Principal</title>
+    <title>Invitaciones digitales para eventos | Eventora Studio</title>
 
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="shortcut icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="assets/portfolio/LOGO.jpg">
 
 
     <meta name="description"
-        content="Invitaciones digitales elegantes e interactivas para XV Años, Bodas, Baby Shower, Graduaciones y eventos especiales.">
+        content="Invitaciones digitales personalizadas para bodas, XV años y celebraciones. Explora 11 colecciones, compara paquetes y cotiza tu evento.">
+    <link rel="canonical" href="https://eventorastudio.com/principal/">
+    <meta property="og:locale" content="es_MX">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Eventora Studio">
+    <meta property="og:title" content="Invitaciones digitales para eventos | Eventora Studio">
+    <meta property="og:description" content="Explora colecciones personalizables para bodas, XV años y celebraciones, y encuentra el paquete ideal para tu evento.">
+    <meta property="og:url" content="https://eventorastudio.com/principal/">
+    <meta property="og:image" content="https://eventorastudio.com/principal/assets/hero.jpg">
+    <meta property="og:image:width" content="1012">
+    <meta property="og:image:height" content="448">
+    <meta property="og:image:alt" content="Invitaciones digitales de Eventora Studio">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Invitaciones digitales para eventos | Eventora Studio">
+    <meta name="twitter:description" content="Colecciones personalizables y paquetes para bodas, XV años y celebraciones.">
+    <meta name="twitter:image" content="https://eventorastudio.com/principal/assets/hero.jpg">
 
     <link rel="stylesheet" href="style.css">
+    <link rel="preload" as="image" href="assets/hero.jpg" fetchpriority="high">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 </head>
@@ -37,7 +51,7 @@ LOADER
 
     <div class="loader-content">
 
-        <img src="assets/portfolio/LOGO2.png" alt="Eventora Studio" class="loader-logo">
+        <img src="assets/portfolio/LOGO.jpg" alt="Eventora Studio" class="loader-logo" width="1024" height="1024" fetchpriority="high" decoding="async">
 
     </div>
 
@@ -143,11 +157,46 @@ LOADER
             Cada diseño es totalmente personalizable.
         </p>
 
+        <aside class="portfolio-disclosure" aria-label="Información sobre las demostraciones">
+            <strong>Vista completa de la experiencia.</strong>
+            Todas las demostraciones representan el paquete Prestige; las funciones disponibles dependen del paquete seleccionado.
+        </aside>
+
+        <div class="portfolio-filters" role="group" aria-label="Filtrar colecciones por tipo de evento">
+            <button type="button" class="portfolio-filter is-active" data-filter="todas" aria-pressed="true">Todas</button>
+            <button type="button" class="portfolio-filter" data-filter="bodas" aria-pressed="false">Bodas</button>
+            <button type="button" class="portfolio-filter" data-filter="xv" aria-pressed="false">XV años</button>
+            <button type="button" class="portfolio-filter" data-filter="celebraciones" aria-pressed="false">Celebraciones</button>
+        </div>
+
+        <div class="portfolio-device">
+            <label for="demo-qr-select">Abrir una demo en tu celular</label>
+            <div>
+                <select id="demo-qr-select">
+                    <option value="demos/xv-renatta/?nombre=Andrea&amp;pases=2">Aloha</option>
+                    <option value="demos/luxury/?nombre=Andrea&amp;pases=2">Luxury</option>
+                    <option value="demos/botanical/?nombre=Andrea&amp;pases=2">Botanical</option>
+                    <option value="demos/midnight/?nombre=Andrea&amp;pases=2">Midnight</option>
+                    <option value="demos/romance/?nombre=Andrea&amp;pases=2">Romance</option>
+                    <option value="demos/minimal/?nombre=Andrea&amp;pases=2">Minimal</option>
+                    <option value="demos/celestial/?nombre=Andrea&amp;pases=2">Celestial</option>
+                    <option value="demos/vintage/?nombre=Andrea&amp;pases=2">Vintage</option>
+                    <option value="demos/garden/?nombre=Andrea&amp;pases=2">Garden</option>
+                    <option value="demos/champagne/?nombre=Andrea&amp;pases=2">Champagne</option>
+                    <option value="demos/neon-party/?nombre=Andrea&amp;pases=2">Neon Party</option>
+                </select>
+                <button type="button" id="demo-qr-open">Ver en tu celular</button>
+            </div>
+        </div>
+
+        <p class="portfolio-results" role="status" aria-live="polite">11 colecciones disponibles</p>
+        <p class="portfolio-empty" hidden>No encontramos colecciones para este filtro. Prueba con otra categoría.</p>
+
         <div class="portfolio-grid">
 
-            <a href="demos/xv-renatta/?nombre=Andrea&amp;pases=2" class="portfolio-card">
+            <a href="demos/xv-renatta/?nombre=Andrea&amp;pases=2" class="portfolio-card" data-event-types="xv celebraciones">
 
-                <img src="assets/portfolio/aloha.jpg" alt="Colección Aloha">
+                <img src="assets/portfolio/aloha.jpg" alt="Colección Aloha" width="1536" height="1024" loading="lazy" decoding="async">
 
                 <div class="portfolio-info">
 
@@ -166,9 +215,9 @@ LOADER
 
             </a>
 
-            <a href="demos/luxury/?nombre=Andrea&amp;pases=2" class="portfolio-card">
+            <a href="demos/luxury/?nombre=Andrea&amp;pases=2" class="portfolio-card" data-event-types="bodas xv celebraciones">
 
-                <img src="assets/portfolio/luxury.jpg" alt="Luxury">
+                <img src="assets/portfolio/luxury.jpg" alt="Colección Luxury" width="1536" height="1024" loading="lazy" decoding="async">
 
                 <div class="portfolio-info">
 
@@ -186,9 +235,9 @@ LOADER
 
             </a>
 
-            <a href="demos/botanical/?nombre=Andrea&amp;pases=2" class="portfolio-card">
+            <a href="demos/botanical/?nombre=Andrea&amp;pases=2" class="portfolio-card" data-event-types="bodas celebraciones">
 
-                <img src="assets/portfolio/botanical.jpg" alt="Botanical">
+                <img src="assets/portfolio/botanical.jpg" alt="Colección Botanical" width="1536" height="1024" loading="lazy" decoding="async">
 
                 <div class="portfolio-info">
 
@@ -206,7 +255,7 @@ LOADER
 
             </a>
 
-            <a href="demos/midnight/?nombre=Andrea&amp;pases=2" class="portfolio-card">
+            <a href="demos/midnight/?nombre=Andrea&amp;pases=2" class="portfolio-card" data-event-types="xv celebraciones">
                 <div class="portfolio-cover cover-midnight" role="img" aria-label="Portada azul medianoche con halo de luz">
                     <span class="cover-kicker">Colección</span><strong>Midnight</strong><i></i>
                 </div>
@@ -218,7 +267,7 @@ LOADER
                 </div>
             </a>
 
-            <a href="demos/romance/?nombre=Andrea&amp;pases=2" class="portfolio-card">
+            <a href="demos/romance/?nombre=Andrea&amp;pases=2" class="portfolio-card" data-event-types="bodas">
                 <div class="portfolio-cover cover-romance" role="img" aria-label="Portada color vino inspirada en una carta de amor">
                     <span>Para siempre</span><strong>Romance</strong><i>S &amp; M</i>
                 </div>
@@ -230,7 +279,7 @@ LOADER
                 </div>
             </a>
 
-            <a href="demos/minimal/?nombre=Andrea&amp;pases=2" class="portfolio-card">
+            <a href="demos/minimal/?nombre=Andrea&amp;pases=2" class="portfolio-card" data-event-types="bodas xv celebraciones">
                 <div class="portfolio-cover cover-minimal" role="img" aria-label="Portada tipográfica minimalista en blanco y negro">
                     <small>15 · 11 · 2027</small><strong>MINIMAL</strong><span>LESS / BETTER</span>
                 </div>
@@ -242,7 +291,7 @@ LOADER
                 </div>
             </a>
 
-            <a href="demos/celestial/?nombre=Andrea&amp;pases=2" class="portfolio-card">
+            <a href="demos/celestial/?nombre=Andrea&amp;pases=2" class="portfolio-card" data-event-types="bodas">
                 <div class="portfolio-cover cover-celestial" role="img" aria-label="Portada lunar azul tinta con una constelación dorada">
                     <span>I · S</span><strong>Celestial</strong><i></i>
                 </div>
@@ -254,7 +303,7 @@ LOADER
                 </div>
             </a>
 
-            <a href="demos/vintage/?nombre=Andrea&amp;pases=2" class="portfolio-card">
+            <a href="demos/vintage/?nombre=Andrea&amp;pases=2" class="portfolio-card" data-event-types="bodas xv celebraciones">
                 <div class="portfolio-cover cover-vintage" role="img" aria-label="Postal clásica en papel crema con sello color burgundy">
                     <small>EDICIÓN · 16</small><strong>Vintage</strong><span>E &amp; N</span>
                 </div>
@@ -266,7 +315,7 @@ LOADER
                 </div>
             </a>
 
-            <a href="demos/garden/?nombre=Andrea&amp;pases=2" class="portfolio-card">
+            <a href="demos/garden/?nombre=Andrea&amp;pases=2" class="portfolio-card" data-event-types="bodas">
                 <div class="portfolio-cover cover-garden" role="img" aria-label="Puerta arqueada hacia un jardín romántico en primavera">
                     <i></i><span>LE JARDIN</span><strong>Garden</strong>
                 </div>
@@ -278,7 +327,7 @@ LOADER
                 </div>
             </a>
 
-            <a href="demos/champagne/?nombre=Andrea&amp;pases=2" class="portfolio-card">
+            <a href="demos/champagne/?nombre=Andrea&amp;pases=2" class="portfolio-card" data-event-types="bodas celebraciones">
                 <div class="portfolio-cover cover-champagne" role="img" aria-label="Papelería luminosa con monograma y reflejos champagne">
                     <span>E / G</span><strong>Champagne</strong><small>ÉDITION PRIVÉE</small>
                 </div>
@@ -290,7 +339,7 @@ LOADER
                 </div>
             </a>
 
-            <a href="demos/neon-party/?nombre=Andrea&amp;pases=2" class="portfolio-card">
+            <a href="demos/neon-party/?nombre=Andrea&amp;pases=2" class="portfolio-card" data-event-types="xv celebraciones">
                 <div class="portfolio-cover cover-neon-party" role="img" aria-label="Póster negro de fiesta con tipografía magenta y azul eléctrico">
                     <small>ONE NIGHT ONLY</small><strong>NEON<br>PARTY</strong><span>ENTER →</span>
                 </div>
@@ -307,6 +356,20 @@ LOADER
     </div>
 
 </section>
+
+<dialog class="demo-qr-dialog" id="demo-qr-dialog" aria-labelledby="demo-qr-title">
+    <form method="dialog">
+        <button class="demo-qr-close" aria-label="Cerrar código QR">×</button>
+    </form>
+    <span class="section-tag">DEMO EN TU CELULAR</span>
+    <h2 id="demo-qr-title">Escanea para abrir la colección</h2>
+    <p id="demo-qr-name"></p>
+    <img id="demo-qr-image" alt="" width="320" height="320">
+    <div class="demo-qr-actions">
+        <a id="demo-qr-link" href="#" target="_blank" rel="noopener noreferrer">Abrir en este dispositivo</a>
+        <a id="demo-qr-contact" href="#" target="_blank" rel="noopener noreferrer">Cotizar esta colección</a>
+    </div>
+</dialog>
 
 <!-- ================= BENEFICIOS ================= -->
 
@@ -448,7 +511,7 @@ LOADER
     <div class="container">
 
         <span class="section-tag">
-            TODO LO QUE INCLUYE
+            TODO LO QUE PUEDES INTEGRAR
         </span>
 
         <h2>
@@ -458,6 +521,7 @@ LOADER
         <p class="section-description">
             Diseñamos una experiencia completa para tus invitados con herramientas
             pensadas para hacer tu evento más especial y fácil de organizar.
+            <strong>Las funcionalidades disponibles dependen del paquete seleccionado.</strong>
         </p>
 
         <div class="features-grid">
@@ -763,9 +827,17 @@ LOADER
 
                 </div>
 
+                <ul class="package-highlights">
+                    <li>Diseño 100% personalizado</li>
+                    <li>Música y cuenta regresiva</li>
+                    <li>RSVP y Google Maps</li>
+                </ul>
+
                 <a href="/paquetes/#esencial" class="package-btn">
                     Ver todo lo que incluye →
                 </a>
+
+                <a href="https://wa.me/5215638830691?text=Hola%2C%20vi%20Eventora%20Studio%20y%20quiero%20informaci%C3%B3n%20para%20mi%20evento.%0A%0ATipo%20de%20evento%3A%20%0AFecha%20aproximada%3A%20%0APaquete%20de%20inter%C3%A9s%3A%20Esencial%0AColecci%C3%B3n%20de%20inter%C3%A9s%3A%20" class="package-contact" target="_blank" rel="noopener noreferrer">Cotizar Esencial</a>
 
             </article>
 
@@ -795,12 +867,20 @@ LOADER
 
                 </div>
 
+                <ul class="package-highlights">
+                    <li>Todo Esencial + video de bienvenida</li>
+                    <li>Galería y mesa de regalos</li>
+                    <li>Selección inteligente de pases</li>
+                </ul>
+
                 <a href="/paquetes/#premium"
                 class="package-btn featured-btn">
 
                     Ver todo lo que incluye →
 
                 </a>
+
+                <a href="https://wa.me/5215638830691?text=Hola%2C%20vi%20Eventora%20Studio%20y%20quiero%20informaci%C3%B3n%20para%20mi%20evento.%0A%0ATipo%20de%20evento%3A%20%0AFecha%20aproximada%3A%20%0APaquete%20de%20inter%C3%A9s%3A%20Premium%0AColecci%C3%B3n%20de%20inter%C3%A9s%3A%20" class="package-contact" target="_blank" rel="noopener noreferrer">Cotizar Premium</a>
 
             </article>
 
@@ -821,12 +901,20 @@ LOADER
 
                 </div>
 
+                <ul class="package-highlights">
+                    <li>Todo Premium + múltiples ubicaciones</li>
+                    <li>Itinerario y pases personalizados</li>
+                    <li>Control y personalización avanzada</li>
+                </ul>
+
                 <a href="/paquetes/#prestige"
                 class="package-btn">
 
                     Ver todo lo que incluye →
 
                 </a>
+
+                <a href="https://wa.me/5215638830691?text=Hola%2C%20vi%20Eventora%20Studio%20y%20quiero%20informaci%C3%B3n%20para%20mi%20evento.%0A%0ATipo%20de%20evento%3A%20%0AFecha%20aproximada%3A%20%0APaquete%20de%20inter%C3%A9s%3A%20Prestige%0AColecci%C3%B3n%20de%20inter%C3%A9s%3A%20" class="package-contact" target="_blank" rel="noopener noreferrer">Cotizar Prestige</a>
 
             </article>
  
@@ -844,138 +932,35 @@ LOADER
 
     <div class="container">
 
-        <span class="section-tag">
-            TESTIMONIOS
-        </span>
+        <span class="section-tag">POSIBILIDADES</span>
 
-        <h2>
-            Lo que dicen nuestros clientes.
-        </h2>
+        <h2>Experiencias que podemos crear.</h2>
 
         <p class="testimonials-text">
-            Cada invitación cuenta una historia, y estas son algunas de las experiencias de quienes confiaron en Eventora Studio para hacer inolvidable su evento.
+            Ejemplos de cómo una colección puede adaptarse a la historia, el tono y las necesidades de cada celebración.
         </p>
 
         <div class="testimonials-grid">
 
-            <!-- Card 1 -->
-
-            <article class="testimonial-card">
-
-                <div class="quote">
-                    <i data-lucide="quote"></i>
-                </div>
-
-                <div class="stars">
-
-                    <i data-lucide="star"></i>
-                    <i data-lucide="star"></i>
-                    <i data-lucide="star"></i>
-                    <i data-lucide="star"></i>
-                    <i data-lucide="star"></i>
-
-                </div>
-
-                <p>
-                    La invitación superó nuestras expectativas. Todos nuestros invitados quedaron fascinados con el diseño y fue muy fácil compartirla.
-                </p>
-
-                <div class="testimonial-user">
-
-                    <div class="avatar">
-                        M
-                    </div>
-
-                    <div>
-
-                        <h4>María González</h4>
-
-                        <span>XV Años</span>
-
-                    </div>
-
-                </div>
-
+            <article class="testimonial-card experience-card">
+                <i data-lucide="heart" aria-hidden="true"></i>
+                <span>Bodas</span>
+                <h3>Una historia compartida</h3>
+                <p>Una experiencia editorial con música, ubicaciones, itinerario y detalles que acompañan a los invitados desde el primer anuncio.</p>
             </article>
 
-            <!-- Card 2 -->
-
-            <article class="testimonial-card">
-
-                <div class="quote">
-                    <i data-lucide="quote"></i>
-                </div>
-
-                <div class="stars">
-
-                    <i data-lucide="star"></i>
-                    <i data-lucide="star"></i>
-                    <i data-lucide="star"></i>
-                    <i data-lucide="star"></i>
-                    <i data-lucide="star"></i>
-
-                </div>
-
-                <p>
-                    El proceso fue rapidísimo y el resultado quedó exactamente como lo imaginábamos. Todo se veía elegante y moderno.
-                </p>
-
-                <div class="testimonial-user">
-
-                    <div class="avatar">
-                        A
-                    </div>
-
-                    <div>
-
-                        <h4>Andrea López</h4>
-
-                        <span>Boda</span>
-
-                    </div>
-
-                </div>
-
+            <article class="testimonial-card experience-card">
+                <i data-lucide="sparkles" aria-hidden="true"></i>
+                <span>XV años</span>
+                <h3>Una celebración con identidad</h3>
+                <p>Color, movimiento y recursos interactivos que convierten la invitación en el primer momento memorable de la fiesta.</p>
             </article>
 
-            <!-- Card 3 -->
-
-            <article class="testimonial-card">
-
-                <div class="quote">
-                    <i data-lucide="quote"></i>
-                </div>
-
-                <div class="stars">
-
-                    <i data-lucide="star"></i>
-                    <i data-lucide="star"></i>
-                    <i data-lucide="star"></i>
-                    <i data-lucide="star"></i>
-                    <i data-lucide="star"></i>
-
-                </div>
-
-                <p>
-                    La atención fue excelente y el diseño hizo que nuestro evento comenzara desde la invitación. Sin duda volveríamos a elegirlos.
-                </p>
-
-                <div class="testimonial-user">
-
-                    <div class="avatar">
-                        F
-                    </div>
-
-                    <div>
-
-                        <h4>Fernanda Ruiz</h4>
-
-                        <span>Baby Shower</span>
-
-                    </div>
-
-                </div>
-
+            <article class="testimonial-card experience-card">
+                <i data-lucide="party-popper" aria-hidden="true"></i>
+                <span>Celebraciones</span>
+                <h3>Información clara, presentada con estilo</h3>
+                <p>Una colección adaptada al evento, con accesos directos a ubicación, confirmación y los datos que cada invitado necesita.</p>
             </article>
 
         </div>
@@ -1006,7 +991,7 @@ LOADER
 
             <div class="faq-item active">
 
-                <button class="faq-question">
+                <button class="faq-question" type="button">
 
                     <span>¿Cómo recibo mi invitación?</span>
 
@@ -1028,7 +1013,7 @@ LOADER
 
             <div class="faq-item">
 
-                <button class="faq-question">
+                <button class="faq-question" type="button">
 
                     <span>¿Cuánto tarda la entrega?</span>
 
@@ -1050,7 +1035,7 @@ LOADER
 
             <div class="faq-item">
 
-                <button class="faq-question">
+                <button class="faq-question" type="button">
 
                     <span>¿Puedo solicitar cambios?</span>
 
@@ -1061,7 +1046,7 @@ LOADER
                 <div class="faq-answer">
 
                     <p>
-                        Sí. Queremos que tu invitación quede exactamente como la imaginaste, por lo que podrás solicitar modificaciones durante el proceso de diseño.
+                        Sí. Puedes solicitar modificaciones durante el proceso de diseño; la cantidad y el alcance de los cambios dependen del paquete contratado.
                     </p>
 
                 </div>
@@ -1072,7 +1057,7 @@ LOADER
 
             <div class="faq-item">
 
-                <button class="faq-question">
+                <button class="faq-question" type="button">
 
                     <span>¿Cómo se realiza el pago?</span>
 
@@ -1094,7 +1079,7 @@ LOADER
 
             <div class="faq-item">
 
-                <button class="faq-question">
+                <button class="faq-question" type="button">
 
                     <span>¿Funciona en cualquier dispositivo?</span>
 
@@ -1116,7 +1101,7 @@ LOADER
 
             <div class="faq-item">
 
-                <button class="faq-question">
+                <button class="faq-question" type="button">
 
                     <span>¿Qué sucede si necesito modificar un dato después?</span>
 
@@ -1128,6 +1113,28 @@ LOADER
 
                     <p>
                         Si aún estamos en proceso de diseño podremos actualizar la información sin inconvenientes. Después de la entrega también podemos ayudarte según el paquete contratado.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <!-- 7 -->
+
+            <div class="faq-item">
+
+                <button class="faq-question" type="button">
+
+                    <span>¿Todas las demostraciones incluyen las funciones de todos los paquetes?</span>
+
+                    <i data-lucide="chevron-down"></i>
+
+                </button>
+
+                <div class="faq-answer">
+
+                    <p>
+                        Las demostraciones muestran la experiencia más completa del paquete Prestige. Cada colección sirve como punto de partida visual y se adapta en colores, contenido y funciones dentro del alcance del paquete seleccionado.
                     </p>
 
                 </div>
@@ -1164,7 +1171,7 @@ LOADER
 
         
 
-        <a href="https://wa.me/5215638830691?text=¡Hola!%20✨%20Vengo%20desde%20la%20página%20de%20Eventora%20Studio%20y%20me%20gustaría%20recibir%20información%20sobre%20sus%20invitaciones%20digitales.%0A%0A📅%20Tipo%20de%20evento:%20%0A👥%20Número%20aproximado%20de%20invitados:%20%0A💛%20Paquete%20de%20interés:%20%0A%0AGracias."
+        <a href="https://wa.me/5215638830691?text=Hola%2C%20vi%20Eventora%20Studio%20y%20quiero%20informaci%C3%B3n%20para%20mi%20evento.%0A%0ATipo%20de%20evento%3A%20%0AFecha%20aproximada%3A%20%0APaquete%20de%20inter%C3%A9s%3A%20%0AColecci%C3%B3n%20de%20inter%C3%A9s%3A%20"
         class="cta-btn"
         target="_blank"
         rel="noopener noreferrer">
@@ -1208,7 +1215,7 @@ FOOTER
 
         <div class="footer-top">
 
-            <img src="assets/portfolio/LOGO2.png" alt="Eventora Studio" class="footer-logo">
+            <a href="#inicio" class="footer-logo-wordmark" aria-label="Eventora Studio, volver al inicio">EVENTORA <span>STUDIO</span></a>
 
             <p>
                 Creamos invitaciones digitales elegantes y personalizadas para convertir cada evento en una experiencia inolvidable.
@@ -1223,6 +1230,9 @@ FOOTER
             <a href="/paquetes/">Paquetes</a>
             <a href="#faq">FAQ</a>
             <a href="#contacto">Contacto</a>
+            <a href="/legal/privacidad/">Privacidad</a>
+            <a href="/legal/terminos/">Términos</a>
+            <a href="/legal/politicas/">Políticas de servicio</a>
 
         </div>
 
@@ -1233,11 +1243,11 @@ FOOTER
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram de Eventora Studio">
-                    <i class="fa-brands fa-instagram"></i>
+                    <i data-lucide="instagram"></i>
 
             </a>
 
-            <a href="https://wa.me/5215638830691?text=Hola,%20me%20gustaría%20cotizar%20una%20invitación%20digital."
+            <a href="https://wa.me/5215638830691?text=Hola%2C%20vi%20Eventora%20Studio%20y%20quiero%20informaci%C3%B3n%20para%20mi%20evento.%0A%0ATipo%20de%20evento%3A%20%0AFecha%20aproximada%3A%20%0APaquete%20de%20inter%C3%A9s%3A%20%0AColecci%C3%B3n%20de%20inter%C3%A9s%3A%20"
 
                 target="_blank"
                 rel="noopener noreferrer"
@@ -1246,7 +1256,7 @@ FOOTER
 
             </a>
 
-            <a href="mailto:Ev3ntoraStudio@gmail.com">
+            <a href="mailto:Ev3ntoraStudio@gmail.com" aria-label="Enviar correo a Eventora Studio">
 
                 <i data-lucide="mail"></i>
 
@@ -1270,7 +1280,7 @@ FOOTER
 
 </footer>
 
-    <a class="whatsapp-float" href="https://wa.me/5215638830691" target="_blank" rel="noopener noreferrer" aria-label="Escríbenos por WhatsApp">
+    <a class="whatsapp-float" href="https://wa.me/5215638830691?text=Hola%2C%20vi%20Eventora%20Studio%20y%20quiero%20informaci%C3%B3n%20para%20mi%20evento.%0A%0ATipo%20de%20evento%3A%20%0AFecha%20aproximada%3A%20%0APaquete%20de%20inter%C3%A9s%3A%20%0AColecci%C3%B3n%20de%20inter%C3%A9s%3A%20" target="_blank" rel="noopener noreferrer" aria-label="Escríbenos por WhatsApp">
         <i data-lucide="message-circle"></i>
     </a>
 

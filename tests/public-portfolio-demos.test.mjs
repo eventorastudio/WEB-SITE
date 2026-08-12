@@ -292,7 +292,8 @@ test('Demo Mode intercepta toda acción externa con un solo listener delegado', 
     ]);
     assert.match(html, /data-demo-action="maps"/);
     assert.match(html, /data-demo-action="rsvp"/);
-    assert.doesNotMatch(html, /href="https?:/);
+    const htmlWithoutCanonical = html.replace(/<link rel="canonical" href="https?:\/\/[^">]+">/g, '');
+    assert.doesNotMatch(htmlWithoutCanonical, /href="https?:/);
     assert.doesNotMatch(html, /target="_blank"/);
     assert.doesNotMatch(html, /<form[^>]+action=/);
     assert.doesNotMatch(html, /disabled|pointer-events:\s*none/i);

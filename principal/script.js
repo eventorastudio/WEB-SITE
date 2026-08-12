@@ -1,4 +1,121 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const initializePortfolioFilters = () => {
+        const filterGroup = document.querySelector(".portfolio-filters");
+        const cards = [...document.querySelectorAll(".portfolio-card[data-event-types]")];
+        const result = document.querySelector(".portfolio-results");
+        const emptyState = document.querySelector(".portfolio-empty");
+
+        if (!filterGroup || !cards.length || !result || !emptyState) return;
+
+        const buttons = [...filterGroup.querySelectorAll(".portfolio-filter")];
+        const applyFilter = (filter) => {
+            let visibleCount = 0;
+
+            cards.forEach((card) => {
+                const eventTypes = card.dataset.eventTypes.split(/\s+/);
+                const isVisible = filter === "todas" || eventTypes.includes(filter);
+
+                card.classList.remove("is-filtered-in");
+                card.hidden = !isVisible;
+                if (isVisible) window.requestAnimationFrame(() => card.classList.add("is-filtered-in"));
+                if (isVisible) visibleCount += 1;
+            });
+
+            buttons.forEach((button) => {
+                const isActive = button.dataset.filter === filter;
+                button.classList.toggle("is-active", isActive);
+                button.setAttribute("aria-pressed", String(isActive));
+            });
+
+            result.textContent = `${visibleCount} ${visibleCount === 1 ? "colección disponible" : "colecciones disponibles"}`;
+            emptyState.hidden = visibleCount !== 0;
+        };
+
+        filterGroup.addEventListener("click", (event) => {
+            const button = event.target.closest(".portfolio-filter");
+            if (!button) return;
+            applyFilter(button.dataset.filter);
+        });
+
+        filterGroup.addEventListener("keydown", (event) => {
+            if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+
+            const currentIndex = buttons.indexOf(document.activeElement);
+            if (currentIndex < 0) return;
+
+            event.preventDefault();
+            let nextIndex = event.key === "Home" ? 0 : event.key === "End" ? buttons.length - 1 : currentIndex + (event.key === "ArrowRight" ? 1 : -1);
+            nextIndex = (nextIndex + buttons.length) % buttons.length;
+            buttons[nextIndex].focus();
+        });
+    };
+
+    const initializeDemoQr = () => {
+        const select = document.querySelector("#demo-qr-select");
+        const openButton = document.querySelector("#demo-qr-open");
+        const dialog = document.querySelector("#demo-qr-dialog");
+        const image = document.querySelector("#demo-qr-image");
+        const name = document.querySelector("#demo-qr-name");
+        const link = document.querySelector("#demo-qr-link");
+        const contact = document.querySelector("#demo-qr-contact");
+
+        if (!select || !openButton || !dialog || !image || !name || !link || !contact) return;
+
+        let libraryPromise;
+        const loadLibrary = () => {
+            if (typeof globalThis.qrcode === "function") return Promise.resolve();
+            if (libraryPromise) return libraryPromise;
+
+            libraryPromise = new Promise((resolve, reject) => {
+                const script = document.createElement("script");
+                script.src = new URL("vendor/qrcode-generator.js", document.baseURI).href;
+                script.onload = () => typeof globalThis.qrcode === "function" ? resolve() : reject(new Error("qr/library-unavailable"));
+                script.onerror = () => reject(new Error("qr/library-load-failed"));
+                document.head.append(script);
+            });
+            return libraryPromise;
+        };
+
+        openButton.addEventListener("click", async () => {
+            const selectedOption = select.options[select.selectedIndex];
+            const targetUrl = new URL(select.value, document.baseURI).href;
+            const originalLabel = openButton.textContent;
+
+            openButton.disabled = true;
+            openButton.textContent = "Preparando QR…";
+
+            try {
+                await loadLibrary();
+                const qr = globalThis.qrcode(0, "M");
+                qr.addData(targetUrl, "Byte");
+                qr.make();
+
+                image.src = qr.createDataURL(7, 4);
+                image.alt = `Código QR para abrir la colección ${selectedOption.textContent}`;
+                name.textContent = selectedOption.textContent;
+                link.href = targetUrl;
+                const contactMessage = `Hola, vi Eventora Studio y quiero información para mi evento.\n\nTipo de evento: \nFecha aproximada: \nPaquete de interés: \nColección de interés: ${selectedOption.textContent}`;
+                contact.href = `https://wa.me/5215638830691?text=${encodeURIComponent(contactMessage)}`;
+
+                if (typeof dialog.showModal === "function") dialog.showModal();
+                else dialog.setAttribute("open", "");
+            } catch {
+                name.textContent = "No fue posible generar el código. Puedes abrir la demostración desde su tarjeta.";
+                if (typeof dialog.showModal === "function") dialog.showModal();
+                else dialog.setAttribute("open", "");
+            } finally {
+                openButton.disabled = false;
+                openButton.textContent = originalLabel;
+            }
+        });
+
+        dialog.addEventListener("click", (event) => {
+            const bounds = dialog.getBoundingClientRect();
+            const outside = event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom;
+            if (outside) dialog.close();
+        });
+    };
+
     const initializeProcessAnimation = () => {
         const section = document.querySelector(".process");
         const timeline = document.querySelector(".timeline-line");
@@ -207,6 +324,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
+    initializePortfolioFilters();
+    initializeDemoQr();
     initializeProcessAnimation();
     initializeFeaturesAnimation();
     initializeFaq();
@@ -222,7 +341,7 @@ const finishLoading = () => {
     window.setTimeout(() => {
         if (loader) loader.classList.add("hide");
         document.body.classList.remove("loading");
-    }, 1000);
+    }, 300);
 };
 
 if (document.readyState === "complete") {
