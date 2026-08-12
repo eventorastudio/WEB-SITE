@@ -572,6 +572,7 @@ select.form-control { padding-right: 42px; cursor: pointer; }
 .invitation-coming-soon h2 { z-index: 1; max-width: 630px; margin: 18px 0 12px; color: var(--event-text); font-family: var(--font-serif); font-size: clamp(1.85rem, 4vw, 2.7rem); font-weight: 600; letter-spacing: -0.04em; line-height: 1.08; }
 .invitation-coming-soon > p { z-index: 1; max-width: 600px; margin: 0; color: var(--event-muted); font-size: clamp(0.91rem, 1.5vw, 1rem); line-height: 1.7; }
 .coming-soon-note { z-index: 1; margin-top: 20px; color: var(--primary); font-size: 0.8rem; font-weight: 700; }
+.invitation-builder-entry { z-index: 1; margin-top: 24px; }
 
 /* Invitation editor (kept in the DOM while the feature is temporarily unavailable) */
 

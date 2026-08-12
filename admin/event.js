@@ -153,12 +153,33 @@ function storeStateAndContext(session, eventId, eventData, eventStats) {
         isLoaded: true
     });
     const dependencyContainer = createDependencyContainer(eventId, eventData, eventStats, session);
+    configureInvitationBuilderEntry(dependencyContainer);
     prepareModules(dependencyContainer);
     startEventStatsSubscription(dependencyContainer);
 
     completeEventBoot();
     registerLifecycleCleanup();
     ready(dependencyContainer);
+}
+
+function configureInvitationBuilderEntry(container) {
+    const button = document.getElementById('btn-open-invitation-builder');
+    const note = document.getElementById('invitation-builder-access-note');
+    const canEditInvitation = hasPermission(container.eventContext.roleContext, PERMISSIONS.INVITATIONS_EDIT);
+
+    if (!canEditInvitation) {
+        if (note) note.textContent = 'Tu rol permite consultar el evento, pero no editar su invitación.';
+        return;
+    }
+
+    if (button) {
+        button.hidden = false;
+        button.addEventListener('click', () => {
+            const query = new URLSearchParams({ event: container.eventContext.eventId });
+            window.location.href = `./invitations/builder.html?${query.toString()}`;
+        });
+    }
+    if (note) note.textContent = 'Fase 1 · El borrador permanece únicamente en este navegador.';
 }
 
 function completeEventBoot() {

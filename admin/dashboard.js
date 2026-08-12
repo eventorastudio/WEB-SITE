@@ -31,6 +31,7 @@ const displayUserRole = document.getElementById('display-user-role');
 const userAvatar = document.getElementById('user-avatar');
 const welcomeSection = document.getElementById('welcome-section');
 const btnCreateEvent = document.getElementById('btn-create-event');
+const btnCreateInvitation = document.getElementById('btn-create-invitation');
 const statsContainer = document.getElementById('stats-container');
 const eventsContainer = document.getElementById('events-container');
 
@@ -106,6 +107,13 @@ function initUI() {
 
     // Abrir modal de nuevo evento
     btnCreateEvent.addEventListener('click', openModal);
+
+    if (btnCreateInvitation && hasPermission(dashboardRoleContext, PERMISSIONS.INVITATIONS_EDIT)) {
+        btnCreateInvitation.hidden = false;
+        btnCreateInvitation.addEventListener('click', () => {
+            window.location.href = './invitations/builder.html';
+        });
+    }
 }
 
 function renderWelcomeHero(user) {

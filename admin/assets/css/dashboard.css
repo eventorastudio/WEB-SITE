@@ -455,8 +455,19 @@ body {
 /* MAIN ACTION BUTTON PREMIUM */
 .actions-section {
     display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
     margin-bottom: 48px;
 }
+
+.btn-create-invitation {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.btn-create-invitation[hidden] { display: none; }
 
 .btn-primary {
     background-color: var(--color-black);
