@@ -47,11 +47,23 @@
 LOADER
 ===========================-->
 
-<div id="loader">
+<div id="loader" role="status" aria-live="polite" aria-label="Cargando Eventora Studio">
+
+    <div class="loader-frame" aria-hidden="true"></div>
 
     <div class="loader-content">
 
-        <img src="assets/portfolio/LOGO.jpg" alt="Eventora Studio" class="loader-logo" width="1024" height="1024" fetchpriority="high" decoding="async">
+        <p class="loader-eyebrow">Bienvenido a</p>
+
+        <div class="loader-logo-shell">
+            <img src="assets/portfolio/LOGO2.png" alt="" class="loader-logo" width="1717" height="1717" fetchpriority="high" decoding="async">
+        </div>
+
+        <p class="loader-brand">Eventora Studio</p>
+
+        <p class="loader-tagline">Diseñamos experiencias digitales para momentos inolvidables.</p>
+
+        <div class="loader-progress" aria-hidden="true"><span></span></div>
 
     </div>
 

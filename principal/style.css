@@ -2634,134 +2634,205 @@ body.loading{
 
 }
 
-.loader-logo{
+/* Premium brand welcome */
+#loader{
+    display:grid;
+    place-items:center;
+    overflow:hidden;
+    padding:clamp(24px,5vw,64px);
+    background:
+        radial-gradient(circle at 50% 42%,rgba(218,190,133,.14),transparent 30%),
+        linear-gradient(145deg,#fffefb 0%,#f8f4ec 55%,#f3eee4 100%);
+    transition:opacity .62s cubic-bezier(.22,1,.36,1),visibility 0s linear .62s;
+    isolation:isolate;
+}
 
-    width:240px;
-
-    max-width:75vw;
-
+#loader.hide{
     opacity:0;
-
-    transform:translateY(20px) scale(.96);
-
-    animation:logoAppear 1s ease forwards;
-
-    filter:drop-shadow(0 10px 25px rgba(0,0,0,.08));
-
-}
-
-/* Brillo */
-
-.loader-content::after{
-
-    content:"";
-
-    position:absolute;
-
-    width:140%;
-
-    height:120%;
-
-    left:-150%;
-
-    background:linear-gradient(
-
-        90deg,
-
-        transparent,
-
-        rgba(255, 255, 255, 0.45),
-
-        transparent
-
-    );
-
-    transform:skewX(-20deg);
-
-    animation:shine 1.5s ease forwards;
-
+    visibility:hidden;
     pointer-events:none;
-
-}
-
-@keyframes logoAppear{
-
-    from{
-
-        opacity:0;
-
-        transform:translateY(20px) scale(.96);
-
-    }
-
-    to{
-
-        opacity:1;
-
-        transform:translateY(0) scale(1);
-
-    }
-
-}
-
-@keyframes shine{
-
-    from{
-
-        left:-150%;
-
-    }
-
-    to{
-
-        left:150%;
-
-    }
-
 }
 
 #loader::before{
-
     content:"";
-
     position:absolute;
-
-    width:500px;
-
-    height:500px;
-
+    width:min(72vw,720px);
+    height:auto;
+    aspect-ratio:1;
+    border:1px solid rgba(176,139,72,.12);
     border-radius:50%;
-
-    background:#f5f4f2;
-
-    opacity:.05;
-
-    filter:blur(120px);
-
-    animation:pulseGlow 2s ease-in-out infinite;
-
+    background:transparent;
+    opacity:.7;
+    filter:none;
+    box-shadow:0 0 0 70px rgba(255,255,255,.18),0 0 110px rgba(183,145,74,.08);
+    animation:loaderHalo 2.8s ease-in-out infinite;
+    z-index:-1;
 }
 
-@keyframes pulseGlow{
-
-    0%,100%{
-
-        transform:scale(.9);
-
-        opacity:.04;
-
-    }
-
-    50%{
-
-        transform:scale(1.05);
-
-        opacity:.08;
-
-    }
-
+.loader-frame{
+    position:absolute;
+    inset:clamp(12px,2.1vw,30px);
+    border:1px solid rgba(151,116,57,.18);
+    pointer-events:none;
 }
 
+.loader-frame::before,
+.loader-frame::after{
+    content:"";
+    position:absolute;
+    top:-1px;
+    width:clamp(42px,8vw,100px);
+    height:1px;
+    background:linear-gradient(90deg,transparent,#bd9857,transparent);
+}
+
+.loader-frame::before{left:10%;}
+.loader-frame::after{right:10%;}
+
+.loader-content{
+    width:min(100%,540px);
+    flex-direction:column;
+    text-align:center;
+    transition:opacity .46s ease,transform .62s cubic-bezier(.22,1,.36,1);
+}
+
+.loader-content::after{content:none;}
+
+#loader.hide .loader-content{
+    opacity:0;
+    transform:translateY(-10px) scale(.985);
+}
+
+.loader-eyebrow{
+    margin:0 0 18px;
+    color:#9a793f;
+    font-size:clamp(.62rem,1.2vw,.72rem);
+    font-weight:600;
+    letter-spacing:.28em;
+    text-transform:uppercase;
+    opacity:0;
+    animation:loaderReveal .7s .05s cubic-bezier(.22,1,.36,1) forwards;
+}
+
+.loader-logo-shell{
+    position:relative;
+    width:clamp(126px,14vw,174px);
+    aspect-ratio:1;
+    margin-bottom:20px;
+    border-radius:50%;
+    opacity:0;
+    animation:loaderMarkReveal .86s .12s cubic-bezier(.22,1,.36,1) forwards;
+}
+
+.loader-logo-shell::after{
+    content:"";
+    position:absolute;
+    inset:7%;
+    border-radius:50%;
+    box-shadow:0 18px 45px rgba(101,72,28,.14);
+    pointer-events:none;
+}
+
+.loader-logo{
+    display:block;
+    width:100%;
+    height:100%;
+    max-width:none;
+    object-fit:contain;
+    opacity:1;
+    transform:none;
+    animation:none;
+    filter:none;
+}
+
+.loader-brand{
+    margin:0;
+    color:#211f1b;
+    font:500 clamp(2rem,4vw,3.15rem)/1 'Cormorant Garamond',serif;
+    letter-spacing:.035em;
+    opacity:0;
+    animation:loaderReveal .78s .2s cubic-bezier(.22,1,.36,1) forwards;
+}
+
+.loader-tagline{
+    max-width:400px;
+    margin:14px 0 0;
+    color:#736d63;
+    font-size:clamp(.78rem,1.5vw,.92rem);
+    line-height:1.7;
+    opacity:0;
+    animation:loaderReveal .78s .28s cubic-bezier(.22,1,.36,1) forwards;
+}
+
+.loader-progress{
+    position:relative;
+    width:118px;
+    height:1px;
+    overflow:hidden;
+    margin-top:28px;
+    background:rgba(143,116,70,.2);
+    opacity:0;
+    animation:loaderReveal .6s .36s ease forwards;
+}
+
+.loader-progress span{
+    position:absolute;
+    inset:0;
+    background:linear-gradient(90deg,transparent,#b58b46 38%,#e4c98f 62%,transparent);
+    transform:translateX(-100%);
+    animation:loaderProgress 1.35s cubic-bezier(.65,0,.35,1) infinite;
+}
+
+@keyframes loaderReveal{
+    from{opacity:0;transform:translateY(10px)}
+    to{opacity:1;transform:translateY(0)}
+}
+
+@keyframes loaderMarkReveal{
+    from{opacity:0;transform:translateY(12px) scale(.965)}
+    to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+@keyframes loaderProgress{
+    0%{transform:translateX(-100%)}
+    58%,100%{transform:translateX(100%)}
+}
+
+@keyframes loaderHalo{
+    0%,100%{opacity:.58;transform:scale(.98)}
+    50%{opacity:1;transform:scale(1.015)}
+}
+
+@media (max-width:480px){
+    #loader{padding:28px 24px;}
+    .loader-frame{inset:10px;}
+    .loader-logo-shell{width:128px;}
+    .loader-tagline{max-width:290px;}
+}
+
+@media (prefers-reduced-motion:reduce){
+    #loader,
+    .loader-content,
+    .loader-eyebrow,
+    .loader-logo-shell,
+    .loader-brand,
+    .loader-tagline,
+    .loader-progress,
+    .loader-progress span,
+    #loader::before{
+        animation:none;
+        transition-duration:.2s;
+    }
+
+    .loader-eyebrow,
+    .loader-logo-shell,
+    .loader-brand,
+    .loader-tagline,
+    .loader-progress{
+        opacity:1;
+        transform:none;
+    }
+}
 
 /*====================================
 FOOTER
@@ -3662,7 +3733,7 @@ TABLET · 768px AND BELOW
 
     .loader-logo{
 
-        width:170px;
+        width:100%;
 
     }
 

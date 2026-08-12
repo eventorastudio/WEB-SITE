@@ -339,9 +339,12 @@ const finishLoading = () => {
     const loader = document.getElementById("loader");
 
     window.setTimeout(() => {
-        if (loader) loader.classList.add("hide");
+        if (loader) {
+            loader.classList.add("hide");
+            loader.setAttribute("aria-hidden", "true");
+        }
         document.body.classList.remove("loading");
-    }, 300);
+    }, 180);
 };
 
 if (document.readyState === "complete") {

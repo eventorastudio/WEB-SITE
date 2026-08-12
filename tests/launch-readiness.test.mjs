@@ -18,6 +18,37 @@ const validateBalancedHtml = (html, label) => {
   assert.deepEqual(stack, [], `${label} contiene etiquetas HTML sin cerrar`);
 };
 
+test('el loader principal funciona como bienvenida premium sin alterar la carga real', async () => {
+  const [html, css, script] = await Promise.all([
+    read('principal/index.html'),
+    read('principal/style.css'),
+    read('principal/script.js')
+  ]);
+  const loaderStart = html.indexOf('<div id="loader"');
+  const loaderEnd = html.indexOf('<!-- ================= HEADER', loaderStart);
+  const loader = html.slice(loaderStart, loaderEnd);
+
+  assert.match(loader, /role="status"/);
+  assert.match(loader, /Bienvenido a/);
+  assert.match(loader, /Eventora Studio/);
+  assert.match(loader, /Diseñamos experiencias digitales para momentos inolvidables/);
+  assert.match(loader, /src="assets\/portfolio\/LOGO2\.png"/);
+  assert.match(loader, /width="1717" height="1717"/);
+  assert.doesNotMatch(loader, /LOGO\.jpg/);
+
+  assert.match(css, /\.loader-logo-shell\{[\s\S]*?width:clamp\(126px,14vw,174px\)/);
+  assert.match(css, /\.loader-logo\{[\s\S]*?object-fit:contain/);
+  assert.match(css, /#loader\.hide \.loader-content/);
+  assert.match(css, /@keyframes loaderReveal/);
+  assert.match(css, /@keyframes loaderProgress/);
+  assert.match(css, /@media \(max-width:480px\)/);
+  assert.match(css, /@media \(prefers-reduced-motion:reduce\)/);
+
+  assert.match(script, /window\.addEventListener\("load", finishLoading/);
+  assert.match(script, /loader\.setAttribute\("aria-hidden", "true"\)/);
+  assert.match(script, /}, 180\);/);
+});
+
 test('el portafolio conserva 11 demos y usa una sola fuente de metadatos para los filtros', async () => {
   const [html, script, css] = await Promise.all([
     read('principal/index.html'),
