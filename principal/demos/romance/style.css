@@ -7,3 +7,10 @@
 .letter-pass{position:relative;z-index:1;width:min(620px,100%);margin:34px auto;text-align:left}.letter-pass-tabs{display:flex;justify-content:center;gap:18px;margin-bottom:12px}.letter-pass-tabs button{padding:8px 3px;color:var(--wine);background:transparent;border:0;border-bottom:1px solid transparent;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase}.letter-pass-tabs button[aria-pressed=true]{border-color:var(--wine)}.letter-pass article{position:relative;min-height:230px;padding:38px 44px;background:linear-gradient(110deg,#fffaf2,#f0e2d4);box-shadow:0 24px 55px #5c203026;rotate:-1deg}.letter-pass article:before{content:"";position:absolute;inset:14px;border:1px solid #a96a7555;pointer-events:none}.letter-pass article[hidden]{display:none}.letter-pass strong,.letter-pass small,.letter-pass i{position:relative;display:block}.letter-pass strong{margin:12px 0;color:var(--wine);font:400 2rem Georgia,serif}.letter-pass small{margin-top:25px;letter-spacing:.16em}.letter-seal{position:absolute;right:30px;bottom:26px;display:grid;place-items:center;width:55px;aspect-ratio:1;color:#fff;background:var(--wine);border-radius:50%;font:italic 1rem Georgia,serif}@media(max-width:600px){.letter-pass article{padding:34px 28px}.letter-seal{position:relative;right:auto;bottom:auto;margin-top:20px}}
 .reveal{opacity:0;transform:translateY(18px) rotate(-.35deg);transform-origin:50% 0;transition:opacity .9s,transform 1s cubic-bezier(.2,.75,.25,1)}.reveal.visible{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+
+/* Final layout polish */
+.envelope-back,.portrait:before,.letter-seal{pointer-events:none}
+.hero-copy,.love-note,.rsvp>*{position:relative;z-index:2}
+.letter-pass article{min-width:0;overflow-wrap:anywhere}
+@media(max-width:730px){.hero nav{align-items:center}.hero nav a{padding-block:7px}.photo-story{overflow:hidden}.letter-pass-tabs{flex-wrap:wrap}}
+@media(max-width:390px){.letter{max-height:none}.letter-pass article{padding:32px 23px}}

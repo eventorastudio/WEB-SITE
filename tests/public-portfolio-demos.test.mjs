@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { access, readFile } from 'node:fs/promises';
+import { access, readFile, readdir } from 'node:fs/promises';
+import vm from 'node:vm';
 import {
   PACKAGE_MATRIX,
   PRESTIGE_COMMERCIAL_DEMO_MAP,
@@ -29,6 +30,26 @@ const collectPrestigeFeatures = (html) => {
     match[1].split(/\s+/).filter(Boolean).forEach((feature) => features.add(feature));
   }
   return features;
+};
+
+const localDocumentReferences = (html) => [...html.matchAll(/(?:href|src)="([^"#]+)"/g)]
+  .map((match) => match[1].replaceAll('&amp;', '&'))
+  .filter((value) => !/^(?:https?:|mailto:|tel:)/.test(value));
+
+const validateBalancedHtml = (html, label) => {
+  const voidElements = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
+  const stack = [];
+  for (const match of html.matchAll(/<\/?([a-z][\w-]*)\b[^>]*>/gi)) {
+    const token = match[0];
+    const tag = match[1].toLowerCase();
+    if (voidElements.has(tag) || token.endsWith('/>')) continue;
+    if (!token.startsWith('</')) {
+      stack.push(tag);
+      continue;
+    }
+    assert.equal(stack.pop(), tag, `${label} tiene una etiqueta </${tag}> fuera de orden`);
+  }
+  assert.deepEqual(stack, [], `${label} contiene etiquetas HTML sin cerrar`);
 };
 
 test('la matriz de paquetes replica exclusivamente la fuente comercial actual', async () => {
@@ -135,6 +156,87 @@ test('las once colecciones conservan sitios independientes y comparten únicamen
   }
 });
 
+test('todas las cards resuelven con capitalización exacta a un index y dependencias locales existentes', async () => {
+  const portfolio = await read('principal/index.html');
+  const realDirectories = new Set(await readdir(new URL('../principal/demos/', import.meta.url)));
+  const hrefs = [...portfolio.matchAll(/href="demos\/([^/]+)\/\?nombre=Andrea&amp;pases=2"/g)];
+  assert.equal(hrefs.length, DEMOS.length);
+  assert.deepEqual(hrefs.map((match) => match[1]), DEMOS);
+
+  for (const [, slug] of hrefs) {
+    assert.ok(realDirectories.has(slug), `La capitalización o el directorio de ${slug} no coincide con el href`);
+    const pageUrl = new URL(`../principal/demos/${slug}/index.html`, import.meta.url);
+    const html = await read(`principal/demos/${slug}/index.html`);
+    await access(pageUrl);
+    for (const reference of localDocumentReferences(html)) {
+      const target = new URL(reference, pageUrl);
+      target.search = '';
+      target.hash = '';
+      await access(target);
+    }
+  }
+});
+
+test('Vintage y Champagne inicializan su EVENT y mantienen su CTA de apertura libre de overlays', async () => {
+  const portfolio = await read('principal/index.html');
+  for (const demo of ['vintage', 'champagne']) {
+    const [html, css, script] = await Promise.all([
+      read(`principal/demos/${demo}/index.html`),
+      read(`principal/demos/${demo}/style.css`),
+      read(`principal/demos/${demo}/script.js`)
+    ]);
+    assert.match(portfolio, new RegExp(`href="demos/${demo}/\\?nombre=Andrea&amp;pases=2"`));
+    assert.match(html, /id="open-invitation"/);
+    assert.match(html, /src="\.\.\/demo-runtime\.js"/);
+    assert.match(html, /src="script\.js"/);
+    assert.match(html, /href="\.\.\/demo-mode\.css"/);
+    assert.match(html, /href="style\.css"/);
+    assert.match(css, demo === 'vintage'
+      ? /\.postcard:before\{pointer-events:none/
+      : /\.stationery:before\{pointer-events:none/);
+
+    let eventConfig;
+    vm.runInNewContext(script, {
+      EventoraDemo: { mount: (config) => { eventConfig = config; } },
+      encodeURIComponent,
+      Object
+    }, { filename: `${demo}/script.js` });
+    assert.ok(eventConfig, `${demo} no llamó EventoraDemo.mount`);
+    assert.equal(eventConfig.demoMode, true);
+    assert.match(eventConfig.title, /boda/i);
+    assert.doesNotThrow(() => new Date(eventConfig.date).toISOString());
+    assert.ok(eventConfig.music);
+    for (const action of ['maps', 'calendar', 'gifts', 'hotel', 'rsvp']) {
+      assert.ok(eventConfig.links[action], `${demo} no configuró ${action}`);
+    }
+    assert.match(eventConfig.links.rsvp({ guestName: 'Familia Hernández Rodríguez', passes: 6 }), /^https:\/\/wa\.me\//);
+  }
+});
+
+test('los once documentos mantienen IDs únicos, anclas válidas y HTML balanceado', async () => {
+  for (const demo of DEMOS) {
+    const html = await read(`principal/demos/${demo}/index.html`);
+    validateBalancedHtml(html, demo);
+    const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]);
+    assert.equal(new Set(ids).size, ids.length, `${demo} contiene IDs duplicados`);
+    for (const fragment of [...html.matchAll(/href="#([^"]+)"/g)].map((match) => match[1])) {
+      assert.ok(ids.includes(fragment), `${demo} enlaza a #${fragment}, pero ese ID no existe`);
+    }
+  }
+});
+
+test('el pulido común protege capas, safe areas, nombres largos y controles táctiles', async () => {
+  const css = await read('principal/demos/demo-mode.css');
+  assert.match(css, /z-index:\s*2147483000/);
+  assert.match(css, /env\(safe-area-inset-top\)/);
+  assert.match(css, /env\(safe-area-inset-bottom\)/);
+  assert.match(css, /#open-invitation[\s\S]*?z-index:\s*20/);
+  assert.match(css, /#open-invitation[\s\S]*?min-height:\s*44px/);
+  assert.match(css, /overflow-wrap:\s*anywhere/);
+  assert.match(css, /max-height:\s*calc\(100dvh/);
+  assert.match(css, /body \.music-control/);
+});
+
 test('apertura, música, countdown y personalización funcionan mediante un contrato común', async () => {
   const runtime = await read('principal/demos/demo-runtime.js');
   assert.match(runtime, /new URLSearchParams\(window\.location\.search\)/);
@@ -149,6 +251,9 @@ test('apertura, música, countdown y personalización funcionan mediante un cont
   assert.match(runtime, /invitation\.focus/);
   assert.match(runtime, /Math\.max\(targetTime - Date\.now\(\), 0\)/);
   assert.match(runtime, /IntersectionObserver/);
+  assert.match(runtime, /count <= context\.authorizedPasses/);
+  assert.match(runtime, /context\.selectedPasses = count/);
+  assert.match(runtime, /setAttribute\('aria-pressed'/);
   assert.match(runtime, /textContent = value/);
   assert.doesNotMatch(runtime, /innerHTML\s*=/);
   assert.doesNotMatch(runtime, /console\./);

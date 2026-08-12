@@ -7,3 +7,11 @@
 .reveal{opacity:0;transform:translateY(14px) scale(.97);clip-path:inset(0 0 10% 0);transition:opacity .7s,transform .9s,clip-path .9s}.reveal.visible{opacity:1;transform:none;clip-path:inset(0)}
 @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;clip-path:none;transition:none}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
+
+/* Final layout polish */
+.darkness,.hero-light,.flare,.film-light:before{pointer-events:none}
+.hero-copy,.venue>div:last-child,.fashion>div:first-child,.rsvp>*{position:relative;z-index:2}
+.night-pass article{grid-template-columns:minmax(72px,130px) minmax(0,1fr)}
+.night-pass strong{overflow-wrap:anywhere}
+@media(max-width:720px){.hero nav{align-items:center}.hero nav a{padding-block:7px}.hero-copy{padding-top:min(30vh,260px)}}
+@media(max-width:390px){.hero-copy{padding-top:min(31vh,235px)}.night-pass article{grid-template-columns:1fr}.night-code{width:64px}}

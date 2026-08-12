@@ -7,3 +7,11 @@
 .reveal{opacity:0;transform:translateY(22px) rotate(.35deg);transition:opacity .9s,transform 1s cubic-bezier(.22,.75,.28,1)}.reveal.visible{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
+
+/* Final layout polish */
+.branch{z-index:1;pointer-events:none}.paper{z-index:2}.paper>*{position:relative;z-index:2}
+.hero-art,.moving-herbarium,.stem,.wreath{pointer-events:none}
+.pressed-pass article{grid-template-columns:minmax(70px,130px) minmax(0,1fr)}
+.pressed-pass strong{overflow-wrap:anywhere}
+@media(max-width:720px){.hero nav{align-items:center}.hero nav a{padding-block:7px}.pressed-pass article{grid-template-columns:75px minmax(0,1fr)}}
+@media(max-width:390px){.pressed-pass article{grid-template-columns:1fr}.pressed-leaf{width:58px;height:84px}}

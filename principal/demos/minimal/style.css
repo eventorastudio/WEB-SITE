@@ -9,3 +9,11 @@
 .access-index{grid-column:2;width:min(680px,100%);margin:30px 0;color:#0b0b0b;background:#f5f5f2;border:1px solid #f5f5f2;text-align:left}.access-index header{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid #0b0b0b;font-size:.58rem;letter-spacing:.15em}.access-index header button{padding:7px 9px;color:#0b0b0b;background:transparent;border:1px solid transparent;font-size:.58rem;letter-spacing:.1em}.access-index header button[aria-pressed=true]{color:#fff;background:#0b0b0b}.access-index article{min-height:210px;display:grid;grid-template-columns:150px 1fr;gap:30px;align-items:center;padding:28px}.access-index article[hidden]{display:none}.access-index strong,.access-index small,.access-index article>span{display:block}.access-index strong{margin:8px 0;font-size:2rem;letter-spacing:-.04em}.access-index small,.access-index article>span{letter-spacing:.15em}.index-code{display:grid!important;place-items:center;width:125px;aspect-ratio:1;color:#fff;background:#0b0b0b;font-size:2.1rem;font-weight:700;line-height:.7;letter-spacing:-.08em!important}@media(max-width:700px){.access-index{grid-column:1}.access-index header{align-items:flex-start;flex-direction:column;gap:12px}.access-index article{grid-template-columns:85px 1fr;padding:20px}.index-code{width:75px;font-size:1.4rem}}
 .reveal{opacity:0;transform:translateX(-24px);transition:opacity .55s linear,transform .72s cubic-bezier(.25,.8,.25,1)}.reveal.visible{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+
+/* Final layout polish */
+.open-grid:before,.hero-crop:before,.motion-frame:before,.editorial-image:before{pointer-events:none}
+.open-grid>*{position:relative;z-index:1}.hero-meta,.minimal-film article,.rsvp>*{min-width:0}
+.access-index article{grid-template-columns:minmax(75px,150px) minmax(0,1fr)}
+.access-index strong{overflow-wrap:anywhere}
+@media(max-width:700px){.hero nav{align-items:center}.hero nav a{padding-block:7px}.access-index article{grid-template-columns:85px minmax(0,1fr)}}
+@media(max-width:390px){.access-index article{grid-template-columns:1fr}.index-code{width:68px}}

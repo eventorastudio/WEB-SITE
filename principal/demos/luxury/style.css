@@ -7,3 +7,10 @@
 .seat-pass{width:min(660px,100%);margin:36px auto;text-align:left;border:1px solid #8b744e;background:#0d0c0a;color:#eee7da}.seat-pass header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #4b4030;font-size:.58rem;letter-spacing:.16em}.seat-pass header button{padding:7px 10px;color:#c8a365;background:transparent;border:0;border-bottom:1px solid transparent;text-transform:uppercase;letter-spacing:.12em}.seat-pass header button[aria-pressed=true]{border-color:#c8a365}.seat-pass article{min-height:210px;display:grid;grid-template-columns:150px 1fr;gap:28px;align-items:center;padding:30px}.seat-pass article[hidden]{display:none}.seat-monogram{display:grid;place-items:center;width:130px;aspect-ratio:1;border:1px solid #c8a365;color:#c8a365;font:italic 2.5rem Georgia,serif}.seat-pass strong,.seat-pass small,.seat-pass span{display:block}.seat-pass strong{margin:8px 0;font:400 2rem Georgia,serif}.seat-pass small,.seat-pass span{letter-spacing:.14em}.seat-pass em{color:#c8a365}.seat-line{height:1px;margin:25px 0;background:#8b744e}@media(max-width:600px){.seat-pass header{align-items:flex-start;flex-direction:column;gap:12px}.seat-pass article{grid-template-columns:1fr}.seat-monogram{width:90px}}
 .reveal{opacity:0;transform:translateY(20px) scale(.985);transition:opacity 1s,transform 1.15s cubic-bezier(.16,.8,.18,1)}.reveal.visible{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+
+/* Final layout polish */
+.opening-panel,.envelope:before,.envelope:after,.flap,.hero-visual:before,.hero-visual:after{pointer-events:none}
+.envelope-wrap{max-width:100%}.hero-frame,.chapter>*,.concierge>*{min-width:0}
+.seat-pass article{grid-template-columns:minmax(90px,150px) minmax(0,1fr)}
+.seat-pass strong{overflow-wrap:anywhere}
+@media(max-width:700px){.editorial-nav{align-items:center}.editorial-nav a{padding-block:7px}.chapter>p{max-width:42ch}.seat-pass article{grid-template-columns:1fr}.seat-monogram{width:82px}}
