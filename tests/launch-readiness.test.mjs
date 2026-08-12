@@ -157,6 +157,75 @@ test('WhatsApp lleva un mensaje estructurado y conserva contexto de paquete', as
   }
 });
 
+test('los footers públicos muestran Instagram, WhatsApp y correo mediante Lucide estable', async () => {
+  const publicPages = [
+    'principal/index.html',
+    'paquetes/index.html',
+    'legal/privacidad/index.html',
+    'legal/terminos/index.html',
+    'legal/politicas/index.html',
+    '404.html'
+  ];
+  const [shell, socialCss, ...pages] = await Promise.all([
+    read('principal/public-shell.js'),
+    read('principal/public-socials.css'),
+    ...publicPages.map(read)
+  ]);
+
+  for (const [index, html] of pages.entries()) {
+    const footerStart = html.indexOf('<footer');
+    const footerEnd = html.indexOf('</footer>', footerStart);
+    const footer = html.slice(footerStart, footerEnd);
+    assert.ok(footerStart >= 0, `${publicPages[index]} no contiene footer`);
+    assert.match(footer, /class="[^"]*public-socials[^"]*" role="group" aria-label="Redes sociales y contacto"/);
+    assert.match(footer, /href="https:\/\/www\.instagram\.com\/eventorastudio\/"/);
+    assert.match(footer, /aria-label="Instagram de Eventora Studio"/);
+    assert.match(footer, /data-lucide="instagram"/);
+    assert.match(footer, /aria-label="WhatsApp de Eventora Studio"/);
+    assert.match(footer, /data-lucide="message-circle"/);
+    assert.match(footer, /href="mailto:Ev3ntoraStudio@gmail\.com"/);
+    assert.match(footer, /data-lucide="mail"/);
+    assert.match(html, /lucide@0\.522\.0\/dist\/umd\/lucide\.min\.js/);
+    assert.match(html, /principal\/public-shell\.js|src="public-shell\.js"/);
+    assert.doesNotMatch(html, /lucide@latest/);
+  }
+
+  assert.match(shell, /typeof globalThis\.lucide\?\.createIcons/);
+  assert.match(shell, /globalThis\.lucide\.createIcons\(\)/);
+  assert.match(socialCss, /\.public-socials a:focus-visible/);
+  assert.match(socialCss, /\.public-socials svg\{[\s\S]*?stroke:currentColor;[\s\S]*?opacity:1/);
+});
+
+test('paquetes reutiliza el header público con navegación activa y anchors despejados', async () => {
+  const [packages, home, publicShell, homeCss, packageCss] = await Promise.all([
+    read('paquetes/index.html'),
+    read('principal/index.html'),
+    read('principal/public-shell.js'),
+    read('principal/style.css'),
+    read('paquetes/paquetes.css')
+  ]);
+  const headerStart = packages.indexOf('<header>');
+  const headerEnd = packages.indexOf('</header>', headerStart);
+  const header = packages.slice(headerStart, headerEnd);
+
+  assert.ok(headerStart >= 0);
+  assert.match(header, /href="\/principal\/" class="logo"/);
+  assert.match(header, /class="menu-toggle"/);
+  assert.match(header, /aria-controls="primary-navigation"/);
+  assert.match(header, /<nav id="primary-navigation" aria-label="Navegación principal">/);
+  assert.match(header, /href="\/principal\/#inicio">Inicio<\/a>/);
+  assert.match(header, /href="\/principal\/#portafolio">Portafolio<\/a>/);
+  assert.match(header, /href="\/paquetes\/" aria-current="page">Paquetes<\/a>/);
+  assert.match(header, /href="\/principal\/#contacto">Contacto<\/a>/);
+  assert.match(packages.slice(headerEnd), /class="menu-backdrop" aria-hidden="true"/);
+  assert.match(home, /class="menu-toggle"/);
+  assert.match(publicShell, /window\.matchMedia\("\(max-width: 768px\)"\)/);
+  assert.match(publicShell, /event\.key === "Escape"/);
+  assert.match(homeCss, /nav a\[aria-current="page"\]/);
+  assert.match(packageCss, /\.package-section\{[\s\S]*?scroll-margin-top:100px/);
+  assert.match(packageCss, /\.packages-overview\{[\s\S]*?scroll-margin-top:100px/);
+});
+
 test('SEO público, sitemap, robots, 404 y áreas privadas quedan listos', async () => {
   const [home, packages, robots, sitemap, notFound] = await Promise.all([
     read('principal/index.html'), read('paquetes/index.html'), read('robots.txt'), read('sitemap.xml'), read('404.html')

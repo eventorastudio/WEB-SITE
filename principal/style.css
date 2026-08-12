@@ -128,6 +128,14 @@ nav a:hover{
 
 }
 
+nav a[aria-current="page"]{
+
+    color:#b48a3d;
+
+    font-weight:600;
+
+}
+
 /* ===========================
    HERO
 =========================== */
@@ -2836,58 +2844,6 @@ FOOTER
 
 }
 
-.footer-social{
-
-    display:flex;
-
-    justify-content:center;
-
-    gap:22px;
-
-    margin-bottom:45px;
-
-}
-
-.footer-social a{
-
-    width:52px;
-
-    height:52px;
-
-    border:1px solid rgba(255,255,255,.12);
-
-    border-radius:50%;
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    color:white;
-
-    transition:.35s;
-
-}
-
-.footer-social a:hover{
-
-    background:#D4AF37;
-
-    border-color:#D4AF37;
-
-    transform:translateY(-5px);
-
-}
-
-.footer-social svg{
-
-    width:22px;
-
-    height:22px;
-
-}
-
 .footer-bottom{
 
     border-top:1px solid rgba(255,255,255,.08);
@@ -3269,6 +3225,13 @@ TABLET · 768px AND BELOW
     .portfolio-card img{
 
         height:230px;
+
+    }
+
+    nav a[aria-current="page"]{
+
+        color:#111;
+        background:#F7F4EE;
 
     }
 
@@ -3662,12 +3625,6 @@ TABLET · 768px AND BELOW
 
     }
 
-    .footer-social{
-
-        margin-bottom:34px;
-
-    }
-
     .whatsapp-float{
 
         position:fixed;
@@ -3985,13 +3942,6 @@ MOBILE · 576px AND BELOW
         gap:16px;
 
         margin:36px 0 30px;
-
-    }
-
-    .footer-social a{
-
-        width:48px;
-        height:48px;
 
     }
 

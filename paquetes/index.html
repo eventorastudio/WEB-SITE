@@ -39,6 +39,7 @@
 
     <!-- CSS principal -->
     <link rel="stylesheet" href="../principal/style.css">
+    <link rel="stylesheet" href="../principal/public-socials.css">
 
     <!-- CSS exclusivo de esta página -->
     <link rel="stylesheet" href="paquetes.css">
@@ -46,6 +47,38 @@
 </head>
 
 <body>
+
+    <header>
+
+        <div class="container">
+
+            <a href="/principal/" class="logo" aria-label="Eventora Studio, volver al inicio">
+
+                EVENTORA
+                <span>STUDIO</span>
+
+            </a>
+
+            <button class="menu-toggle" type="button" aria-label="Abrir menú de navegación" aria-controls="primary-navigation" aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <nav id="primary-navigation" aria-label="Navegación principal">
+
+                <a href="/principal/#inicio">Inicio</a>
+                <a href="/principal/#portafolio">Portafolio</a>
+                <a href="/paquetes/" aria-current="page">Paquetes</a>
+                <a href="/principal/#contacto">Contacto</a>
+
+            </nav>
+
+        </div>
+
+    </header>
+
+    <div class="menu-backdrop" aria-hidden="true"></div>
 
     <!-- ===================================================== -->
     <!-- HERO -->
@@ -779,7 +812,7 @@
 
         </div>
 
-        <div class="footer-social">
+        <div class="footer-social public-socials" role="group" aria-label="Redes sociales y contacto">
 
             <a href="https://www.instagram.com/eventorastudio/"
 
@@ -828,15 +861,8 @@
     </a>
 
 
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    
-
-    <script>
-
-        lucide.createIcons();
-
-    </script>
+    <script src="https://unpkg.com/lucide@0.522.0/dist/umd/lucide.min.js"></script>
+    <script src="/principal/public-shell.js"></script>
 
     <script src="paquetes.js"></script>
 

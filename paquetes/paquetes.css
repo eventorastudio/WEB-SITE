@@ -90,6 +90,8 @@
 
     padding:120px 20px;
 
+    scroll-margin-top:100px;
+
 }
 
 .packages-overview .container{
@@ -296,6 +298,8 @@
 .package-section{
 
     padding:140px 20px;
+
+    scroll-margin-top:100px;
 
 }
 
