@@ -70,6 +70,15 @@ button { font: inherit; }
 
 .welcome { display: grid; grid-template-columns: .5fr 1.4fr 1fr; gap: 5vw; padding: clamp(80px, 12vw, 160px) clamp(24px, 7vw, 110px); align-items: end; }
 .welcome h2, .section-heading h2, .location h2, .dress h2, .envelope-section h2, .rsvp h2 { margin: 0; font: 400 clamp(2.7rem, 6vw, 6rem)/.94 Georgia, serif; letter-spacing: -.055em; }
+.tropical-film { display: grid; grid-template-columns: 1.15fr .85fr; gap: 7vw; align-items: center; padding: clamp(80px, 11vw, 150px) clamp(24px, 7vw, 110px); color: var(--cream); background: var(--deep); }
+.film-poster { position: relative; min-height: 520px; display: grid; place-items: center; overflow: hidden; background: radial-gradient(circle at 28% 30%, var(--sun) 0 9%, transparent 10%), linear-gradient(145deg, var(--aqua), #075b69); border-radius: 48% 52% 7% 7%; box-shadow: 18px 18px 0 rgb(244 91 105 / .35); }
+.film-poster::after { content: ''; position: absolute; inset: auto -8% -35% 35%; width: 72%; aspect-ratio: 1; background: var(--green); border-radius: 55% 0 55% 0; rotate: -25deg; }
+.film-poster span { font-size: clamp(3.8rem, 10vw, 8rem); font-weight: 900; letter-spacing: -.08em; z-index: 1; }
+.film-poster i { position: absolute; right: 25px; top: 20px; font: 400 3rem Georgia, serif; }
+.tropical-film h2 { margin: 0 0 22px; font: 400 clamp(2.8rem, 6vw, 6rem)/.9 Georgia, serif; }
+.tropical-film.is-playing .film-poster { animation: filmPulse 1.8s ease-in-out infinite alternate; }
+.location-stops { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 24px 0; }
+.location-stops p { margin: 0; padding: 13px; border: 1px solid rgb(18 56 59 / .2); }
 .welcome > p:last-child { max-width: 34ch; margin: 0; line-height: 1.8; }
 .handwritten { margin: 0 0 18px; color: var(--coral); font: italic 1.2rem Georgia, serif; }
 
@@ -145,6 +154,7 @@ footer b, footer span { display: block; letter-spacing: .15em; } footer span { m
   .island-nav { justify-content: space-between; gap: 10px; }.hero { min-height: 100svh; padding: 92px 20px 48px; background-position: 56% center; }.hero h2 { font-size: clamp(4.2rem, 22vw, 7rem); }.hero-sun { width: 100px; height: 100px; top: 16%; right: 8%; }.hibiscus-a { display: none; }
   .welcome { grid-template-columns: 1fr; gap: 22px; padding: 80px 24px; }.welcome h2 { font-size: clamp(3rem, 14vw, 5rem); }
   .countdown-band { grid-template-columns: 1fr; padding: 58px 20px; }.countdown { margin-inline: -8px; }.countdown div { padding: 8px; }.countdown strong { font-size: clamp(1.65rem, 9vw, 2.8rem); }.countdown span { font-size: .52rem; }
+  .tropical-film { grid-template-columns: 1fr; padding: 76px 24px; }.film-poster { min-height: 420px; }.location-stops { grid-template-columns: 1fr; }
   .section-heading { display: block; margin-bottom: 42px; }.itinerary { padding: 80px 24px; }.itinerary ol { grid-template-columns: 1fr; border-top: 0; border-left: 2px solid var(--deep); }.itinerary li { padding: 6px 0 40px 28px; border-right: 0; }.itinerary li::before { top: 3px; left: -8px; }
   .location { grid-template-columns: 1fr; }.location-visual { min-height: 48svh; }.location-copy { padding: 66px 24px 76px; }.action-row { align-items: flex-start; flex-direction: column; }
   .pool-note { padding: 84px 16px; }.pool-title { gap: 9px; font-size: 18vw; }.pool-tips { flex-direction: column; gap: 9px; font-size: .72rem; }
@@ -153,6 +163,7 @@ footer b, footer span { display: block; letter-spacing: .15em; } footer span { m
   .envelope-section { grid-template-columns: 1fr; padding: 90px 24px; }.css-envelope { width: 90%; }
   .social-strip { align-items: flex-start; flex-direction: column; padding-block: 40px; }.rsvp { min-height: 78svh; }.rsvp-flower { width: 210px; }
 }
+@keyframes filmPulse { to { filter: saturate(1.25) brightness(1.08); transform: scale(.995); } }
 
 @media (max-width: 390px) {
   .resort-card h1 { font-size: 3.3rem; }.opening-guest { max-width: 25ch; }.hero h2 { font-size: 4.1rem; }.guest-ticket { padding: 15px; }.island-nav a { font-size: .58rem; }.postcards { grid-template-columns: 1fr; }.postcard-card:nth-child(2), .postcard-card:nth-child(3) { grid-column: auto; min-height: 340px; margin: 0; transform: none; }

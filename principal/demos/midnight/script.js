@@ -7,6 +7,7 @@ const EVENT = Object.freeze({
     maps: 'https://www.google.com/maps/search/?api=1&query=Centro+Convex+Monterrey',
     calendar: 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=XV+Valentina',
     hotel: 'https://www.google.com/travel/hotels/Monterrey',
+    gifts: 'https://www.amazon.com.mx/',
     instagram: 'https://www.instagram.com/',
     rsvp: ({ guestName, passes }) => `https://wa.me/528443884334?text=${encodeURIComponent(`Hola, confirmo mi acceso a ${EVENT.title}. Soy ${guestName}; la invitación contempla ${passes} ${passes === 1 ? 'acceso' : 'accesos'}.`)}`
   },

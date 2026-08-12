@@ -514,6 +514,21 @@ nav a:hover{
 
 }
 
+.portfolio-info .portfolio-prestige-badge{
+    display:inline-flex;
+    margin-bottom:14px;
+    padding:6px 9px;
+    color:#8b6b32;
+    background:#f8f3e8;
+    border:1px solid rgba(139,107,50,.28);
+    border-radius:999px;
+    font-size:.6rem;
+    font-weight:700;
+    line-height:1;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+}
+
 .portfolio-info p{
 
     color:#666;

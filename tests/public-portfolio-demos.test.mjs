@@ -1,10 +1,64 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { access, readFile } from 'node:fs/promises';
+import { PACKAGE_MATRIX, PRESTIGE_DEMO_FEATURES, PRESTIGE_SERVICE_BENEFITS } from '../principal/demos/prestige-contract.js';
 
 const DEMOS = ['xv-renatta', 'luxury', 'botanical', 'midnight', 'romance', 'minimal'];
 const NEW_COLLECTIONS = DEMOS.slice(1);
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
+
+const extractFeatureTitles = (html, startId, endId) => {
+  const start = html.indexOf(`id="${startId}"`);
+  const end = endId ? html.indexOf(`id="${endId}"`, start) : html.length;
+  assert.ok(start >= 0 && end > start, `No se encontró la sección comercial ${startId}`);
+  return [...html.slice(start, end).matchAll(/<h4>([^<]+)<\/h4>/g)].map((match) => match[1].trim());
+};
+
+const collectPrestigeFeatures = (html) => {
+  const features = new Set();
+  for (const match of html.matchAll(/data-prestige-feature="([^"]+)"/g)) features.add(match[1]);
+  for (const match of html.matchAll(/data-prestige-features="([^"]+)"/g)) {
+    match[1].split(/\s+/).filter(Boolean).forEach((feature) => features.add(feature));
+  }
+  return features;
+};
+
+test('la matriz de paquetes replica exclusivamente la fuente comercial actual', async () => {
+  const html = await read('paquetes/index.html');
+  assert.deepEqual(extractFeatureTitles(html, 'esencial', 'premium'), PACKAGE_MATRIX.esencial);
+  assert.deepEqual(extractFeatureTitles(html, 'premium', 'prestige'), PACKAGE_MATRIX.premium);
+  assert.deepEqual(extractFeatureTitles(html, 'prestige'), PACKAGE_MATRIX.prestige);
+  assert.deepEqual(PRESTIGE_SERVICE_BENEFITS, [
+    'Atención personalizada',
+    'Más cambios incluidos',
+    'Atención prioritaria'
+  ]);
+});
+
+test('PRESTIGE_DEMO_FEATURES está activo en las seis demos y las etiquetas son inequívocas', async () => {
+  for (const demo of DEMOS) {
+    const [html, script] = await Promise.all([
+      read(`principal/demos/${demo}/index.html`),
+      read(`principal/demos/${demo}/script.js`)
+    ]);
+    const activeFeatures = collectPrestigeFeatures(html);
+    for (const feature of PRESTIGE_DEMO_FEATURES) {
+      assert.ok(activeFeatures.has(feature), `${demo} no representa la función Prestige: ${feature}`);
+    }
+    assert.match(html, /Prestige · Demo/i);
+    assert.match(html, /Demostración Prestige/i);
+    assert.match(html, /funciones pueden variar según el paquete contratado/i);
+    assert.match(html, /data-demo-video/);
+    assert.match(html, /data-pass-selector/);
+    assert.match(html, /data-demo-action="gifts"/);
+    assert.match(script, /demoMode:\s*true/);
+  }
+});
+
+test('las seis tarjetas del portafolio identifican sus experiencias Prestige', async () => {
+  const html = await read('principal/index.html');
+  assert.equal((html.match(/class="portfolio-prestige-badge">Demo Prestige/g) || []).length, DEMOS.length);
+});
 
 test('las seis colecciones conservan sitios independientes y comparten únicamente el runtime', async () => {
   await access(new URL('../principal/demos/demo-runtime.js', import.meta.url));

@@ -28,3 +28,43 @@ inicial.
 
 No forman parte de esta etapa Celestial, Vintage, Garden, Champagne ni Neon
 Party.
+
+## Contrato comercial Prestige
+
+La fuente de verdad es `paquetes/index.html`. La página define paquetes
+acumulativos: Premium incluye Esencial y Prestige incluye Premium. La matriz
+encontrada es:
+
+| Esencial | Premium (además de Esencial) | Prestige (además de Premium) |
+| --- | --- | --- |
+| Diseño 100% personalizado | Video de bienvenida | Múltiples ubicaciones |
+| Música personalizada | Galería de fotografías | Itinerario del evento |
+| Confirmación RSVP | Mesa de regalos | Pases personalizados |
+| Cuenta regresiva | Selección inteligente de pases | Control avanzado de invitados |
+| Google Maps | Más cambios incluidos | Personalización avanzada |
+| Dress Code | Animaciones premium | Atención prioritaria |
+| Compatible con cualquier dispositivo |  |  |
+| Atención personalizada |  |  |
+
+`prestige-contract.js` conserva la matriz textual y exporta
+`PRESTIGE_DEMO_FEATURES`, el contrato de capacidades observables que deben
+cumplir las seis demos. Atención personalizada, más cambios incluidos y atención
+prioritaria son beneficios del servicio; no se convierten artificialmente en
+secciones de una invitación.
+
+Todas las colecciones muestran personalización por invitado, pases
+personalizados con selección interna, música, RSVP, cuenta regresiva, Google
+Maps simulado, Dress Code, video de bienvenida ligero, galería, mesa de regalos,
+animaciones, múltiples ubicaciones e itinerario. También conservan un ejemplo
+propio de personalización avanzada:
+
+- Aloha: programa tropical, pool notes y destinos de celebración.
+- Luxury: agenda black-tie y concierge editorial.
+- Botanical: ceremonia/recepción como recorrido de jardín y herbario en movimiento.
+- Midnight: secuencia nocturna, segunda ubicación y night desk.
+- Romance: historia de pareja, carta audiovisual e itinerario narrativo.
+- Minimal: información adicional en bloques tipográficos y agenda indexada.
+
+El texto visible común es **“Demostración Prestige”** y la aclaración indica que
+**“las funciones pueden variar según el paquete contratado”**. No se afirma que
+estas capacidades estén incluidas necesariamente en Esencial o Premium.

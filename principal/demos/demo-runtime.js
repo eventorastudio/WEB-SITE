@@ -4,7 +4,7 @@
   const DEFAULT_MESSAGES = Object.freeze({
     maps: 'En la invitación real, este botón abrirá la ubicación del evento en Google Maps.',
     rsvp: 'En la invitación real, este botón permitirá confirmar asistencia directamente por WhatsApp.',
-    gifts: 'En la invitación final, esta opción llevará a la mesa de regalos seleccionada por los anfitriones.',
+    gifts: 'En la invitación real, este botón llevará a la mesa de regalos configurada por los anfitriones.',
     hotel: 'En la invitación real, este botón abrirá la información o reservación del hotel.',
     instagram: 'En la invitación final, este enlace podrá dirigir al perfil o hashtag del evento.',
     calendar: 'En la invitación real, esta opción permitirá guardar el evento en el calendario.',
@@ -16,11 +16,13 @@
     const params = new URLSearchParams(window.location.search);
     const guestName = cleanText(params.get('nombre')) || 'Invitado especial';
     const passes = normalizePasses(params.get('pases'));
-    const context = { guestName, passes, event: config };
+    const context = { guestName, passes, authorizedPasses: passes, selectedPasses: passes, event: config };
 
     personalize(config, context);
     setupOpening(config);
     setupCountdown(config.date, document.querySelector('[data-countdown]'));
+    setupPassSelection(context);
+    setupVideoPreviews();
     setupDemoActions(config, context);
     observeReveals();
   }
@@ -91,12 +93,11 @@
     const actions = [...document.querySelectorAll('[data-demo-action]')];
     if (!actions.length) return;
     const notice = createDemoNotice();
-    const links = resolveLinks(config.links || {}, context);
     let trigger = null;
 
     actions.forEach((element) => {
       const action = element.dataset.demoAction;
-      const url = links[action];
+      const url = resolveLinks(config.links || {}, actionContext(context))[action];
       element.setAttribute('aria-haspopup', config.demoMode === true ? 'dialog' : 'false');
       if (config.demoMode === true) {
         element.setAttribute('href', '#demo-notice');
@@ -111,7 +112,12 @@
 
     document.addEventListener('click', (event) => {
       const actionElement = event.target.closest('[data-demo-action]');
-      if (!actionElement || config.demoMode !== true) return;
+      if (!actionElement) return;
+      if (config.demoMode !== true) {
+        const liveUrl = resolveLinks(config.links || {}, actionContext(context))[actionElement.dataset.demoAction];
+        if (liveUrl) actionElement.setAttribute('href', liveUrl);
+        return;
+      }
       event.preventDefault();
       trigger = actionElement;
       const action = actionElement.dataset.demoAction;
@@ -163,10 +169,10 @@
     mark.textContent = '↗';
     const eyebrow = document.createElement('p');
     eyebrow.className = 'demo-notice-eyebrow';
-    eyebrow.textContent = 'EVENTORA STUDIO';
+    eyebrow.textContent = 'EVENTORA STUDIO · PRESTIGE';
     const title = document.createElement('h2');
     title.id = 'demo-notice-title';
-    title.textContent = 'Vista de demostración';
+    title.textContent = 'Vista de demostración · Prestige';
     const message = document.createElement('p');
     message.id = 'demo-notice-message';
     const closeButton = document.createElement('button');
@@ -192,6 +198,72 @@
       key,
       typeof value === 'function' ? value(context) : value
     ]));
+  }
+
+  function actionContext(context) {
+    return {
+      ...context,
+      passes: context.selectedPasses,
+      authorizedPasses: context.authorizedPasses
+    };
+  }
+
+  function setupPassSelection(context) {
+    document.querySelectorAll('[data-pass-selector]').forEach((target) => {
+      const label = document.createElement('p');
+      label.textContent = context.authorizedPasses === 1
+        ? 'Pase personalizado'
+        : 'Selecciona cuántos pases utilizarás';
+      const options = document.createElement('div');
+      options.className = 'prestige-pass-options';
+      const summary = document.createElement('span');
+      summary.className = 'prestige-pass-summary';
+      summary.setAttribute('aria-live', 'polite');
+
+      for (let count = 1; count <= context.authorizedPasses; count += 1) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = String(count);
+        button.setAttribute('aria-label', `${count} ${count === 1 ? 'pase' : 'pases'}`);
+        button.setAttribute('aria-pressed', String(count === context.selectedPasses));
+        button.addEventListener('click', () => {
+          context.selectedPasses = count;
+          options.querySelectorAll('button').forEach((option) => {
+            option.setAttribute('aria-pressed', String(option === button));
+          });
+          renderSummary();
+        });
+        options.append(button);
+      }
+
+      const renderSummary = () => {
+        summary.textContent = context.selectedPasses === 1
+          ? 'Confirmarás 1 pase autorizado.'
+          : `Confirmarás ${context.selectedPasses} pases autorizados.`;
+      };
+      renderSummary();
+      target.classList.add('prestige-pass-selector');
+      target.replaceChildren(label, options, summary);
+    });
+  }
+
+  function setupVideoPreviews() {
+    document.querySelectorAll('[data-demo-video]').forEach((button) => {
+      const status = button.parentElement && button.parentElement.querySelector('[data-video-status]');
+      button.setAttribute('aria-pressed', 'false');
+      button.addEventListener('click', () => {
+        const playing = button.getAttribute('aria-pressed') !== 'true';
+        button.setAttribute('aria-pressed', String(playing));
+        button.textContent = playing ? 'Pausar vista previa' : 'Reproducir vista previa';
+        if (status) {
+          status.textContent = playing
+            ? 'Vista previa audiovisual en reproducción.'
+            : 'Vista previa audiovisual en pausa.';
+        }
+        const frame = button.closest('[data-prestige-feature="welcome-video"]');
+        if (frame) frame.classList.toggle('is-playing', playing);
+      });
+    });
   }
 
   function resolveCopy(value, context, fallback) {

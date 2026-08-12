@@ -73,6 +73,86 @@
 .demo-notice-close:focus-visible { outline: 3px solid var(--demo-focus, #efb94d); outline-offset: 3px; }
 .demo-notice-open { overflow: hidden; }
 
+.prestige-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin: 0 0 16px;
+  padding: 7px 11px;
+  color: var(--demo-accent, #9a7a3f);
+  background: color-mix(in srgb, var(--demo-panel, #f8f4ec) 86%, transparent);
+  border: 1px solid color-mix(in srgb, var(--demo-accent, #9a7a3f) 44%, transparent);
+  border-radius: var(--demo-radius, 0);
+  font: 700 .58rem/1 Arial, sans-serif;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+.prestige-video-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  color: inherit;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: var(--demo-radius, 0);
+  font: 700 .64rem/1 Arial, sans-serif;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.prestige-video-button::before {
+  content: '▶';
+  font-size: .72rem;
+}
+
+.prestige-video-button[aria-pressed="true"]::before { content: '❚❚'; }
+
+.prestige-video-status {
+  display: block;
+  min-height: 1.5em;
+  margin-top: 12px;
+  font-size: .7rem;
+  letter-spacing: .08em;
+  opacity: .72;
+}
+
+.prestige-pass-selector {
+  width: min(430px, 100%);
+  margin: 24px auto;
+  padding: 18px;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+}
+
+.prestige-pass-selector p {
+  margin: 0 0 12px;
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.prestige-pass-options { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+
+.prestige-pass-options button {
+  min-width: 42px;
+  min-height: 42px;
+  color: inherit;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: var(--demo-radius, 0);
+  cursor: pointer;
+}
+
+.prestige-pass-options button[aria-pressed="true"] {
+  color: var(--demo-button-ink, #fff);
+  background: var(--demo-button, #171717);
+  border-color: var(--demo-button, #171717);
+}
+
+.prestige-pass-summary { display: block; margin-top: 10px; font-size: .72rem; opacity: .76; }
+
 [data-demo-action]::after {
   content: ' ↗';
   display: inline-block;
@@ -107,5 +187,6 @@
 @media (prefers-reduced-motion: reduce) {
   .demo-notice-overlay,
   .demo-notice,
-  [data-demo-action]::after { transition: none !important; }
+  [data-demo-action]::after,
+  .prestige-video-button { transition: none !important; }
 }
