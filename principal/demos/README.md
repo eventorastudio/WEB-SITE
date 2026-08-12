@@ -1,6 +1,6 @@
 # Demostraciones públicas
 
-Primera etapa del portafolio Eventora Studio:
+Portafolio Prestige de Eventora Studio:
 
 - `xv-renatta/`: celebración tropical premium Aloha de Renatta.
 - `luxury/`: boda editorial oscura de Victoria y Alejandro.
@@ -8,8 +8,13 @@ Primera etapa del portafolio Eventora Studio:
 - `midnight/`: XV nocturnos de Valentina.
 - `romance/`: boda narrativa de Sofía y Mateo.
 - `minimal/`: ceremonia contemporánea de Camila y Diego.
+- `celestial/`: boda lunar de Isabella y Santiago.
+- `vintage/`: boda analógica de Emilia y Nicolás.
+- `garden/`: celebración floral de Julieta y Tomás.
+- `champagne/`: boda luminosa de Elena y Gabriel.
+- `neon-party/`: XV en formato póster de Alexa.
 
-Las seis colecciones aceptan `?nombre=Andrea&pases=2`, usan fallback seguro y
+Las once colecciones aceptan `?nombre=Andrea&pases=2`, usan fallback seguro y
 reproducen audio únicamente después de abrir la invitación. El archivo compartido
 `demo-runtime.js` concentra personalización, apertura, música, countdown, reveals
 y el modo de demostración; cada `script.js` conserva su propio objeto `EVENT`.
@@ -25,9 +30,6 @@ reemplazarlas por imágenes optimizadas y autorizadas de cada evento, y sustitui
 la pista musical compartida de Aloha por música licenciada específica para cada
 colección. El audio se carga con `preload="none"`, por lo que no penaliza la carga
 inicial.
-
-No forman parte de esta etapa Celestial, Vintage, Garden, Champagne ni Neon
-Party.
 
 ## Contrato comercial Prestige
 
@@ -48,7 +50,7 @@ encontrada es:
 
 `prestige-contract.js` conserva la matriz textual y exporta
 `PRESTIGE_DEMO_FEATURES`, el contrato de capacidades observables que deben
-cumplir las seis demos. Atención personalizada, más cambios incluidos y atención
+cumplir las once demos. Atención personalizada, más cambios incluidos y atención
 prioritaria son beneficios del servicio; no se convierten artificialmente en
 secciones de una invitación.
 
@@ -68,6 +70,11 @@ propio de personalización avanzada:
 - Midnight: secuencia nocturna, segunda ubicación y night desk.
 - Romance: historia de pareja, carta audiovisual e itinerario narrativo.
 - Minimal: información adicional en bloques tipográficos y agenda indexada.
+- Celestial: constelación del día, coordenadas y carta celeste.
+- Vintage: periódico, programa impreso y archivo de película.
+- Garden: espacios conectados por un sendero y álbum floral.
+- Champagne: itinerario-jewel, concierge y editorial luminosa.
+- Neon Party: lineup, location drop y party desk.
 
 El texto visible común es **“Demostración Prestige”** y la aclaración indica que
 **“las funciones pueden variar según el paquete contratado”**. No se afirma que

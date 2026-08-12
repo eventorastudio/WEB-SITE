@@ -9,8 +9,9 @@ import {
   PRESTIGE_SERVICE_BENEFITS
 } from '../principal/demos/prestige-contract.js';
 
-const DEMOS = ['xv-renatta', 'luxury', 'botanical', 'midnight', 'romance', 'minimal'];
-const NEW_COLLECTIONS = DEMOS.slice(1);
+const ORIGINAL_COLLECTIONS = ['xv-renatta', 'luxury', 'botanical', 'midnight', 'romance', 'minimal'];
+const SECOND_STAGE_COLLECTIONS = ['celestial', 'vintage', 'garden', 'champagne', 'neon-party'];
+const DEMOS = [...ORIGINAL_COLLECTIONS, ...SECOND_STAGE_COLLECTIONS];
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 const REFERENCE_DEMO = 'paquetes/demos/prestige';
 
@@ -91,13 +92,15 @@ test('la referencia Prestige modernizada implementa el contrato sin hotlinks', a
   await access(new URL('../principal/demos/xv-renatta/musica.mp3', import.meta.url));
 });
 
-test('PRESTIGE_DEMO_FEATURES está activo en las seis demos y las etiquetas son inequívocas', async () => {
+test('PRESTIGE_DEMO_FEATURES está activo al 100% en las once demos y las etiquetas son inequívocas', async () => {
   for (const demo of DEMOS) {
     const [html, script] = await Promise.all([
       read(`principal/demos/${demo}/index.html`),
       read(`principal/demos/${demo}/script.js`)
     ]);
     const activeFeatures = collectPrestigeFeatures(html);
+    const fulfilled = PRESTIGE_DEMO_FEATURES.filter((feature) => activeFeatures.has(feature));
+    assert.equal(fulfilled.length / PRESTIGE_DEMO_FEATURES.length, 1, `${demo} no alcanza paridad Prestige completa`);
     for (const feature of PRESTIGE_DEMO_FEATURES) {
       assert.ok(activeFeatures.has(feature), `${demo} no representa la función Prestige: ${feature}`);
     }
@@ -114,12 +117,12 @@ test('PRESTIGE_DEMO_FEATURES está activo en las seis demos y las etiquetas son 
   }
 });
 
-test('las seis tarjetas del portafolio identifican sus experiencias Prestige', async () => {
+test('las once tarjetas del portafolio identifican sus experiencias Prestige', async () => {
   const html = await read('principal/index.html');
   assert.equal((html.match(/class="portfolio-prestige-badge">Demo Prestige/g) || []).length, DEMOS.length);
 });
 
-test('las seis colecciones conservan sitios independientes y comparten únicamente el runtime', async () => {
+test('las once colecciones conservan sitios independientes y comparten únicamente el runtime', async () => {
   await access(new URL('../principal/demos/demo-runtime.js', import.meta.url));
   await access(new URL('../principal/demos/demo-mode.css', import.meta.url));
   for (const demo of DEMOS) {
@@ -236,7 +239,12 @@ test('cada identidad tiene composición, storytelling y galería propios', async
     botanical: [/class="paper"/, /hero-art/, /memory-strip/, /itinerary/, /garden-frame/, /class="gifts/, /pressed-pass/, /leaf-button/],
     midnight: [/class="darkness"/, /hero-light/, /night-gallery/, /timeline/, /silhouettes/, /night-services/, /night-pass/, /class="rsvp/],
     romance: [/class="letter"/, /class="portrait"/, /photo-story/, /romance-itinerary/, /dress-gifts/, /small-notes/, /letter-pass/, /class="rsvp/],
-    minimal: [/open-grid/, /hero-grid/, /class="gallery/, /minimal-itinerary/, /class="dress/, /class="registry/, /access-index/, /class="rsvp/]
+    minimal: [/open-grid/, /hero-grid/, /class="gallery/, /minimal-itinerary/, /class="dress/, /class="registry/, /access-index/, /class="rsvp/],
+    celestial: [/constellation-mark/, /class="moon"/, /floating-archive/, /star-itinerary/, /night-code/, /celestial-gifts/, /celestial-pass/, /celestial-button/],
+    vintage: [/class="postcard"/, /masthead/, /analog-album/, /printed-program/, /fashion-plate/, /registry-letter/, /classic-ticket/, /vintage-button/],
+    garden: [/gate-left/, /garden-depth/, /garden-album/, /garden-path/, /floral-frame/, /garden-gifts/, /garden-card/, /garden-button/],
+    champagne: [/class="stationery"/, /hero-photo/, /editorial-gallery/, /jewel-itinerary/, /silk-look/, /new-chapter/, /champagne-card/, /champagne-button/],
+    'neon-party': [/digital-poster/, /flash-photo/, /flash-collage/, /class="lineup/, /look-poster/, /party-desk/, /all-access/, /party-button/]
   };
   for (const [demo, patterns] of Object.entries(expected)) {
     const html = await read(`principal/demos/${demo}/index.html`);
@@ -244,14 +252,19 @@ test('cada identidad tiene composición, storytelling y galería propios', async
   }
 });
 
-test('las seis colecciones usan lenguajes de movimiento y accesos visualmente distintos', async () => {
+test('las once colecciones usan lenguajes de movimiento y accesos visualmente distintos', async () => {
   const signatures = {
     'xv-renatta': [/rotate\(-\.25deg\)/, /island-pass/],
     luxury: [/scale\(\.985\)/, /seat-pass/],
     botanical: [/rotate\(\.35deg\)/, /pressed-pass/],
     midnight: [/clip-path:inset\(0 0 10% 0\)/, /night-pass/],
     romance: [/rotate\(-\.35deg\)/, /letter-pass/],
-    minimal: [/translateX\(-24px\)/, /access-index/]
+    minimal: [/translateX\(-24px\)/, /access-index/],
+    celestial: [/filter:blur\(4px\)/, /celestial-pass/],
+    vintage: [/rotate\(-\.25deg\)/, /classic-ticket/],
+    garden: [/scale\(\.99\)/, /garden-card/],
+    champagne: [/filter:brightness\(\.96\)/, /champagne-card/],
+    'neon-party': [/skewX\(-1deg\)/, /all-access/]
   };
   for (const [demo, patterns] of Object.entries(signatures)) {
     const css = await read(`principal/demos/${demo}/style.css`);
@@ -289,17 +302,35 @@ test('los assets locales declarados por cada demo existen y no hay fuentes remot
   }
 });
 
-test('el portafolio conserva exactamente Aloha y las cinco colecciones de esta etapa', async () => {
+test('el portafolio publica exactamente las once colecciones Prestige activas', async () => {
   const html = await read('principal/index.html');
   const routes = [...html.matchAll(/href="demos\/([^/]+)\/\?nombre=Andrea&amp;pases=2"/g)].map((match) => match[1]);
   assert.deepEqual(routes, DEMOS);
-  for (const name of ['Luxury Collection', 'Botanical', 'Midnight', 'Romance', 'Minimal']) {
+  for (const name of ['Colección Aloha 🌴', 'Luxury Collection', 'Botanical', 'Midnight', 'Romance', 'Minimal', 'Celestial', 'Vintage', 'Garden', 'Champagne', 'Neon Party']) {
     const cardStart = html.indexOf(`<h3>${name}</h3>`);
     assert.ok(cardStart > 0);
     assert.match(html.slice(cardStart, cardStart + 500), /Ver demostración →/);
   }
-  for (const excluded of ['celestial', 'vintage', 'garden', 'champagne', 'neon']) {
-    assert.doesNotMatch(html.toLowerCase(), new RegExp(`demos/${excluded}`));
-  }
-  assert.deepEqual(NEW_COLLECTIONS, ['luxury', 'botanical', 'midnight', 'romance', 'minimal']);
+  assert.doesNotMatch(html, /Próximamente/i);
+  assert.deepEqual(ORIGINAL_COLLECTIONS, ['xv-renatta', 'luxury', 'botanical', 'midnight', 'romance', 'minimal']);
+  assert.deepEqual(SECOND_STAGE_COLLECTIONS, ['celestial', 'vintage', 'garden', 'champagne', 'neon-party']);
+});
+
+test('la segunda etapa mantiene contrastes narrativos obligatorios', async () => {
+  const [midnight, celestial, neon, botanical, garden, luxury, champagne] = await Promise.all([
+    read('principal/demos/midnight/index.html'),
+    read('principal/demos/celestial/index.html'),
+    read('principal/demos/neon-party/index.html'),
+    read('principal/demos/botanical/index.html'),
+    read('principal/demos/garden/index.html'),
+    read('principal/demos/luxury/index.html'),
+    read('principal/demos/champagne/index.html')
+  ]);
+  assert.match(midnight, /AFTER DARK|MIDNIGHT/);
+  assert.match(celestial, /constelación|CARTA CELESTE/i);
+  assert.match(neon, /ENTER THE PARTY|LINEUP/);
+  assert.match(botanical, /herbario|BOTANICAL/i);
+  assert.match(garden, /puertas del jardín|pérgola|fuente/i);
+  assert.match(luxury, /black-tie|BLACK TIE/i);
+  assert.match(champagne, /lujo luminoso|CHAMPAGNE|cristal/i);
 });

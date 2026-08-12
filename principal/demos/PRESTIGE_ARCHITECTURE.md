@@ -118,7 +118,7 @@ La referencia renovada centraliza datos en `EVENT_CONFIG`, conserva las
 secciones funcionales originales, reemplaza hotlinks por composiciones locales,
 añade parámetros URL, selección de pases, Demo Notice accesible y Demo Mode.
 
-## Seis interpretaciones del acceso Prestige
+## Once interpretaciones del acceso Prestige
 
 - Aloha: pase digital de resort y postal impresa.
 - Luxury: credencial privada y tarjeta de mesa black-tie.
@@ -126,7 +126,28 @@ añade parámetros URL, selección de pases, Demo Notice accesible y Demo Mode.
 - Midnight: guest code luminoso y silver ticket.
 - Romance: carta digital y tarjeta impresa sellada.
 - Minimal: índice digital y ticket tipográfico.
+- Celestial: Celestial Pass y carta estelar impresa.
+- Vintage: boleto digital numerado y entrada clásica.
+- Garden: Garden Card y tarjeta de acceso al jardín.
+- Champagne: Champagne Guest Card digital e impresa.
+- Neon Party: All Access Pass y Wristband Card.
 
 Estas vistas comparten comportamiento, no layout. Cada colección conserva su
 propio `index.html`, `style.css`, apertura, hero, galería, itinerario, Dress Code,
 regalos, CTA y ritmo visual.
+
+## Segunda etapa visual
+
+Las cinco colecciones añadidas conservan el mismo `demo-runtime.js`, el mismo
+Demo Mode y el contrato dinámico `PRESTIGE_DEMO_FEATURES`. Se distinguen por su
+apertura, hero, galería, itinerario, Dress Code y tratamiento de acceso:
+
+- Celestial: constelación, luna parcial, itinerario estelar y archivo flotante.
+- Vintage: postal desplegable, portada de periódico, álbum analógico y programa.
+- Garden: puertas ornamentales, profundidad de jardín, sendero y carnet floral.
+- Champagne: papelería y cristal, editorial luminosa y composición tipo joyería.
+- Neon Party: póster digital, fotografía con flash, lineup y collage controlado.
+
+Los espacios fotográficos son composiciones CSS locales. Para producción se
+recomienda sustituirlos por fotografías autorizadas, optimizadas en AVIF/WebP y
+con sus dimensiones declaradas, sin cambiar el contrato ni el runtime.
