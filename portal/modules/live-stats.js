@@ -1,5 +1,6 @@
 import { portalEventBus } from '../core/portal-event-bus.js';
 import { PORTAL_EVENTS } from '../core/portal-event-types.js';
+import { calculateEventStats } from '../../shared/event-stats.js';
 
 let unsubscribe = null;
 
@@ -20,17 +21,17 @@ export function destroyLiveStats() {
 }
 
 export function calculateLiveStats(guests) {
-    return guests.reduce((totals, guest) => {
-        totals.grupos += 1;
-        totals.pases += guest.pases;
-        totals.utilizados += guest.pasesUtilizados;
-        if (guest.estado === 'confirmado' || guest.estado === 'llego') totals.confirmados += guest.pases;
-        if (guest.estado === 'pendiente') totals.pendientes += guest.pases;
-        if (guest.estado === 'no_asistira') totals.noAsistiran += guest.pases;
-        if (guest.pasesUtilizados > 0) totals.gruposLlegaron += 1;
-        if (guest.pasesUtilizados === 0) totals.gruposPendientes += 1;
-        return totals;
-    }, { grupos: 0, pases: 0, utilizados: 0, confirmados: 0, pendientes: 0, noAsistiran: 0, gruposLlegaron: 0, gruposPendientes: 0 });
+    const stats = calculateEventStats(guests);
+    return {
+        grupos: stats.guestCount,
+        pases: stats.totalPases,
+        utilizados: stats.pasesUtilizados,
+        confirmados: stats.pasesConfirmados,
+        pendientes: stats.pasesPendientes,
+        noAsistiran: stats.pasesNoAsistiran,
+        gruposLlegaron: stats.gruposConLlegada,
+        gruposPendientes: stats.guestCount - stats.gruposConLlegada
+    };
 }
 
 function renderLiveStats(stats) {

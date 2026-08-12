@@ -2,6 +2,7 @@
 // Servicio exclusivo para la gestión de Eventos en Firestore
 
 import { db } from '../firebase.js';
+import { EVENT_STATS_SCHEMA_VERSION, createEmptyEventStats } from '../../shared/event-stats.js';
 import { 
     collection, 
     doc, 
@@ -81,6 +82,10 @@ export const eventService = {
         try {
             const payload = {
                 ...eventData,
+                estadisticas: eventData.estadisticas ?? createEmptyEventStats(),
+                statsSchemaVersion: EVENT_STATS_SCHEMA_VERSION,
+                statsRevision: Number.isSafeInteger(eventData.statsRevision) ? eventData.statsRevision : 0,
+                statsUpdatedAt: serverTimestamp(),
                 guestListFinalized: false,
                 guestSequence: 0,
                 fechaCreacion: serverTimestamp(),

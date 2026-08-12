@@ -2,6 +2,7 @@
 import { authService } from './services/auth-service.js';
 import { eventService } from './services/event-service.js';
 import { guestService } from './services/guest-service.js';
+import { eventStatsService } from './services/event-stats-service.js';
 import { themeService } from './services/theme-service.js';
 import { state } from './core/state.js';
 import { ui } from './core/ui.js';
@@ -117,7 +118,15 @@ async function loadEventData(session, eventId) {
             return;
         }
 
-        storeStateAndContext(session, eventId, eventData);
+        let eventStats;
+        try {
+            eventStats = await eventStatsService.recalculateEventStats(eventId, { sync: true });
+        } catch (syncError) {
+            console.warn('[Event Orchestrator] El resumen no pudo persistirse; se usarán datos reales en memoria.', syncError);
+            eventStats = await eventStatsService.recalculateEventStats(eventId);
+        }
+
+        storeStateAndContext(session, eventId, eventData, eventStats);
 
     } catch (error) {
         ui.hideLoader();
@@ -130,7 +139,7 @@ async function loadEventData(session, eventId) {
     }
 }
 
-function storeStateAndContext(session, eventId, eventData) {
+function storeStateAndContext(session, eventId, eventData, eventStats) {
     state.setState('auth', {
         user: session.user,
         isAuthenticated: true,
@@ -140,10 +149,12 @@ function storeStateAndContext(session, eventId, eventData) {
     state.setState('event', {
         id: eventId,
         data: eventData,
+        stats: eventStats,
         isLoaded: true
     });
-    const dependencyContainer = createDependencyContainer(eventId, eventData, session);
+    const dependencyContainer = createDependencyContainer(eventId, eventData, eventStats, session);
     prepareModules(dependencyContainer);
+    startEventStatsSubscription(dependencyContainer);
 
     completeEventBoot();
     registerLifecycleCleanup();
@@ -188,10 +199,11 @@ function showEventView() {
     mainView.style.opacity = '1';
 }
 
-function createDependencyContainer(eventId, eventData, session) {
+function createDependencyContainer(eventId, eventData, eventStats, session) {
     const services = {
         auth: authService,
         event: eventService,
+        stats: eventStatsService,
         guest: guestService,
         theme: themeService
     };
@@ -199,6 +211,7 @@ function createDependencyContainer(eventId, eventData, session) {
     const eventContext = {
         eventId,
         eventData,
+        eventStats,
         currentUser: session.user,
         roleContext: session.roleContext,
         permissions: {
@@ -210,6 +223,27 @@ function createDependencyContainer(eventId, eventData, session) {
     };
 
     return { state, ui, eventBus, services, eventContext };
+}
+
+function startEventStatsSubscription(container) {
+    const unsubscribe = eventStatsService.subscribeEventStats(
+        container.eventContext.eventId,
+        (stats, metadata) => {
+            if (!stats) {
+                console.warn('[Event Orchestrator] El evento no tiene un resumen canónico disponible.', metadata);
+                return;
+            }
+            state.updateState('event.stats', stats);
+            eventBus.emit(EVENT_TYPES.EVENT_STATS_UPDATED, {
+                eventId: container.eventContext.eventId,
+                stats,
+                metadata,
+                timestamp: Date.now()
+            });
+        },
+        (error) => console.error('[Event Orchestrator] Error en listener de estadísticas:', error)
+    );
+    registerModuleDestroyer(unsubscribe);
 }
 
 function prepareModules(container) {
@@ -276,6 +310,7 @@ function ready(container) {
     eventBus.emit(EVENT_TYPES.EVENT_LOADED, {
         eventId: container.eventContext.eventId,
         nombre: container.eventContext.eventData.nombreEvento || 'Evento',
+        stats: container.eventContext.eventStats,
         timestamp: Date.now()
     });
 

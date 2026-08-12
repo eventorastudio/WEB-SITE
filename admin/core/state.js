@@ -41,6 +41,7 @@ class GlobalStateManager {
             event: {
                 id: null,
                 data: null,
+                stats: null,
                 isLoaded: false
             },
             ui: {
@@ -160,7 +161,7 @@ class GlobalStateManager {
     resetState() {
         this._state = {
             auth: { user: null, isAuthenticated: false, role: null },
-            event: { id: null, data: null, isLoaded: false },
+            event: { id: null, data: null, stats: null, isLoaded: false },
             ui: { activeTab: 'overview', isGlobalLoading: false, sidebarOpen: true },
             app: { isOnline: navigator.onLine, version: '2.0.0' },
             permissions: { canEdit: false, canDelete: false, canExport: false },

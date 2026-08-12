@@ -21,6 +21,7 @@ import {
     validPassCount,
     validateQrToken
 } from './checkin-validation.js';
+import { createEventStatsMutation } from '../../shared/event-stats.js';
 
 export class CheckInError extends Error {
     constructor(code) {
@@ -102,10 +103,25 @@ export const checkinService = {
                 const existingCheckin = await transaction.get(checkinRef);
                 if (existingCheckin.exists()) throw new CheckInError('checkin/id-conflict');
 
+                const updatedGuest = {
+                    ...mutation.guest,
+                    estado: 'llego',
+                    confirmado: true,
+                    llegadaRegistrada: true,
+                    horaLlegada: guestSnapshot.data().horaLlegada ?? mutation.checkinRecord.fechaHora
+                };
                 transaction.update(guestRef, mutation.guestUpdate);
                 transaction.set(checkinRef, mutation.checkinRecord);
+                transaction.update(eventRef, createEventStatsMutation(
+                    eventSnapshot.data(),
+                    [{
+                        before: guestSnapshot.data(),
+                        after: updatedGuest
+                    }],
+                    mutation.checkinRecord.fechaHora
+                ));
                 return {
-                    guest: { ...mutation.guest, id: guestId },
+                    guest: { ...updatedGuest, id: guestId },
                     passesRegistered: mutation.passesRegistered,
                     result: mutation.result,
                     checkinId: mutation.checkinId

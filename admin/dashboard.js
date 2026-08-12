@@ -7,6 +7,11 @@ import { resolveRoleContext } from './core/roles.js';
 import { createAdminAccessError, reportAdminFirebaseError } from './core/firebase-errors.js';
 import { initThemeManager } from './core/theme-manager.js';
 import { initProfileMenu } from './core/profile-menu.js';
+import {
+    EVENT_STATS_SCHEMA_VERSION,
+    createEmptyEventStats,
+    getStoredEventStats
+} from '../shared/event-stats.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { collection, getDocs, query, orderBy, addDoc, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getToken as getAppCheckToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js";
@@ -165,22 +170,23 @@ async function loadDashboardData() {
         const snapshot = await getDocs(q);
 
         const eventsList = [];
-        let stats = { activos: 0, invitados: 0, confirmados: 0, pendientes: 0 };
+        let stats = { activos: 0, totalPases: 0, confirmados: 0, pendientes: 0, unsyncedEvents: 0 };
 
         snapshot.forEach(doc => {
             const data = doc.data();
-            const eventData = { id: doc.id, ...data };
+            const eventData = { id: doc.id, ...data, eventStats: getStoredEventStats(data) };
             eventsList.push(eventData);
 
             const estado = data.estadoEvento ? data.estadoEvento.toLowerCase() : (data.estado ? data.estado.toLowerCase() : '');
             if (estado.includes('activo')) stats.activos++;
             
-            const numInvitados = Number(data.totalInvitados) || Number(data.invitados) || 0;
-            const numConfirmados = Number(data.confirmados) || 0;
-            
-            stats.invitados += numInvitados;
-            stats.confirmados += numConfirmados;
-            stats.pendientes += (numInvitados - numConfirmados);
+            if (!eventData.eventStats) {
+                stats.unsyncedEvents += 1;
+                return;
+            }
+            stats.totalPases += eventData.eventStats.totalPases;
+            stats.confirmados += eventData.eventStats.pasesConfirmados;
+            stats.pendientes += eventData.eventStats.pasesPendientes;
         });
 
         renderStats(stats);
@@ -222,27 +228,36 @@ function renderStats(stats) {
         <div class="stat-card">
             <div class="stat-icon">${ICONS.users}</div>
             <div class="stat-number" id="num-invitados">0</div>
-            <div class="stat-title">Total Invitados</div>
-            <div class="stat-desc">Registrados en la plataforma</div>
+            <div class="stat-title">Total pases</div>
+            <div class="stat-desc">Personas invitadas</div>
         </div>
         <div class="stat-card">
             <div class="stat-icon">${ICONS.check}</div>
             <div class="stat-number" id="num-confirmados">0</div>
-            <div class="stat-title">Confirmados</div>
+            <div class="stat-title">Pases confirmados</div>
             <div class="stat-desc">Asistencia asegurada</div>
         </div>
         <div class="stat-card">
             <div class="stat-icon">${ICONS.clock}</div>
             <div class="stat-number" id="num-pendientes">0</div>
-            <div class="stat-title">Pendientes</div>
+            <div class="stat-title">Pases pendientes</div>
             <div class="stat-desc">Aún sin confirmar</div>
         </div>
     `;
 
     animateValue(document.getElementById('num-activos'), 0, stats.activos, 800);
-    animateValue(document.getElementById('num-invitados'), 0, stats.invitados, 800);
-    animateValue(document.getElementById('num-confirmados'), 0, stats.confirmados, 800);
-    animateValue(document.getElementById('num-pendientes'), 0, stats.pendientes, 800);
+    if (stats.unsyncedEvents > 0) {
+        ['num-invitados', 'num-confirmados', 'num-pendientes'].forEach((id) => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = '—';
+        });
+        const description = document.querySelector('#num-invitados + .stat-title + .stat-desc');
+        if (description) description.textContent = `Sincronizando ${stats.unsyncedEvents} evento(s)`;
+    } else {
+        animateValue(document.getElementById('num-invitados'), 0, stats.totalPases, 800);
+        animateValue(document.getElementById('num-confirmados'), 0, stats.confirmados, 800);
+        animateValue(document.getElementById('num-pendientes'), 0, stats.pendientes, 800);
+    }
 }
 
 function renderEmptyState() {
@@ -294,8 +309,9 @@ function renderEvents(events) {
         const fechaData = formatearFecha(event.fecha);
         // Compatibilidad hacia atrás con data existente y la nueva (estadoEvento)
         const estadoBadge = formatearEstado(event.estadoEvento || event.estado);
-        const invitados = event.totalInvitados || event.invitados || 0;
-        const confirmados = event.confirmados || 0;
+        const eventStats = event.eventStats ?? getStoredEventStats(event);
+        const invitados = eventStats?.totalPases ?? '—';
+        const confirmados = eventStats?.pasesConfirmados ?? '—';
         const codigo = event.codigoEvento || event.codigo || 'N/A';
         const ciudad = event.ciudad || 'Por definir';
         const nombre = event.nombreEvento || event.nombre || 'Evento sin título';
@@ -330,11 +346,11 @@ function renderEvents(events) {
             <div class="event-stats">
                 <div class="event-stat-box">
                     <div class="stat-box-num">${invitados}</div>
-                    <div class="stat-box-label">Invitados</div>
+                    <div class="stat-box-label">Total pases</div>
                 </div>
                 <div class="event-stat-box">
                     <div class="stat-box-num">${confirmados}</div>
-                    <div class="stat-box-label">Confirmados</div>
+                    <div class="stat-box-label">Pases confirmados</div>
                 </div>
             </div>
 
@@ -577,10 +593,11 @@ async function submitNewEvent(e) {
             colorPrimario: colorPrimario.value,
             colorSecundario: colorSecundario.value,
             // Estadísticas iniciales
-            totalInvitados: totalInvitadosNum,
-            confirmados: 0,
-            pendientes: totalInvitadosNum,
-            llegaron: 0,
+            aforoEstimado: totalInvitadosNum,
+            estadisticas: createEmptyEventStats(),
+            statsSchemaVersion: EVENT_STATS_SCHEMA_VERSION,
+            statsRevision: 0,
+            statsUpdatedAt: serverTimestamp(),
             // Numeración estable de invitados: los IDs automáticos se usan
             // hasta que la lista sea finalizada explícitamente.
             guestListFinalized: false,
@@ -602,7 +619,6 @@ async function submitNewEvent(e) {
          * 
          * const invitadosRef = collection(db, 'eventos', docRef.id, 'invitados');
          * const configRef = collection(db, 'eventos', docRef.id, 'configuracion');
-         * const statsRef = collection(db, 'eventos', docRef.id, 'estadisticas');
          */
 
         // Éxito: Cerrar modal y recargar UI dinámicamente

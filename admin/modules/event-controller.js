@@ -23,9 +23,6 @@ let guestsById = new Map();
 /** @type {boolean} Indica si guestsById contiene una lista completa y no sólo cambios incrementales. */
 let hasGuestSnapshot = false;
 
-/** @type {{ total: number, confirmed: number, noAttendance: number, arrivals: number, pending: number }} */
-let statsAdjustments = createEmptyStats();
-
 /** @type {Object|null} Datos de evento recibidos en una actualización tipada. */
 let eventDataOverride = null;
 
@@ -96,7 +93,6 @@ export function destroy() {
     guestSearchTimer = null;
     guestsById.clear();
     hasGuestSnapshot = false;
-    statsAdjustments = createEmptyStats();
     eventDataOverride = null;
     guestLoadState = 'idle';
     guestLoadError = null;
@@ -948,6 +944,7 @@ function renderConfiguration(eventData) {
 function registerEventBusListeners() {
     subscribeToEvent(EVENT_TYPES.EVENT_LOADED, handleEventLoaded);
     subscribeToEvent(EVENT_TYPES.EVENT_UPDATED, handleEventUpdated);
+    subscribeToEvent(EVENT_TYPES.EVENT_STATS_UPDATED, handleEventStatsUpdated);
     subscribeToEvent(EVENT_TYPES.GUEST_CREATED, handleGuestCreated);
     subscribeToEvent(EVENT_TYPES.GUEST_UPDATED, handleGuestUpdated);
     subscribeToEvent(EVENT_TYPES.GUEST_DELETED, handleGuestDeleted);
@@ -978,10 +975,15 @@ function handleEventUpdated(payload) {
     const nextEventData = payload?.eventData ?? payload?.data;
     if (isPlainObject(nextEventData)) {
         eventDataOverride = nextEventData;
-        statsAdjustments = createEmptyStats();
     }
 
     render();
+}
+
+function handleEventStatsUpdated(payload) {
+    if (!isCurrentEventPayload(payload) || !isPlainObject(payload?.stats)) return;
+    deps.state.updateState('event.stats', payload.stats);
+    renderGuestsAndStatistics();
 }
 
 /**
@@ -993,6 +995,7 @@ function handleGuestCreated(payload) {
     if (!isCurrentEventPayload(payload)) return;
 
     registerGuestFromPayload(payload);
+    publishStatsFromGuests();
     renderGuestsAndStatistics();
 }
 
@@ -1006,17 +1009,12 @@ function handleGuestUpdated(payload) {
 
     const guest = getGuestFromPayload(payload);
     if (guest?.id && guestsById.has(guest.id)) {
-        const previousGuest = guestsById.get(guest.id);
         guestsById.set(guest.id, guest);
-        if (!hasGuestSnapshot) {
-            applyGuestAdjustment(previousGuest, -1);
-            applyGuestAdjustment(guest, 1);
-        }
     } else if (guest?.id && hasGuestSnapshot) {
         guestsById.set(guest.id, guest);
     }
 
-    applyStatisticsPayload(payload);
+    publishStatsFromGuests();
     renderGuestsAndStatistics();
 }
 
@@ -1031,16 +1029,10 @@ function handleGuestDeleted(payload) {
     const guest = getGuestFromPayload(payload);
     const guestId = guest?.id ?? payload?.guestId;
     if (guestId) {
-        const previousGuest = guestsById.get(guestId);
         guestsById.delete(guestId);
-        if (previousGuest && !hasGuestSnapshot) {
-            applyGuestAdjustment(previousGuest, -1);
-        }
-    } else {
-        applyImportedGuestAdjustment(-toSafeNumber(payload?.count, 0));
     }
 
-    applyStatisticsPayload(payload);
+    publishStatsFromGuests();
     renderGuestsAndStatistics();
 }
 
@@ -1054,11 +1046,9 @@ function handleGuestsImported(payload) {
 
     if (Array.isArray(payload?.guests)) {
         mergeGuests(payload.guests);
-    } else {
-        applyImportedGuestAdjustment(toSafeNumber(payload?.count, 0));
     }
 
-    applyStatisticsPayload(payload);
+    publishStatsFromGuests();
     renderGuestsAndStatistics();
 }
 
@@ -1618,54 +1608,20 @@ function formatEventStatus(value) {
 }
 
 /**
- * Calcula las estadísticas de la vista combinando datos del evento y eventos de invitados.
+ * Adapta el contrato canónico guardado en State al modelo visual existente.
  * @param {Object} eventData - Datos del evento.
  * @returns {{ total: number, confirmed: number, noAttendance: number, arrivals: number, pending: number }} Estadísticas seguras.
  */
 function getStatistics(eventData) {
-    if (hasGuestSnapshot) {
-        return calculateGuestStatistics(Array.from(guestsById.values()));
-    }
-
-    const total = toSafeNumber(eventData.totalInvitados ?? eventData.invitados, 0);
-    const confirmed = clamp(toSafeNumber(eventData.confirmados, 0), 0, total);
-    const noAttendance = clamp(toSafeNumber(eventData.noAsisten ?? eventData.noAsiste, 0), 0, total - confirmed);
-    const arrivals = clamp(toSafeNumber(eventData.llegaron, 0), 0, total);
-    const defaultPending = Math.max(total - confirmed - noAttendance, 0);
-    const pending = clamp(
-        toSafeNumber(eventData.pendientes, defaultPending),
-        0,
-        total
-    );
-
+    const stats = deps.state.getState('event.stats');
+    if (!isPlainObject(stats)) return createEmptyStats();
     return normalizeStatistics({
-        total: total + statsAdjustments.total,
-        confirmed: confirmed + statsAdjustments.confirmed,
-        noAttendance: noAttendance + statsAdjustments.noAttendance,
-        arrivals: arrivals + statsAdjustments.arrivals,
-        pending: pending + statsAdjustments.pending
+        total: stats.totalPases,
+        confirmed: stats.pasesConfirmados,
+        noAttendance: stats.pasesNoAsistiran,
+        arrivals: stats.pasesUtilizados,
+        pending: stats.pasesPendientes
     });
-}
-
-/**
- * Calcula estadísticas a partir de una lista recibida explícitamente por Event Bus.
- * @param {Object[]} guests - Invitados disponibles en la carga del evento.
- * @returns {{ total: number, confirmed: number, noAttendance: number, arrivals: number, pending: number }} Totales calculados.
- */
-function calculateGuestStatistics(guests) {
-    const statistics = guests.reduce((totals, guest) => {
-        const passes = getGuestPasses(guest);
-        const status = getGuestStatus(guest);
-
-        totals.total += passes;
-        if (status === 'confirmado' || status === 'llego') totals.confirmed += passes;
-        if (status === 'no_asistira') totals.noAttendance += passes;
-        if (status === 'llego') totals.arrivals += passes;
-        if (status === 'pendiente') totals.pending += passes;
-        return totals;
-    }, createEmptyStats());
-
-    return normalizeStatistics(statistics);
 }
 
 /**
@@ -1730,13 +1686,7 @@ function registerGuestFromPayload(payload) {
     const guest = getGuestFromPayload(payload);
     if (guest?.id) {
         guestsById.set(guest.id, guest);
-        if (!hasGuestSnapshot) {
-            applyGuestAdjustment(guest, 1);
-        }
-        return;
     }
-
-    applyImportedGuestAdjustment(toSafeNumber(payload?.count, 0));
 }
 
 /**
@@ -1752,83 +1702,20 @@ function replaceGuests(guests) {
         }
     });
     hasGuestSnapshot = true;
-    statsAdjustments = createEmptyStats();
+    publishStatsFromGuests();
 }
 
-/**
- * Aplica el efecto de un invitado incremental sobre las estadísticas visibles.
- * @param {Object} guest - Invitado que se agrega o retira.
- * @param {1|-1} direction - Dirección del ajuste.
- * @returns {void}
- */
-function applyGuestAdjustment(guest, direction) {
-    const passes = getGuestPasses(guest) * direction;
-    const status = getGuestStatus(guest);
-
-    statsAdjustments.total += passes;
-    if (status === 'confirmado' || status === 'llego') {
-        statsAdjustments.confirmed += passes;
-    }
-    if (status === 'no_asistira') {
-        statsAdjustments.noAttendance += passes;
-    }
-    if (status === 'llego') {
-        statsAdjustments.arrivals += passes;
-    }
-    if (status === 'pendiente') {
-        statsAdjustments.pending += passes;
-    }
-}
-
-/**
- * Ajusta los totales al recibir la señal resumida de importación de Excel.
- * @param {number} count - Cantidad de invitados importados.
- * @returns {void}
- */
-function applyImportedGuestAdjustment(count) {
-    if (!count) return;
-
-    statsAdjustments.total += count;
-    statsAdjustments.pending += count;
-}
-
-/**
- * Aplica estadísticas explícitas enviadas por futuros módulos sin asumir su estructura.
- * @param {Object} payload - Carga del Event Bus.
- * @returns {void}
- */
-function applyStatisticsPayload(payload) {
-    const statistics = payload?.statistics ?? payload?.stats;
-    if (!isPlainObject(statistics)) return;
-
-    const currentEvent = getEventData();
-    const base = getStatisticsBase(currentEvent);
-    statsAdjustments = {
-        total: toSafeNumber(statistics.total ?? statistics.totalInvitados, base.total) - base.total,
-        confirmed: toSafeNumber(statistics.confirmed ?? statistics.confirmados, base.confirmed) - base.confirmed,
-        noAttendance: toSafeNumber(statistics.noAttendance ?? statistics.noAsisten ?? statistics.noAsiste, base.noAttendance) - base.noAttendance,
-        arrivals: toSafeNumber(statistics.arrivals ?? statistics.llegaron, base.arrivals) - base.arrivals,
-        pending: toSafeNumber(statistics.pending ?? statistics.pendientes, base.pending) - base.pending
-    };
-}
-
-/**
- * Obtiene las estadísticas publicadas directamente por el documento del evento.
- * @param {Object} eventData - Datos del evento.
- * @returns {{ total: number, confirmed: number, noAttendance: number, arrivals: number, pending: number }} Base de cálculo.
- */
-function getStatisticsBase(eventData) {
-    const total = toSafeNumber(eventData.totalInvitados ?? eventData.invitados, 0);
-    const confirmed = clamp(toSafeNumber(eventData.confirmados, 0), 0, total);
-    const noAttendance = clamp(toSafeNumber(eventData.noAsisten ?? eventData.noAsiste, 0), 0, total - confirmed);
-    const arrivals = clamp(toSafeNumber(eventData.llegaron, 0), 0, total);
-    const pending = clamp(
-        toSafeNumber(eventData.pendientes, Math.max(total - confirmed - noAttendance, 0)),
-        0,
-        total
-    );
-
-    return { total, confirmed, noAttendance, arrivals, pending };
+/** Publica el cálculo canónico de un snapshot completo de invitados. */
+function publishStatsFromGuests() {
+    if (!hasGuestSnapshot || typeof deps.services.stats?.calculateEventStats !== 'function') return;
+    const stats = deps.services.stats.calculateEventStats(Array.from(guestsById.values()));
+    deps.state.updateState('event.stats', stats);
+    deps.eventBus.emit(EVENT_TYPES.EVENT_STATS_UPDATED, {
+        eventId: deps.eventContext.eventId,
+        stats,
+        source: 'guest-snapshot',
+        timestamp: Date.now()
+    });
 }
 
 /**

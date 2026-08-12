@@ -32,6 +32,8 @@ import {
 import {
     findNextAvailableGuestSequence
 } from '../../shared/guest-numbering.js';
+import { createEventStatsMutation } from '../../shared/event-stats.js';
+import { eventStatsService } from './event-stats-service.js';
 
 export {
     GUEST_ACCESS_TYPES,
@@ -208,17 +210,30 @@ async function createFinalizedGuest(eventId, input) {
             ...(token ? { qrToken: token } : {})
         }, { documentId: allocation.id });
 
+        const timestamp = serverTimestamp();
         transaction.set(guestRef, {
             ...toFirestoreGuest(guest),
-            fechaCreacion: serverTimestamp(),
-            fechaActualizacion: serverTimestamp()
+            fechaCreacion: timestamp,
+            fechaActualizacion: timestamp
         });
         transaction.update(eventRef, {
             guestSequence: allocation.sequence,
-            fechaActualizacion: serverTimestamp()
+            fechaActualizacion: timestamp,
+            ...createEventStatsMutation(event, [{ after: guest }], timestamp)
         });
         return { id: allocation.id, guest };
     });
+}
+
+async function reconcileEventStats(eventId) {
+    try {
+        return await eventStatsService.syncEventStats(eventId);
+    } catch (error) {
+        // La mutación atómica ya actualizó un resumen canónico existente. Esta
+        // reconciliación protege datos legacy y detecta escrituras externas.
+        console.error('[GuestService] No fue posible reconciliar estadísticas:', error);
+        return null;
+    }
 }
 
 function buildExistingIdentityIndex(snapshot) {
@@ -337,6 +352,7 @@ export const guestService = {
             const numbering = await getGuestNumberingState(eventId);
             if (numbering.finalized) {
                 const created = await createFinalizedGuest(eventId, guestData);
+                await reconcileEventStats(eventId);
                 return created.id;
             }
             const docRef = doc(collection(db, 'eventos', eventId, 'invitados'));
@@ -345,12 +361,18 @@ export const guestService = {
             await runTransaction(db, async (transaction) => {
                 const eventSnapshot = await transaction.get(eventRef);
                 assertTemporaryNumberingAllowed(eventSnapshot);
+                const timestamp = serverTimestamp();
                 transaction.set(docRef, {
                     ...toFirestoreGuest(guest),
-                    fechaCreacion: serverTimestamp(),
-                    fechaActualizacion: serverTimestamp()
+                    fechaCreacion: timestamp,
+                    fechaActualizacion: timestamp
+                });
+                transaction.update(eventRef, {
+                    ...createEventStatsMutation(eventSnapshot.data(), [{ after: guest }], timestamp),
+                    fechaActualizacion: timestamp
                 });
             });
+            await reconcileEventStats(eventId);
             return docRef.id;
         } catch (error) {
             wrapGuestServiceError('create', error);
@@ -386,11 +408,21 @@ export const guestService = {
                     latest.data(),
                     { documentId: guestId }
                 );
+                const timestamp = serverTimestamp();
                 transaction.update(docRef, {
                     ...toFirestoreGuest(latestGuest),
-                    fechaActualizacion: serverTimestamp()
+                    fechaActualizacion: timestamp
+                });
+                transaction.update(eventRef, {
+                    ...createEventStatsMutation(
+                        eventSnapshot.data(),
+                        [{ before: latest.data(), after: latestGuest }],
+                        timestamp
+                    ),
+                    fechaActualizacion: timestamp
                 });
             });
+            await reconcileEventStats(eventId);
         } catch (error) {
             wrapGuestServiceError('update', error);
         }
@@ -402,10 +434,24 @@ export const guestService = {
             const eventRef = doc(db, 'eventos', eventId);
             const guestRef = doc(db, 'eventos', eventId, 'invitados', guestId);
             await runTransaction(db, async (transaction) => {
-                const eventSnapshot = await transaction.get(eventRef);
+                const [eventSnapshot, guestSnapshot] = await Promise.all([
+                    transaction.get(eventRef),
+                    transaction.get(guestRef)
+                ]);
                 assertNoRenumbering(eventSnapshot);
+                if (!guestSnapshot.exists()) throw new Error('guest/not-found');
+                const timestamp = serverTimestamp();
                 transaction.delete(guestRef);
+                transaction.update(eventRef, {
+                    ...createEventStatsMutation(
+                        eventSnapshot.data(),
+                        [{ before: guestSnapshot.data() }],
+                        timestamp
+                    ),
+                    fechaActualizacion: timestamp
+                });
             });
+            await reconcileEventStats(eventId);
         } catch (error) {
             wrapGuestServiceError('delete', error);
         }
@@ -435,8 +481,10 @@ export const guestService = {
                         totalCount: inputs.length
                     });
                 }
+                await reconcileEventStats(eventId);
                 return { ...summary, importedCount: summary.guests.length };
             } catch (error) {
+                if (summary.completedBatches > 0) await reconcileEventStats(eventId);
                 throw createImportError(error, summary);
             }
         }
@@ -468,11 +516,12 @@ export const guestService = {
                 await runTransaction(db, async (transaction) => {
                     const eventSnapshot = await transaction.get(eventRef);
                     assertTemporaryNumberingAllowed(eventSnapshot);
+                    const timestamp = serverTimestamp();
                     chunk.forEach(({ guestRef, guest }) => {
                         transaction.set(guestRef, {
                             ...toFirestoreGuest(guest),
-                            fechaCreacion: serverTimestamp(),
-                            fechaActualizacion: serverTimestamp()
+                            fechaCreacion: timestamp,
+                            fechaActualizacion: timestamp
                         });
                         createdInBatch.push({
                             ...guest,
@@ -481,6 +530,14 @@ export const guestService = {
                             fechaActualizacion: null,
                             horaLlegada: null
                         });
+                    });
+                    transaction.update(eventRef, {
+                        ...createEventStatsMutation(
+                            eventSnapshot.data(),
+                            chunk.map(({ guest }) => ({ after: guest })),
+                            timestamp
+                        ),
+                        fechaActualizacion: timestamp
                     });
                 });
                 summary.completedBatches += 1;
@@ -492,8 +549,10 @@ export const guestService = {
                     totalCount: prepared.length
                 });
             }
+            await reconcileEventStats(eventId);
             return { ...summary, importedCount: summary.guests.length };
         } catch (error) {
+            if (summary.completedBatches > 0) await reconcileEventStats(eventId);
             throw createImportError(error, summary);
         }
     },
