@@ -333,10 +333,13 @@ document.addEventListener("DOMContentLoaded", () => {
     initializeFloatingWhatsApp();
 });
 
-document.body.classList.add("loading");
+const LOADER_MIN_DURATION = 5000;
+const loaderStartedAt = Number(window.EVENTORA_LOADER_STARTED_AT) || performance.now();
 
 const finishLoading = () => {
     const loader = document.getElementById("loader");
+    const elapsedTime = performance.now() - loaderStartedAt;
+    const remainingTime = Math.max(0, LOADER_MIN_DURATION - elapsedTime);
 
     window.setTimeout(() => {
         if (loader) {
@@ -344,7 +347,8 @@ const finishLoading = () => {
             loader.setAttribute("aria-hidden", "true");
         }
         document.body.classList.remove("loading");
-    }, 180);
+        document.body.classList.add("loader-complete");
+    }, remainingTime);
 };
 
 if (document.readyState === "complete") {

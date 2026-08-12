@@ -35,18 +35,32 @@ test('el loader principal funciona como bienvenida premium sin alterar la carga 
   assert.match(loader, /src="assets\/portfolio\/LOGO2\.png"/);
   assert.match(loader, /width="1717" height="1717"/);
   assert.doesNotMatch(loader, /LOGO\.jpg/);
+  assert.match(html, /<body class="loading">/);
+  assert.match(html, /window\.EVENTORA_LOADER_STARTED_AT = performance\.now\(\)/);
 
   assert.match(css, /\.loader-logo-shell\{[\s\S]*?width:clamp\(126px,14vw,174px\)/);
   assert.match(css, /\.loader-logo\{[\s\S]*?object-fit:contain/);
   assert.match(css, /#loader\.hide \.loader-content/);
   assert.match(css, /@keyframes loaderReveal/);
   assert.match(css, /@keyframes loaderProgress/);
+  assert.match(css, /@keyframes pageReveal/);
+  assert.match(css, /body\.loading > header[\s\S]*?pointer-events:none/);
+  assert.match(css, /animation:loaderMarkReveal \.9s \.08s/);
+  assert.match(css, /animation:loaderReveal \.72s 1\.02s/);
+  assert.match(css, /animation:loaderReveal \.82s 1\.88s/);
+  assert.match(css, /animation:loaderReveal \.82s 2\.72s/);
+  assert.match(css, /animation:loaderProgress 4\.45s \.42s/);
   assert.match(css, /@media \(max-width:480px\)/);
   assert.match(css, /@media \(prefers-reduced-motion:reduce\)/);
 
   assert.match(script, /window\.addEventListener\("load", finishLoading/);
+  assert.match(script, /const LOADER_MIN_DURATION = 5000/);
+  assert.match(script, /Number\(window\.EVENTORA_LOADER_STARTED_AT\) \|\| performance\.now\(\)/);
+  assert.match(script, /Math\.max\(0, LOADER_MIN_DURATION - elapsedTime\)/);
   assert.match(script, /loader\.setAttribute\("aria-hidden", "true"\)/);
-  assert.match(script, /}, 180\);/);
+  assert.match(script, /document\.body\.classList\.add\("loader-complete"\)/);
+  assert.match(script, /}, remainingTime\);/);
+  assert.doesNotMatch(script, /sessionStorage|localStorage/);
 });
 
 test('el portafolio conserva 11 demos y usa una sola fuente de metadatos para los filtros', async () => {

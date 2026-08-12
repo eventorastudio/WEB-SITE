@@ -2590,6 +2590,33 @@ body.loading{
 
     overflow:hidden;
 
+    height:100vh;
+
+    height:100dvh;
+
+}
+
+body.loading > header,
+body.loading > .menu-backdrop,
+body.loading > section,
+body.loading > footer,
+body.loading > .whatsapp-float{
+
+    opacity:0;
+
+    visibility:hidden;
+
+    pointer-events:none;
+
+}
+
+body.loader-complete > header,
+body.loader-complete > section,
+body.loader-complete > footer,
+body.loader-complete > .whatsapp-float{
+
+    animation:pageReveal .72s cubic-bezier(.22,1,.36,1) both;
+
 }
 
 #loader{
@@ -2711,7 +2738,7 @@ body.loading{
     letter-spacing:.28em;
     text-transform:uppercase;
     opacity:0;
-    animation:loaderReveal .7s .05s cubic-bezier(.22,1,.36,1) forwards;
+    animation:loaderReveal .72s 1.02s cubic-bezier(.22,1,.36,1) forwards;
 }
 
 .loader-logo-shell{
@@ -2721,7 +2748,7 @@ body.loading{
     margin-bottom:20px;
     border-radius:50%;
     opacity:0;
-    animation:loaderMarkReveal .86s .12s cubic-bezier(.22,1,.36,1) forwards;
+    animation:loaderMarkReveal .9s .08s cubic-bezier(.22,1,.36,1) forwards;
 }
 
 .loader-logo-shell::after{
@@ -2751,7 +2778,7 @@ body.loading{
     font:500 clamp(2rem,4vw,3.15rem)/1 'Cormorant Garamond',serif;
     letter-spacing:.035em;
     opacity:0;
-    animation:loaderReveal .78s .2s cubic-bezier(.22,1,.36,1) forwards;
+    animation:loaderReveal .82s 1.88s cubic-bezier(.22,1,.36,1) forwards;
 }
 
 .loader-tagline{
@@ -2761,7 +2788,7 @@ body.loading{
     font-size:clamp(.78rem,1.5vw,.92rem);
     line-height:1.7;
     opacity:0;
-    animation:loaderReveal .78s .28s cubic-bezier(.22,1,.36,1) forwards;
+    animation:loaderReveal .82s 2.72s cubic-bezier(.22,1,.36,1) forwards;
 }
 
 .loader-progress{
@@ -2772,15 +2799,16 @@ body.loading{
     margin-top:28px;
     background:rgba(143,116,70,.2);
     opacity:0;
-    animation:loaderReveal .6s .36s ease forwards;
+    animation:loaderReveal .55s .42s ease forwards;
 }
 
 .loader-progress span{
     position:absolute;
     inset:0;
     background:linear-gradient(90deg,transparent,#b58b46 38%,#e4c98f 62%,transparent);
-    transform:translateX(-100%);
-    animation:loaderProgress 1.35s cubic-bezier(.65,0,.35,1) infinite;
+    transform:scaleX(0);
+    transform-origin:left;
+    animation:loaderProgress 4.45s .42s cubic-bezier(.4,0,.2,1) forwards;
 }
 
 @keyframes loaderReveal{
@@ -2794,13 +2822,19 @@ body.loading{
 }
 
 @keyframes loaderProgress{
-    0%{transform:translateX(-100%)}
-    58%,100%{transform:translateX(100%)}
+    0%{transform:scaleX(0);opacity:.45}
+    72%{opacity:1}
+    100%{transform:scaleX(1);opacity:.72}
 }
 
 @keyframes loaderHalo{
     0%,100%{opacity:.58;transform:scale(.98)}
     50%{opacity:1;transform:scale(1.015)}
+}
+
+@keyframes pageReveal{
+    from{opacity:0;transform:translateY(8px)}
+    to{opacity:1;transform:translateY(0)}
 }
 
 @media (max-width:480px){
@@ -2831,6 +2865,17 @@ body.loading{
     .loader-progress{
         opacity:1;
         transform:none;
+    }
+
+    .loader-progress span{
+        transform:none;
+    }
+
+    body.loader-complete > header,
+    body.loader-complete > section,
+    body.loader-complete > footer,
+    body.loader-complete > .whatsapp-float{
+        animation:none;
     }
 }
 
