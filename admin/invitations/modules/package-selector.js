@@ -27,5 +27,5 @@ export function initPackageSelector({ container, state }) {
     };
 
     render(state.getSnapshot());
-    return state.subscribe(({ snapshot }) => render(snapshot));
+    return state.subscribe(({ snapshot }) => render(snapshot), { source: 'package-selector' });
 }

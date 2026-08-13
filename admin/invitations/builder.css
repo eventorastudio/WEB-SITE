@@ -42,6 +42,11 @@ button, a, input, select { outline-color: var(--builder-gold); }
 .draft-status i { width: 7px; height: 7px; border-radius: 50%; background: #aaa49a; }
 .draft-status.is-dirty i { background: var(--builder-gold); box-shadow: 0 0 0 4px var(--builder-gold-soft); }
 .builder-save { min-height: 38px; padding: 0 16px; border: 1px solid var(--builder-line); border-radius: 999px; background: #f0ede7; color: #938c82; font-size: 0.7rem; font-weight: 600; cursor: not-allowed; }
+.builder-runtime-error { position: fixed; z-index: 1000; top: 84px; left: 50%; width: min(560px, calc(100% - 32px)); display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 15px 17px; border: 1px solid #e3b8b4; border-radius: 13px; background: #fff7f6; color: var(--builder-danger); box-shadow: 0 18px 45px rgba(74, 32, 29, 0.18); transform: translateX(-50%); }
+.builder-runtime-error div { display: grid; gap: 3px; }
+.builder-runtime-error strong { font-family: var(--builder-serif); font-size: 1.08rem; }
+.builder-runtime-error p { margin: 0; font-size: 0.65rem; line-height: 1.45; }
+.builder-runtime-error button { flex: 0 0 auto; padding: 9px 14px; border: 0; border-radius: 999px; background: var(--builder-danger); color: #fff; font-size: 0.65rem; font-weight: 700; cursor: pointer; }
 
 .builder-gate { height: calc(100% - 72px); display: grid; place-items: center; overflow: auto; padding: 36px 20px; background: radial-gradient(circle at 20% 5%, rgba(207, 179, 128, 0.18), transparent 28%), var(--builder-ivory); }
 .builder-gate-card { width: min(720px, 100%); padding: 42px; border: 1px solid var(--builder-line); border-radius: 24px; background: var(--builder-paper); box-shadow: var(--builder-shadow); }

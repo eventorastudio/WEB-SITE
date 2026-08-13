@@ -5,6 +5,19 @@ import { validateBasicContent } from './builder-validation.js';
 const CONTENT_FIELDS = Object.freeze(['title', 'date', 'time', 'eventType', 'city']);
 const PREVIEW_DEVICES = Object.freeze(['mobile', 'tablet', 'desktop']);
 
+export function assertEnabledSections(value) {
+    if (!Array.isArray(value)) throw new TypeError('builder/enabled-sections-must-be-array');
+    const unique = new Set();
+    value.forEach((sectionId) => {
+        if (typeof sectionId !== 'string' || !sectionId || !getSectionById(sectionId)) {
+            throw new TypeError(`builder/invalid-enabled-section:${String(sectionId)}`);
+        }
+        if (unique.has(sectionId)) throw new TypeError(`builder/duplicate-enabled-section:${sectionId}`);
+        unique.add(sectionId);
+    });
+    return value;
+}
+
 function clone(value) {
     if (typeof structuredClone === 'function') return structuredClone(value);
     return JSON.parse(JSON.stringify(value));
@@ -76,6 +89,7 @@ export class InvitationBuilderState {
             validationErrors: {}
         };
         this._listeners = new Set();
+        this._errorListeners = new Set();
     }
 
     initialize(eventId, eventData) {
@@ -95,10 +109,17 @@ export class InvitationBuilderState {
         return clone({ draft: this._draft, ui: this._ui });
     }
 
-    subscribe(listener) {
+    subscribe(listener, { source = 'anonymous' } = {}) {
         if (typeof listener !== 'function') return () => {};
-        this._listeners.add(listener);
-        return () => this._listeners.delete(listener);
+        const subscription = Object.freeze({ listener, source });
+        this._listeners.add(subscription);
+        return () => this._listeners.delete(subscription);
+    }
+
+    subscribeToErrors(listener) {
+        if (typeof listener !== 'function') return () => {};
+        this._errorListeners.add(listener);
+        return () => this._errorListeners.delete(listener);
     }
 
     setPackage(packageId) {
@@ -125,12 +146,14 @@ export class InvitationBuilderState {
 
     toggleSection(sectionId, enabled) {
         if (!this._draft) throw new Error('builder/not-initialized');
+        if (typeof sectionId !== 'string') return { ok: false, code: 'builder/invalid-section-id' };
+        if (typeof enabled !== 'boolean') return { ok: false, code: 'builder/invalid-section-state' };
         if (!getSectionById(sectionId)) return { ok: false, code: 'builder/unknown-section' };
         if (enabled && !isSectionAllowed(sectionId, this._draft.packageId)) {
             return { ok: false, code: 'builder/section-not-allowed' };
         }
 
-        const current = new Set(this._draft.enabledSections);
+        const current = new Set(assertEnabledSections(this._draft.enabledSections));
         const hadSection = current.has(sectionId);
         if (enabled) current.add(sectionId);
         else current.delete(sectionId);
@@ -185,8 +208,36 @@ export class InvitationBuilderState {
     }
 
     _notify(reason, previous) {
+        if (this._draft) assertEnabledSections(this._draft.enabledSections);
         const payload = Object.freeze({ reason, snapshot: this.getSnapshot(), previous });
-        this._listeners.forEach((listener) => listener(payload));
+        [...this._listeners].forEach(({ listener, source }) => {
+            try {
+                listener(payload);
+            } catch (error) {
+                this._reportSubscriberError({ error, source, payload, listener });
+            }
+        });
+    }
+
+    _reportSubscriberError({ error, source, payload, listener }) {
+        const incident = Object.freeze({
+            error,
+            source,
+            reason: payload.reason,
+            snapshot: payload.snapshot,
+            retry: () => listener(payload)
+        });
+        if (!this._errorListeners.size) {
+            console.error(`[InvitationBuilder] Falló el listener "${source}" durante "${payload.reason}".`, error);
+            return;
+        }
+        [...this._errorListeners].forEach((errorListener) => {
+            try {
+                errorListener(incident);
+            } catch (reportingError) {
+                console.error('[InvitationBuilder] Falló el reporte visible de un error de listener.', reportingError, error);
+            }
+        });
     }
 }
 

@@ -99,7 +99,7 @@ export function initPreviewController({ frame, controls, status, dimension, stag
         if (['initialized', 'theme-changed', 'sections-changed', 'content-changed', 'package-changed'].includes(reason)) {
             sendSnapshot(snapshot);
         }
-    });
+    }, { source: 'preview-controller' });
 
     return () => {
         unsubscribe();

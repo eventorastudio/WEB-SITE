@@ -14,6 +14,7 @@ import { initThemeSelector } from './modules/theme-selector.js';
 import { initSectionSelector } from './modules/section-selector.js';
 import { initBasicInformation } from './modules/basic-information.js';
 import { initPreviewController } from './modules/preview-controller.js';
+import { initBuilderEventBridge } from './modules/state-event-bridge.js';
 
 const dom = {
     guard: document.getElementById('builder-auth-guard'),
@@ -27,12 +28,16 @@ const dom = {
     eventLabel: document.getElementById('builder-event-label'),
     activeEvent: document.getElementById('builder-active-event'),
     activeEventMeta: document.getElementById('builder-active-event-meta'),
-    draftStatus: document.getElementById('builder-draft-status')
+    draftStatus: document.getElementById('builder-draft-status'),
+    runtimeError: document.getElementById('builder-runtime-error'),
+    runtimeErrorMessage: document.getElementById('builder-runtime-error-message'),
+    runtimeErrorRetry: document.getElementById('builder-runtime-error-retry')
 };
 
 let roleContext = null;
 let modulesMounted = false;
 let stateBridgeCleanup = null;
+let runtimeRetry = null;
 const moduleCleanups = [];
 
 initThemeManager();
@@ -155,7 +160,8 @@ function mountModules() {
         container: document.getElementById('section-selector'),
         summary: document.getElementById('section-summary'),
         state: builderState,
-        ui
+        ui,
+        onError: reportRuntimeError
     }));
     moduleCleanups.push(initBasicInformation({
         form: document.getElementById('basic-information-form'),
@@ -178,20 +184,11 @@ function mountModules() {
 }
 
 function bridgeBuilderState() {
-    stateBridgeCleanup = builderState.subscribe(({ snapshot, reason }) => {
-        syncDraftChrome(snapshot);
-        eventBus.emit(EVENT_TYPES.BUILDER_DRAFT_UPDATED, {
-            eventId: snapshot.draft.eventId,
-            reason,
-            isDirty: snapshot.ui.isDirty,
-            timestamp: Date.now()
-        });
-        if (reason === 'theme-changed') {
-            eventBus.emit(EVENT_TYPES.BUILDER_THEME_CHANGED, { themeId: snapshot.draft.themeId, timestamp: Date.now() });
-        }
-        if (reason === 'sections-changed') {
-            eventBus.emit(EVENT_TYPES.BUILDER_SECTIONS_CHANGED, { enabledSections: snapshot.draft.enabledSections, timestamp: Date.now() });
-        }
+    stateBridgeCleanup = initBuilderEventBridge({
+        state: builderState,
+        eventBus,
+        eventTypes: EVENT_TYPES,
+        onSnapshot: syncDraftChrome
     });
     moduleCleanups.push(stateBridgeCleanup);
 }
@@ -267,16 +264,44 @@ function friendlyError(error) {
 }
 
 function registerManualErrorBoundary() {
+    moduleCleanups.push(builderState.subscribeToErrors(({ error, source, reason, retry }) => {
+        reportRuntimeError(error, { source, reason, retry });
+    }));
+    dom.runtimeErrorRetry?.addEventListener('click', retryRuntimeUpdate);
     window.addEventListener('unhandledrejection', (event) => {
         console.error('[Invitation Builder] Promesa no controlada:', event.reason);
-        ui.showToast({ message: 'Ocurrió un error inesperado en el Builder.', type: 'error' });
+        reportRuntimeError(event.reason, { source: 'unhandledrejection', reason: 'async-runtime' });
     });
     window.addEventListener('error', (event) => {
         console.error('[Invitation Builder] Error de ejecución:', event.error || event.message);
+        reportRuntimeError(event.error || new Error(event.message), { source: 'window', reason: 'runtime' });
     });
     window.addEventListener('pagehide', () => {
         moduleCleanups.splice(0).forEach((cleanup) => {
             try { cleanup?.(); } catch (error) { console.warn('[Invitation Builder] Error liberando módulo:', error); }
         });
     }, { once: true });
+}
+
+function reportRuntimeError(error, { source = 'builder', reason = 'unknown', retry = null } = {}) {
+    console.error(`[InvitationBuilder] ${source} falló durante ${reason}.`, error);
+    runtimeRetry = typeof retry === 'function' ? retry : null;
+    if (!dom.runtimeError) return;
+    dom.runtimeErrorMessage.textContent = runtimeRetry
+        ? 'El borrador local se conservó. Puedes reintentar únicamente la actualización fallida.'
+        : 'El borrador local se conservó. Revisa la consola de desarrollo para consultar el stack trace.';
+    if (dom.runtimeErrorRetry) dom.runtimeErrorRetry.hidden = !runtimeRetry;
+    dom.runtimeError.hidden = false;
+}
+
+function retryRuntimeUpdate() {
+    if (!runtimeRetry) return;
+    const retry = runtimeRetry;
+    runtimeRetry = null;
+    dom.runtimeError.hidden = true;
+    try {
+        retry();
+    } catch (error) {
+        reportRuntimeError(error, { source: 'runtime-retry', reason: 'manual-retry', retry });
+    }
 }

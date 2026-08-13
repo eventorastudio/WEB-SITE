@@ -17,7 +17,8 @@ import {
 } from '../admin/invitations/core/section-registry.js';
 import {
     InvitationBuilderState,
-    createInvitationDraft
+    createInvitationDraft,
+    assertEnabledSections
 } from '../admin/invitations/core/builder-state.js';
 import {
     createBuilderUrl,
@@ -89,6 +90,18 @@ test('una sección bloqueada no puede activarse y un downgrade conserva configur
 
     assert.ok(state.getSnapshot().draft.enabledSections.includes('itinerary'));
     assert.deepEqual(state.getUnavailableEnabledSections(), ['itinerary']);
+});
+
+test('enabledSections mantiene el contrato Array<string> con IDs únicos del registro', () => {
+    assert.deepEqual(assertEnabledSections(['gallery', 'itinerary']), ['gallery', 'itinerary']);
+    assert.throws(() => assertEnabledSections(new Set(['gallery'])), /builder\/enabled-sections-must-be-array/);
+    assert.throws(() => assertEnabledSections(['gallery', undefined]), /builder\/invalid-enabled-section:undefined/);
+    assert.throws(() => assertEnabledSections(['gallery', 'gallery']), /builder\/duplicate-enabled-section:gallery/);
+
+    const state = new InvitationBuilderState();
+    state.initialize('EVT-0001', { nombreEvento: 'Evento' });
+    assert.deepEqual(state.toggleSection(undefined, true), { ok: false, code: 'builder/invalid-section-id' });
+    assert.deepEqual(state.toggleSection('gallery', 'yes'), { ok: false, code: 'builder/invalid-section-state' });
 });
 
 test('cambiar Champagne por Luxury no borra nombre, fecha ni contenido', () => {
@@ -181,12 +194,19 @@ test('Dashboard y Administrar evento abren la misma aplicación Builder', async 
 });
 
 test('el Builder protege acceso, usa eventService y controla evento inexistente', async () => {
-    const builder = await read('admin/invitations/builder.js');
+    const [builder, html] = await Promise.all([
+        read('admin/invitations/builder.js'),
+        read('admin/invitations/builder.html')
+    ]);
     assert.match(builder, /authService\.getRoleContext\(\{ forceRefresh: true \}\)/);
     assert.match(builder, /hasPermission\(roleContext, PERMISSIONS\.INVITATIONS_EDIT\)/);
     assert.match(builder, /eventService\.getEventById\(eventId\)/);
     assert.match(builder, /if \(!eventData\)/);
     assert.match(builder, /El evento no existe o fue eliminado/);
+    assert.match(builder, /subscribeToErrors/);
+    assert.match(builder, /reportRuntimeError/);
+    assert.match(html, /id="builder-runtime-error" role="alert" hidden/);
+    assert.match(html, />Reintentar</);
 });
 
 test('la preview usa plantilla real, postMessage tipado y bloquea navegación externa', async () => {
@@ -210,8 +230,11 @@ test('Fase 1 no importa primitivas de escritura Firestore ni simula guardado', a
     const builderFiles = [
         'admin/invitations/builder.js',
         'admin/invitations/core/builder-state.js',
+        'admin/invitations/core/preview-sections.js',
         'admin/invitations/modules/basic-information.js',
-        'admin/invitations/modules/preview-controller.js'
+        'admin/invitations/modules/preview-controller.js',
+        'admin/invitations/modules/section-selector.js',
+        'admin/invitations/modules/state-event-bridge.js'
     ];
     const source = (await Promise.all(builderFiles.map(read))).join('\n');
     assert.doesNotMatch(source, /firebase-firestore\.js/);

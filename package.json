@@ -15,5 +15,8 @@
     "firebase-admin": "^13.0.0",
     "jszip": "^3.10.1",
     "qrcode-generator": "^1.4.4"
+  },
+  "devDependencies": {
+    "jsdom": "^27.0.1"
   }
 }

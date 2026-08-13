@@ -1,4 +1,5 @@
 import { PREVIEW_MESSAGE_TYPES } from '../core/builder-events.js';
+import { applyPreviewSectionVisibility } from '../core/preview-sections.js';
 
 const parentOrigin = window.location.origin;
 let activeThemeLinks = [];
@@ -174,14 +175,10 @@ function applyContent(bindings = {}, content = {}) {
 }
 
 function applySectionVisibility(sections = [], enabledSections = []) {
-    const enabled = new Set(enabledSections);
-    sections.forEach((section) => {
-        (section.previewSelectors ?? []).forEach((selector) => {
-            safeQueryAll(selector).forEach((element) => {
-                element.hidden = !enabled.has(section.id);
-                element.dataset.builderSectionVisibility = enabled.has(section.id) ? 'visible' : 'hidden';
-            });
-        });
+    return applyPreviewSectionVisibility(document, sections, enabledSections, {
+        onBindingError: ({ sectionId, selector, error }) => {
+            console.error(`[InvitationBuilder Preview] Binding inválido en "${sectionId}" (${selector}).`, error);
+        }
     });
 }
 

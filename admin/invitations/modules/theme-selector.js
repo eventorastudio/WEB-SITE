@@ -55,5 +55,5 @@ export function initThemeSelector({ container, state }) {
     };
 
     render(state.getSnapshot());
-    return state.subscribe(({ snapshot }) => render(snapshot));
+    return state.subscribe(({ snapshot }) => render(snapshot), { source: 'theme-selector' });
 }

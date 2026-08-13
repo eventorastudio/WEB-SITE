@@ -36,5 +36,5 @@ export function initBasicInformation({ form, state }) {
     render(state.getSnapshot());
     return state.subscribe(({ snapshot, reason }) => {
         if (['initialized', 'content-changed'].includes(reason)) render(snapshot);
-    });
+    }, { source: 'basic-information' });
 }
