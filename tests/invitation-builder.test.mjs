@@ -261,6 +261,8 @@ test('el layout del editor mantiene tres regiones estables y ya no intenta conve
     assert.match(css, /\.builder-workspace \{[^}]*flex: 1 1 auto;[^}]*grid-template-columns: 172px minmax\(480px, 1fr\) minmax\(360px, 450px\);/s);
     assert.match(css, /\.builder-editor \{[^}]*min-height: 0;[^}]*overflow-y: auto;/s);
     assert.match(css, /\.builder-preview \{[^}]*min-height: 0;/s);
+    assert.match(css, /\.section-option \{[^}]*position: relative;/s);
+    assert.match(css, /\.section-option input \{[^}]*position: absolute;/s);
     assert.doesNotMatch(css, /@media \(max-width: (?:1020|760|480)px\)/);
 });
 

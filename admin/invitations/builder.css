@@ -130,7 +130,7 @@ button, a, input, select { outline-color: var(--builder-gold); }
 
 .section-summary { margin: -8px 0 13px 35px; color: var(--builder-gold); font-size: 0.63rem; font-weight: 600; }
 .section-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
-.section-option { min-width: 0; display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 14px; border: 1px solid var(--builder-line); border-radius: 12px; background: var(--builder-paper); cursor: pointer; }
+.section-option { position: relative; min-width: 0; display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 14px; border: 1px solid var(--builder-line); border-radius: 12px; background: var(--builder-paper); cursor: pointer; }
 .section-option:hover:not(.is-locked) { border-color: #cdb78f; }
 .section-option input { position: absolute; opacity: 0; pointer-events: none; }
 .section-option-marker { width: 19px; height: 19px; display: grid; place-items: center; border: 1px solid #c9c0b3; border-radius: 5px; background: #fff; }

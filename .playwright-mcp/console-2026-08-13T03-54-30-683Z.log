@@ -1,0 +1,3 @@
+[      38ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://eventorastudio.com/admin/assets/images/LOGO2.jpg:0
+[  142858ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:blank:0
+[  144118ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ https://eventorastudio.com/admin/invitations/preview/frame.html?v=phase1-desktop-20260813:0

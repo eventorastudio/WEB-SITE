@@ -1,0 +1,18 @@
+- generic [ref=e2]:
+  - img "Eventora Studio" [ref=e3]
+  - heading "Panel Administrativo" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Administra todos tus eventos, invitados y experiencias desde un solo lugar.
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - generic [ref=e8]: Correo electrónico
+      - textbox "Correo electrónico" [ref=e9]:
+        - /placeholder: admin@eventorastudio.com
+    - generic [ref=e10]:
+      - generic [ref=e11]: Contraseña
+      - textbox "Contraseña" [ref=e12]:
+        - /placeholder: ••••••••
+    - generic [ref=e13]:
+      - checkbox "Mantener sesión iniciada" [ref=e14] [cursor=pointer]
+      - generic [ref=e15] [cursor=pointer]: Mantener sesión iniciada
+    - button "Iniciar sesión" [ref=e17] [cursor=pointer]
+  - generic [ref=e18]: © Eventora Studio
