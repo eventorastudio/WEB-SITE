@@ -1,0 +1,2 @@
+[      44ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:blank:0
+[   56063ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ http://127.0.0.1:4188/admin/invitations/preview/frame.html?v=phase1-desktop-20260813:0

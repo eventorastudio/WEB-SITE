@@ -51,6 +51,10 @@ const dom = {
 let roleContext = null;
 let modulesMounted = false;
 let builderStarted = false;
+let bootStarted = false;
+let accessReady = false;
+let shellUnlocked = false;
+let currentPlatformStatus = null;
 let runtimeRetry = null;
 const moduleCleanups = [];
 const immutableBuilderRoot = dom.root;
@@ -62,9 +66,16 @@ const debugBuilder = createBuilderDebugLogger({
 
 initThemeManager();
 registerGlobalDiagnostics();
-boot();
+moduleCleanups.push(initBuilderPlatformAccess({
+    targetWindow: window,
+    onStatusChange: handlePlatformStatus,
+    onReady: () => void boot()
+}));
 
 async function boot() {
+    if (bootStarted) return;
+    bootStarted = true;
+
     try {
         const user = await waitForSession();
         if (!user) {
@@ -84,13 +95,10 @@ async function boot() {
             isAuthenticated: true,
             role: roleContext.role
         });
-        dismissAuthGuard();
+        revealShell();
         watchSession();
-        moduleCleanups.push(initBuilderPlatformAccess({
-            targetWindow: window,
-            onStatusChange: handlePlatformStatus,
-            onReady: () => void startBuilder()
-        }));
+        accessReady = true;
+        if (currentPlatformStatus === BUILDER_PLATFORM_STATUS.SUPPORTED) await startBuilder();
     } catch (error) {
         revealShell();
         renderGateError('No fue posible iniciar el Invitation Builder.', friendlyError(error));
@@ -115,15 +123,26 @@ async function startBuilder() {
 }
 
 function handlePlatformStatus(status, { hasStarted }) {
+    currentPlatformStatus = status;
     document.documentElement.dataset.builderPlatformStatus = status;
     dom.root.dataset.builderPlatformStatus = status;
     debugBuilder.trace('platform-status', { status, minimumWidth: BUILDER_DESKTOP_MIN_WIDTH, hasStarted });
 
-    if (!hasStarted) {
+    if (status !== BUILDER_PLATFORM_STATUS.SUPPORTED && !builderStarted) {
         dom.root.hidden = true;
         dom.windowGuard.hidden = true;
+        dismissAuthGuard();
         configureInitialPlatformGate(status);
         dom.platformGate.hidden = false;
+        return;
+    }
+
+    if (!builderStarted) {
+        dom.platformGate.hidden = true;
+        dom.windowGuard.hidden = true;
+        dom.root.hidden = !shellUnlocked;
+        dom.guard.hidden = shellUnlocked;
+        if (accessReady) void startBuilder();
         return;
     }
 
@@ -136,10 +155,10 @@ function handlePlatformStatus(status, { hasStarted }) {
 
 function configureInitialPlatformGate(status) {
     const smallWindow = status === BUILDER_PLATFORM_STATUS.WINDOW_TOO_SMALL;
-    dom.platformTitle.textContent = smallWindow ? 'Amplía la ventana para continuar' : 'Disponible en computadora';
+    dom.platformTitle.textContent = 'Invitation Builder disponible solo en computadora';
     dom.platformDescription.textContent = smallWindow
-        ? `El Invitation Builder requiere al menos ${BUILDER_DESKTOP_MIN_WIDTH} px de ancho. Amplía esta ventana y el editor se abrirá automáticamente.`
-        : 'El editor de invitaciones está diseñado para trabajar desde una computadora, donde puedes administrar contenido y vista previa con mayor precisión.';
+        ? `Para crear y editar invitaciones utiliza una pantalla de escritorio de al menos ${BUILDER_DESKTOP_MIN_WIDTH} px. Si ya estás en una computadora, amplía la ventana para continuar.`
+        : 'Para crear y editar invitaciones utiliza una computadora con mouse o trackpad y una pantalla de escritorio.';
 }
 
 function configureActiveWindowGuard(status) {
@@ -171,8 +190,9 @@ function watchSession() {
 }
 
 function revealShell() {
+    shellUnlocked = true;
     dismissAuthGuard();
-    dom.shell.hidden = false;
+    dom.shell.hidden = currentPlatformStatus !== BUILDER_PLATFORM_STATUS.SUPPORTED;
 }
 
 function dismissAuthGuard() {

@@ -211,10 +211,14 @@ test('el Builder protege acceso, usa eventService y controla evento inexistente'
     assert.match(html, />Reintentar</);
     assert.match(html, /id="invitation-builder-root" data-builder-root hidden/);
     assert.match(html, /id="builder-platform-gate"/);
-    assert.match(html, />Disponible en computadora</);
+    assert.match(html, />Invitation Builder disponible solo en computadora</);
     assert.match(html, /data-builder-region="sidebar"/);
     assert.match(html, /data-builder-region="editor"/);
     assert.match(html, /data-builder-region="preview"/);
+
+    const topLevel = builder.slice(0, builder.indexOf('async function boot'));
+    assert.match(topLevel, /initBuilderPlatformAccess/);
+    assert.doesNotMatch(topLevel, /\nboot\(\);/);
 });
 
 test('la preview usa plantilla real, postMessage tipado y bloquea navegación externa', async () => {
