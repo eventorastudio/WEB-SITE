@@ -132,7 +132,7 @@ test('desktop pequeño espera; al ampliar inicia una vez y los resizes posterior
     targetWindow.setViewport(1440, 900);
     assert.equal(initializations, 1);
     assert.equal(statuses.at(-1).status, BUILDER_PLATFORM_STATUS.SUPPORTED);
-    assert.equal(state.getSnapshot().draft.content.title, 'Nombre conservado');
+    assert.equal(state.getSnapshot().draft.content.identity.primaryName, 'Nombre conservado');
     assert.equal(state.getSnapshot().draft.themeId, 'champagne');
     assert.deepEqual(state.getSnapshot().draft.enabledSections, ['gallery']);
     assert.equal(state.getSnapshot().ui.previewDevice, 'tablet');

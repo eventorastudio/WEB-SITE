@@ -1,30 +1,42 @@
-import { PREVIEW_MESSAGE_TYPES } from '../core/builder-events.js?v=phase1-desktop-20260813';
-import { applyPreviewSectionVisibility } from '../core/preview-sections.js?v=phase1-desktop-20260813';
+import { PREVIEW_MESSAGE_TYPES } from '../core/builder-events.js?v=phase2-content-20260813';
+import { PREVIEW_SEMANTIC_FALLBACKS } from '../core/content-schema.js?v=phase2-content-20260813';
+import { applyPreviewSectionVisibility } from '../core/preview-sections.js?v=phase2-content-20260813';
+import {
+    applyTemplateContentBindings,
+    formatInvitationEventLine
+} from '../core/template-binding-registry.js?v=phase2-content-20260813';
 
 const parentOrigin = window.location.origin;
 let activeThemeLinks = [];
 let latestRequestId = 0;
 let currentThemeId = null;
+let countdownTimer = null;
 
 window.addEventListener('message', handleParentMessage);
 window.addEventListener('click', interceptNavigation, true);
 window.addEventListener('submit', (event) => event.preventDefault(), true);
-window.addEventListener('beforeunload', stopMedia);
+window.addEventListener('beforeunload', () => {
+    window.clearInterval(countdownTimer);
+    stopMedia();
+});
 
 postToParent({ type: PREVIEW_MESSAGE_TYPES.SHELL_READY });
 
 async function handleParentMessage(event) {
     if (event.origin !== parentOrigin || event.source !== window.parent) return;
-    if (event.data?.type !== PREVIEW_MESSAGE_TYPES.RENDER) return;
+    if (![PREVIEW_MESSAGE_TYPES.RENDER, PREVIEW_MESSAGE_TYPES.UPDATE].includes(event.data?.type)) return;
 
     const requestId = Number(event.data.requestId) || 0;
     latestRequestId = Math.max(latestRequestId, requestId);
 
     try {
         const payload = validatePayload(event.data.payload);
-        if (payload.theme.id === currentThemeId) {
-            applyContent(payload.theme.previewBindings, payload.content);
-            applySectionVisibility(payload.sections, payload.enabledSections);
+        const isUpdate = event.data.type === PREVIEW_MESSAGE_TYPES.UPDATE;
+        if (isUpdate) {
+            if (payload.theme.id !== currentThemeId) return;
+            applyPayload(payload);
+        } else if (payload.theme.id === currentThemeId) {
+            applyPayload(payload);
         } else {
             currentThemeId = null;
             showLoading(payload.theme.name);
@@ -38,12 +50,16 @@ async function handleParentMessage(event) {
         postToParent({
             type: PREVIEW_MESSAGE_TYPES.RENDERED,
             requestId,
-            payload: { themeId: payload.theme.id, themeName: payload.theme.name }
+            payload: { themeId: payload.theme.id, themeName: payload.theme.name, update: isUpdate }
         });
     } catch (error) {
         if (requestId !== latestRequestId) return;
-        currentThemeId = null;
-        showError(error);
+        if (event.data?.type === PREVIEW_MESSAGE_TYPES.RENDER) {
+            currentThemeId = null;
+            showError(error);
+        } else {
+            console.error('[InvitationBuilder Preview] Actualización de contenido rechazada.', error);
+        }
         postToParent({
             type: PREVIEW_MESSAGE_TYPES.ERROR,
             requestId,
@@ -56,6 +72,8 @@ function validatePayload(payload) {
     if (!payload || payload.renderMode !== 'builder') throw new Error('Modo de preview no válido.');
     if (!payload.theme?.id || !payload.theme?.name) throw new Error('Tema no encontrado.');
     if (payload.theme.id !== 'custom' && !payload.theme.templatePath) throw new Error('La colección no tiene una plantilla disponible.');
+    if (!payload.draft?.content || payload.draft.contentSchemaVersion !== 1) throw new Error('Contrato de contenido no válido.');
+    if (!Array.isArray(payload.enabledSections) || !Array.isArray(payload.sections)) throw new Error('Contrato de secciones no válido.');
     return payload;
 }
 
@@ -80,11 +98,8 @@ async function renderTemplate(payload, requestId) {
         invitation.removeAttribute('inert');
         invitation.setAttribute('aria-hidden', 'false');
     }
-
     document.querySelectorAll('.reveal').forEach((element) => element.classList.add('visible'));
-
-    applyContent(payload.theme.previewBindings, payload.content);
-    applySectionVisibility(payload.sections, payload.enabledSections);
+    applyPayload(payload);
     stopMedia();
     return true;
 }
@@ -103,17 +118,90 @@ async function renderCustom(payload, requestId) {
     eyebrow.className = 'custom-preview-eyebrow';
     eyebrow.textContent = 'TEMA PERSONALIZADO · BASE FLEXIBLE';
     const title = document.createElement('h1');
-    title.textContent = safeText(payload.content?.title, 'Tu evento');
+    title.dataset.customBind = 'identity';
     const date = document.createElement('p');
     date.className = 'custom-preview-date';
-    date.textContent = formatEventLine(payload.content);
+    date.dataset.customBind = 'event-line';
+    const phrase = document.createElement('p');
+    phrase.className = 'custom-preview-phrase';
+    phrase.dataset.customBind = 'phrase';
     const note = document.createElement('p');
     note.className = 'custom-preview-note';
     note.textContent = 'La configuración visual avanzada del tema Personalizada se añadirá en una fase posterior.';
-    content.append(eyebrow, title, date, note);
+    content.append(eyebrow, title, date, phrase, note);
     card.append(content);
     document.body.append(card);
+    applyPayload(payload);
     return true;
+}
+
+function applyPayload(payload) {
+    if (payload.theme.id === 'custom') applyCustomContent(payload.draft);
+    else applyTemplateContentBindings(document, payload.theme.id, payload.draft);
+    applySectionVisibility(payload.sections, payload.enabledSections, payload.sectionGroups);
+    renderCountdown(payload.draft.content);
+    const title = resolveIdentity(payload.draft.content);
+    document.title = `${title || PREVIEW_SEMANTIC_FALLBACKS.primaryName} · Preview Builder`;
+}
+
+function applyCustomContent(draft) {
+    const identity = resolveIdentity(draft.content) || PREVIEW_SEMANTIC_FALLBACKS.primaryName;
+    const eventLine = formatInvitationEventLine(draft.content) || PREVIEW_SEMANTIC_FALLBACKS.eventLine;
+    const phrase = cleanText(draft.content.identity?.phrase);
+    setText('[data-custom-bind="identity"]', identity);
+    setText('[data-custom-bind="event-line"]', eventLine);
+    setText('[data-custom-bind="phrase"]', phrase);
+    const phraseElement = document.querySelector('[data-custom-bind="phrase"]');
+    if (phraseElement) phraseElement.hidden = !phrase;
+}
+
+function resolveIdentity(content = {}) {
+    const primary = cleanText(content.identity?.primaryName);
+    const secondary = cleanText(content.identity?.secondaryName);
+    return [primary, secondary].filter(Boolean).join(' & ');
+}
+
+function renderCountdown(content = {}) {
+    window.clearInterval(countdownTimer);
+    countdownTimer = null;
+    const targets = [...document.querySelectorAll('[data-countdown]')];
+    if (!targets.length) return;
+    const date = cleanText(content.schedule?.date);
+    const time = /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(cleanText(content.schedule?.time))
+        ? cleanText(content.schedule.time)
+        : '00:00';
+    const targetTime = /^\d{4}-\d{2}-\d{2}$/.test(date) ? new Date(`${date}T${time}:00`).getTime() : Number.NaN;
+    if (!Number.isFinite(targetTime)) return;
+
+    const update = () => {
+        const distance = Math.max(targetTime - Date.now(), 0);
+        targets.forEach((target) => {
+            if (distance === 0) {
+                const message = document.createElement('p');
+                message.className = 'countdown-message';
+                message.textContent = cleanText(content.countdown?.arrivedMessage) || PREVIEW_SEMANTIC_FALLBACKS.countdownArrived;
+                target.replaceChildren(message);
+                return;
+            }
+            const units = [
+                ['Días', Math.floor(distance / 86400000)],
+                ['Horas', Math.floor(distance / 3600000) % 24],
+                ['Minutos', Math.floor(distance / 60000) % 60],
+                ['Segundos', Math.floor(distance / 1000) % 60]
+            ];
+            target.replaceChildren(...units.map(([label, value]) => {
+                const item = document.createElement('div');
+                const number = document.createElement('strong');
+                const caption = document.createElement('span');
+                number.textContent = String(value).padStart(2, '0');
+                caption.textContent = label;
+                item.append(number, caption);
+                return item;
+            }));
+        });
+        return distance > 0;
+    };
+    if (update()) countdownTimer = window.setInterval(update, 1000);
 }
 
 function sanitizeTemplate(parsed, templateUrl) {
@@ -168,14 +256,9 @@ function clearThemeStyles() {
     activeThemeLinks = [];
 }
 
-function applyContent(bindings = {}, content = {}) {
-    setText(bindings.name, safeText(content.title, 'Evento sin título'));
-    setText(bindings.date, formatEventLine(content));
-    document.title = `${safeText(content.title, 'Evento')} · Preview Builder`;
-}
-
-function applySectionVisibility(sections = [], enabledSections = []) {
+function applySectionVisibility(sections = [], enabledSections = [], groups = []) {
     return applyPreviewSectionVisibility(document, sections, enabledSections, {
+        groups,
         onBindingError: ({ sectionId, selector, error }) => {
             console.error(`[InvitationBuilder Preview] Binding inválido en "${sectionId}" (${selector}).`, error);
         }
@@ -183,27 +266,12 @@ function applySectionVisibility(sections = [], enabledSections = []) {
 }
 
 function setText(selector, value) {
-    if (!selector) return;
     safeQueryAll(selector).forEach((element) => { element.textContent = value; });
 }
 
 function safeQueryAll(selector) {
     try { return [...document.querySelectorAll(selector)]; }
     catch { return []; }
-}
-
-function formatEventLine(content = {}) {
-    const parts = [];
-    const dateValue = String(content.date ?? '');
-    const date = /^\d{4}-\d{2}-\d{2}$/.test(dateValue) ? new Date(`${dateValue}T12:00:00`) : null;
-    if (date && !Number.isNaN(date.getTime())) {
-        parts.push(new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: 'long', year: 'numeric' }).format(date));
-    } else {
-        parts.push('Fecha por definir');
-    }
-    if (content.time) parts.push(String(content.time));
-    if (content.city) parts.push(safeText(content.city));
-    return parts.join(' · ').toUpperCase();
 }
 
 function interceptNavigation(event) {
@@ -226,12 +294,12 @@ function sameOriginUrl(value, base = window.location.href) {
     return url;
 }
 
-function safeText(value, fallback = '') {
-    const result = String(value ?? '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 180);
-    return result || fallback;
+function cleanText(value) {
+    return String(value ?? '').replace(/\s+/g, ' ').trim().slice(0, 1800);
 }
 
 function showLoading(themeName) {
+    window.clearInterval(countdownTimer);
     document.body.className = 'builder-preview-loading';
     document.body.innerHTML = '<main class="preview-placeholder"><i class="preview-loader" aria-hidden="true"></i><span>EVENTORA STUDIO</span><strong>Cargando colección</strong><p></p></main>';
     document.querySelector('.preview-placeholder p').textContent = `Preparando ${themeName} en modo Builder…`;
@@ -239,6 +307,7 @@ function showLoading(themeName) {
 
 function showError(error) {
     clearThemeStyles();
+    window.clearInterval(countdownTimer);
     document.body.className = 'builder-preview-error';
     document.body.innerHTML = '<main class="preview-placeholder"><span>PREVIEW NO DISPONIBLE</span><strong>Error controlado</strong><p></p></main>';
     document.querySelector('.preview-placeholder p').textContent = error?.message || 'No fue posible cargar esta colección.';

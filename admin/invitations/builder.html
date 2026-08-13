@@ -7,7 +7,7 @@
     <title>Invitation Builder | Eventora Studio</title>
     <link rel="icon" href="../assets/images/favicon.ico">
     <link rel="stylesheet" href="../assets/css/theme.css">
-    <link rel="stylesheet" href="./builder.css?v=phase1-desktop-20260813">
+    <link rel="stylesheet" href="./builder.css?v=phase2-content-20260813">
 </head>
 <body>
     <div class="builder-auth-guard" id="builder-auth-guard" role="status" aria-live="polite">
@@ -85,8 +85,8 @@
                     <button class="builder-step" type="button" disabled><span>08</span>Revisión <small>Próximamente</small></button>
                 </nav>
                 <div class="phase-card">
-                    <span>FASE 1</span>
-                    <p>Arquitectura, contenido base y preview. Sin guardado ni publicación.</p>
+                    <span>FASE 2</span>
+                    <p>Contenido configurable y preview en vivo. Sin guardado ni publicación.</p>
                 </div>
             </aside>
 
@@ -98,7 +98,7 @@
                         <small id="builder-active-event-meta"></small>
                     </div>
                     <label class="package-field" for="builder-package">
-                        <span>Paquete</span>
+                        <span>Paquete de la invitación</span>
                         <select id="builder-package" aria-describedby="builder-package-source"></select>
                         <small id="builder-package-source"></small>
                     </label>
@@ -123,33 +123,28 @@
 
                 <section class="builder-panel" id="builder-panel-information" data-builder-panel="information">
                     <header class="panel-heading">
-                        <div><span class="panel-number">03</span><h2>Información básica</h2></div>
-                        <p>Campos mínimos para comprobar el flujo de datos y la actualización en vivo.</p>
+                        <div><span class="panel-number">03</span><h2>Información</h2></div>
+                        <p>El contenido pertenece a la invitación y permanece intacto al cambiar de colección.</p>
                     </header>
-                    <form class="basic-information-form" id="basic-information-form" novalidate>
-                        <label class="field field-wide" for="invitation-title">
-                            <span>Nombre principal / nombres</span>
-                            <input id="invitation-title" type="text" maxlength="120" autocomplete="off" placeholder="María &amp; Fernando">
-                            <small class="field-error" data-error-for="title" hidden></small>
-                        </label>
-                        <label class="field" for="invitation-date">
-                            <span>Fecha</span>
-                            <input id="invitation-date" type="date">
-                            <small class="field-error" data-error-for="date" hidden></small>
-                        </label>
-                        <label class="field" for="invitation-time">
-                            <span>Hora</span>
-                            <input id="invitation-time" type="time">
-                        </label>
-                        <label class="field" for="invitation-event-type">
-                            <span>Tipo de evento</span>
-                            <input id="invitation-event-type" type="text" maxlength="80" placeholder="Boda, XV años…">
-                        </label>
-                        <label class="field" for="invitation-city">
-                            <span>Ciudad</span>
-                            <input id="invitation-city" type="text" maxlength="100" placeholder="Saltillo">
-                        </label>
-                    </form>
+                    <div class="information-editor">
+                        <section class="information-group" aria-labelledby="general-information-title">
+                            <header>
+                                <span>INFORMACIÓN GENERAL</span>
+                                <h3 id="general-information-title">Datos principales</h3>
+                                <p>Identidad, fecha y lugar base precargados desde el evento cuando están disponibles.</p>
+                            </header>
+                            <form id="general-information-editor" novalidate></form>
+                        </section>
+
+                        <section class="information-group" aria-labelledby="section-content-title">
+                            <header>
+                                <span>CONTENIDO ACTIVO</span>
+                                <h3 id="section-content-title">Contenido de secciones</h3>
+                                <p>Solo aparecen los editores de las secciones activadas. Desactivarlas no elimina su contenido.</p>
+                            </header>
+                            <div id="section-content-editors"></div>
+                        </section>
+                    </div>
                 </section>
 
                 <section class="future-foundations" aria-label="Módulos preparados para fases posteriores">
@@ -178,7 +173,7 @@
                     <iframe
                         id="invitation-preview-frame"
                         class="preview-frame"
-                        data-src="./preview/frame.html?v=phase1-desktop-20260813"
+                        data-src="./preview/frame.html?v=phase2-content-20260813"
                         title="Vista previa de la invitación"
                         sandbox="allow-scripts allow-same-origin"
                     ></iframe>
@@ -189,6 +184,6 @@
     </div>
 
     <div id="toast-container" aria-live="polite"></div>
-    <script type="module" src="./builder.js?v=phase1-desktop-20260813"></script>
+    <script type="module" src="./builder.js?v=phase2-content-20260813"></script>
 </body>
 </html>

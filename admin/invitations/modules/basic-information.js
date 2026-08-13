@@ -1,9 +1,16 @@
+import { getDraftValue } from '../core/content-schema.js?v=phase2-content-20260813';
+
 const FIELD_MAP = Object.freeze({
-    'invitation-title': 'title',
-    'invitation-date': 'date',
-    'invitation-time': 'time',
-    'invitation-event-type': 'eventType',
-    'invitation-city': 'city'
+    'invitation-title': 'content.identity.primaryName',
+    'invitation-date': 'content.schedule.date',
+    'invitation-time': 'content.schedule.time',
+    'invitation-event-type': 'content.identity.eventType',
+    'invitation-city': 'content.place.city'
+});
+const ERROR_PATHS = Object.freeze({
+    title: 'content.identity.primaryName',
+    date: 'content.schedule.date',
+    time: 'content.schedule.time'
 });
 
 export function initBasicInformation({ form, state }) {
@@ -11,23 +18,25 @@ export function initBasicInformation({ form, state }) {
 
     Object.entries(FIELD_MAP).forEach(([id, field]) => {
         const input = form.querySelector(`#${id}`);
-        input?.addEventListener('input', () => state.updateContent({ [field]: input.value }));
+        input?.addEventListener('input', () => state.updateDraftField(field, input.value));
     });
 
     const render = ({ draft, ui }) => {
         if (!draft) return;
         Object.entries(FIELD_MAP).forEach(([id, field]) => {
             const input = form.querySelector(`#${id}`);
-            if (input && document.activeElement !== input && input.value !== draft.content[field]) {
-                input.value = draft.content[field] ?? '';
+            const value = getDraftValue(draft, field) ?? '';
+            if (input && document.activeElement !== input && input.value !== value) {
+                input.value = value;
             }
         });
 
         form.querySelectorAll('[data-error-for]').forEach((element) => {
-            const message = ui.validationErrors[element.dataset.errorFor] ?? '';
+            const mappedPath = ERROR_PATHS[element.dataset.errorFor] ?? element.dataset.errorFor;
+            const message = ui.validationErrors[mappedPath] ?? '';
             element.textContent = message;
             element.hidden = !message;
-            const inputId = Object.entries(FIELD_MAP).find(([, field]) => field === element.dataset.errorFor)?.[0];
+            const inputId = Object.entries(FIELD_MAP).find(([, field]) => field === mappedPath)?.[0];
             const input = inputId ? form.querySelector(`#${inputId}`) : null;
             input?.setAttribute('aria-invalid', String(Boolean(message)));
         });

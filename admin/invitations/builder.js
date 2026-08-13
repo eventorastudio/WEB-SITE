@@ -6,21 +6,22 @@ import { eventBus } from '../core/event-bus.js';
 import { EVENT_TYPES } from '../core/event-types.js';
 import { hasPermission, PERMISSIONS } from '../core/roles.js';
 import { initThemeManager } from '../core/theme-manager.js';
-import { builderState } from './core/builder-state.js?v=phase1-desktop-20260813';
-import { createBuilderUrl, readBuilderRoute } from './core/builder-routing.js?v=phase1-desktop-20260813';
+import { builderState } from './core/builder-state.js?v=phase2-content-20260813';
+import { createBuilderUrl, readBuilderRoute } from './core/builder-routing.js?v=phase2-content-20260813';
 import {
     BUILDER_DESKTOP_MIN_WIDTH,
     BUILDER_PLATFORM_STATUS,
     initBuilderPlatformAccess
-} from './core/builder-platform.js?v=phase1-desktop-20260813';
-import { createBuilderDebugLogger } from './core/builder-debug.js?v=phase1-desktop-20260813';
-import { renderEventSelector } from './modules/event-selector.js?v=phase1-desktop-20260813';
-import { initPackageSelector } from './modules/package-selector.js?v=phase1-desktop-20260813';
-import { initThemeSelector } from './modules/theme-selector.js?v=phase1-desktop-20260813';
-import { initSectionSelector } from './modules/section-selector.js?v=phase1-desktop-20260813';
-import { initBasicInformation } from './modules/basic-information.js?v=phase1-desktop-20260813';
-import { initPreviewController } from './modules/preview-controller.js?v=phase1-desktop-20260813';
-import { initBuilderEventBridge } from './modules/state-event-bridge.js?v=phase1-desktop-20260813';
+} from './core/builder-platform.js?v=phase2-content-20260813';
+import { createBuilderDebugLogger } from './core/builder-debug.js?v=phase2-content-20260813';
+import { initIdentityEditor } from './editors/identity-editor.js?v=phase2-content-20260813';
+import { initSectionCopyEditors } from './editors/section-copy-editor.js?v=phase2-content-20260813';
+import { renderEventSelector } from './modules/event-selector.js?v=phase2-content-20260813';
+import { initPackageSelector } from './modules/package-selector.js?v=phase2-content-20260813';
+import { initThemeSelector } from './modules/theme-selector.js?v=phase2-content-20260813';
+import { initSectionSelector } from './modules/section-selector.js?v=phase2-content-20260813';
+import { initPreviewController } from './modules/preview-controller.js?v=phase2-content-20260813';
+import { initBuilderEventBridge } from './modules/state-event-bridge.js?v=phase2-content-20260813';
 
 const dom = {
     guard: document.getElementById('builder-auth-guard'),
@@ -264,8 +265,12 @@ function mountModules() {
         onError: reportRuntimeError,
         onTrace: (event, details) => debugBuilder.trace(event, details)
     }));
-    moduleCleanups.push(initBasicInformation({
-        form: document.getElementById('basic-information-form'),
+    moduleCleanups.push(initIdentityEditor({
+        container: document.getElementById('general-information-editor'),
+        state: builderState
+    }));
+    moduleCleanups.push(initSectionCopyEditors({
+        container: document.getElementById('section-content-editors'),
         state: builderState
     }));
     moduleCleanups.push(initPreviewController({
@@ -308,7 +313,16 @@ function bindStepper() {
             const target = button.dataset.stepTarget;
             document.querySelectorAll('.builder-step[data-step-target]').forEach((item) => item.classList.toggle('is-active', item === button));
             builderState.setActiveStep(target);
-            document.querySelector(`[data-builder-panel="${target}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const panel = document.querySelector(`[data-builder-panel="${target}"]`);
+            if (panel) {
+                const editorTop = dom.editor.getBoundingClientRect().top;
+                const panelTop = panel.getBoundingClientRect().top;
+                const scrollMargin = Number.parseFloat(getComputedStyle(panel).scrollMarginTop) || 0;
+                dom.editor.scrollTo({
+                    top: dom.editor.scrollTop + panelTop - editorTop - scrollMargin,
+                    behavior: 'smooth'
+                });
+            }
         });
     });
 
@@ -412,7 +426,8 @@ function reportRuntimeError(error, { source = 'builder', reason = 'unknown', ret
     const titles = {
         'theme-selector': 'No pudimos actualizar las colecciones.',
         'section-selector': 'No pudimos actualizar esta sección.',
-        'basic-information': 'No pudimos actualizar la información.',
+        'identity-editor': 'No pudimos actualizar la información.',
+        'section-copy-editors': 'No pudimos actualizar el contenido de esta sección.',
         'state-event-bridge': 'No pudimos sincronizar el Builder.'
     };
     if (dom.runtimeErrorTitle) dom.runtimeErrorTitle.textContent = titles[source] ?? 'No pudimos completar esta actualización.';

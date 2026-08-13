@@ -2,6 +2,12 @@
 * { box-sizing: border-box; }
 html, body { min-height: 100%; }
 [data-builder-section-visibility="hidden"] { display: none !important; }
+[data-invitation-bind="identity"],
+[data-invitation-bind="identity"] * {
+    max-inline-size: 100%;
+    overflow-wrap: anywhere;
+    white-space: normal !important;
+}
 body.builder-preview-idle,
 body.builder-preview-loading,
 body.builder-preview-error,
@@ -25,6 +31,7 @@ body.builder-preview-custom {
 .custom-preview::after { width: 190px; height: 190px; bottom: -120px; left: -80px; }
 .custom-preview-content { z-index: 1; display: grid; justify-items: center; gap: 13px; }
 .custom-preview-eyebrow { color: #a47b42; font-size: 0.58rem; font-weight: 700; letter-spacing: 0.18em; }
-.custom-preview h1 { max-width: 420px; margin: 0; font-family: "Cormorant Garamond", Georgia, serif; font-size: clamp(2.5rem, 12vw, 5.4rem); font-weight: 500; letter-spacing: -0.05em; line-height: 0.88; }
+.custom-preview h1 { max-width: 420px; margin: 0; overflow-wrap: anywhere; font-family: "Cormorant Garamond", Georgia, serif; font-size: clamp(2.5rem, 12vw, 5.4rem); font-weight: 500; letter-spacing: 0; line-height: 0.88; }
 .custom-preview-date { margin: 3px 0 0; color: #6f675c; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; }
+.custom-preview-phrase { max-width: 390px; margin: 4px 0 0; color: #3e3932; font-family: "Cormorant Garamond", Georgia, serif; font-size: 1.25rem; line-height: 1.35; }
 .custom-preview-note { max-width: 310px; margin: 22px 0 0; padding-top: 18px; border-top: 1px solid #ded4c5; color: #777066; font-size: 0.66rem; line-height: 1.65; }

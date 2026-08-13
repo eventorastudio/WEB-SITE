@@ -25,6 +25,7 @@ import {
     readBuilderRoute
 } from '../admin/invitations/core/builder-routing.js';
 import { validateBasicContent } from '../admin/invitations/core/builder-validation.js';
+import { TEMPLATE_BINDING_REGISTRY } from '../admin/invitations/core/template-binding-registry.js';
 import {
     PERMISSIONS,
     hasPermission,
@@ -62,8 +63,8 @@ test('THEME_REGISTRY contiene las once colecciones reales y Personalizada', asyn
         assert.ok(theme.templatePath.startsWith('/principal/demos/'));
         await access(path.join(ROOT, theme.templatePath.replace(/^\//, '')));
         await access(path.join(ROOT, theme.cover.replace(/^\//, '')));
-        assert.ok(theme.previewBindings.name);
-        assert.ok(theme.previewBindings.date);
+        assert.equal(theme.bindingAdapterId, theme.id);
+        assert.ok(TEMPLATE_BINDING_REGISTRY[theme.bindingAdapterId]);
     }
 });
 
@@ -122,8 +123,8 @@ test('cambiar Champagne por Luxury no borra nombre, fecha ni contenido', () => {
 
     assert.deepEqual(after, before);
     assert.equal(state.getSnapshot().draft.themeId, 'luxury');
-    assert.equal(after.title, 'María & Fernando');
-    assert.equal(after.date, '2027-11-15');
+    assert.equal(after.identity.primaryName, 'María & Fernando');
+    assert.equal(after.schedule.date, '2027-11-15');
 });
 
 test('el draft separa content, media, links y appearance y no inicia sucio', () => {
@@ -228,12 +229,13 @@ test('la preview usa plantilla real, postMessage tipado y bloquea navegación ex
         read('admin/invitations/builder.html')
     ]);
     assert.match(html, /sandbox="allow-scripts allow-same-origin"/);
-    assert.match(html, /data-src="\.\/preview\/frame\.html\?v=phase1-desktop-/);
+    assert.match(html, /data-src="\.\/preview\/frame\.html\?v=phase2-content-/);
     assert.doesNotMatch(html, /\s+src="\.\/preview\/frame\.html/);
     assert.match(controller, /postMessage\(message, targetOrigin\)/);
     assert.match(controller, /event\.origin !== targetOrigin/);
     assert.match(frame, /fetch\(templateUrl/);
-    assert.match(frame, /applyContent\(payload\.theme\.previewBindings, payload\.content\)/);
+    assert.match(frame, /applyTemplateContentBindings\(document, payload\.theme\.id, payload\.draft\)/);
+    assert.match(controller, /PREVIEW_MESSAGE_TYPES\.UPDATE/);
     assert.match(frame, /event\.source !== window\.parent/);
     assert.match(frame, /function interceptNavigation/);
     assert.match(frame, /event\.preventDefault\(\)/);

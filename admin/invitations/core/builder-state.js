@@ -1,9 +1,26 @@
-import { getPackageById, getSectionById, isSectionAllowed } from './section-registry.js?v=phase1-desktop-20260813';
-import { getThemeById } from './theme-registry.js?v=phase1-desktop-20260813';
-import { validateBasicContent } from './builder-validation.js?v=phase1-desktop-20260813';
+import { getPackageById, getSectionById, isSectionAllowed } from './section-registry.js?v=phase2-content-20260813';
+import { getThemeById } from './theme-registry.js?v=phase2-content-20260813';
+import {
+    INVITATION_CONTENT_SCHEMA_VERSION,
+    INVITATION_DRAFT_SCHEMA_VERSION,
+    cloneInvitationValue,
+    createInitialLocations,
+    createInvitationContent,
+    getDraftValue,
+    setDraftValue
+} from './content-schema.js?v=phase2-content-20260813';
+import { validateInvitationDraft } from './builder-validation.js?v=phase2-content-20260813';
 
-const CONTENT_FIELDS = Object.freeze(['title', 'date', 'time', 'eventType', 'city']);
 const PREVIEW_DEVICES = Object.freeze(['mobile', 'tablet', 'desktop']);
+const LEGACY_CONTENT_PATHS = Object.freeze({
+    title: 'content.identity.primaryName',
+    date: 'content.schedule.date',
+    time: 'content.schedule.time',
+    eventType: 'content.identity.eventType',
+    city: 'content.place.city',
+    state: 'content.place.state',
+    phrase: 'content.identity.phrase'
+});
 
 export function assertEnabledSections(value) {
     if (!Array.isArray(value)) throw new TypeError('builder/enabled-sections-must-be-array');
@@ -18,62 +35,35 @@ export function assertEnabledSections(value) {
     return value;
 }
 
-function clone(value) {
-    if (typeof structuredClone === 'function') return structuredClone(value);
-    return JSON.parse(JSON.stringify(value));
-}
-
 function text(value, fallback = '') {
     return typeof value === 'string' ? value.trim() : fallback;
 }
 
-function normalizeDate(value) {
-    if (!value) return '';
-    if (typeof value === 'string') {
-        const direct = value.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
-        if (direct) return direct;
-        const parsed = new Date(value);
-        return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString().slice(0, 10);
-    }
-    if (typeof value?.toDate === 'function') return value.toDate().toISOString().slice(0, 10);
-    const seconds = value.seconds ?? value._seconds;
-    if (Number.isFinite(seconds)) return new Date(seconds * 1000).toISOString().slice(0, 10);
-    if (value instanceof Date && !Number.isNaN(value.getTime())) return value.toISOString().slice(0, 10);
-    return '';
-}
-
 function resolveEventPackage(eventData) {
     const candidate = text(eventData?.packageId ?? eventData?.paqueteId ?? eventData?.paquete).toLowerCase();
-    return getPackageById(candidate) ? candidate : 'esencial';
+    return getPackageById(candidate) ? candidate : null;
 }
 
 export function createInvitationDraft(eventId, eventData = {}) {
     const packageId = resolveEventPackage(eventData);
-    const packageWasStored = [eventData.packageId, eventData.paqueteId, eventData.paquete]
-        .some((candidate) => text(candidate).toLowerCase() === packageId);
 
     return {
-        schemaVersion: 1,
+        schemaVersion: INVITATION_DRAFT_SCHEMA_VERSION,
+        contentSchemaVersion: INVITATION_CONTENT_SCHEMA_VERSION,
         eventId,
         packageId,
         themeId: null,
         enabledSections: [],
-        content: {
-            title: text(eventData.nombreEvento ?? eventData.nombre, 'Evento sin título'),
-            date: normalizeDate(eventData.fecha),
-            time: text(eventData.hora),
-            eventType: text(eventData.tipoEvento),
-            city: text(eventData.ciudad)
-        },
+        content: createInvitationContent(eventData),
         media: { hero: null, gallery: [], audio: null, video: null },
-        locations: [],
+        locations: createInitialLocations(eventData),
         itinerary: [],
         gifts: [],
         links: {},
         appearance: {},
         settings: { renderMode: 'builder' },
         meta: {
-            packageSource: packageWasStored ? 'event' : 'phase-1-default',
+            packageSource: packageId ? 'event' : 'unselected',
             loadedAt: new Date().toISOString()
         }
     };
@@ -99,14 +89,14 @@ export class InvitationBuilderState {
             isDirty: false,
             activeStep: 'theme',
             previewDevice: 'mobile',
-            validationErrors: validateBasicContent(this._draft.content)
+            validationErrors: validateInvitationDraft(this._draft)
         };
         this._notify('initialized', null);
         return this.getSnapshot();
     }
 
     getSnapshot() {
-        return clone({ draft: this._draft, ui: this._ui });
+        return cloneInvitationValue({ draft: this._draft, ui: this._ui });
     }
 
     subscribe(listener, { source = 'anonymous' } = {}) {
@@ -128,6 +118,7 @@ export class InvitationBuilderState {
         if (this._draft.packageId === packageId) return { ok: true, changed: false };
         const previous = this.getSnapshot();
         this._draft.packageId = packageId;
+        this._draft.meta.packageSource = 'local-selection';
         this._markDirty();
         this._notify('package-changed', previous);
         return { ok: true, changed: true };
@@ -168,18 +159,37 @@ export class InvitationBuilderState {
 
     updateContent(patch = {}) {
         if (!this._draft) throw new Error('builder/not-initialized');
-        const next = {};
-        CONTENT_FIELDS.forEach((field) => {
-            if (Object.prototype.hasOwnProperty.call(patch, field)) next[field] = String(patch[field] ?? '').slice(0, 180);
+        const fields = Object.fromEntries(Object.entries(patch)
+            .filter(([field]) => LEGACY_CONTENT_PATHS[field])
+            .map(([field, value]) => [LEGACY_CONTENT_PATHS[field], value]));
+        return this.updateDraftFields(fields);
+    }
+
+    updateDraftField(path, value) {
+        return this.updateDraftFields({ [path]: value });
+    }
+
+    updateDraftFields(fields = {}) {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        const entries = Object.entries(fields);
+        if (!entries.length) return { ok: false, code: 'builder/empty-content-patch' };
+
+        const normalized = entries.map(([path, value]) => {
+            const draftCopy = cloneInvitationValue(this._draft);
+            setDraftValue(draftCopy, path, value);
+            return [path, getDraftValue(draftCopy, path)];
         });
-        if (!Object.keys(next).length) return { ok: false, code: 'builder/empty-content-patch' };
+        const changed = normalized.some(([path, value]) => getDraftValue(this._draft, path) !== value);
+        if (!changed) {
+            return { ok: true, changed: false, errors: cloneInvitationValue(this._ui.validationErrors) };
+        }
 
         const previous = this.getSnapshot();
-        this._draft.content = { ...this._draft.content, ...next };
-        this._ui.validationErrors = validateBasicContent(this._draft.content);
+        normalized.forEach(([path, value]) => setDraftValue(this._draft, path, value));
+        this._ui.validationErrors = validateInvitationDraft(this._draft);
         this._markDirty();
         this._notify('content-changed', previous);
-        return { ok: true, changed: true, errors: clone(this._ui.validationErrors) };
+        return { ok: true, changed: true, errors: cloneInvitationValue(this._ui.validationErrors) };
     }
 
     setPreviewDevice(device) {

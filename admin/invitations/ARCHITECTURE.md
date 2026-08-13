@@ -1,11 +1,12 @@
-# Invitation Builder · Arquitectura de Fase 1
+# Invitation Builder · Arquitectura de Fases 1 y 2
 
 ## Alcance
 
-Esta fase implementa una aplicación administrativa dedicada para seleccionar un
-evento existente, paquete, colección, secciones y datos básicos, y comprobar el
-resultado en una preview real. El draft vive únicamente en memoria. No existe
-autosave, publicación, Storage ni escritura de configuraciones en Firestore.
+Las dos primeras fases implementan una aplicación administrativa dedicada para
+seleccionar un evento existente, paquete, colección y secciones; editar contenido
+canónico por módulo; y comprobar el resultado en una preview real. El draft vive
+únicamente en memoria. No existe autosave, publicación, Storage ni escritura de
+configuraciones en Firestore.
 
 Ruta final: `/admin/invitations/builder.html?event={documentId}`.
 
@@ -95,9 +96,11 @@ El Portal Prestige usa el mismo evento, sus invitados y entitlements. No importa
 módulos ADMIN y no fue modificado.
 
 Riesgo de datos encontrado: los eventos creados actualmente no incluyen un
-campo comercial de paquete. Fase 1 intenta leer `packageId`, `paqueteId` o
-`paquete`; si no existe, muestra Esencial como selección local explícita y marca
-`meta.packageSource = "phase-1-default"`. No escribe esa elección.
+campo comercial de paquete. El Builder intenta leer `packageId`, `paqueteId` o
+`paquete`; si no existe o no es válido, conserva `packageId = null` y exige una
+selección local explícita antes de permitir secciones. No inventa Esencial ni
+escribe esa elección. `meta.packageSource` distingue `event`, `local-selection`
+y `unselected`.
 
 ### Página pública y colecciones
 
@@ -178,21 +181,30 @@ admin/invitations/
 │   ├── builder-events.js        mensajes tipados de preview/dispositivos
 │   ├── builder-routing.js       contrato ?event=
 │   ├── builder-state.js         draft local central e inmutable al leer
-│   ├── builder-validation.js    validación básica pura
+│   ├── builder-validation.js    validación canónica pura y no bloqueante
+│   ├── content-schema.js        schema, whitelist de paths y precarga
+│   ├── section-editor-registry.js campos editables de cada sección
 │   ├── section-registry.js      paquetes, capacidades y secciones
+│   ├── template-binding-registry.js adapters de las once colecciones
 │   └── theme-registry.js        doce opciones de tema
+├── editors/
+│   ├── editor-fields.js         controles reutilizables y contadores
+│   ├── identity-editor.js       información general canónica
+│   └── section-copy-editor.js   editores modulares según sección activa
 ├── modules/
 │   ├── event-selector.js
 │   ├── package-selector.js
 │   ├── theme-selector.js
 │   ├── section-selector.js
-│   ├── basic-information.js
 │   └── preview-controller.js
 └── preview/
     ├── frame.html               documento aislado
     ├── frame.css                estados base y tema Personalizada
     └── frame.js                 loader/adaptador seguro de plantillas
 ```
+
+`basic-information.js` se conserva únicamente como adaptador legacy y mapea sus
+campos al schema anidado; el flujo actual monta los editores de `editors/`.
 
 `builder.js` es un orquestador, no un contenedor de toda la lógica. La frontera
 de Firestore sigue siendo `eventService`; los módulos visuales no importan
@@ -233,6 +245,10 @@ son regiones permanentes (`data-builder-region`) y ningún módulo interno puede
 ejecutar `replaceChildren`, `innerHTML`, `replaceWith` o `remove` sobre el root.
 Cada render controla únicamente su contenedor asignado.
 
+El stepper tampoco usa `scrollIntoView()` sobre regiones del shell. Cambiar de
+etapa desplaza sólo `.builder-editor`, lo que impide mover el documento raíz y
+dejar fuera de viewport el sidebar o el preview.
+
 El modo `?debugBuilder=1` registra viewport, estado no sensible y geometría de las
 regiones, además de `message`, archivo, línea, columna y stack para errores globales.
 No registra usuario, tokens, claims ni credenciales. Los assets del Builder usan
@@ -244,10 +260,29 @@ durante cuatro horas; así no se mezclan módulos de dos despliegues distintos.
 Contiene `aloha`, `luxury`, `botanical`, `midnight`, `romance`, `minimal`,
 `celestial`, `vintage`, `garden`, `champagne`, `neon-party` y `custom`. Cada
 entrada define nombre, descriptor, categoría, cover, `templatePath`, paleta,
-capacidades y bindings mínimos de preview. Las rutas aparecen una sola vez.
+capacidades y `bindingAdapterId`. Las rutas aparecen una sola vez. Los selectores
+DOM viven exclusivamente en `TEMPLATE_BINDING_REGISTRY`, no duplicados dentro de
+la metadata del tema.
 
 `custom` renderiza una base simple y comunica que el control visual avanzado
 pertenece a una fase futura.
+
+### TEMPLATE_BINDING_REGISTRY
+
+Define un adapter explícito para Aloha, Luxury, Botanical, Midnight, Romance,
+Minimal, Celestial, Vintage, Garden, Champagne y Neon Party. Cada adapter declara
+los nodos de identidad, fecha/contexto y bienvenida propios de la colección; el
+resto de módulos usa los hooks semánticos existentes de Prestige. El registry:
+
+- escribe contenido administrativo sólo mediante `textContent`;
+- conserva los nodos originales del template como fallback visual;
+- restaura ese fallback cuando el campo canónico queda vacío;
+- transforma nombres y fecha sin homogeneizar el estilo de cada colección;
+- construye un contrato de visibilidad por sección y un grupo compuesto para
+  RSVP, pases y acceso, que comparten contenedor en las demos.
+
+Las demos de `/principal/demos/` siguen siendo archivos de solo lectura para el
+Builder y no fueron modificadas en Fase 2.
 
 ### SECTION_REGISTRY
 
@@ -260,18 +295,40 @@ después se baja el paquete, su ID permanece en `enabledSections`, aparece como
 **Conservada** y no se borra. La advertencia/decisión final de downgrade queda
 para la fase de persistencia.
 
+`SECTION_EDITOR_REGISTRY` es el contrato separado de edición. Cubre las trece
+secciones y declara título, texto de alcance futuro y fields pertenecientes a la
+whitelist del schema. Sólo se muestran editores de secciones activas; desactivar
+una sección oculta el editor y el preview, pero nunca borra su contenido.
+
 ### Modelo `invitationDraft`
 
 ```js
 {
-  schemaVersion: 1,
+  schemaVersion: 2,
+  contentSchemaVersion: 1,
   eventId,
-  packageId,
+  packageId: null | 'esencial' | 'premium' | 'prestige',
   themeId,
   enabledSections: [],
-  content: { title, date, time, eventType, city },
+  content: {
+    identity: { primaryName, secondaryName, eventType, phrase },
+    schedule: { date, time },
+    place: { city, state },
+    welcome: { title, message, story },
+    countdown: { title, preMessage },
+    location: { title, description, buttonLabel },
+    dressCode: { title, name, description, paletteLabel },
+    rsvp: { title, message, buttonLabel, deadline },
+    music: { title, description },
+    video: { title, description },
+    gallery: { title, subtitle, description },
+    gifts: { title, message, buttonLabel },
+    passes: { title, message },
+    itinerary: { title, intro },
+    access: { title, message }
+  },
   media: { hero, gallery, audio, video },
-  locations: [],
+  locations: [{ name, address, city, state, mapsUrl }],
   itinerary: [],
   gifts: [],
   links: {},
@@ -285,6 +342,15 @@ Tema y contenido están desacoplados: `setTheme()` solo cambia `themeId`.
 `isDirty` vive en UI state y se activa con cambios del draft. Cambiar dispositivo
 de preview no ensucia el draft.
 
+La prioridad de inicialización es: valor real y válido del evento, valor vacío
+canónico y fallback semántico exclusivo del preview. Los textos decorativos de
+las demos nunca se copian al draft. La whitelist `INVITATION_EDITABLE_FIELDS`
+limita paths, tipos y longitud antes de que `builder-state` acepte un cambio.
+
+Las validaciones de nombre, fecha, hora y deadline actualizan `ui.validationErrors`
+sin bloquear la edición. Un snapshot de estado es una copia profunda: un módulo
+consumidor no puede mutar el draft central por referencia.
+
 ### Estrategia de preview
 
 Se eligió un iframe `sandbox="allow-scripts allow-same-origin"` con un adaptador
@@ -296,7 +362,7 @@ Flujo:
 input / selector
   → builderState
   → preview-controller
-  → postMessage tipado y validado por origin/source
+  → postMessage `RENDER` o `UPDATE`, validado por origin/source
   → preview/frame.js
   → HTML + CSS reales de la colección
 ```
@@ -304,20 +370,27 @@ input / selector
 El adaptador:
 
 1. limita el template a la misma origin;
-2. hace `fetch` de la plantilla local elegida;
+2. hace `fetch` de la plantilla local sólo al cambiar colección;
 3. elimina scripts, apertura, audio y controles musicales;
 4. resuelve imágenes y estilos contra la ruta real de la colección;
 5. activa el cuerpo/hero y los reveals para preview;
 6. aplica contenido con `textContent` y bindings del registro;
 7. aplica visibilidad de secciones desde el registro;
 8. intercepta enlaces y submits en captura;
-9. reutiliza el DOM cargado para cambios de texto, evitando refetch por tecla.
+9. reutiliza el DOM cargado para cambios de texto, evitando refetch por tecla;
+10. agrupa ráfagas de escritura con un debounce de 80 ms antes de emitir `UPDATE`.
 
 Ventajas: aislamiento CSS, reutilización de assets, comportamiento local,
 actualización inmediata, rutas compatibles con el sitio estático y una frontera
 clara para reemplazar el adaptador por configuración productiva en el futuro.
 El iframe no ejecuta `demo-runtime.js`; por tanto no mezcla `demoMode` con la
 preview de producción ni permite CTAs externos.
+
+`RENDER` transporta el snapshot estructurado completo y carga/cambia la plantilla.
+`UPDATE` transporta el mismo contrato completo, pero actualiza el DOM ya montado.
+El frame rechaza mensajes con schema incompatible y conserva el último DOM válido.
+Cada respuesta incluye `requestId`, de modo que el controlador puede ignorar
+confirmaciones obsoletas. El countdown se recalcula desde `content.schedule`.
 
 ## Persistencia futura recomendada (no implementada)
 
@@ -369,9 +442,9 @@ imágenes, audio o video Base64 dentro del documento Firestore.**
 
 - No existe paquete en el contrato actual de creación de eventos.
 - Las Rules propuestas no cubren aún `invitacion` ni `invitacionVersiones`.
-- Los templates actuales contienen texto estructural hardcodeado; Fase 1 cambia
-  nombre/fecha por bindings centralizados, pero convertir todo su contenido en
-  configuración requerirá adaptadores de sección en Fase 2.
+- Los templates actuales contienen texto estructural hardcodeado. Fase 2 cubre
+  identidad y copy básico por sección mediante adapters centrales; contenido
+  repetible, multimedia real y estructuras avanzadas siguen fuera de alcance.
 - `admin/dashboard.js` todavía accede a Firestore directamente; no se reescribió
   por no ampliar el alcance.
 - El editor legacy oculto y `themes` continúan existiendo para compatibilidad;
@@ -382,8 +455,10 @@ imágenes, audio o video Base64 dentro del documento Firestore.**
 
 ## Roadmap recomendado
 
-1. Fase 2: schemas y editores completos de contenido por sección.
-2. Fase 3: ubicaciones, itinerario, Dress Code, regalos y enlaces.
+1. Fases 1 y 2 completadas: shell productivo, schema canónico, editores de copy,
+   selección explícita, adapters de once colecciones y preview en vivo.
+2. Fase 3: editores estructurados de ubicaciones, itinerario, Dress Code,
+   regalos y enlaces.
 3. Fase 4: Storage y flujo multimedia optimizado/licenciado.
 4. Fase 5: RSVP, selección de pases y configuración de acceso enlazada a
    invitados existentes.
@@ -392,4 +467,4 @@ imágenes, audio o video Base64 dentro del documento Firestore.**
 7. Fase 8: validación, snapshot publicado y URL de producción.
 8. Fase 9: edición post-publicación, versiones, rollback y auditoría.
 
-No se implementó ninguna de estas fases en este cambio.
+No se implementó ninguna fase posterior a Fase 2 en este cambio.

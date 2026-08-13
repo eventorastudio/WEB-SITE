@@ -5,7 +5,7 @@ function assertPreviewSectionContract(sections, enabledSections) {
     }
 }
 
-export function applyPreviewSectionVisibility(root, sections = [], enabledSections = [], { onBindingError } = {}) {
+export function applyPreviewSectionVisibility(root, sections = [], enabledSections = [], { groups = [], onBindingError } = {}) {
     assertPreviewSectionContract(sections, enabledSections);
     const enabled = new Set(enabledSections);
     const result = { matchedElements: 0, missingBindings: [], invalidBindings: [] };
@@ -37,6 +37,27 @@ export function applyPreviewSectionVisibility(root, sections = [], enabledSectio
                 else element.setAttribute('data-builder-section-visibility', visible ? 'visible' : 'hidden');
                 result.matchedElements += 1;
             });
+        });
+    });
+
+    groups.forEach((group) => {
+        if (!group || typeof group.selector !== 'string' || !Array.isArray(group.anyOf)) {
+            throw new TypeError(`preview/invalid-section-group:${String(group?.id)}`);
+        }
+        let elements;
+        try {
+            elements = [...root.querySelectorAll(group.selector)];
+        } catch (error) {
+            const failure = { sectionId: group.id, selector: group.selector, error };
+            result.invalidBindings.push(failure);
+            onBindingError?.(failure);
+            return;
+        }
+        const visible = group.anyOf.some((sectionId) => enabled.has(sectionId));
+        elements.forEach((element) => {
+            element.hidden = !visible;
+            element.dataset.builderSectionGroupVisibility = visible ? 'visible' : 'hidden';
+            result.matchedElements += 1;
         });
     });
 

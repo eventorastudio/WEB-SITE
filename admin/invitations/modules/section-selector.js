@@ -2,7 +2,7 @@ import {
     PACKAGE_REGISTRY,
     getSectionsForPackage,
     getSectionById
-} from '../core/section-registry.js?v=phase1-desktop-20260813';
+} from '../core/section-registry.js?v=phase2-content-20260813';
 
 function minimumPackageName(capability) {
     return PACKAGE_REGISTRY.find((item) => item.capabilities.includes(capability))?.name ?? 'No disponible';
@@ -52,7 +52,11 @@ export function initSectionSelector({ container, summary, state, ui, onError, on
 
             const badge = document.createElement('span');
             badge.className = 'section-option-badge';
-            badge.textContent = retained ? 'Conservada' : (item.allowed ? 'Disponible' : minimumPackageName(item.requiredCapability));
+            badge.textContent = !draft.packageId
+                ? 'Elige paquete'
+                : retained
+                    ? 'Conservada'
+                    : (item.allowed ? 'Disponible' : minimumPackageName(item.requiredCapability));
             label.append(input, marker, copy, badge);
             fragment.append(label);
         });
@@ -69,9 +73,11 @@ export function initSectionSelector({ container, summary, state, ui, onError, on
                 const item = getSectionById(id);
                 return item && !availability.find((candidate) => candidate.id === id)?.allowed;
             }).length;
-            summary.textContent = retainedCount
-                ? `${draft.enabledSections.length} activas · ${retainedCount} conservada(s) fuera del paquete actual.`
-                : `${draft.enabledSections.length} de ${availability.filter((item) => item.allowed).length} secciones disponibles activas.`;
+            summary.textContent = !draft.packageId
+                ? 'Selecciona el paquete de la invitación para habilitar sus secciones.'
+                : retainedCount
+                    ? `${draft.enabledSections.length} activas · ${retainedCount} conservada(s) fuera del paquete actual.`
+                    : `${draft.enabledSections.length} de ${availability.filter((item) => item.allowed).length} secciones disponibles activas.`;
         }
     };
 

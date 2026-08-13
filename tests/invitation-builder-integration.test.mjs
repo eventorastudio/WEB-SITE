@@ -15,13 +15,16 @@ import {
     getSectionsForPackage
 } from '../admin/invitations/core/section-registry.js';
 import { COLLECTION_THEMES, THEME_REGISTRY } from '../admin/invitations/core/theme-registry.js';
-import { initBasicInformation } from '../admin/invitations/modules/basic-information.js';
+import { initIdentityEditor } from '../admin/invitations/editors/identity-editor.js';
+import { initSectionCopyEditors } from '../admin/invitations/editors/section-copy-editor.js';
 import { initPreviewController } from '../admin/invitations/modules/preview-controller.js';
 import { initSectionSelector } from '../admin/invitations/modules/section-selector.js';
 import { initBuilderEventBridge } from '../admin/invitations/modules/state-event-bridge.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RENDER_MESSAGE = 'EVENTORA_INVITATION_PREVIEW_RENDER';
+const UPDATE_MESSAGE = 'EVENTORA_INVITATION_PREVIEW_UPDATE';
+const RENDERED_MESSAGE = 'EVENTORA_INVITATION_PREVIEW_RENDERED';
 
 function createHarness({ packageId = 'prestige', failingListener = null, viewport = { width: 1440, height: 900 } } = {}) {
     const dom = new JSDOM(`<!doctype html><html><body>
@@ -31,15 +34,8 @@ function createHarness({ packageId = 'prestige', failingListener = null, viewpor
                 <section data-builder-region="editor">
                     <p id="summary"></p>
                     <div id="sections"></div>
-                    <form id="basic-information-form">
-                        <input id="invitation-title">
-                        <input id="invitation-date">
-                        <input id="invitation-time">
-                        <input id="invitation-event-type">
-                        <input id="invitation-city">
-                        <small data-error-for="title"></small>
-                        <small data-error-for="date"></small>
-                    </form>
+                    <form id="general-information-editor"></form>
+                    <div id="section-content-editors"></div>
                 </section>
                 <aside data-builder-region="preview">
                     <div id="stage"></div>
@@ -59,6 +55,18 @@ function createHarness({ packageId = 'prestige', failingListener = null, viewpor
     globalThis.document = dom.window.document;
     Object.defineProperty(dom.window, 'innerWidth', { configurable: true, writable: true, value: viewport.width });
     Object.defineProperty(dom.window, 'innerHeight', { configurable: true, writable: true, value: viewport.height });
+    const pendingAnimationFrames = new Set();
+    let animationFrameId = 0;
+    dom.window.requestAnimationFrame = (callback) => {
+        const id = ++animationFrameId;
+        pendingAnimationFrames.add(id);
+        queueMicrotask(() => {
+            if (!pendingAnimationFrames.delete(id)) return;
+            callback(Date.now());
+        });
+        return id;
+    };
+    dom.window.cancelAnimationFrame = (id) => pendingAnimationFrames.delete(id);
 
     const state = new InvitationBuilderState();
     state.initialize('EVT-0001', {
@@ -77,7 +85,20 @@ function createHarness({ packageId = 'prestige', failingListener = null, viewpor
     if (failingListener) cleanups.push(state.subscribe(failingListener, { source: 'test-failing-listener' }));
 
     const frame = document.getElementById('frame');
-    frame.contentWindow.postMessage = (message, origin) => messages.push({ message, origin });
+    frame.contentWindow.postMessage = (message, origin) => {
+        messages.push({ message, origin });
+        if (message.type === RENDER_MESSAGE) {
+            window.dispatchEvent(new window.MessageEvent('message', {
+                data: {
+                    type: RENDERED_MESSAGE,
+                    requestId: message.requestId,
+                    payload: { themeId: message.payload.theme.id, themeName: message.payload.theme.name }
+                },
+                origin,
+                source: frame.contentWindow
+            }));
+        }
+    };
 
     cleanups.push(initSectionSelector({
         container: document.getElementById('sections'),
@@ -86,8 +107,12 @@ function createHarness({ packageId = 'prestige', failingListener = null, viewpor
         ui: { showToast() {} },
         onError: (error, context) => selectorErrors.push({ error, context })
     }));
-    cleanups.push(initBasicInformation({
-        form: document.getElementById('basic-information-form'),
+    cleanups.push(initIdentityEditor({
+        container: document.getElementById('general-information-editor'),
+        state
+    }));
+    cleanups.push(initSectionCopyEditors({
+        container: document.getElementById('section-content-editors'),
         state
     }));
     cleanups.push(initPreviewController({
@@ -99,7 +124,8 @@ function createHarness({ packageId = 'prestige', failingListener = null, viewpor
         state,
         eventBus,
         eventTypes: EVENT_TYPES,
-        onError: (error, context) => previewErrors.push({ error, context })
+        onError: (error, context) => previewErrors.push({ error, context }),
+        updateDebounceMs: 0
     }));
 
     [EVENT_TYPES.BUILDER_DRAFT_UPDATED, EVENT_TYPES.BUILDER_THEME_CHANGED, EVENT_TYPES.BUILDER_SECTIONS_CHANGED]
@@ -108,6 +134,7 @@ function createHarness({ packageId = 'prestige', failingListener = null, viewpor
 
     const close = () => {
         cleanups.reverse().forEach((cleanup) => cleanup?.());
+        pendingAnimationFrames.clear();
         eventBus.clear();
         dom.window.close();
         delete globalThis.window;
@@ -127,15 +154,67 @@ function createHarness({ packageId = 'prestige', failingListener = null, viewpor
     };
 }
 
-const flushSectionRender = () => new Promise((resolve) => queueMicrotask(resolve));
+const flushSectionRender = async () => {
+    await new Promise((resolve) => queueMicrotask(resolve));
+    await new Promise((resolve) => setTimeout(resolve, 5));
+};
 
 function sectionInput(sectionId) {
     return document.querySelector(`#sections input[data-section-id="${sectionId}"]`);
 }
 
 function latestRenderMessage(messages) {
-    return messages.filter(({ message }) => message.type === RENDER_MESSAGE).at(-1)?.message;
+    return messages.filter(({ message }) => [RENDER_MESSAGE, UPDATE_MESSAGE].includes(message.type)).at(-1)?.message;
 }
+
+test('los editores aparecen solo para secciones activas y restauran el mismo contenido al reactivar', { concurrency: false }, async () => {
+    const harness = createHarness({ packageId: 'prestige' });
+    try {
+        assert.equal(document.querySelectorAll('[data-section-editor]').length, 0);
+        sectionInput('welcome-story').parentElement.click();
+        await flushSectionRender();
+
+        const editor = document.querySelector('[data-section-editor="welcome-story"]');
+        assert.ok(editor);
+        const story = editor.querySelector('[data-draft-path="content.welcome.story"]');
+        story.value = 'Una historia conservada entre colecciones.';
+        story.dispatchEvent(new harness.dom.window.Event('input', { bubbles: true }));
+        assert.equal(harness.state.getSnapshot().draft.content.welcome.story, story.value);
+
+        sectionInput('welcome-story').parentElement.click();
+        await flushSectionRender();
+        assert.equal(document.querySelector('[data-section-editor="welcome-story"]'), null);
+        assert.equal(harness.state.getSnapshot().draft.content.welcome.story, story.value);
+
+        sectionInput('welcome-story').parentElement.click();
+        await flushSectionRender();
+        assert.equal(
+            document.querySelector('[data-section-editor="welcome-story"] [data-draft-path="content.welcome.story"]').value,
+            story.value
+        );
+    } finally {
+        harness.close();
+    }
+});
+
+test('la escritura agrupa UPDATE y no vuelve a enviar RENDER para la misma plantilla', { concurrency: false }, async () => {
+    const harness = createHarness({ packageId: 'prestige' });
+    try {
+        harness.state.setTheme('champagne');
+        const initialRenderCount = harness.messages.filter(({ message }) => message.type === RENDER_MESSAGE).length;
+        harness.state.updateDraftField('content.identity.primaryName', 'María');
+        harness.state.updateDraftField('content.identity.secondaryName', 'Fernando');
+        await flushSectionRender();
+
+        assert.equal(harness.messages.filter(({ message }) => message.type === RENDER_MESSAGE).length, initialRenderCount);
+        const updates = harness.messages.filter(({ message }) => message.type === UPDATE_MESSAGE);
+        assert.equal(updates.length, 1);
+        assert.equal(updates[0].message.payload.draft.content.identity.primaryName, 'María');
+        assert.equal(updates[0].message.payload.draft.content.identity.secondaryName, 'Fernando');
+    } finally {
+        harness.close();
+    }
+});
 
 test('el change de una sección termina antes de reemplazar su checkbox y mantiene visible el Builder', { concurrency: false }, async () => {
     const harness = createHarness({ packageId: 'premium' });
@@ -200,10 +279,10 @@ test('información básica y controles mobile/tablet/desktop siguen operando tra
     const harness = createHarness({ packageId: 'premium' });
     try {
         harness.state.setTheme('custom');
-        const title = document.getElementById('invitation-title');
+        const title = document.querySelector('[data-draft-path="content.identity.primaryName"]');
         title.value = 'Nuevo título';
         title.dispatchEvent(new harness.dom.window.Event('input', { bubbles: true }));
-        assert.equal(harness.state.getSnapshot().draft.content.title, 'Nuevo título');
+        assert.equal(harness.state.getSnapshot().draft.content.identity.primaryName, 'Nuevo título');
 
         for (const device of ['mobile', 'tablet', 'desktop']) {
             document.querySelector(`[data-preview-device="${device}"]`).click();

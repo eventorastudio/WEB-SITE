@@ -44,7 +44,7 @@ export const SECTION_REGISTRY = Object.freeze([
     section({ id: 'countdown', name: 'Cuenta regresiva', description: 'Tiempo restante hasta el evento.', requiredCapability: 'countdown', previewSelectors: ['[data-prestige-feature~="countdown"]'] }),
     section({ id: 'location', name: 'Ubicación y mapa', description: 'Lugar principal y acceso a Google Maps.', requiredCapability: 'maps', previewSelectors: ['[data-prestige-feature~="multiple-locations"]'] }),
     section({ id: 'dress-code', name: 'Dress Code', description: 'Código de vestimenta y guía visual.', requiredCapability: 'dress-code', previewSelectors: ['[data-prestige-feature~="dress-code"]'] }),
-    section({ id: 'rsvp', name: 'Confirmación RSVP', description: 'Confirmación de asistencia del invitado.', requiredCapability: 'rsvp', previewSelectors: ['[data-prestige-feature~="guest-control"]'] }),
+    section({ id: 'rsvp', name: 'Confirmación RSVP', description: 'Confirmación de asistencia del invitado.', requiredCapability: 'rsvp', previewSelectors: ['[data-prestige-feature~="rsvp"]'] }),
     section({ id: 'music', name: 'Música personalizada', description: 'Audio de ambientación tras una interacción.', requiredCapability: 'music' }),
     section({ id: 'welcome-video', name: 'Video de bienvenida', description: 'Bloque audiovisual de apertura.', requiredCapability: 'welcome-video', previewSelectors: ['[data-prestige-feature~="welcome-video"]'] }),
     section({ id: 'gallery', name: 'Galería de fotografías', description: 'Composición visual de recuerdos.', requiredCapability: 'gallery', previewSelectors: ['[data-prestige-feature~="gallery"]'] }),
