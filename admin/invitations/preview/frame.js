@@ -1,10 +1,11 @@
-import { PREVIEW_MESSAGE_TYPES } from '../core/builder-events.js?v=phase2-content-20260813';
-import { PREVIEW_SEMANTIC_FALLBACKS } from '../core/content-schema.js?v=phase2-content-20260813';
-import { applyPreviewSectionVisibility } from '../core/preview-sections.js?v=phase2-content-20260813';
+import { PREVIEW_MESSAGE_TYPES } from '../core/builder-events.js?v=phase21-normalization-20260813';
+import { PREVIEW_SEMANTIC_FALLBACKS } from '../core/content-schema.js?v=phase21-normalization-20260813';
+import { applyPreviewSectionVisibility } from '../core/preview-sections.js?v=phase21-normalization-20260813';
 import {
     applyTemplateContentBindings,
-    formatInvitationEventLine
-} from '../core/template-binding-registry.js?v=phase2-content-20260813';
+    formatInvitationEventLine,
+    prepareBuilderTemplate
+} from '../core/template-binding-registry.js?v=phase21-normalization-20260813';
 
 const parentOrigin = window.location.origin;
 let activeThemeLinks = [];
@@ -98,6 +99,7 @@ async function renderTemplate(payload, requestId) {
         invitation.removeAttribute('inert');
         invitation.setAttribute('aria-hidden', 'false');
     }
+    prepareBuilderTemplate(document, payload.theme.id);
     document.querySelectorAll('.reveal').forEach((element) => element.classList.add('visible'));
     applyPayload(payload);
     stopMedia();
@@ -139,20 +141,29 @@ function applyPayload(payload) {
     if (payload.theme.id === 'custom') applyCustomContent(payload.draft);
     else applyTemplateContentBindings(document, payload.theme.id, payload.draft);
     applySectionVisibility(payload.sections, payload.enabledSections, payload.sectionGroups);
-    renderCountdown(payload.draft.content);
+    renderCountdown(payload.draft);
     const title = resolveIdentity(payload.draft.content);
     document.title = `${title || PREVIEW_SEMANTIC_FALLBACKS.primaryName} · Preview Builder`;
 }
 
 function applyCustomContent(draft) {
-    const identity = resolveIdentity(draft.content) || PREVIEW_SEMANTIC_FALLBACKS.primaryName;
-    const eventLine = formatInvitationEventLine(draft.content) || PREVIEW_SEMANTIC_FALLBACKS.eventLine;
+    const identityValue = resolveIdentity(draft.content);
+    const eventLineValue = formatInvitationEventLine(draft.content);
+    const identityCleared = ['content.identity.primaryName', 'content.identity.secondaryName'].some((path) => draftPathTouched(draft, path));
+    const eventLineCleared = ['content.schedule.date', 'content.schedule.time', 'content.place.city', 'content.place.state']
+        .some((path) => draftPathTouched(draft, path));
+    const identity = identityValue || (identityCleared ? '' : PREVIEW_SEMANTIC_FALLBACKS.primaryName);
+    const eventLine = eventLineValue || (eventLineCleared ? '' : PREVIEW_SEMANTIC_FALLBACKS.eventLine);
     const phrase = cleanText(draft.content.identity?.phrase);
     setText('[data-custom-bind="identity"]', identity);
     setText('[data-custom-bind="event-line"]', eventLine);
     setText('[data-custom-bind="phrase"]', phrase);
     const phraseElement = document.querySelector('[data-custom-bind="phrase"]');
     if (phraseElement) phraseElement.hidden = !phrase;
+    const identityElement = document.querySelector('[data-custom-bind="identity"]');
+    if (identityElement) identityElement.hidden = !identity;
+    const eventLineElement = document.querySelector('[data-custom-bind="event-line"]');
+    if (eventLineElement) eventLineElement.hidden = !eventLine;
 }
 
 function resolveIdentity(content = {}) {
@@ -161,7 +172,8 @@ function resolveIdentity(content = {}) {
     return [primary, secondary].filter(Boolean).join(' & ');
 }
 
-function renderCountdown(content = {}) {
+function renderCountdown(draft = {}) {
+    const content = draft.content ?? {};
     window.clearInterval(countdownTimer);
     countdownTimer = null;
     const targets = [...document.querySelectorAll('[data-countdown]')];
@@ -177,9 +189,15 @@ function renderCountdown(content = {}) {
         const distance = Math.max(targetTime - Date.now(), 0);
         targets.forEach((target) => {
             if (distance === 0) {
+                const configured = cleanText(content.countdown?.arrivedMessage);
+                const explicitlyCleared = draftPathTouched(draft, 'content.countdown.arrivedMessage');
+                if (!configured && explicitlyCleared) {
+                    target.replaceChildren();
+                    return;
+                }
                 const message = document.createElement('p');
                 message.className = 'countdown-message';
-                message.textContent = cleanText(content.countdown?.arrivedMessage) || PREVIEW_SEMANTIC_FALLBACKS.countdownArrived;
+                message.textContent = configured || PREVIEW_SEMANTIC_FALLBACKS.countdownArrived;
                 target.replaceChildren(message);
                 return;
             }
@@ -202,6 +220,10 @@ function renderCountdown(content = {}) {
         return distance > 0;
     };
     if (update()) countdownTimer = window.setInterval(update, 1000);
+}
+
+function draftPathTouched(draft, path) {
+    return Array.isArray(draft?.meta?.touchedPaths) && draft.meta.touchedPaths.includes(path);
 }
 
 function sanitizeTemplate(parsed, templateUrl) {

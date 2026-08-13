@@ -1,7 +1,7 @@
-import { PREVIEW_DEVICES, PREVIEW_MESSAGE_TYPES, isPreviewMessage } from '../core/builder-events.js?v=phase2-content-20260813';
-import { SECTION_REGISTRY } from '../core/section-registry.js?v=phase2-content-20260813';
-import { createTemplateSectionContract } from '../core/template-binding-registry.js?v=phase2-content-20260813';
-import { getThemeById } from '../core/theme-registry.js?v=phase2-content-20260813';
+import { PREVIEW_DEVICES, PREVIEW_MESSAGE_TYPES, isPreviewMessage } from '../core/builder-events.js?v=phase21-normalization-20260813';
+import { SECTION_REGISTRY } from '../core/section-registry.js?v=phase21-normalization-20260813';
+import { createTemplateSectionContract } from '../core/template-binding-registry.js?v=phase21-normalization-20260813';
+import { getThemeById } from '../core/theme-registry.js?v=phase21-normalization-20260813';
 
 const CONTENT_UPDATE_DEBOUNCE_MS = 80;
 
@@ -72,7 +72,8 @@ export function initPreviewController({
                     schemaVersion: snapshot.draft.schemaVersion,
                     contentSchemaVersion: snapshot.draft.contentSchemaVersion,
                     content: snapshot.draft.content,
-                    locations: snapshot.draft.locations
+                    locations: snapshot.draft.locations,
+                    meta: { touchedPaths: snapshot.draft.meta?.touchedPaths ?? [] }
                 },
                 enabledSections: snapshot.draft.enabledSections,
                 sections: sectionContract.sections,

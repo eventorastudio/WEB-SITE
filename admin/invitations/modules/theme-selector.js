@@ -1,4 +1,4 @@
-import { THEME_REGISTRY } from '../core/theme-registry.js?v=phase2-content-20260813';
+import { THEME_REGISTRY } from '../core/theme-registry.js?v=phase21-normalization-20260813';
 
 function createThemeCard(theme, state) {
     const button = document.createElement('button');

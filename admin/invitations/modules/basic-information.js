@@ -1,4 +1,4 @@
-import { getDraftValue } from '../core/content-schema.js?v=phase2-content-20260813';
+import { getDraftValue } from '../core/content-schema.js?v=phase21-normalization-20260813';
 
 const FIELD_MAP = Object.freeze({
     'invitation-title': 'content.identity.primaryName',

@@ -163,7 +163,7 @@ test('los once adapters resuelven bindings, usan fallback demo y aplican texto s
 
             assert.ok(identity.textContent.toLowerCase().includes(malicious.toLowerCase()), `${theme.id} debe tratar HTML como texto`);
             assert.equal(document.querySelectorAll('script').length, scriptCount, `${theme.id} no debe crear scripts`);
-            assert.match(document.querySelector(adapter.eventLine).textContent, /2027|NOVIEMBRE/i);
+            assert.match(document.querySelector('[data-builder-binding-owner="event-line"]').textContent, /2027|NOVIEMBRE/i);
 
             draft.content.identity.primaryName = '';
             draft.content.identity.secondaryName = '';

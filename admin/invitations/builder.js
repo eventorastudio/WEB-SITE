@@ -6,22 +6,22 @@ import { eventBus } from '../core/event-bus.js';
 import { EVENT_TYPES } from '../core/event-types.js';
 import { hasPermission, PERMISSIONS } from '../core/roles.js';
 import { initThemeManager } from '../core/theme-manager.js';
-import { builderState } from './core/builder-state.js?v=phase2-content-20260813';
-import { createBuilderUrl, readBuilderRoute } from './core/builder-routing.js?v=phase2-content-20260813';
+import { builderState } from './core/builder-state.js?v=phase21-normalization-20260813';
+import { createBuilderUrl, readBuilderRoute } from './core/builder-routing.js?v=phase21-normalization-20260813';
 import {
     BUILDER_DESKTOP_MIN_WIDTH,
     BUILDER_PLATFORM_STATUS,
     initBuilderPlatformAccess
-} from './core/builder-platform.js?v=phase2-content-20260813';
-import { createBuilderDebugLogger } from './core/builder-debug.js?v=phase2-content-20260813';
-import { initIdentityEditor } from './editors/identity-editor.js?v=phase2-content-20260813';
-import { initSectionCopyEditors } from './editors/section-copy-editor.js?v=phase2-content-20260813';
-import { renderEventSelector } from './modules/event-selector.js?v=phase2-content-20260813';
-import { initPackageSelector } from './modules/package-selector.js?v=phase2-content-20260813';
-import { initThemeSelector } from './modules/theme-selector.js?v=phase2-content-20260813';
-import { initSectionSelector } from './modules/section-selector.js?v=phase2-content-20260813';
-import { initPreviewController } from './modules/preview-controller.js?v=phase2-content-20260813';
-import { initBuilderEventBridge } from './modules/state-event-bridge.js?v=phase2-content-20260813';
+} from './core/builder-platform.js?v=phase21-normalization-20260813';
+import { createBuilderDebugLogger } from './core/builder-debug.js?v=phase21-normalization-20260813';
+import { initIdentityEditor } from './editors/identity-editor.js?v=phase21-normalization-20260813';
+import { initSectionCopyEditors } from './editors/section-copy-editor.js?v=phase21-normalization-20260813';
+import { renderEventSelector } from './modules/event-selector.js?v=phase21-normalization-20260813';
+import { initPackageSelector } from './modules/package-selector.js?v=phase21-normalization-20260813';
+import { initThemeSelector } from './modules/theme-selector.js?v=phase21-normalization-20260813';
+import { initSectionSelector } from './modules/section-selector.js?v=phase21-normalization-20260813';
+import { initPreviewController } from './modules/preview-controller.js?v=phase21-normalization-20260813';
+import { initBuilderEventBridge } from './modules/state-event-bridge.js?v=phase21-normalization-20260813';
 
 const dom = {
     guard: document.getElementById('builder-auth-guard'),

@@ -1,4 +1,4 @@
-import { PACKAGE_REGISTRY } from '../core/section-registry.js?v=phase2-content-20260813';
+import { PACKAGE_REGISTRY } from '../core/section-registry.js?v=phase21-normalization-20260813';
 
 export function initPackageSelector({ container, state }) {
     if (!container || !state) return () => {};

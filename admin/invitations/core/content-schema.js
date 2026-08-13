@@ -1,4 +1,4 @@
-export const INVITATION_DRAFT_SCHEMA_VERSION = 2;
+export const INVITATION_DRAFT_SCHEMA_VERSION = 3;
 export const INVITATION_CONTENT_SCHEMA_VERSION = 1;
 
 const FIELD_DEFINITIONS = [
@@ -147,4 +147,14 @@ export function setDraftValue(draft, path, value) {
 export function cloneInvitationValue(value) {
     if (typeof structuredClone === 'function') return structuredClone(value);
     return JSON.parse(JSON.stringify(value));
+}
+
+export function getTouchedDraftPaths(draft) {
+    return Array.isArray(draft?.meta?.touchedPaths)
+        ? [...new Set(draft.meta.touchedPaths.filter((path) => INVITATION_EDITABLE_FIELDS[path]))]
+        : [];
+}
+
+export function isDraftPathTouched(draft, path) {
+    return getTouchedDraftPaths(draft).includes(path);
 }

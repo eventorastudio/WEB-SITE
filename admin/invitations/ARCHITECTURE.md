@@ -1,8 +1,8 @@
-# Invitation Builder · Arquitectura de Fases 1 y 2
+# Invitation Builder · Arquitectura de Fases 1, 2 y 2.1
 
 ## Alcance
 
-Las dos primeras fases implementan una aplicación administrativa dedicada para
+Las fases 1, 2 y 2.1 implementan una aplicación administrativa dedicada para
 seleccionar un evento existente, paquete, colección y secciones; editar contenido
 canónico por módulo; y comprobar el resultado en una preview real. El draft vive
 únicamente en memoria. No existe autosave, publicación, Storage ni escritura de
@@ -275,14 +275,69 @@ los nodos de identidad, fecha/contexto y bienvenida propios de la colección; el
 resto de módulos usa los hooks semánticos existentes de Prestige. El registry:
 
 - escribe contenido administrativo sólo mediante `textContent`;
-- conserva los nodos originales del template como fallback visual;
-- restaura ese fallback cuando el campo canónico queda vacío;
+- conserva los nodos originales del template como fallback visual sólo mientras
+  su campo o sección no se haya configurado;
+- reemplaza el copy demo completo de una sección en cuanto cualquiera de sus
+  campos contiene valor o fue editado;
 - transforma nombres y fecha sin homogeneizar el estilo de cada colección;
 - construye un contrato de visibilidad por sección y un grupo compuesto para
   RSVP, pases y acceso, que comparten contenedor en las demos.
 
 Las demos de `/principal/demos/` siguen siendo archivos de solo lectura para el
-Builder y no fueron modificadas en Fase 2.
+Builder y no fueron modificadas en Fase 2.1.
+
+### Builder Template Mode
+
+La preview distingue dos contextos sin modificar las colecciones públicas:
+
+- **Public Demo Mode** ejecuta el HTML de demostración tal como existe en
+  `/principal/demos/`, incluidos sus ejemplos de boda, XV o fiesta.
+- **Builder Template Mode** carga una copia DOM dentro del iframe, elimina scripts
+  demo y ejecuta `prepareBuilderTemplate()` antes de aplicar contenido. Los
+  adapters asignan ownership semántico, ocultan decoración/event copy incompatible
+  y preparan hooks de visibilidad exclusivamente en esa copia.
+
+La secuencia final es:
+
+```text
+load template -> remove demo scripts -> prepare builder template
+              -> apply canonical content -> apply enabled sections -> render
+```
+
+La política central de fallback usa `draft.meta.touchedPaths`:
+
+| Estado del campo/sección | Resultado en Builder |
+| --- | --- |
+| Untouched y sin valor | fallback demo permitido |
+| Touched con valor | contenido del draft |
+| Touched y vacío | nodo oculto; el demo no reaparece |
+| Sección con cualquier campo real/touched | sólo copy canónico; media demo permitida |
+
+`sectionHasRealContent()` toma la decisión una sola vez para todas las
+colecciones. Cada path adquiere un nodo con `data-builder-binding-owner`; si dos
+paths intentan escribir el mismo nodo, el renderer reporta una colisión. La
+neutralización de textos event-specific se hace mediante nodos DOM y metadata del
+adapter, nunca con reemplazos globales de strings.
+
+### Cobertura semántica Fase 2.1
+
+La métrica se deriva de `INVITATION_EDITABLE_FIELDS`, los campos de los editores
+y los paths realmente declarados por los bindings. El contrato actual contiene
+46 fields editables y los 11 adapters resuelven 46/46 sin ownership collisions.
+
+| Theme | Identity | Welcome | Countdown | Location | DressCode | RSVP | Music | Video | Gallery | Gifts | Passes | Itinerary | Access |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Aloha | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Luxury | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Botanical | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Midnight | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Romance | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Minimal | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Celestial | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Vintage | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Garden | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Champagne | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Neon Party | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
 
 ### SECTION_REGISTRY
 
@@ -304,7 +359,7 @@ una sección oculta el editor y el preview, pero nunca borra su contenido.
 
 ```js
 {
-  schemaVersion: 2,
+  schemaVersion: 3,
   contentSchemaVersion: 1,
   eventId,
   packageId: null | 'esencial' | 'premium' | 'prestige',
@@ -334,7 +389,7 @@ una sección oculta el editor y el preview, pero nunca borra su contenido.
   links: {},
   appearance: {},
   settings: { renderMode: 'builder' },
-  meta: { packageSource, loadedAt }
+  meta: { packageSource, loadedAt, touchedPaths: [] }
 }
 ```
 
@@ -344,8 +399,10 @@ de preview no ensucia el draft.
 
 La prioridad de inicialización es: valor real y válido del evento, valor vacío
 canónico y fallback semántico exclusivo del preview. Los textos decorativos de
-las demos nunca se copian al draft. La whitelist `INVITATION_EDITABLE_FIELDS`
-limita paths, tipos y longitud antes de que `builder-state` acepte un cambio.
+las demos nunca se copian al draft. `builder-state` registra todo path editado,
+incluso cuando el valor final es vacío, para soportar explicit clear. La whitelist
+`INVITATION_EDITABLE_FIELDS` limita paths, tipos y longitud antes de aceptar un
+cambio. `touchedPaths` permanece local y no introduce persistencia.
 
 Las validaciones de nombre, fecha, hora y deadline actualizan `ui.validationErrors`
 sin bloquear la edición. Un snapshot de estado es una copia profunda: un módulo
@@ -374,11 +431,12 @@ El adaptador:
 3. elimina scripts, apertura, audio y controles musicales;
 4. resuelve imágenes y estilos contra la ruta real de la colección;
 5. activa el cuerpo/hero y los reveals para preview;
-6. aplica contenido con `textContent` y bindings del registro;
-7. aplica visibilidad de secciones desde el registro;
-8. intercepta enlaces y submits en captura;
-9. reutiliza el DOM cargado para cambios de texto, evitando refetch por tecla;
-10. agrupa ráfagas de escritura con un debounce de 80 ms antes de emitir `UPDATE`.
+6. prepara el template en Builder Mode y limpia copy demo/event-specific;
+7. aplica contenido con `textContent` y ownership del registro;
+8. aplica visibilidad de secciones desde el registro;
+9. intercepta enlaces y submits en captura;
+10. reutiliza el DOM cargado para cambios de texto, evitando refetch por tecla;
+11. agrupa ráfagas de escritura con un debounce de 80 ms antes de emitir `UPDATE`.
 
 Ventajas: aislamiento CSS, reutilización de assets, comportamiento local,
 actualización inmediata, rutas compatibles con el sitio estático y una frontera
@@ -442,8 +500,7 @@ imágenes, audio o video Base64 dentro del documento Firestore.**
 
 - No existe paquete en el contrato actual de creación de eventos.
 - Las Rules propuestas no cubren aún `invitacion` ni `invitacionVersiones`.
-- Los templates actuales contienen texto estructural hardcodeado. Fase 2 cubre
-  identidad y copy básico por sección mediante adapters centrales; contenido
+- Los adapters de Fase 2.1 neutralizan el copy hardcodeado en Builder. Contenido
   repetible, multimedia real y estructuras avanzadas siguen fuera de alcance.
 - `admin/dashboard.js` todavía accede a Firestore directamente; no se reescribió
   por no ampliar el alcance.
@@ -455,8 +512,9 @@ imágenes, audio o video Base64 dentro del documento Firestore.**
 
 ## Roadmap recomendado
 
-1. Fases 1 y 2 completadas: shell productivo, schema canónico, editores de copy,
-   selección explícita, adapters de once colecciones y preview en vivo.
+1. Fases 1, 2 y 2.1 completadas: shell productivo, schema canónico, editores de
+   copy, selección explícita, adapters semánticos de once colecciones y preview
+   en vivo sin mezcla de copy demo configurado.
 2. Fase 3: editores estructurados de ubicaciones, itinerario, Dress Code,
    regalos y enlaces.
 3. Fase 4: Storage y flujo multimedia optimizado/licenciado.
@@ -467,4 +525,4 @@ imágenes, audio o video Base64 dentro del documento Firestore.**
 7. Fase 8: validación, snapshot publicado y URL de producción.
 8. Fase 9: edición post-publicación, versiones, rollback y auditoría.
 
-No se implementó ninguna fase posterior a Fase 2 en este cambio.
+No se implementó Fase 3 ni ninguna fase posterior en este cambio.

@@ -1,4 +1,4 @@
-import { getDraftValue } from './content-schema.js?v=phase2-content-20260813';
+import { getDraftValue } from './content-schema.js?v=phase21-normalization-20260813';
 
 function isExactDate(value) {
     const match = String(value ?? '').match(/^(\d{4})-(\d{2})-(\d{2})$/);

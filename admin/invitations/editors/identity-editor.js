@@ -1,5 +1,5 @@
-import { GENERAL_INFORMATION_FIELDS } from '../core/section-editor-registry.js?v=phase2-content-20260813';
-import { createEditorFieldsGrid, syncEditorFields } from './editor-fields.js?v=phase2-content-20260813';
+import { GENERAL_INFORMATION_FIELDS } from '../core/section-editor-registry.js?v=phase21-normalization-20260813';
+import { createEditorFieldsGrid, syncEditorFields } from './editor-fields.js?v=phase21-normalization-20260813';
 
 export function initIdentityEditor({ container, state }) {
     if (!container || !state) return () => {};

@@ -1,12 +1,63 @@
 :root { color-scheme: light; }
 * { box-sizing: border-box; }
-html, body { min-height: 100%; }
+html, body { min-height: 100%; max-inline-size: 100%; overflow-x: clip; }
 [data-builder-section-visibility="hidden"] { display: none !important; }
+[data-builder-demo-copy="hidden"],
+[data-builder-demo-container="hidden"],
+[data-builder-event-specific-demo="hidden"] { display: none !important; }
 [data-invitation-bind="identity"],
 [data-invitation-bind="identity"] * {
     max-inline-size: 100%;
-    overflow-wrap: anywhere;
+    overflow-wrap: normal;
     white-space: normal !important;
+}
+[data-invitation-bind="identity"] { overflow-wrap: normal; }
+[data-invitation-bind="identity"][data-builder-identity-fitted="true"] {
+    font-size: var(--builder-identity-font-size) !important;
+}
+[data-invitation-bind="identity"][data-builder-identity-fitted="true"] * {
+    font-size: inherit !important;
+}
+.builder-semantic-copy {
+    position: relative;
+    z-index: 2;
+    grid-column: 1 / -1;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: min(100%, 62rem);
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5%, 3rem);
+    gap: clamp(0.55rem, 1.8vw, 1.15rem);
+    align-content: center;
+}
+.builder-semantic-copy > * {
+    position: static !important;
+    grid-area: auto !important;
+    order: 0 !important;
+    max-inline-size: 100%;
+    margin-block: 0;
+    overflow-wrap: normal;
+    transform: none !important;
+}
+.builder-semantic-copy > [data-builder-text-fitted="true"] {
+    font-size: var(--builder-text-font-size) !important;
+}
+.builder-semantic-copy > [data-builder-text-fitted="true"] * {
+    font-size: inherit !important;
+}
+.builder-semantic-story { white-space: pre-line; }
+.builder-semantic-meta,
+.builder-semantic-deadline,
+.builder-semantic-note { opacity: 0.78; }
+.builder-generated-feature {
+    min-height: 16rem;
+    padding: clamp(3rem, 10vw, 7rem) clamp(1.4rem, 7vw, 5rem);
+}
+.builder-template-event-line,
+.builder-template-phrase {
+    max-inline-size: 42rem;
+    margin-block: 0.75rem 0;
+    overflow-wrap: anywhere;
 }
 body.builder-preview-idle,
 body.builder-preview-loading,

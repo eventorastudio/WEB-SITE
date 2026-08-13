@@ -1,5 +1,5 @@
-import { getPackageById, getSectionById, isSectionAllowed } from './section-registry.js?v=phase2-content-20260813';
-import { getThemeById } from './theme-registry.js?v=phase2-content-20260813';
+import { getPackageById, getSectionById, isSectionAllowed } from './section-registry.js?v=phase21-normalization-20260813';
+import { getThemeById } from './theme-registry.js?v=phase21-normalization-20260813';
 import {
     INVITATION_CONTENT_SCHEMA_VERSION,
     INVITATION_DRAFT_SCHEMA_VERSION,
@@ -8,8 +8,8 @@ import {
     createInvitationContent,
     getDraftValue,
     setDraftValue
-} from './content-schema.js?v=phase2-content-20260813';
-import { validateInvitationDraft } from './builder-validation.js?v=phase2-content-20260813';
+} from './content-schema.js?v=phase21-normalization-20260813';
+import { validateInvitationDraft } from './builder-validation.js?v=phase21-normalization-20260813';
 
 const PREVIEW_DEVICES = Object.freeze(['mobile', 'tablet', 'desktop']);
 const LEGACY_CONTENT_PATHS = Object.freeze({
@@ -64,6 +64,7 @@ export function createInvitationDraft(eventId, eventData = {}) {
         settings: { renderMode: 'builder' },
         meta: {
             packageSource: packageId ? 'event' : 'unselected',
+            touchedPaths: [],
             loadedAt: new Date().toISOString()
         }
     };
@@ -179,13 +180,20 @@ export class InvitationBuilderState {
             setDraftValue(draftCopy, path, value);
             return [path, getDraftValue(draftCopy, path)];
         });
-        const changed = normalized.some(([path, value]) => getDraftValue(this._draft, path) !== value);
+        const touchedPaths = new Set(this._draft.meta.touchedPaths ?? []);
+        const changed = normalized.some(([path, value]) => (
+            getDraftValue(this._draft, path) !== value || !touchedPaths.has(path)
+        ));
         if (!changed) {
             return { ok: true, changed: false, errors: cloneInvitationValue(this._ui.validationErrors) };
         }
 
         const previous = this.getSnapshot();
-        normalized.forEach(([path, value]) => setDraftValue(this._draft, path, value));
+        normalized.forEach(([path, value]) => {
+            setDraftValue(this._draft, path, value);
+            touchedPaths.add(path);
+        });
+        this._draft.meta.touchedPaths = [...touchedPaths];
         this._ui.validationErrors = validateInvitationDraft(this._draft);
         this._markDirty();
         this._notify('content-changed', previous);

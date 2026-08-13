@@ -32,7 +32,10 @@ export function applyPreviewSectionVisibility(root, sections = [], enabledSectio
             if (!elements.length) result.missingBindings.push({ sectionId: section.id, selector });
             elements.forEach((element) => {
                 const visible = enabled.has(section.id);
-                element.hidden = !visible;
+                const builderDemoHidden = element.dataset?.builderDemoCopy === 'hidden'
+                    || element.dataset?.builderDemoContainer === 'hidden'
+                    || element.dataset?.builderEventSpecificDemo === 'hidden';
+                element.hidden = !visible || builderDemoHidden;
                 if (element.dataset) element.dataset.builderSectionVisibility = visible ? 'visible' : 'hidden';
                 else element.setAttribute('data-builder-section-visibility', visible ? 'visible' : 'hidden');
                 result.matchedElements += 1;
