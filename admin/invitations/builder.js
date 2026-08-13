@@ -6,19 +6,32 @@ import { eventBus } from '../core/event-bus.js';
 import { EVENT_TYPES } from '../core/event-types.js';
 import { hasPermission, PERMISSIONS } from '../core/roles.js';
 import { initThemeManager } from '../core/theme-manager.js';
-import { builderState } from './core/builder-state.js';
-import { createBuilderUrl, readBuilderRoute } from './core/builder-routing.js';
-import { renderEventSelector } from './modules/event-selector.js';
-import { initPackageSelector } from './modules/package-selector.js';
-import { initThemeSelector } from './modules/theme-selector.js';
-import { initSectionSelector } from './modules/section-selector.js';
-import { initBasicInformation } from './modules/basic-information.js';
-import { initPreviewController } from './modules/preview-controller.js';
-import { initBuilderEventBridge } from './modules/state-event-bridge.js';
+import { builderState } from './core/builder-state.js?v=phase1-desktop-20260813';
+import { createBuilderUrl, readBuilderRoute } from './core/builder-routing.js?v=phase1-desktop-20260813';
+import {
+    BUILDER_DESKTOP_MIN_WIDTH,
+    BUILDER_PLATFORM_STATUS,
+    initBuilderPlatformAccess
+} from './core/builder-platform.js?v=phase1-desktop-20260813';
+import { createBuilderDebugLogger } from './core/builder-debug.js?v=phase1-desktop-20260813';
+import { renderEventSelector } from './modules/event-selector.js?v=phase1-desktop-20260813';
+import { initPackageSelector } from './modules/package-selector.js?v=phase1-desktop-20260813';
+import { initThemeSelector } from './modules/theme-selector.js?v=phase1-desktop-20260813';
+import { initSectionSelector } from './modules/section-selector.js?v=phase1-desktop-20260813';
+import { initBasicInformation } from './modules/basic-information.js?v=phase1-desktop-20260813';
+import { initPreviewController } from './modules/preview-controller.js?v=phase1-desktop-20260813';
+import { initBuilderEventBridge } from './modules/state-event-bridge.js?v=phase1-desktop-20260813';
 
 const dom = {
     guard: document.getElementById('builder-auth-guard'),
-    shell: document.getElementById('builder-shell'),
+    root: document.getElementById('invitation-builder-root'),
+    shell: document.getElementById('invitation-builder-root'),
+    platformGate: document.getElementById('builder-platform-gate'),
+    platformTitle: document.getElementById('builder-platform-title'),
+    platformDescription: document.getElementById('builder-platform-description'),
+    windowGuard: document.getElementById('builder-window-guard'),
+    windowGuardTitle: document.getElementById('builder-window-guard-title'),
+    windowGuardDescription: document.getElementById('builder-window-guard-description'),
     gate: document.getElementById('builder-gate'),
     gateTitle: document.getElementById('builder-gate-title'),
     gateDescription: document.getElementById('builder-gate-description'),
@@ -30,18 +43,25 @@ const dom = {
     activeEventMeta: document.getElementById('builder-active-event-meta'),
     draftStatus: document.getElementById('builder-draft-status'),
     runtimeError: document.getElementById('builder-runtime-error'),
+    runtimeErrorTitle: document.getElementById('builder-runtime-error-title'),
     runtimeErrorMessage: document.getElementById('builder-runtime-error-message'),
     runtimeErrorRetry: document.getElementById('builder-runtime-error-retry')
 };
 
 let roleContext = null;
 let modulesMounted = false;
-let stateBridgeCleanup = null;
+let builderStarted = false;
 let runtimeRetry = null;
 const moduleCleanups = [];
+const immutableBuilderRoot = dom.root;
+const debugBuilder = createBuilderDebugLogger({
+    targetWindow: window,
+    targetDocument: document,
+    getSnapshot: () => builderState.getSnapshot()
+});
 
 initThemeManager();
-registerManualErrorBoundary();
+registerGlobalDiagnostics();
 boot();
 
 async function boot() {
@@ -64,22 +84,70 @@ async function boot() {
             isAuthenticated: true,
             role: roleContext.role
         });
-        revealShell();
+        dismissAuthGuard();
         watchSession();
-
-        const route = readBuilderRoute(window.location.search);
-        if (route.invalidEventParameter) {
-            renderGateError('El identificador del evento no es válido.', 'Usa el acceso del Dashboard o de Administrar evento para abrir el Builder.', showEventSelection);
-            return;
-        }
-
-        if (route.eventId) await loadEvent(route.eventId);
-        else await showEventSelection();
+        moduleCleanups.push(initBuilderPlatformAccess({
+            targetWindow: window,
+            onStatusChange: handlePlatformStatus,
+            onReady: () => void startBuilder()
+        }));
     } catch (error) {
         revealShell();
-        renderGateError('No fue posible iniciar el Invitation Builder.', friendlyError(error), () => window.location.reload());
+        renderGateError('No fue posible iniciar el Invitation Builder.', friendlyError(error));
         console.error('[Invitation Builder] Error de arranque:', error);
+        debugBuilder.captureError('boot-error', error);
     }
+}
+
+async function startBuilder() {
+    if (builderStarted) return;
+    builderStarted = true;
+    debugBuilder.trace('builder-start');
+
+    const route = readBuilderRoute(window.location.search);
+    if (route.invalidEventParameter) {
+        renderGateError('El identificador del evento no es válido.', 'Usa el acceso del Dashboard o de Administrar evento para abrir el Builder.', showEventSelection);
+        return;
+    }
+
+    if (route.eventId) await loadEvent(route.eventId);
+    else await showEventSelection();
+}
+
+function handlePlatformStatus(status, { hasStarted }) {
+    document.documentElement.dataset.builderPlatformStatus = status;
+    dom.root.dataset.builderPlatformStatus = status;
+    debugBuilder.trace('platform-status', { status, minimumWidth: BUILDER_DESKTOP_MIN_WIDTH, hasStarted });
+
+    if (!hasStarted) {
+        dom.root.hidden = true;
+        dom.windowGuard.hidden = true;
+        configureInitialPlatformGate(status);
+        dom.platformGate.hidden = false;
+        return;
+    }
+
+    dom.platformGate.hidden = true;
+    dom.root.hidden = false;
+    const blocked = status !== BUILDER_PLATFORM_STATUS.SUPPORTED;
+    dom.windowGuard.hidden = !blocked;
+    if (blocked) configureActiveWindowGuard(status);
+}
+
+function configureInitialPlatformGate(status) {
+    const smallWindow = status === BUILDER_PLATFORM_STATUS.WINDOW_TOO_SMALL;
+    dom.platformTitle.textContent = smallWindow ? 'Amplía la ventana para continuar' : 'Disponible en computadora';
+    dom.platformDescription.textContent = smallWindow
+        ? `El Invitation Builder requiere al menos ${BUILDER_DESKTOP_MIN_WIDTH} px de ancho. Amplía esta ventana y el editor se abrirá automáticamente.`
+        : 'El editor de invitaciones está diseñado para trabajar desde una computadora, donde puedes administrar contenido y vista previa con mayor precisión.';
+}
+
+function configureActiveWindowGuard(status) {
+    const unsupportedDevice = status === BUILDER_PLATFORM_STATUS.UNSUPPORTED_DEVICE;
+    dom.windowGuardTitle.textContent = unsupportedDevice ? 'Disponible en computadora' : 'Amplía la ventana para continuar';
+    dom.windowGuardDescription.textContent = unsupportedDevice
+        ? 'Conservamos tu borrador local. Conecta un mouse o trackpad y utiliza una pantalla de computadora para continuar.'
+        : `Tu borrador local permanece intacto. Amplía la ventana a ${BUILDER_DESKTOP_MIN_WIDTH} px o más para continuar.`;
 }
 
 async function waitForSession() {
@@ -103,8 +171,12 @@ function watchSession() {
 }
 
 function revealShell() {
-    dom.guard.hidden = true;
+    dismissAuthGuard();
     dom.shell.hidden = false;
+}
+
+function dismissAuthGuard() {
+    dom.guard.hidden = true;
 }
 
 async function showEventSelection() {
@@ -135,9 +207,12 @@ async function loadEvent(eventId) {
         eventBus.emit(EVENT_TYPES.BUILDER_EVENT_SELECTED, { eventId, timestamp: Date.now() });
         updateEventChrome(eventData);
         mountModules();
-        history.replaceState(null, '', createBuilderUrl(eventId));
+        const builderUrl = createBuilderUrl(eventId);
+        history.replaceState(null, '', debugBuilder.enabled ? `${builderUrl}&debugBuilder=1` : builderUrl);
         dom.gate.hidden = true;
         dom.workspace.hidden = false;
+        assertBuilderRootInvariant('event-loaded');
+        debugBuilder.trace('event-loaded', { eventId });
     } catch (error) {
         renderGateError('No fue posible abrir este evento.', friendlyError(error), showEventSelection);
         console.error('[Invitation Builder] Error cargando evento:', error);
@@ -147,6 +222,11 @@ async function loadEvent(eventId) {
 function mountModules() {
     if (modulesMounted) return;
     modulesMounted = true;
+
+    moduleCleanups.push(builderState.subscribeToErrors(({ error, source, reason, retry }) => {
+        reportRuntimeError(error, { source, reason, retry });
+    }));
+    dom.runtimeErrorRetry?.addEventListener('click', retryRuntimeUpdate);
 
     moduleCleanups.push(initPackageSelector({
         container: document.querySelector('.event-context-card'),
@@ -161,7 +241,8 @@ function mountModules() {
         summary: document.getElementById('section-summary'),
         state: builderState,
         ui,
-        onError: reportRuntimeError
+        onError: reportRuntimeError,
+        onTrace: (event, details) => debugBuilder.trace(event, details)
     }));
     moduleCleanups.push(initBasicInformation({
         form: document.getElementById('basic-information-form'),
@@ -175,20 +256,28 @@ function mountModules() {
         stage: document.getElementById('preview-stage'),
         state: builderState,
         eventBus,
-        eventTypes: EVENT_TYPES
+        eventTypes: EVENT_TYPES,
+        onError: (error, context) => debugBuilder.captureError('preview-panel-error', error, context),
+        onTrace: (event, details) => debugBuilder.trace(event, details)
     }));
 
     bindStepper();
     bridgeBuilderState();
     syncDraftChrome(builderState.getSnapshot());
+    assertBuilderRootInvariant('modules-mounted');
+    debugBuilder.trace('modules-mounted');
 }
 
 function bridgeBuilderState() {
-    stateBridgeCleanup = initBuilderEventBridge({
+    const stateBridgeCleanup = initBuilderEventBridge({
         state: builderState,
         eventBus,
         eventTypes: EVENT_TYPES,
-        onSnapshot: syncDraftChrome
+        onSnapshot: (snapshot, reason) => {
+            assertBuilderRootInvariant(reason);
+            syncDraftChrome(snapshot);
+            debugBuilder.trace('state-notified', { reason });
+        }
     });
     moduleCleanups.push(stateBridgeCleanup);
 }
@@ -219,6 +308,16 @@ function syncDraftChrome(snapshot) {
     if (!snapshot.draft) return;
     dom.draftStatus.classList.toggle('is-dirty', snapshot.ui.isDirty);
     dom.draftStatus.lastChild.textContent = snapshot.ui.isDirty ? ' Cambios locales' : ' Borrador local';
+}
+
+function assertBuilderRootInvariant(context) {
+    const currentRoot = document.getElementById('invitation-builder-root');
+    const requiredRegions = ['sidebar', 'editor', 'preview'];
+    const regionsPresent = requiredRegions.every((region) => immutableBuilderRoot?.querySelector(`[data-builder-region="${region}"]`));
+    if (currentRoot !== immutableBuilderRoot || !immutableBuilderRoot?.isConnected || !regionsPresent) {
+        throw new Error(`builder/root-invariant-violated:${context}`);
+    }
+    return true;
 }
 
 function updateEventChrome(eventData) {
@@ -263,18 +362,20 @@ function friendlyError(error) {
     return `Error controlado: ${code}`;
 }
 
-function registerManualErrorBoundary() {
-    moduleCleanups.push(builderState.subscribeToErrors(({ error, source, reason, retry }) => {
-        reportRuntimeError(error, { source, reason, retry });
-    }));
-    dom.runtimeErrorRetry?.addEventListener('click', retryRuntimeUpdate);
+function registerGlobalDiagnostics() {
     window.addEventListener('unhandledrejection', (event) => {
         console.error('[Invitation Builder] Promesa no controlada:', event.reason);
-        reportRuntimeError(event.reason, { source: 'unhandledrejection', reason: 'async-runtime' });
+        debugBuilder.captureError('unhandledrejection', event.reason);
+        if (builderStarted) reportRuntimeError(event.reason, { source: 'unhandledrejection', reason: 'async-runtime' });
     });
     window.addEventListener('error', (event) => {
         console.error('[Invitation Builder] Error de ejecución:', event.error || event.message);
-        reportRuntimeError(event.error || new Error(event.message), { source: 'window', reason: 'runtime' });
+        debugBuilder.captureError('window-error', event.error || new Error(event.message), {
+            filename: event.filename,
+            line: event.lineno,
+            column: event.colno
+        });
+        if (builderStarted) reportRuntimeError(event.error || new Error(event.message), { source: 'window', reason: 'runtime' });
     });
     window.addEventListener('pagehide', () => {
         moduleCleanups.splice(0).forEach((cleanup) => {
@@ -285,8 +386,16 @@ function registerManualErrorBoundary() {
 
 function reportRuntimeError(error, { source = 'builder', reason = 'unknown', retry = null } = {}) {
     console.error(`[InvitationBuilder] ${source} falló durante ${reason}.`, error);
+    debugBuilder.captureError('runtime-error', error, { source, reason });
     runtimeRetry = typeof retry === 'function' ? retry : null;
     if (!dom.runtimeError) return;
+    const titles = {
+        'theme-selector': 'No pudimos actualizar las colecciones.',
+        'section-selector': 'No pudimos actualizar esta sección.',
+        'basic-information': 'No pudimos actualizar la información.',
+        'state-event-bridge': 'No pudimos sincronizar el Builder.'
+    };
+    if (dom.runtimeErrorTitle) dom.runtimeErrorTitle.textContent = titles[source] ?? 'No pudimos completar esta actualización.';
     dom.runtimeErrorMessage.textContent = runtimeRetry
         ? 'El borrador local se conservó. Puedes reintentar únicamente la actualización fallida.'
         : 'El borrador local se conservó. Revisa la consola de desarrollo para consultar el stack trace.';

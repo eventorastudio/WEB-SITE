@@ -211,6 +211,34 @@ El Builder exige sesión, rol interno válido y el permiso. Un usuario autentica
 sin claim no accede y nunca se interpreta como CEO. Los accesos del Dashboard y
 del evento se revelan únicamente cuando el mismo permiso está presente.
 
+### Plataforma de producción: computadora
+
+El editor ADMIN es exclusivo para computadora. La decisión se toma después de
+Auth/roles y antes de cargar el evento o montar módulos. El contrato central está
+en `core/builder-platform.js`:
+
+- ancho mínimo: `1100px`, derivado de las tres columnas mínimas del workspace;
+- entrada primaria con `hover: hover` y `pointer: fine`;
+- teléfono o tablet táctil: pantalla **Disponible en computadora** y cero montaje
+  de selectores, state del draft o controlador de preview;
+- computadora con ventana menor a 1100px: **Amplía la ventana para continuar**;
+- si el editor ya inició, reducir y restaurar la ventana nunca reinicializa ni
+  destruye el draft local.
+
+La plataforma física del Builder no modifica `ui.previewDevice`. Desde una PC se
+mantienen las previews Mobile, Tablet y Desktop de la invitación pública.
+
+`#invitation-builder-root` es una referencia inmutable. Sidebar, editor y preview
+son regiones permanentes (`data-builder-region`) y ningún módulo interno puede
+ejecutar `replaceChildren`, `innerHTML`, `replaceWith` o `remove` sobre el root.
+Cada render controla únicamente su contenedor asignado.
+
+El modo `?debugBuilder=1` registra viewport, estado no sensible y geometría de las
+regiones, además de `message`, archivo, línea, columna y stack para errores globales.
+No registra usuario, tokens, claims ni credenciales. Los assets del Builder usan
+una versión explícita en la URL porque el hosting puede conservar JavaScript/CSS
+durante cuatro horas; así no se mezclan módulos de dos despliegues distintos.
+
 ### THEME_REGISTRY
 
 Contiene `aloha`, `luxury`, `botanical`, `midnight`, `romance`, `minimal`,

@@ -7,7 +7,7 @@
     <title>Invitation Builder | Eventora Studio</title>
     <link rel="icon" href="../assets/images/favicon.ico">
     <link rel="stylesheet" href="../assets/css/theme.css">
-    <link rel="stylesheet" href="./builder.css">
+    <link rel="stylesheet" href="./builder.css?v=phase1-desktop-20260813">
 </head>
 <body>
     <div class="builder-auth-guard" id="builder-auth-guard" role="status" aria-live="polite">
@@ -15,7 +15,17 @@
         <p>Verificando acceso administrativo…</p>
     </div>
 
-    <div class="builder-shell" id="builder-shell" hidden>
+    <section class="builder-platform-gate" id="builder-platform-gate" aria-labelledby="builder-platform-title" hidden>
+        <div class="builder-platform-card">
+            <img src="../assets/images/LOGO2.png" alt="Eventora Studio">
+            <span class="builder-kicker">EVENTORA STUDIO · PANEL ADMINISTRATIVO</span>
+            <h1 id="builder-platform-title">Disponible en computadora</h1>
+            <p id="builder-platform-description">El editor de invitaciones está diseñado para trabajar desde una computadora, donde puedes administrar contenido y vista previa con mayor precisión.</p>
+            <a class="builder-platform-button" href="../dashboard.html">Volver al panel</a>
+        </div>
+    </section>
+
+    <div class="builder-shell" id="invitation-builder-root" data-builder-root hidden>
         <header class="builder-header">
             <div class="builder-brand">
                 <a class="builder-back" href="../dashboard.html" aria-label="Volver al Dashboard">←</a>
@@ -34,10 +44,18 @@
 
         <section class="builder-runtime-error" id="builder-runtime-error" role="alert" hidden>
             <div>
-                <strong>No pudimos actualizar esta sección.</strong>
+                <strong id="builder-runtime-error-title">No pudimos actualizar esta sección.</strong>
                 <p id="builder-runtime-error-message">El Builder conservó tu borrador local.</p>
             </div>
             <button id="builder-runtime-error-retry" type="button">Reintentar</button>
+        </section>
+
+        <section class="builder-window-guard" id="builder-window-guard" role="status" aria-live="polite" hidden>
+            <div class="builder-window-guard-card">
+                <span class="builder-kicker">INVITATION BUILDER · PRODUCCIÓN</span>
+                <h2 id="builder-window-guard-title">Amplía la ventana para continuar</h2>
+                <p id="builder-window-guard-description">Tu borrador local permanece intacto. La edición continuará automáticamente cuando recuperes el espacio de trabajo.</p>
+            </div>
         </section>
 
         <section class="builder-gate" id="builder-gate" aria-labelledby="builder-gate-title">
@@ -51,7 +69,7 @@
         </section>
 
         <main class="builder-workspace" id="builder-workspace" hidden>
-            <aside class="builder-steps" aria-label="Etapas del Builder">
+            <aside class="builder-steps" data-builder-region="sidebar" aria-label="Etapas del Builder">
                 <div class="steps-heading">
                     <span>Flujo</span>
                     <strong>Producción</strong>
@@ -72,7 +90,7 @@
                 </div>
             </aside>
 
-            <section class="builder-editor" id="builder-editor">
+            <section class="builder-editor" id="builder-editor" data-builder-region="editor">
                 <div class="event-context-card">
                     <div>
                         <span class="builder-kicker">EVENTO ACTIVO</span>
@@ -140,7 +158,7 @@
                 </section>
             </section>
 
-            <aside class="builder-preview" aria-label="Vista previa de la invitación">
+            <aside class="builder-preview" data-builder-region="preview" aria-label="Vista previa de la invitación">
                 <header class="preview-header">
                     <div>
                         <span class="builder-kicker">PREVIEW EN VIVO</span>
@@ -160,7 +178,7 @@
                     <iframe
                         id="invitation-preview-frame"
                         class="preview-frame"
-                        src="./preview/frame.html"
+                        data-src="./preview/frame.html?v=phase1-desktop-20260813"
                         title="Vista previa de la invitación"
                         sandbox="allow-scripts allow-same-origin"
                     ></iframe>
@@ -171,6 +189,6 @@
     </div>
 
     <div id="toast-container" aria-live="polite"></div>
-    <script type="module" src="./builder.js"></script>
+    <script type="module" src="./builder.js?v=phase1-desktop-20260813"></script>
 </body>
 </html>

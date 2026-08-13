@@ -1,4 +1,4 @@
-import { THEME_REGISTRY } from '../core/theme-registry.js';
+import { THEME_REGISTRY } from '../core/theme-registry.js?v=phase1-desktop-20260813';
 
 function createThemeCard(theme, state) {
     const button = document.createElement('button');

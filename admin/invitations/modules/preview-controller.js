@@ -1,8 +1,8 @@
-import { PREVIEW_DEVICES, PREVIEW_MESSAGE_TYPES, isPreviewMessage } from '../core/builder-events.js';
-import { SECTION_REGISTRY } from '../core/section-registry.js';
-import { getThemeById } from '../core/theme-registry.js';
+import { PREVIEW_DEVICES, PREVIEW_MESSAGE_TYPES, isPreviewMessage } from '../core/builder-events.js?v=phase1-desktop-20260813';
+import { SECTION_REGISTRY } from '../core/section-registry.js?v=phase1-desktop-20260813';
+import { getThemeById } from '../core/theme-registry.js?v=phase1-desktop-20260813';
 
-export function initPreviewController({ frame, controls, status, dimension, stage, state, eventBus, eventTypes }) {
+export function initPreviewController({ frame, controls, status, dimension, stage, state, eventBus, eventTypes, onError, onTrace }) {
     if (!frame || !state) return () => {};
 
     const targetOrigin = window.location.origin;
@@ -15,6 +15,24 @@ export function initPreviewController({ frame, controls, status, dimension, stag
         if (!status) return;
         status.textContent = message;
         status.dataset.state = stateName;
+    };
+
+    const reportPreviewFailure = (error, phase) => {
+        setStatus('No pudimos actualizar la vista previa.', 'error');
+        console.error(`[InvitationBuilder Preview] Falló ${phase}.`, error);
+        onTrace?.('preview-error', { phase, message: error?.message ?? String(error) });
+        onError?.(error, { source: 'preview-controller', reason: phase });
+    };
+
+    const postToFrame = (message, phase) => {
+        if (!message || !frame.contentWindow) return false;
+        try {
+            frame.contentWindow.postMessage(message, targetOrigin);
+            return true;
+        } catch (error) {
+            reportPreviewFailure(error, phase);
+            return false;
+        }
     };
 
     const createPayload = (snapshot) => {
@@ -40,18 +58,29 @@ export function initPreviewController({ frame, controls, status, dimension, stag
     };
 
     const sendSnapshot = (snapshot) => {
-        const message = createPayload(snapshot);
-        if (!message) {
-            setStatus('Selecciona una colección para iniciar la preview.', 'empty');
-            return;
+        try {
+            const message = createPayload(snapshot);
+            if (!message) {
+                setStatus('Selecciona una colección para iniciar la preview.', 'empty');
+                return;
+            }
+            queuedPayload = message;
+            setStatus(`Preparando ${message.payload.theme.name}…`, 'loading');
+            window.clearTimeout(responseTimeout);
+            responseTimeout = window.setTimeout(() => {
+                setStatus('No pudimos actualizar la vista previa.', 'error');
+                onTrace?.('preview-timeout', { requestId: message.requestId });
+            }, 8000);
+            if (shellReady) postToFrame(message, 'post-render-message');
+            onTrace?.('preview-update-sent', {
+                requestId: message.requestId,
+                themeId: message.payload.theme.id,
+                enabledSections: [...message.payload.enabledSections],
+                shellReady
+            });
+        } catch (error) {
+            reportPreviewFailure(error, 'send-snapshot');
         }
-        queuedPayload = message;
-        setStatus(`Preparando ${message.payload.theme.name}…`, 'loading');
-        window.clearTimeout(responseTimeout);
-        responseTimeout = window.setTimeout(() => {
-            setStatus('La preview no respondió. Recarga el Builder para reintentar.', 'error');
-        }, 8000);
-        if (shellReady && frame.contentWindow) frame.contentWindow.postMessage(message, targetOrigin);
     };
 
     const syncDevice = (snapshot) => {
@@ -73,10 +102,11 @@ export function initPreviewController({ frame, controls, status, dimension, stag
         if (event.origin !== targetOrigin || event.source !== frame.contentWindow || !isPreviewMessage(event.data)) return;
         if (event.data.type === PREVIEW_MESSAGE_TYPES.SHELL_READY) {
             shellReady = true;
-            if (queuedPayload) frame.contentWindow.postMessage(queuedPayload, targetOrigin);
+            if (queuedPayload) postToFrame(queuedPayload, 'post-shell-ready-message');
         } else if (event.data.type === PREVIEW_MESSAGE_TYPES.RENDERED) {
             window.clearTimeout(responseTimeout);
             setStatus(`${event.data.payload?.themeName ?? 'Colección'} lista · Preview segura`, 'ready');
+            onTrace?.('preview-rendered', { requestId: event.data.requestId, themeId: event.data.payload?.themeId ?? null });
             eventBus?.emit?.(eventTypes.BUILDER_PREVIEW_READY, event.data.payload);
         } else if (event.data.type === PREVIEW_MESSAGE_TYPES.ERROR) {
             window.clearTimeout(responseTimeout);
@@ -87,10 +117,16 @@ export function initPreviewController({ frame, controls, status, dimension, stag
     window.addEventListener('message', handleMessage);
     const handleFrameLoad = () => {
         shellReady = true;
-        if (queuedPayload && frame.contentWindow) frame.contentWindow.postMessage(queuedPayload, targetOrigin);
+        if (queuedPayload) postToFrame(queuedPayload, 'post-frame-load-message');
     };
     frame.addEventListener('load', handleFrameLoad);
-    if (frame.contentDocument?.readyState === 'complete') shellReady = true;
+    try {
+        const deferredSource = frame.dataset.src;
+        if (!frame.getAttribute('src') && deferredSource) frame.setAttribute('src', deferredSource);
+        if (frame.contentDocument?.readyState === 'complete') shellReady = true;
+    } catch (error) {
+        reportPreviewFailure(error, 'inspect-frame-readiness');
+    }
     syncDevice(state.getSnapshot());
     sendSnapshot(state.getSnapshot());
 

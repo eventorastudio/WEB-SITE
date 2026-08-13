@@ -1,4 +1,4 @@
-import { PACKAGE_REGISTRY } from '../core/section-registry.js';
+import { PACKAGE_REGISTRY } from '../core/section-registry.js?v=phase1-desktop-20260813';
 
 export function initPackageSelector({ container, state }) {
     if (!container || !state) return () => {};

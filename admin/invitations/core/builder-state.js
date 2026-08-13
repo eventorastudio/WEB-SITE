@@ -1,6 +1,6 @@
-import { getPackageById, getSectionById, isSectionAllowed } from './section-registry.js';
-import { getThemeById } from './theme-registry.js';
-import { validateBasicContent } from './builder-validation.js';
+import { getPackageById, getSectionById, isSectionAllowed } from './section-registry.js?v=phase1-desktop-20260813';
+import { getThemeById } from './theme-registry.js?v=phase1-desktop-20260813';
+import { validateBasicContent } from './builder-validation.js?v=phase1-desktop-20260813';
 
 const CONTENT_FIELDS = Object.freeze(['title', 'date', 'time', 'eventType', 'city']);
 const PREVIEW_DEVICES = Object.freeze(['mobile', 'tablet', 'desktop']);

@@ -205,8 +205,16 @@ test('el Builder protege acceso, usa eventService y controla evento inexistente'
     assert.match(builder, /El evento no existe o fue eliminado/);
     assert.match(builder, /subscribeToErrors/);
     assert.match(builder, /reportRuntimeError/);
+    assert.match(builder, /initBuilderPlatformAccess/);
+    assert.match(builder, /assertBuilderRootInvariant/);
     assert.match(html, /id="builder-runtime-error" role="alert" hidden/);
     assert.match(html, />Reintentar</);
+    assert.match(html, /id="invitation-builder-root" data-builder-root hidden/);
+    assert.match(html, /id="builder-platform-gate"/);
+    assert.match(html, />Disponible en computadora</);
+    assert.match(html, /data-builder-region="sidebar"/);
+    assert.match(html, /data-builder-region="editor"/);
+    assert.match(html, /data-builder-region="preview"/);
 });
 
 test('la preview usa plantilla real, postMessage tipado y bloquea navegación externa', async () => {
@@ -216,6 +224,8 @@ test('la preview usa plantilla real, postMessage tipado y bloquea navegación ex
         read('admin/invitations/builder.html')
     ]);
     assert.match(html, /sandbox="allow-scripts allow-same-origin"/);
+    assert.match(html, /data-src="\.\/preview\/frame\.html\?v=phase1-desktop-/);
+    assert.doesNotMatch(html, /\s+src="\.\/preview\/frame\.html/);
     assert.match(controller, /postMessage\(message, targetOrigin\)/);
     assert.match(controller, /event\.origin !== targetOrigin/);
     assert.match(frame, /fetch\(templateUrl/);
@@ -226,9 +236,35 @@ test('la preview usa plantilla real, postMessage tipado y bloquea navegación ex
     assert.match(frame, /querySelectorAll\('script, audio,/);
 });
 
+test('los módulos internos nunca reemplazan ni eliminan el root inmutable', async () => {
+    const files = [
+        'admin/invitations/builder.js',
+        'admin/invitations/modules/basic-information.js',
+        'admin/invitations/modules/package-selector.js',
+        'admin/invitations/modules/preview-controller.js',
+        'admin/invitations/modules/section-selector.js',
+        'admin/invitations/modules/theme-selector.js'
+    ];
+    const source = (await Promise.all(files.map(read))).join('\n');
+    assert.doesNotMatch(source, /invitation-builder-root[^\n]*(?:replaceChildren|replaceWith|remove|innerHTML)/);
+    assert.doesNotMatch(source, /document\.body\.(?:replaceChildren|replaceWith|remove)/);
+    assert.doesNotMatch(source, /document\.body\.innerHTML\s*=/);
+});
+
+test('el layout del editor mantiene tres regiones estables y ya no intenta convertirse en editor móvil', async () => {
+    const css = await read('admin/invitations/builder.css');
+    assert.match(css, /\.builder-shell \{[^}]*height: 100dvh;[^}]*display: flex;/s);
+    assert.match(css, /\.builder-workspace \{[^}]*flex: 1 1 auto;[^}]*grid-template-columns: 172px minmax\(480px, 1fr\) minmax\(360px, 450px\);/s);
+    assert.match(css, /\.builder-editor \{[^}]*min-height: 0;[^}]*overflow-y: auto;/s);
+    assert.match(css, /\.builder-preview \{[^}]*min-height: 0;/s);
+    assert.doesNotMatch(css, /@media \(max-width: (?:1020|760|480)px\)/);
+});
+
 test('Fase 1 no importa primitivas de escritura Firestore ni simula guardado', async () => {
     const builderFiles = [
         'admin/invitations/builder.js',
+        'admin/invitations/core/builder-debug.js',
+        'admin/invitations/core/builder-platform.js',
         'admin/invitations/core/builder-state.js',
         'admin/invitations/core/preview-sections.js',
         'admin/invitations/modules/basic-information.js',
@@ -257,6 +293,9 @@ test('builder y frame tienen HTML balanceado, IDs únicos y referencias locales 
         const references = [...html.matchAll(/(?:href|src)="([^"#]+)"/g)]
             .map((match) => match[1])
             .filter((value) => !/^(?:https?:|mailto:|tel:)/.test(value));
-        for (const reference of references) await access(path.resolve(directory, reference));
+        for (const reference of references) await access(path.resolve(directory, reference.split('?')[0]));
+
+        const deferredReferences = [...html.matchAll(/data-src="([^"#]+)"/g)].map((match) => match[1]);
+        for (const reference of deferredReferences) await access(path.resolve(directory, reference.split('?')[0]));
     }
 });

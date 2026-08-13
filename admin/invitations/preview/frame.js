@@ -1,5 +1,5 @@
-import { PREVIEW_MESSAGE_TYPES } from '../core/builder-events.js';
-import { applyPreviewSectionVisibility } from '../core/preview-sections.js';
+import { PREVIEW_MESSAGE_TYPES } from '../core/builder-events.js?v=phase1-desktop-20260813';
+import { applyPreviewSectionVisibility } from '../core/preview-sections.js?v=phase1-desktop-20260813';
 
 const parentOrigin = window.location.origin;
 let activeThemeLinks = [];

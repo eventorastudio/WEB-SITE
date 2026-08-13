@@ -2,7 +2,7 @@ export function initBuilderEventBridge({ state, eventBus, eventTypes, onSnapshot
     if (!state || !eventBus?.emit || !eventTypes) return () => {};
 
     return state.subscribe(({ snapshot, reason }) => {
-        onSnapshot?.(snapshot);
+        onSnapshot?.(snapshot, reason);
         eventBus.emit(eventTypes.BUILDER_DRAFT_UPDATED, {
             eventId: snapshot.draft.eventId,
             reason,

@@ -23,33 +23,42 @@ import { initBuilderEventBridge } from '../admin/invitations/modules/state-event
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RENDER_MESSAGE = 'EVENTORA_INVITATION_PREVIEW_RENDER';
 
-function createHarness({ packageId = 'prestige', failingListener = null } = {}) {
+function createHarness({ packageId = 'prestige', failingListener = null, viewport = { width: 1440, height: 900 } } = {}) {
     const dom = new JSDOM(`<!doctype html><html><body>
-        <main id="builder-workspace">
-            <p id="summary"></p>
-            <div id="sections"></div>
-            <form id="basic-information-form">
-                <input id="invitation-title">
-                <input id="invitation-date">
-                <input id="invitation-time">
-                <input id="invitation-event-type">
-                <input id="invitation-city">
-                <small data-error-for="title"></small>
-                <small data-error-for="date"></small>
-            </form>
-            <div id="stage"></div>
-            <span id="status"></span>
-            <div id="controls">
-                <button data-preview-device="mobile"></button>
-                <button data-preview-device="tablet"></button>
-                <button data-preview-device="desktop"></button>
-            </div>
-            <iframe id="frame"></iframe>
-        </main>
+        <div id="invitation-builder-root" data-builder-root>
+            <main id="builder-workspace">
+                <aside data-builder-region="sidebar"></aside>
+                <section data-builder-region="editor">
+                    <p id="summary"></p>
+                    <div id="sections"></div>
+                    <form id="basic-information-form">
+                        <input id="invitation-title">
+                        <input id="invitation-date">
+                        <input id="invitation-time">
+                        <input id="invitation-event-type">
+                        <input id="invitation-city">
+                        <small data-error-for="title"></small>
+                        <small data-error-for="date"></small>
+                    </form>
+                </section>
+                <aside data-builder-region="preview">
+                    <div id="stage"></div>
+                    <span id="status"></span>
+                    <div id="controls">
+                        <button data-preview-device="mobile"></button>
+                        <button data-preview-device="tablet"></button>
+                        <button data-preview-device="desktop"></button>
+                    </div>
+                    <iframe id="frame"></iframe>
+                </aside>
+            </main>
+        </div>
     </body></html>`, { url: 'http://127.0.0.1:4173/admin/invitations/builder.html' });
 
     globalThis.window = dom.window;
     globalThis.document = dom.window.document;
+    Object.defineProperty(dom.window, 'innerWidth', { configurable: true, writable: true, value: viewport.width });
+    Object.defineProperty(dom.window, 'innerHeight', { configurable: true, writable: true, value: viewport.height });
 
     const state = new InvitationBuilderState();
     state.initialize('EVT-0001', {
@@ -60,6 +69,7 @@ function createHarness({ packageId = 'prestige', failingListener = null } = {}) 
 
     const stateErrors = [];
     const selectorErrors = [];
+    const previewErrors = [];
     const messages = [];
     const busEvents = [];
     const cleanups = [];
@@ -88,7 +98,8 @@ function createHarness({ packageId = 'prestige', failingListener = null } = {}) 
         stage: document.getElementById('stage'),
         state,
         eventBus,
-        eventTypes: EVENT_TYPES
+        eventTypes: EVENT_TYPES,
+        onError: (error, context) => previewErrors.push({ error, context })
     }));
 
     [EVENT_TYPES.BUILDER_DRAFT_UPDATED, EVENT_TYPES.BUILDER_THEME_CHANGED, EVENT_TYPES.BUILDER_SECTIONS_CHANGED]
@@ -103,7 +114,17 @@ function createHarness({ packageId = 'prestige', failingListener = null } = {}) 
         delete globalThis.document;
     };
 
-    return { dom, state, messages, busEvents, stateErrors, selectorErrors, close };
+    return {
+        dom,
+        state,
+        messages,
+        busEvents,
+        stateErrors,
+        selectorErrors,
+        previewErrors,
+        root: document.getElementById('invitation-builder-root'),
+        close
+    };
 }
 
 const flushSectionRender = () => new Promise((resolve) => queueMicrotask(resolve));
@@ -140,6 +161,41 @@ test('el change de una sección termina antes de reemplazar su checkbox y mantie
     }
 });
 
+test('criterio desktop: Champagne → Gallery → Countdown → quitar Gallery → Luxury conserva shell y preview', { concurrency: false }, async () => {
+    const harness = createHarness({ packageId: 'premium', viewport: { width: 1366, height: 768 } });
+    try {
+        const rootBefore = harness.root;
+        harness.state.setTheme('champagne');
+
+        sectionInput('gallery').parentElement.click();
+        await flushSectionRender();
+        assert.strictEqual(document.getElementById('invitation-builder-root'), rootBefore);
+        assert.ok(harness.state.getSnapshot().draft.enabledSections.includes('gallery'));
+
+        sectionInput('countdown').parentElement.click();
+        await flushSectionRender();
+        assert.strictEqual(document.getElementById('invitation-builder-root'), rootBefore);
+        assert.ok(harness.state.getSnapshot().draft.enabledSections.includes('countdown'));
+
+        sectionInput('gallery').parentElement.click();
+        await flushSectionRender();
+        assert.strictEqual(document.getElementById('invitation-builder-root'), rootBefore);
+        assert.equal(harness.state.getSnapshot().draft.enabledSections.includes('gallery'), false);
+
+        harness.state.setTheme('luxury');
+        const preview = latestRenderMessage(harness.messages);
+        assert.equal(preview.payload.theme.id, 'luxury');
+        assert.deepEqual(preview.payload.enabledSections, ['countdown']);
+        assert.strictEqual(document.getElementById('invitation-builder-root'), rootBefore);
+        assert.equal(document.querySelector('[data-builder-region="sidebar"]').isConnected, true);
+        assert.equal(document.querySelector('[data-builder-region="editor"]').isConnected, true);
+        assert.equal(document.querySelector('[data-builder-region="preview"]').isConnected, true);
+        assert.deepEqual(harness.previewErrors, []);
+    } finally {
+        harness.close();
+    }
+});
+
 test('información básica y controles mobile/tablet/desktop siguen operando tras el fix', { concurrency: false }, () => {
     const harness = createHarness({ packageId: 'premium' });
     try {
@@ -157,6 +213,29 @@ test('información básica y controles mobile/tablet/desktop siguen operando tra
         assert.equal(latestRenderMessage(harness.messages).payload.theme.id, 'custom');
         assert.equal(document.getElementById('builder-workspace').isConnected, true);
     } finally {
+        harness.close();
+    }
+});
+
+test('un fallo de postMessage queda contenido en Preview y no sustituye el shell', { concurrency: false }, () => {
+    const harness = createHarness({ packageId: 'premium' });
+    const rootBefore = harness.root;
+    const originalError = console.error;
+    try {
+        console.error = () => {};
+        document.getElementById('frame').contentWindow.postMessage = () => {
+            throw new DOMException('test/preview-post-failure', 'DataCloneError');
+        };
+        harness.state.setTheme('champagne');
+
+        assert.equal(harness.previewErrors.length, 1);
+        assert.equal(harness.previewErrors[0].context.source, 'preview-controller');
+        assert.equal(document.getElementById('status').textContent, 'No pudimos actualizar la vista previa.');
+        assert.equal(document.getElementById('status').dataset.state, 'error');
+        assert.strictEqual(document.getElementById('invitation-builder-root'), rootBefore);
+        assert.equal(document.querySelector('[data-builder-region="editor"]').isConnected, true);
+    } finally {
+        console.error = originalError;
         harness.close();
     }
 });
@@ -212,6 +291,52 @@ test('selector → state → eventos → render y preview funciona para cada sec
             assert.deepEqual(harness.selectorErrors, []);
         } finally {
             harness.close();
+        }
+    }
+});
+
+test('1366×768, 1440×900 y 1920×1080 conservan el mismo root al alternar todas las secciones', { concurrency: false }, async () => {
+    const viewports = [
+        { width: 1366, height: 768 },
+        { width: 1440, height: 900 },
+        { width: 1920, height: 1080 }
+    ];
+
+    for (const viewport of viewports) {
+        for (const packageDefinition of PACKAGE_REGISTRY) {
+            const harness = createHarness({ packageId: packageDefinition.id, viewport });
+            try {
+                harness.state.setTheme('champagne');
+                const rootBefore = harness.root;
+                const regionsBefore = {
+                    sidebar: document.querySelector('[data-builder-region="sidebar"]'),
+                    editor: document.querySelector('[data-builder-region="editor"]'),
+                    preview: document.querySelector('[data-builder-region="preview"]')
+                };
+
+                for (const section of getSectionsForPackage(packageDefinition.id).filter(({ allowed }) => allowed)) {
+                    sectionInput(section.id).parentElement.click();
+                    await flushSectionRender();
+                    assert.ok(harness.state.getSnapshot().draft.enabledSections.includes(section.id));
+                    assert.strictEqual(document.getElementById('invitation-builder-root'), rootBefore);
+                    assert.strictEqual(document.querySelector('[data-builder-region="sidebar"]'), regionsBefore.sidebar);
+                    assert.strictEqual(document.querySelector('[data-builder-region="editor"]'), regionsBefore.editor);
+                    assert.strictEqual(document.querySelector('[data-builder-region="preview"]'), regionsBefore.preview);
+
+                    sectionInput(section.id).parentElement.click();
+                    await flushSectionRender();
+                    assert.equal(harness.state.getSnapshot().draft.enabledSections.includes(section.id), false);
+                    assert.strictEqual(document.getElementById('invitation-builder-root'), rootBefore);
+                }
+
+                assert.equal(window.innerWidth, viewport.width);
+                assert.equal(window.innerHeight, viewport.height);
+                assert.equal(document.querySelectorAll('#sections .section-option').length, SECTION_REGISTRY.length);
+                assert.deepEqual(harness.stateErrors, []);
+                assert.deepEqual(harness.selectorErrors, []);
+            } finally {
+                harness.close();
+            }
         }
     }
 });

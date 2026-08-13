@@ -2,13 +2,13 @@ import {
     PACKAGE_REGISTRY,
     getSectionsForPackage,
     getSectionById
-} from '../core/section-registry.js';
+} from '../core/section-registry.js?v=phase1-desktop-20260813';
 
 function minimumPackageName(capability) {
     return PACKAGE_REGISTRY.find((item) => item.capabilities.includes(capability))?.name ?? 'No disponible';
 }
 
-export function initSectionSelector({ container, summary, state, ui, onError }) {
+export function initSectionSelector({ container, summary, state, ui, onError, onTrace }) {
     if (!container || !state) return () => {};
 
     let disposed = false;
@@ -59,6 +59,10 @@ export function initSectionSelector({ container, summary, state, ui, onError }) 
 
         // El DOM anterior permanece intacto hasta que todas las cards son válidas.
         container.replaceChildren(fragment);
+        onTrace?.('section-render-committed', {
+            sectionCards: availability.length,
+            enabledSections: [...draft.enabledSections]
+        });
 
         if (summary) {
             const retainedCount = draft.enabledSections.filter((id) => {
@@ -82,7 +86,14 @@ export function initSectionSelector({ container, summary, state, ui, onError }) 
             throw new TypeError(`builder/section-card-without-registry-entry:${String(sectionId)}`);
         }
 
+        onTrace?.('section-change-before', { sectionId, checked: input.checked, targetConnected: input.isConnected });
         const result = state.toggleSection(sectionId, input.checked);
+        onTrace?.('section-change-after-state', {
+            sectionId,
+            checked: input.checked,
+            result,
+            targetConnected: input.isConnected
+        });
         if (!result.ok) {
             input.checked = state.getSnapshot().draft.enabledSections.includes(sectionId);
             ui?.showToast?.({ message: 'Esta sección no está disponible en el paquete seleccionado.', type: 'warning' });
