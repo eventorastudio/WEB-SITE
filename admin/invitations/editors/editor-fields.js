@@ -1,7 +1,7 @@
 import {
     INVITATION_EDITABLE_FIELDS,
     getDraftValue
-} from '../core/content-schema.js?v=phase21-normalization-20260813';
+} from '../core/content-schema.js?v=phase3-logistics-20260813';
 
 function fieldId(path) {
     return `invitation-${path.replace(/[^a-z0-9]+/gi, '-')}`;

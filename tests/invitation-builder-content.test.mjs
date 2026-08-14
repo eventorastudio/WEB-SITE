@@ -74,13 +74,13 @@ test('los paths editables actualizan el draft, validan sin bloquear y marcan cam
     state.updateDraftFields({
         'content.identity.primaryName': 'Alejandra Fernanda & Maximiliano Sebastián',
         'content.schedule.time': '25:99',
-        'content.identity.phrase': 'Nos encantará compartir este día contigo.',
-        'locations.0.name': 'Hacienda del Valle'
+        'content.identity.phrase': 'Nos encantará compartir este día contigo.'
     });
+    state.updateLocation('LOC-LOCAL-001', { venueName: 'Hacienda del Valle' });
     const snapshot = state.getSnapshot();
     assert.equal(snapshot.ui.isDirty, true);
     assert.equal(snapshot.draft.content.identity.primaryName, 'Alejandra Fernanda & Maximiliano Sebastián');
-    assert.equal(snapshot.draft.locations[0].name, 'Hacienda del Valle');
+    assert.equal(snapshot.draft.locations[0].venueName, 'Hacienda del Valle');
     assert.equal(snapshot.ui.validationErrors['content.schedule.time'], 'La hora no es válida.');
     assert.throws(() => state.updateDraftField('__proto__.polluted', 'sí'), /unknown-editable-path/);
 });

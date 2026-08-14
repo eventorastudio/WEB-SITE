@@ -1,7 +1,7 @@
-import { PREVIEW_DEVICES, PREVIEW_MESSAGE_TYPES, isPreviewMessage } from '../core/builder-events.js?v=phase21-normalization-20260813';
-import { SECTION_REGISTRY } from '../core/section-registry.js?v=phase21-normalization-20260813';
-import { createTemplateSectionContract } from '../core/template-binding-registry.js?v=phase21-normalization-20260813';
-import { getThemeById } from '../core/theme-registry.js?v=phase21-normalization-20260813';
+import { PREVIEW_DEVICES, PREVIEW_MESSAGE_TYPES, isPreviewMessage } from '../core/builder-events.js?v=phase3-logistics-20260813';
+import { SECTION_REGISTRY, isSectionAllowed } from '../core/section-registry.js?v=phase3-logistics-20260813';
+import { createTemplateSectionContract } from '../core/template-binding-registry.js?v=phase3-logistics-20260813';
+import { getThemeById } from '../core/theme-registry.js?v=phase3-logistics-20260813';
 
 const CONTENT_UPDATE_DEBOUNCE_MS = 80;
 
@@ -71,11 +71,21 @@ export function initPreviewController({
                 draft: {
                     schemaVersion: snapshot.draft.schemaVersion,
                     contentSchemaVersion: snapshot.draft.contentSchemaVersion,
+                    packageId: snapshot.draft.packageId,
                     content: snapshot.draft.content,
                     locations: snapshot.draft.locations,
-                    meta: { touchedPaths: snapshot.draft.meta?.touchedPaths ?? [] }
+                    itinerary: snapshot.draft.itinerary,
+                    gifts: snapshot.draft.gifts,
+                    accommodations: snapshot.draft.accommodations,
+                    links: snapshot.draft.links,
+                    meta: {
+                        touchedPaths: snapshot.draft.meta?.touchedPaths ?? [],
+                        touchedCollections: snapshot.draft.meta?.touchedCollections ?? []
+                    }
                 },
-                enabledSections: snapshot.draft.enabledSections,
+                enabledSections: snapshot.draft.enabledSections.filter((sectionId) => (
+                    isSectionAllowed(sectionId, snapshot.draft.packageId)
+                )),
                 sections: sectionContract.sections,
                 sectionGroups: sectionContract.groups,
                 renderMode: 'builder'
@@ -206,7 +216,7 @@ export function initPreviewController({
 
     const unsubscribe = state.subscribe(({ snapshot, reason }) => {
         if (reason === 'preview-device-changed') syncDevice(snapshot);
-        if (['initialized', 'theme-changed', 'sections-changed', 'content-changed', 'package-changed'].includes(reason)) {
+        if (['initialized', 'theme-changed', 'sections-changed', 'content-changed', 'entities-changed', 'package-changed'].includes(reason)) {
             sendSnapshot(snapshot, reason);
         }
     }, { source: 'preview-controller' });

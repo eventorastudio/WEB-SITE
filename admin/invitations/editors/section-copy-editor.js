@@ -1,6 +1,6 @@
-import { getSectionById, isSectionAllowed } from '../core/section-registry.js?v=phase21-normalization-20260813';
-import { getSectionEditor } from '../core/section-editor-registry.js?v=phase21-normalization-20260813';
-import { createEditorFieldsGrid, syncEditorFields } from './editor-fields.js?v=phase21-normalization-20260813';
+import { getSectionById, isSectionAllowed } from '../core/section-registry.js?v=phase3-logistics-20260813';
+import { getSectionEditor } from '../core/section-editor-registry.js?v=phase3-logistics-20260813';
+import { createEditorFieldsGrid, syncEditorFields } from './editor-fields.js?v=phase3-logistics-20260813';
 
 function createEmptyState() {
     const empty = document.createElement('div');

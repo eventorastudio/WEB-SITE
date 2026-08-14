@@ -1,5 +1,7 @@
-export const INVITATION_DRAFT_SCHEMA_VERSION = 3;
-export const INVITATION_CONTENT_SCHEMA_VERSION = 1;
+import { createLocation } from './logistics-schema.js?v=phase3-logistics-20260813';
+
+export const INVITATION_DRAFT_SCHEMA_VERSION = 4;
+export const INVITATION_CONTENT_SCHEMA_VERSION = 2;
 
 const FIELD_DEFINITIONS = [
     ['content.identity.primaryName', 'text', 120],
@@ -19,9 +21,6 @@ const FIELD_DEFINITIONS = [
     ['content.countdown.arrivedMessage', 'text', 240],
     ['content.location.title', 'text', 120],
     ['content.location.intro', 'text', 400],
-    ['locations.0.name', 'text', 140],
-    ['locations.0.address', 'text', 240],
-    ['locations.0.description', 'text', 500],
     ['content.dressCode.title', 'text', 120],
     ['content.dressCode.name', 'text', 120],
     ['content.dressCode.description', 'text', 500],
@@ -99,7 +98,7 @@ export function createInvitationContent(eventData = {}) {
         welcome: { eyebrow: '', title: '', message: '', story: '' },
         countdown: { title: '', preMessage: '', arrivedMessage: '' },
         location: { title: '', intro: '' },
-        dressCode: { title: '', name: '', description: '', note: '' },
+        dressCode: { title: '', name: '', description: '', note: '', recommendedColors: [], avoidedColors: [] },
         rsvp: { title: '', message: '', buttonLabel: '', deadline: '' },
         music: { title: '', text: '' },
         video: { title: '', subtitle: '', intro: '' },
@@ -112,10 +111,17 @@ export function createInvitationContent(eventData = {}) {
 }
 
 export function createInitialLocations(eventData = {}) {
-    const name = text(eventData.nombreLugar ?? eventData.lugar ?? eventData.venue);
+    const venueName = text(eventData.nombreLugar ?? eventData.lugar ?? eventData.venue);
     const address = text(eventData.direccion ?? eventData.address);
     const description = text(eventData.descripcionLugar);
-    return [{ name, address, description }];
+    return [createLocation('LOC-LOCAL-001', {
+        venueName,
+        address,
+        description,
+        city: text(eventData.ciudad),
+        state: text(eventData.estado),
+        time: text(eventData.hora)
+    })];
 }
 
 export function getDraftValue(draft, path) {

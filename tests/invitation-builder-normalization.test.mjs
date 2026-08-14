@@ -66,10 +66,10 @@ function distinctiveValues() {
     }));
 }
 
-test('schema v3 distingue untouched, value y explicit clear sin persistencia', () => {
+test('schema v4 distingue untouched, value y explicit clear sin persistencia', () => {
     const state = new InvitationBuilderState();
     state.initialize('EVT-0001', { nombreEvento: 'Evento real', paquete: 'Prestige' });
-    assert.equal(INVITATION_DRAFT_SCHEMA_VERSION, 3);
+    assert.equal(INVITATION_DRAFT_SCHEMA_VERSION, 4);
     assert.deepEqual(state.getSnapshot().draft.meta.touchedPaths, []);
 
     const firstEmpty = state.updateDraftField('content.welcome.eyebrow', '');
@@ -141,23 +141,26 @@ test('Aloha Builder acepta Bautizo y una persona sin alterar la demo pública XV
 });
 
 test('ubicación configurada reemplaza todas las sedes demo en las once colecciones', async () => {
-    const values = {
+    const copyValues = {
         'content.location.title': 'Dónde celebrar',
-        'content.location.intro': 'Te esperamos en un lugar muy especial.',
-        'locations.0.name': 'Hacienda Los Olivos',
-        'locations.0.address': 'Av. Ejemplo 123',
-        'locations.0.description': 'La celebración comenzará a las siete de la tarde.'
+        'content.location.intro': 'Te esperamos en un lugar muy especial.'
+    };
+    const locationValues = {
+        venueName: 'Hacienda Los Olivos',
+        address: 'Av. Ejemplo 123',
+        description: 'La celebración comenzará a las siete de la tarde.'
     };
     for (const theme of COLLECTION_THEMES) {
         const dom = await createTemplate(theme);
         try {
             const state = new InvitationBuilderState();
             state.initialize('EVT-0001', { paquete: 'Prestige' });
-            state.updateDraftFields(values);
+            state.updateDraftFields(copyValues);
+            state.updateLocation('LOC-LOCAL-001', locationValues);
             applyTemplateContentBindings(dom.window.document, theme.id, state.getSnapshot().draft);
             const location = dom.window.document.querySelector('[data-prestige-feature~="multiple-locations"]');
             const rendered = visibleText(location);
-            Object.values(values).forEach((value) => assert.match(rendered, new RegExp(value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `${theme.id}/${value}`));
+            [...Object.values(copyValues), ...Object.values(locationValues)].forEach((value) => assert.match(rendered, new RegExp(value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `${theme.id}/${value}`));
             DEMO_LEAKAGE[theme.id].slice(2).forEach((value) => assert.equal(rendered.toLowerCase().includes(value.toLowerCase()), false, `${theme.id}/${value}`));
         } finally {
             dom.window.close();
@@ -165,13 +168,13 @@ test('ubicación configurada reemplaza todas las sedes demo en las once coleccio
     }
 });
 
-test('los 46 fields editables tienen editor, handler y ownership sin colisiones en los once temas', async () => {
+test('los 43 fields de copy tienen editor, handler y ownership sin colisiones en los once temas', async () => {
     const editorPaths = new Set([
         ...GENERAL_INFORMATION_FIELDS.map(({ path: fieldPath }) => fieldPath),
         ...Object.values(SECTION_EDITOR_REGISTRY).flatMap(({ fields }) => fields.map(({ path: fieldPath }) => fieldPath))
     ]);
     const editablePaths = Object.keys(INVITATION_EDITABLE_FIELDS);
-    assert.equal(editablePaths.length, 46);
+    assert.equal(editablePaths.length, 43);
     assert.deepEqual([...editorPaths].sort(), editablePaths.sort());
 
     const values = distinctiveValues();
@@ -181,8 +184,8 @@ test('los 46 fields editables tienen editor, handler y ownership sin colisiones 
 
     for (const theme of COLLECTION_THEMES) {
         const coverage = getPhase2BindingCoverage(theme.id);
-        assert.equal(coverage.total, 46, theme.id);
-        assert.equal(coverage.bound, 46, theme.id);
+        assert.equal(coverage.total, 43, theme.id);
+        assert.equal(coverage.bound, 43, theme.id);
         assert.ok(Object.values(coverage.paths).every((status) => status === 'PASS'), theme.id);
 
         const dom = await createTemplate(theme);

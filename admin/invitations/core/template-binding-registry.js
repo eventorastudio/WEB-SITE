@@ -2,14 +2,16 @@ import {
     INVITATION_EDITABLE_FIELDS,
     getDraftValue,
     getTouchedDraftPaths
-} from './content-schema.js?v=phase21-normalization-20260813';
+} from './content-schema.js?v=phase3-logistics-20260813';
 import {
     GENERAL_INFORMATION_FIELDS,
     SECTION_EDITOR_REGISTRY
-} from './section-editor-registry.js?v=phase21-normalization-20260813';
+} from './section-editor-registry.js?v=phase3-logistics-20260813';
+import { applyPhase3TemplateBindings } from './phase3-template-bindings.js?v=phase3-logistics-20260813';
 
 const adapters = {
     aloha: {
+        phase3Variant: 'aloha',
         identity: '.hero-copy h2', identityMode: 'aloha', monogram: null,
         eventType: ['.hero-copy .eyebrow'], eventLine: { selector: '.hero-date' },
         phrase: { anchor: '.hero-date' }, welcome: '.welcome',
@@ -17,53 +19,63 @@ const adapters = {
         identityEchoes: [{ selector: '.social-strip strong', mode: 'aloha-hashtag' }]
     },
     luxury: {
+        phase3Variant: 'luxury',
         identity: '.hero-frame h2', identityMode: 'luxury', monogram: '.editorial-nav b',
         eventType: ['.hero-frame > .eyebrow'], eventLine: { selector: '.editorial-nav span' },
         phrase: { selector: '.hero-frame > p.hero-copy' }, welcome: '.chapter',
         identityEchoes: [{ selector: '.editorial-quote small', mode: 'uppercase' }]
     },
     botanical: {
+        phase3Variant: 'botanical',
         identity: '.hero-paper h2', monogram: '.hero nav b',
         eventType: ['.hero-paper > .kicker'], eventLine: { anchor: '.hero-paper h2' },
         phrase: { anchor: '[data-builder-generated="event-line"]' }, welcome: '.intro'
     },
     midnight: {
+        phase3Variant: 'midnight',
         identity: '.hero-copy h2', monogram: '.hero nav b',
         eventType: ['.hero-copy > .label'], eventLine: { selector: '.date-lockup', mode: 'midnight' },
         phrase: { selector: '.vertical-title' }, welcome: '.manifesto'
     },
     romance: {
+        phase3Variant: 'romance',
         identity: '.hero-copy h2', monogram: '.hero nav b',
         eventType: ['.hero-copy > .overline'], eventLine: { selector: '.hero-copy > .date' },
         phrase: { selector: '.margin-note' }, welcome: '.love-note'
     },
     minimal: {
+        phase3Variant: 'minimal',
         identity: '.hero-grid > h2', identityMode: 'minimal', monogram: '.hero nav b',
         eventType: ['.hero nav > span'], eventLine: { selector: '.hero-meta > p:first-child' },
         phrase: { anchor: '.hero-meta > p:first-child' }, welcome: '.statement'
     },
     celestial: {
+        phase3Variant: 'celestial',
         identity: '.hero-copy h2', monogram: '.orbit-nav b',
         eventType: ['.hero-copy > .celestial-label'], eventLine: { selector: '.hero-date' },
         phrase: { anchor: '.hero-date' }, welcome: '.vow'
     },
     vintage: {
+        phase3Variant: 'vintage',
         identity: '.masthead h2', monogram: null,
         eventType: ['.index-nav > b', '.hero > aside > p:first-child'],
         eventLine: { selector: '.masthead > div', mode: 'vintage' },
         phrase: { selector: '.hero > aside > blockquote' }, welcome: '.front-page'
     },
     garden: {
+        phase3Variant: 'garden',
         identity: '.hero-copy h2', monogram: '.garden-nav b',
         eventType: ['.hero-copy > .garden-label'], eventLine: { selector: '.hero-copy > .date' },
         phrase: { anchor: '.hero-copy > .date' }, welcome: '.garden-welcome'
     },
     champagne: {
+        phase3Variant: 'champagne',
         identity: '.hero-copy h2', monogram: '.floating-nav b',
         eventType: ['.hero-copy > .champagne-label'], eventLine: { selector: '.hero-date' },
         phrase: { selector: '.vertical-note' }, welcome: '.toast'
     },
     'neon-party': {
+        phase3Variant: 'neon-party',
         identity: '.hero-copy h2', monogram: '.poster-nav b',
         eventType: ['.hero-copy > .party-label'], eventSpecificDecorations: ['.hero-copy > .hero-xv'],
         eventLine: { selector: '.party-date', mode: 'neon' },
@@ -97,10 +109,7 @@ const SECTION_BINDINGS = Object.freeze({
         root: '[data-prestige-feature~="multiple-locations"]', replaceDemoChildren: true,
         fields: [
             ['content.location.title', 'eyebrow'],
-            ['locations.0.name', 'title'],
-            ['content.location.intro', 'body'],
-            ['locations.0.address', 'meta'],
-            ['locations.0.description', 'story']
+            ['content.location.intro', 'body']
         ]
     },
     'dress-code': {
@@ -690,9 +699,15 @@ export function applyTemplateContentBindings(documentRoot, themeId, draft = {}) 
     Object.entries(SECTION_BINDINGS).forEach(([sectionId, definition]) => {
         applySectionBinding(documentRoot, adapter, sectionId, definition, draft, collisions);
     });
+    applyPhase3TemplateBindings(documentRoot, adapter, draft);
     bindAccessIdentity(documentRoot, draft, collisions);
     neutralizeEventSpecificDemoCopy(documentRoot);
     return { applied: true, themeId, collisions };
+}
+
+export function applyPhase3ContentBindings(documentRoot, themeId, draft = {}) {
+    const adapter = TEMPLATE_BINDING_REGISTRY[themeId] ?? { themeId: 'custom', phase3Variant: 'custom' };
+    return applyPhase3TemplateBindings(documentRoot, adapter, draft);
 }
 
 export function createTemplateSectionContract(themeId, sections = []) {

@@ -7,7 +7,7 @@
     <title>Invitation Builder | Eventora Studio</title>
     <link rel="icon" href="../assets/images/favicon.ico">
     <link rel="stylesheet" href="../assets/css/theme.css">
-    <link rel="stylesheet" href="./builder.css?v=phase21-normalization-20260813">
+    <link rel="stylesheet" href="./builder.css?v=phase3-logistics-20260813">
 </head>
 <body>
     <div class="builder-auth-guard" id="builder-auth-guard" role="status" aria-live="polite">
@@ -79,14 +79,14 @@
                     <button class="builder-step" type="button" data-step-target="sections"><span>02</span>Secciones</button>
                     <button class="builder-step" type="button" data-step-target="information"><span>03</span>Información</button>
                     <button class="builder-step" type="button" disabled><span>04</span>Multimedia <small>Próximamente</small></button>
-                    <button class="builder-step" type="button" disabled><span>05</span>Ubicaciones <small>Próximamente</small></button>
+                    <button class="builder-step" type="button" data-step-target="logistics"><span>05</span>Ubicaciones</button>
                     <button class="builder-step" type="button" disabled><span>06</span>Detalles <small>Próximamente</small></button>
                     <button class="builder-step" type="button" disabled><span>07</span>Apariencia <small>Próximamente</small></button>
                     <button class="builder-step" type="button" disabled><span>08</span>Revisión <small>Próximamente</small></button>
                 </nav>
                 <div class="phase-card">
-                    <span>FASE 2.1</span>
-                    <p>Contenido configurable y preview en vivo. Sin guardado ni publicación.</p>
+                    <span>FASE 3</span>
+                    <p>Logística configurable y preview en vivo. Sin guardado ni publicación.</p>
                 </div>
             </aside>
 
@@ -147,9 +147,17 @@
                     </div>
                 </section>
 
+                <section class="builder-panel" id="builder-panel-logistics" data-builder-panel="logistics">
+                    <header class="panel-heading">
+                        <div><span class="panel-number">05</span><h2>Ubicaciones y detalles</h2></div>
+                        <p>Configura la logística real de las secciones activas. Las colecciones controlan únicamente su presentación.</p>
+                    </header>
+                    <div class="phase3-logistics-editors" id="phase3-logistics-editors"></div>
+                </section>
+
                 <section class="future-foundations" aria-label="Módulos preparados para fases posteriores">
                     <span>Preparado para próximas fases</span>
-                    <p>Multimedia, ubicaciones, itinerario, regalos, enlaces, apariencia, RSVP avanzado y publicación ya tienen espacio en el contrato del draft, pero no se editan ni persisten todavía.</p>
+                    <p>Multimedia real, apariencia avanzada, RSVP, invitados, persistencia y publicación permanecen fuera de esta fase.</p>
                 </section>
             </section>
 
@@ -173,7 +181,7 @@
                     <iframe
                         id="invitation-preview-frame"
                         class="preview-frame"
-                        data-src="./preview/frame.html?v=phase21-normalization-20260813"
+                        data-src="./preview/frame.html?v=phase3-logistics-20260813"
                         title="Vista previa de la invitación"
                         sandbox="allow-scripts allow-same-origin"
                     ></iframe>
@@ -184,6 +192,6 @@
     </div>
 
     <div id="toast-container" aria-live="polite"></div>
-    <script type="module" src="./builder.js?v=phase21-normalization-20260813"></script>
+    <script type="module" src="./builder.js?v=phase3-logistics-20260813"></script>
 </body>
 </html>

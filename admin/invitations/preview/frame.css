@@ -5,6 +5,7 @@ html, body { min-height: 100%; max-inline-size: 100%; overflow-x: clip; }
 [data-builder-demo-copy="hidden"],
 [data-builder-demo-container="hidden"],
 [data-builder-event-specific-demo="hidden"] { display: none !important; }
+[data-builder-phase3-demo="hidden"] { display: none !important; }
 [data-invitation-bind="identity"],
 [data-invitation-bind="identity"] * {
     max-inline-size: 100%;
@@ -76,7 +77,7 @@ body.builder-preview-custom {
 .preview-placeholder > p { margin: 5px 0 0; color: #777066; font-size: 0.72rem; line-height: 1.6; }
 .preview-loader { width: 28px; height: 28px; margin-bottom: 7px; border: 2px solid #e7dccb; border-top-color: #a78048; border-radius: 50%; animation: preview-spin 0.8s linear infinite; }
 @keyframes preview-spin { to { transform: rotate(360deg); } }
-.custom-preview { width: min(88%, 520px); min-height: 72vh; display: grid; place-items: center; overflow: hidden; position: relative; padding: 48px 28px; border: 1px solid rgba(166,128,71,0.35); border-radius: 28px; background: #fffdf8; box-shadow: 0 22px 55px rgba(53,42,27,0.13); text-align: center; }
+.custom-preview { width: min(92%, 720px); min-height: 72vh; display: grid; gap: 28px; overflow: clip; position: relative; margin-block: 5vh; padding: 48px 28px; border: 1px solid rgba(166,128,71,0.35); border-radius: 28px; background: #fffdf8; box-shadow: 0 22px 55px rgba(53,42,27,0.13); text-align: center; }
 .custom-preview::before, .custom-preview::after { content: ''; position: absolute; border: 1px solid rgba(166,128,71,0.22); border-radius: 50%; }
 .custom-preview::before { width: 240px; height: 240px; top: -150px; right: -100px; }
 .custom-preview::after { width: 190px; height: 190px; bottom: -120px; left: -80px; }
@@ -86,3 +87,69 @@ body.builder-preview-custom {
 .custom-preview-date { margin: 3px 0 0; color: #6f675c; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; }
 .custom-preview-phrase { max-width: 390px; margin: 4px 0 0; color: #3e3932; font-family: "Cormorant Garamond", Georgia, serif; font-size: 1.25rem; line-height: 1.35; }
 .custom-preview-note { max-width: 310px; margin: 22px 0 0; padding-top: 18px; border-top: 1px solid #ded4c5; color: #777066; font-size: 0.66rem; line-height: 1.65; }
+.custom-preview-section { position: relative; z-index: 1; min-width: 0; }
+
+.builder-phase3 { --phase3-accent: #a47b42; --phase3-surface: rgba(255,255,255,0.76); --phase3-line: rgba(84,65,39,0.22); position: relative; z-index: 3; width: min(100%, 72rem); margin-inline: auto; padding: clamp(2.7rem, 8vw, 6rem) clamp(1.15rem, 6vw, 4.5rem); color: inherit; }
+.builder-phase3 * { box-sizing: border-box; max-inline-size: 100%; }
+.builder-phase3-heading { max-width: 46rem; margin: 0 auto clamp(1.6rem, 5vw, 3.2rem); text-align: center; }
+.builder-phase3-eyebrow, .builder-phase3-card-label { display: block; color: var(--phase3-accent); font-size: clamp(0.57rem, 1.6vw, 0.72rem); font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; }
+.builder-phase3-heading h2 { margin: 0.45rem 0 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(2rem, 8vw, 4.8rem); font-weight: 500; line-height: 0.98; overflow-wrap: anywhere; }
+.builder-phase3-heading p { margin: 0.9rem auto 0; font-size: clamp(0.78rem, 2.3vw, 1rem); line-height: 1.7; opacity: 0.78; }
+.builder-phase3-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: clamp(0.8rem, 3vw, 1.4rem); }
+.builder-phase3-card { min-width: 0; padding: clamp(1.15rem, 4vw, 2rem); border: 1px solid var(--phase3-line); border-radius: 1rem; background: var(--phase3-surface); text-align: left; }
+.builder-phase3-card h3, .builder-phase3-card h4 { margin: 0.35rem 0 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(1.35rem, 5vw, 2.15rem); font-weight: 500; line-height: 1.08; overflow-wrap: anywhere; }
+.builder-phase3-card h4 { font-size: clamp(1.2rem, 4vw, 1.75rem); }
+.builder-phase3-venue { display: block; margin-top: 0.45rem; font-size: 0.88rem; overflow-wrap: anywhere; }
+.builder-phase3-card p, .builder-phase3-detail { margin: 0.65rem 0 0; font-size: clamp(0.7rem, 2.2vw, 0.88rem); line-height: 1.58; overflow-wrap: anywhere; }
+.builder-phase3-detail strong { margin-right: 0.25em; }
+.builder-phase3-meta { display: block; margin-top: 0.6rem; font-size: 0.67rem; line-height: 1.55; letter-spacing: 0.06em; opacity: 0.72; text-transform: uppercase; overflow-wrap: anywhere; }
+.builder-phase3-note { margin: 0.8rem 0 0; padding-left: 0.75rem; border-left: 2px solid var(--phase3-accent); font-size: 0.72rem; line-height: 1.55; opacity: 0.72; }
+.builder-phase3-actions { display: flex; flex-wrap: wrap; gap: 0.55rem; margin-top: 1rem; }
+.builder-phase3-action { min-height: 2.25rem; display: inline-flex; align-items: center; justify-content: center; padding: 0.5rem 0.9rem; border: 1px solid var(--phase3-accent); border-radius: 999px; background: transparent; color: inherit; font: inherit; font-size: 0.66rem; font-weight: 700; text-decoration: none; cursor: pointer; }
+.builder-phase3-action:disabled { opacity: 0.4; cursor: not-allowed; }
+.builder-phase3-subsection { margin-top: clamp(2rem, 6vw, 4rem); }
+.builder-phase3-subsection > h3 { margin: 0 0 1rem; font-family: Georgia, "Times New Roman", serif; font-size: clamp(1.55rem, 5vw, 2.7rem); font-weight: 500; }
+.builder-phase3-subsection > .builder-phase3-card { max-width: 38rem; }
+.builder-phase3-timeline { width: min(100%, 48rem); display: grid; gap: 0; margin: 0 auto; padding: 0; list-style: none; }
+.builder-phase3-timeline-item { position: relative; min-width: 0; display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); gap: 0 1rem; padding: 0 0 1.7rem 1.3rem; border-left: 1px solid var(--phase3-line); }
+.builder-phase3-timeline-item::before { content: ''; position: absolute; top: 0.34rem; left: -0.3rem; width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--phase3-accent); }
+.builder-phase3-timeline-item time { color: var(--phase3-accent); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; }
+.builder-phase3-timeline-item h3 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(1.2rem, 4vw, 1.8rem); font-weight: 500; line-height: 1; }
+.builder-phase3-timeline-item > :not(time) { grid-column: 2; }
+.builder-phase3-timeline-item p { margin: 0.55rem 0 0; font-size: 0.75rem; line-height: 1.6; }
+.builder-phase3-palette { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.75rem; margin-top: 1.2rem; }
+.builder-phase3-palette > strong { flex-basis: 100%; font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase; }
+.builder-phase3-swatch { min-width: 4.6rem; display: grid; justify-items: center; gap: 0.35rem; }
+.builder-phase3-swatch i { width: 2.4rem; height: 2.4rem; border: 1px solid rgba(0,0,0,0.12); border-radius: 50%; background: var(--builder-swatch); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.builder-phase3-swatch small { font-size: 0.58rem; opacity: 0.75; overflow-wrap: anywhere; }
+
+.builder-phase3-luxury { --phase3-accent: #c8a86b; --phase3-surface: #111; --phase3-line: rgba(200,168,107,0.35); color: #f5efe3; background: #080808; }
+.builder-phase3-luxury .builder-phase3-card { border-radius: 0; }
+.builder-phase3-garden, .builder-phase3-botanical { --phase3-accent: #57735f; --phase3-surface: rgba(250,248,240,0.82); --phase3-line: rgba(69,103,79,0.25); }
+.builder-phase3-garden .builder-phase3-card { border-radius: 2rem 0.7rem 2rem 0.7rem; }
+.builder-phase3-champagne { --phase3-accent: #a77d43; --phase3-surface: rgba(255,250,239,0.88); --phase3-line: rgba(167,125,67,0.3); }
+.builder-phase3-champagne .builder-phase3-card { box-shadow: 0 1rem 3rem rgba(104,75,38,0.09); }
+.builder-phase3-celestial, .builder-phase3-midnight { --phase3-accent: #d8bd75; --phase3-surface: rgba(8,24,49,0.82); --phase3-line: rgba(216,189,117,0.32); color: #f4ecd8; background: #07162d; }
+.builder-phase3-neon-party { --phase3-accent: #ff2fa8; --phase3-surface: #111018; --phase3-line: rgba(255,47,168,0.45); color: #fff; background: #09070e; }
+.builder-phase3-neon-party .builder-phase3-card { border-radius: 0; box-shadow: 0.35rem 0.35rem 0 #26f7fd; }
+.builder-phase3-minimal { --phase3-accent: #111; --phase3-surface: #fff; --phase3-line: #111; }
+.builder-phase3-minimal .builder-phase3-card, .builder-phase3-minimal .builder-phase3-action { border-radius: 0; }
+.builder-phase3-vintage { --phase3-accent: #6b2936; --phase3-surface: #f2e8d0; --phase3-line: rgba(92,35,48,0.32); }
+.builder-phase3-romance { --phase3-accent: #7b2435; --phase3-surface: rgba(255,246,244,0.85); --phase3-line: rgba(123,36,53,0.25); }
+.builder-phase3-aloha { --phase3-accent: #ef7e55; --phase3-surface: rgba(244,255,251,0.88); --phase3-line: rgba(8,59,75,0.22); }
+
+.builder-action-notice-overlay { position: fixed; z-index: 100000; inset: 0; display: grid; place-items: center; padding: 1.2rem; background: rgba(16,14,12,0.58); backdrop-filter: blur(6px); }
+.builder-action-notice { width: min(100%, 23rem); padding: 1.7rem; border: 1px solid rgba(167,125,67,0.38); border-radius: 1rem; background: #fffdf8; color: #1b1814; box-shadow: 0 1.5rem 4rem rgba(0,0,0,0.25); text-align: center; }
+.builder-action-notice span { color: #a47b42; font-size: 0.58rem; font-weight: 700; letter-spacing: 0.14em; }
+.builder-action-notice strong { display: block; margin-top: 0.55rem; font-family: Georgia, serif; font-size: 1.5rem; }
+.builder-action-notice p { margin: 0.7rem 0 0; color: #6f675c; font-size: 0.75rem; line-height: 1.6; }
+.builder-action-notice button { margin-top: 1.1rem; padding: 0.65rem 1rem; border: 0; border-radius: 999px; background: #1b1814; color: #fff; font-size: 0.68rem; font-weight: 700; cursor: pointer; }
+
+@media (max-width: 480px) {
+    .builder-phase3 { padding-inline: 1rem; }
+    .builder-phase3-grid { grid-template-columns: minmax(0, 1fr); }
+    .builder-phase3-card { width: 100%; }
+    .builder-phase3-timeline-item { grid-template-columns: 3.65rem minmax(0, 1fr); gap: 0 0.65rem; padding-left: 0.9rem; }
+    .builder-phase3-actions { align-items: stretch; }
+    .builder-phase3-action { flex: 1 1 7rem; }
+}

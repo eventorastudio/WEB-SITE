@@ -4,8 +4,9 @@ function field(path, label, options = {}) {
 
 function editor(definition) {
     return Object.freeze({
+        ...definition,
         fields: Object.freeze(definition.fields ?? []),
-        ...definition
+        advancedEditors: Object.freeze(definition.advancedEditors ?? [])
     });
 }
 
@@ -41,18 +42,17 @@ export const SECTION_EDITOR_REGISTRY = Object.freeze({
     }),
     location: editor({
         title: 'Ubicación y mapa',
-        notice: 'Google Maps, Waze y múltiples ubicaciones se configurarán en el paso Ubicaciones.',
+        notice: 'Lugares, Maps, Waze, hospedaje y enlaces se configuran en Ubicaciones y detalles.',
+        advancedEditors: ['locations', 'accommodations', 'links'],
         fields: [
             field('content.location.title', 'Título de sección'),
-            field('content.location.intro', 'Texto introductorio', { kind: 'textarea', rows: 2 }),
-            field('locations.0.name', 'Nombre principal del lugar'),
-            field('locations.0.address', 'Dirección textual', { kind: 'textarea', rows: 2 }),
-            field('locations.0.description', 'Descripción', { kind: 'textarea', rows: 3 })
+            field('content.location.intro', 'Texto introductorio', { kind: 'textarea', rows: 2 })
         ]
     }),
     'dress-code': editor({
         title: 'Dress Code',
-        notice: 'La paleta y guía visual avanzada pertenecen a Apariencia.',
+        notice: 'Las paletas recomendadas y a evitar se configuran en Ubicaciones y detalles.',
+        advancedEditors: ['dress-code'],
         fields: [
             field('content.dressCode.title', 'Título de sección'),
             field('content.dressCode.name', 'Nombre del dress code', { placeholder: 'Formal, Black Tie, Garden Formal…' }),
@@ -98,7 +98,8 @@ export const SECTION_EDITOR_REGISTRY = Object.freeze({
     }),
     'gift-registry': editor({
         title: 'Mesa de regalos',
-        notice: 'Tiendas, transferencias y enlaces se configurarán en una fase posterior.',
+        notice: 'Las opciones de tienda, transferencia o información se configuran en Ubicaciones y detalles.',
+        advancedEditors: ['gifts'],
         fields: [
             field('content.gifts.title', 'Título'),
             field('content.gifts.description', 'Descripción', { kind: 'textarea', rows: 3 }),
@@ -115,7 +116,8 @@ export const SECTION_EDITOR_REGISTRY = Object.freeze({
     }),
     itinerary: editor({
         title: 'Itinerario del evento',
-        notice: 'Las actividades dinámicas se configurarán en el paso Ubicaciones y detalles.',
+        notice: 'Las actividades dinámicas se configuran en Ubicaciones y detalles.',
+        advancedEditors: ['itinerary'],
         fields: [
             field('content.itinerary.title', 'Título'),
             field('content.itinerary.intro', 'Introducción', { kind: 'textarea', rows: 3 })

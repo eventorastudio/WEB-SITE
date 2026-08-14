@@ -1,4 +1,6 @@
-import { getDraftValue } from './content-schema.js?v=phase21-normalization-20260813';
+import { getDraftValue } from './content-schema.js?v=phase3-logistics-20260813';
+import { DRESS_COLOR_GROUPS } from './logistics-schema.js?v=phase3-logistics-20260813';
+import { normalizeWhatsAppPhone, safeUrlError } from './safe-url.js?v=phase3-logistics-20260813';
 
 function isExactDate(value) {
     const match = String(value ?? '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -30,7 +32,75 @@ export function validateInvitationDraft(draft = {}) {
         errors['content.rsvp.deadline'] = 'La fecha límite no es válida.';
     }
 
+    validateEntityIds(draft, errors);
+    const locationIds = new Set((draft.locations ?? []).map(({ id }) => id));
+    (draft.locations ?? []).forEach((location) => {
+        validateTime(location.time, `locations.${location.id}.time`, errors);
+        validateUrl(location.mapsUrl, `locations.${location.id}.mapsUrl`, 'mapsUrl', 'custom', errors);
+        validateUrl(location.wazeUrl, `locations.${location.id}.wazeUrl`, 'wazeUrl', 'custom', errors);
+    });
+    (draft.itinerary ?? []).forEach((item) => {
+        validateTime(item.time, `itinerary.${item.id}.time`, errors);
+        if (item.locationId && !locationIds.has(item.locationId)) {
+            errors[`itinerary.${item.id}.locationId`] = 'La ubicación asociada ya no existe.';
+        }
+    });
+    (draft.gifts ?? []).forEach((gift) => {
+        validateUrl(gift.url, `gifts.${gift.id}.url`, 'url', 'custom', errors);
+    });
+    (draft.accommodations ?? []).forEach((hotel) => {
+        validateUrl(hotel.reservationUrl, `accommodations.${hotel.id}.reservationUrl`, 'reservationUrl', 'custom', errors);
+        validateUrl(hotel.mapsUrl, `accommodations.${hotel.id}.mapsUrl`, 'mapsUrl', 'custom', errors);
+    });
+    (draft.links ?? []).forEach((link) => {
+        if (link.type === 'whatsapp') {
+            if (link.phone && !normalizeWhatsAppPhone(link.phone)) {
+                errors[`links.${link.id}.phone`] = 'Usa un número internacional de 7 a 15 dígitos.';
+            }
+        } else if (link.type !== 'calendar') {
+            validateUrl(link.url, `links.${link.id}.url`, 'url', link.type, errors);
+        }
+    });
+    DRESS_COLOR_GROUPS.forEach((group) => {
+        (draft.content?.dressCode?.[group] ?? []).forEach((color) => {
+            if (!/^#[\da-f]{6}$/i.test(color.value ?? '')) {
+                errors[`content.dressCode.${group}.${color.id}.value`] = 'Selecciona un color válido.';
+            }
+        });
+    });
+
     return Object.freeze(errors);
+}
+
+function validateTime(value, path, errors) {
+    if (value && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(String(value))) {
+        errors[path] = 'La hora no es válida.';
+    }
+}
+
+function validateUrl(value, path, field, linkType, errors) {
+    const message = safeUrlError(value, field, linkType);
+    if (message) errors[path] = message;
+}
+
+function validateEntityIds(draft, errors) {
+    const seen = new Set();
+    ['locations', 'itinerary', 'gifts', 'accommodations', 'links'].forEach((collection) => {
+        (draft[collection] ?? []).forEach((entity, index) => {
+            const path = `${collection}.${entity?.id || index}.id`;
+            if (!entity?.id || !/^[A-Z]{3}-LOCAL-\d{3,}$/.test(entity.id)) errors[path] = 'La entidad no tiene un ID local válido.';
+            else if (seen.has(entity.id)) errors[path] = 'El ID local está duplicado.';
+            else seen.add(entity.id);
+        });
+    });
+    DRESS_COLOR_GROUPS.forEach((group) => {
+        (draft.content?.dressCode?.[group] ?? []).forEach((entity, index) => {
+            const path = `content.dressCode.${group}.${entity?.id || index}.id`;
+            if (!entity?.id || !/^CLR-LOCAL-\d{3,}$/.test(entity.id)) errors[path] = 'El color no tiene un ID local válido.';
+            else if (seen.has(entity.id)) errors[path] = 'El ID local está duplicado.';
+            else seen.add(entity.id);
+        });
+    });
 }
 
 export function validateBasicContent(content = {}) {

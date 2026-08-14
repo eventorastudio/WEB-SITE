@@ -1,5 +1,5 @@
-import { getPackageById, getSectionById, isSectionAllowed } from './section-registry.js?v=phase21-normalization-20260813';
-import { getThemeById } from './theme-registry.js?v=phase21-normalization-20260813';
+import { getPackageById, getSectionById, isSectionAllowed } from './section-registry.js?v=phase3-logistics-20260813';
+import { getThemeById } from './theme-registry.js?v=phase3-logistics-20260813';
 import {
     INVITATION_CONTENT_SCHEMA_VERSION,
     INVITATION_DRAFT_SCHEMA_VERSION,
@@ -8,8 +8,21 @@ import {
     createInvitationContent,
     getDraftValue,
     setDraftValue
-} from './content-schema.js?v=phase21-normalization-20260813';
-import { validateInvitationDraft } from './builder-validation.js?v=phase21-normalization-20260813';
+} from './content-schema.js?v=phase3-logistics-20260813';
+import { validateInvitationDraft } from './builder-validation.js?v=phase3-logistics-20260813';
+import {
+    DRESS_COLOR_GROUPS,
+    ENTITY_COLLECTIONS,
+    createAccommodation,
+    createDressColor,
+    createEntityId,
+    createGift,
+    createItineraryItem,
+    createLink,
+    createLocation,
+    normalizeEntity,
+    packageAllowsMultipleLocations
+} from './logistics-schema.js?v=phase3-logistics-20260813';
 
 const PREVIEW_DEVICES = Object.freeze(['mobile', 'tablet', 'desktop']);
 const LEGACY_CONTENT_PATHS = Object.freeze({
@@ -59,12 +72,22 @@ export function createInvitationDraft(eventId, eventData = {}) {
         locations: createInitialLocations(eventData),
         itinerary: [],
         gifts: [],
-        links: {},
+        accommodations: [],
+        links: [],
         appearance: {},
         settings: { renderMode: 'builder' },
         meta: {
             packageSource: packageId ? 'event' : 'unselected',
             touchedPaths: [],
+            touchedCollections: [],
+            entitySequences: {
+                location: 1,
+                itinerary: 0,
+                gift: 0,
+                accommodation: 0,
+                link: 0,
+                dressColor: 0
+            },
             loadedAt: new Date().toISOString()
         }
     };
@@ -200,6 +223,101 @@ export class InvitationBuilderState {
         return { ok: true, changed: true, errors: cloneInvitationValue(this._ui.validationErrors) };
     }
 
+    addLocation(seed = {}) {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        if (this._draft.locations.length >= 1 && !packageAllowsMultipleLocations(this._draft.packageId)) {
+            return { ok: false, code: 'builder/multiple-locations-not-allowed' };
+        }
+        return this._addEntity('locations', (id) => createLocation(id, seed));
+    }
+
+    updateLocation(id, patch) { return this._updateEntity('locations', id, patch); }
+    removeLocation(id) {
+        return this._removeEntity('locations', id, (draft) => {
+            let clearedReferences = 0;
+            draft.itinerary = draft.itinerary.map((item) => {
+                if (item.locationId !== id) return item;
+                clearedReferences += 1;
+                return { ...item, locationId: '' };
+            });
+            return { clearedReferences };
+        });
+    }
+    moveLocation(id, direction) { return this._moveEntity('locations', id, direction); }
+
+    addItineraryItem(seed = {}) { return this._addEntity('itinerary', (id) => createItineraryItem(id, seed)); }
+    updateItineraryItem(id, patch) {
+        const locationId = Object.hasOwn(patch ?? {}, 'locationId') ? String(patch.locationId ?? '') : null;
+        if (locationId && !this._draft?.locations.some((location) => location.id === locationId)) {
+            return { ok: false, code: 'builder/unknown-location-reference' };
+        }
+        return this._updateEntity('itinerary', id, patch);
+    }
+    removeItineraryItem(id) { return this._removeEntity('itinerary', id); }
+    moveItineraryItem(id, direction) { return this._moveEntity('itinerary', id, direction); }
+
+    addGift(seed = {}) { return this._addEntity('gifts', (id) => createGift(id, seed)); }
+    updateGift(id, patch) { return this._updateEntity('gifts', id, patch); }
+    removeGift(id) { return this._removeEntity('gifts', id); }
+    moveGift(id, direction) { return this._moveEntity('gifts', id, direction); }
+
+    addAccommodation(seed = {}) {
+        if (this._draft?.accommodations.length >= 1) {
+            return { ok: false, code: 'builder/multiple-accommodations-not-contracted' };
+        }
+        return this._addEntity('accommodations', (id) => createAccommodation(id, seed));
+    }
+    updateAccommodation(id, patch) { return this._updateEntity('accommodations', id, patch); }
+    removeAccommodation(id) { return this._removeEntity('accommodations', id); }
+
+    addLink(seed = {}) { return this._addEntity('links', (id) => createLink(id, seed)); }
+    updateLink(id, patch) { return this._updateEntity('links', id, patch); }
+    removeLink(id) { return this._removeEntity('links', id); }
+    moveLink(id, direction) { return this._moveEntity('links', id, direction); }
+
+    addDressColor(group, seed = {}) {
+        if (!DRESS_COLOR_GROUPS.includes(group)) return { ok: false, code: 'builder/unknown-dress-color-group' };
+        if (!this._draft) throw new Error('builder/not-initialized');
+        const previous = this.getSnapshot();
+        const id = this._nextEntityId('dressCodeColors');
+        const color = createDressColor(id, seed);
+        this._draft.content.dressCode[group].push(color);
+        this._markCollectionTouched('dressCodeColors');
+        this._commitEntityChange(previous, 'dressCodeColors', 'add', id, { group });
+        return { ok: true, changed: true, entity: cloneInvitationValue(color) };
+    }
+
+    updateDressColor(group, id, patch = {}) {
+        if (!DRESS_COLOR_GROUPS.includes(group)) return { ok: false, code: 'builder/unknown-dress-color-group' };
+        const colors = this._draft?.content.dressCode[group];
+        const index = colors?.findIndex((color) => color.id === id) ?? -1;
+        if (index < 0) return { ok: false, code: 'builder/entity-not-found' };
+        const next = createDressColor(id, { ...colors[index], ...patch });
+        if (JSON.stringify(next) === JSON.stringify(colors[index])) return { ok: true, changed: false };
+        const previous = this.getSnapshot();
+        colors[index] = next;
+        this._markCollectionTouched('dressCodeColors');
+        this._commitEntityChange(previous, 'dressCodeColors', 'update', id, { group });
+        return { ok: true, changed: true };
+    }
+
+    removeDressColor(group, id) {
+        if (!DRESS_COLOR_GROUPS.includes(group)) return { ok: false, code: 'builder/unknown-dress-color-group' };
+        const colors = this._draft?.content.dressCode[group];
+        const index = colors?.findIndex((color) => color.id === id) ?? -1;
+        if (index < 0) return { ok: false, code: 'builder/entity-not-found' };
+        const previous = this.getSnapshot();
+        colors.splice(index, 1);
+        this._markCollectionTouched('dressCodeColors');
+        this._commitEntityChange(previous, 'dressCodeColors', 'remove', id, { group });
+        return { ok: true, changed: true };
+    }
+
+    moveDressColor(group, id, direction) {
+        if (!DRESS_COLOR_GROUPS.includes(group)) return { ok: false, code: 'builder/unknown-dress-color-group' };
+        return this._moveArrayEntity(this._draft?.content.dressCode[group], 'dressCodeColors', id, direction, { group });
+    }
+
     setPreviewDevice(device) {
         if (!PREVIEW_DEVICES.includes(device)) return { ok: false, code: 'builder/unknown-device' };
         if (this._ui.previewDevice === device) return { ok: true, changed: false };
@@ -225,9 +343,90 @@ export class InvitationBuilderState {
         this._ui.isDirty = true;
     }
 
-    _notify(reason, previous) {
+    _nextEntityId(collection) {
+        const definition = ENTITY_COLLECTIONS[collection];
+        if (!definition) throw new TypeError(`builder/unknown-entity-collection:${String(collection)}`);
+        const sequences = this._draft.meta.entitySequences;
+        sequences[definition.sequence] = (sequences[definition.sequence] ?? 0) + 1;
+        return createEntityId(definition.prefix, sequences[definition.sequence]);
+    }
+
+    _markCollectionTouched(collection) {
+        const touched = new Set(this._draft.meta.touchedCollections ?? []);
+        touched.add(collection);
+        this._draft.meta.touchedCollections = [...touched];
+    }
+
+    _addEntity(collection, factory) {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        const previous = this.getSnapshot();
+        const id = this._nextEntityId(collection);
+        const entity = factory(id);
+        this._draft[collection].push(entity);
+        this._markCollectionTouched(collection);
+        this._commitEntityChange(previous, collection, 'add', id);
+        return { ok: true, changed: true, entity: cloneInvitationValue(entity) };
+    }
+
+    _updateEntity(collection, id, patch = {}) {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        const items = this._draft[collection];
+        const index = items.findIndex((item) => item.id === id);
+        if (index < 0) return { ok: false, code: 'builder/entity-not-found' };
+        const sourcePatch = cloneInvitationValue(patch);
+        const merged = { ...items[index], ...sourcePatch, id: items[index].id };
+        if (collection === 'gifts' && sourcePatch.details) {
+            merged.details = { ...items[index].details, ...sourcePatch.details };
+        }
+        const next = normalizeEntity(collection, merged);
+        if (JSON.stringify(next) === JSON.stringify(items[index])) return { ok: true, changed: false };
+        const previous = this.getSnapshot();
+        items[index] = next;
+        this._markCollectionTouched(collection);
+        this._commitEntityChange(previous, collection, 'update', id);
+        return { ok: true, changed: true, errors: cloneInvitationValue(this._ui.validationErrors) };
+    }
+
+    _removeEntity(collection, id, afterRemove = null) {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        const items = this._draft[collection];
+        const index = items.findIndex((item) => item.id === id);
+        if (index < 0) return { ok: false, code: 'builder/entity-not-found' };
+        const previous = this.getSnapshot();
+        items.splice(index, 1);
+        const details = afterRemove?.(this._draft) ?? {};
+        this._markCollectionTouched(collection);
+        this._commitEntityChange(previous, collection, 'remove', id, details);
+        return { ok: true, changed: true, ...details };
+    }
+
+    _moveEntity(collection, id, direction) {
+        return this._moveArrayEntity(this._draft?.[collection], collection, id, direction);
+    }
+
+    _moveArrayEntity(items, collection, id, direction, details = {}) {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        if (!['up', 'down'].includes(direction)) return { ok: false, code: 'builder/invalid-move-direction' };
+        const index = items?.findIndex((item) => item.id === id) ?? -1;
+        if (index < 0) return { ok: false, code: 'builder/entity-not-found' };
+        const target = direction === 'up' ? index - 1 : index + 1;
+        if (target < 0 || target >= items.length) return { ok: true, changed: false };
+        const previous = this.getSnapshot();
+        [items[index], items[target]] = [items[target], items[index]];
+        this._markCollectionTouched(collection);
+        this._commitEntityChange(previous, collection, 'move', id, { ...details, direction });
+        return { ok: true, changed: true };
+    }
+
+    _commitEntityChange(previous, collection, operation, id, details = {}) {
+        this._ui.validationErrors = validateInvitationDraft(this._draft);
+        this._markDirty();
+        this._notify('entities-changed', previous, { collection, operation, id, ...details });
+    }
+
+    _notify(reason, previous, details = {}) {
         if (this._draft) assertEnabledSections(this._draft.enabledSections);
-        const payload = Object.freeze({ reason, snapshot: this.getSnapshot(), previous });
+        const payload = Object.freeze({ reason, snapshot: this.getSnapshot(), previous, details: Object.freeze(details) });
         [...this._listeners].forEach(({ listener, source }) => {
             try {
                 listener(payload);

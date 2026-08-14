@@ -2,7 +2,7 @@ import {
     PACKAGE_REGISTRY,
     getSectionsForPackage,
     getSectionById
-} from '../core/section-registry.js?v=phase21-normalization-20260813';
+} from '../core/section-registry.js?v=phase3-logistics-20260813';
 
 function minimumPackageName(capability) {
     return PACKAGE_REGISTRY.find((item) => item.capabilities.includes(capability))?.name ?? 'No disponible';

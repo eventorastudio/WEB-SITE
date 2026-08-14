@@ -1,11 +1,12 @@
-import { PREVIEW_MESSAGE_TYPES } from '../core/builder-events.js?v=phase21-normalization-20260813';
-import { PREVIEW_SEMANTIC_FALLBACKS } from '../core/content-schema.js?v=phase21-normalization-20260813';
-import { applyPreviewSectionVisibility } from '../core/preview-sections.js?v=phase21-normalization-20260813';
+import { PREVIEW_MESSAGE_TYPES } from '../core/builder-events.js?v=phase3-logistics-20260813';
+import { INVITATION_CONTENT_SCHEMA_VERSION, PREVIEW_SEMANTIC_FALLBACKS } from '../core/content-schema.js?v=phase3-logistics-20260813';
+import { applyPreviewSectionVisibility } from '../core/preview-sections.js?v=phase3-logistics-20260813';
 import {
     applyTemplateContentBindings,
+    applyPhase3ContentBindings,
     formatInvitationEventLine,
     prepareBuilderTemplate
-} from '../core/template-binding-registry.js?v=phase21-normalization-20260813';
+} from '../core/template-binding-registry.js?v=phase3-logistics-20260813';
 
 const parentOrigin = window.location.origin;
 let activeThemeLinks = [];
@@ -73,7 +74,7 @@ function validatePayload(payload) {
     if (!payload || payload.renderMode !== 'builder') throw new Error('Modo de preview no válido.');
     if (!payload.theme?.id || !payload.theme?.name) throw new Error('Tema no encontrado.');
     if (payload.theme.id !== 'custom' && !payload.theme.templatePath) throw new Error('La colección no tiene una plantilla disponible.');
-    if (!payload.draft?.content || payload.draft.contentSchemaVersion !== 1) throw new Error('Contrato de contenido no válido.');
+    if (!payload.draft?.content || payload.draft.contentSchemaVersion !== INVITATION_CONTENT_SCHEMA_VERSION) throw new Error('Contrato de contenido no válido.');
     if (!Array.isArray(payload.enabledSections) || !Array.isArray(payload.sections)) throw new Error('Contrato de secciones no válido.');
     return payload;
 }
@@ -132,13 +133,28 @@ async function renderCustom(payload, requestId) {
     note.textContent = 'La configuración visual avanzada del tema Personalizada se añadirá en una fase posterior.';
     content.append(eyebrow, title, date, phrase, note);
     card.append(content);
+    [
+        ['location', 'multiple-locations'],
+        ['dress-code', 'dress-code'],
+        ['itinerary', 'itinerary'],
+        ['gift-registry', 'gift-registry']
+    ].forEach(([sectionId, feature]) => {
+        const section = document.createElement('section');
+        section.className = 'custom-preview-section';
+        section.dataset.customSection = sectionId;
+        section.dataset.prestigeFeature = feature;
+        card.append(section);
+    });
     document.body.append(card);
     applyPayload(payload);
     return true;
 }
 
 function applyPayload(payload) {
-    if (payload.theme.id === 'custom') applyCustomContent(payload.draft);
+    if (payload.theme.id === 'custom') {
+        applyCustomContent(payload.draft);
+        applyPhase3ContentBindings(document, payload.theme.id, payload.draft);
+    }
     else applyTemplateContentBindings(document, payload.theme.id, payload.draft);
     applySectionVisibility(payload.sections, payload.enabledSections, payload.sectionGroups);
     renderCountdown(payload.draft);
@@ -298,10 +314,50 @@ function safeQueryAll(selector) {
 
 function interceptNavigation(event) {
     const anchor = event.target.closest?.('a');
-    if (!anchor) return;
+    const action = event.target.closest?.('[data-builder-action],[data-demo-action]');
+    if (!anchor && !action) return;
     event.preventDefault();
-    const href = anchor.getAttribute('href') || '';
-    if (href.startsWith('#') && href.length > 1) document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+    const href = anchor?.getAttribute('href') || '';
+    if (!action && href.startsWith('#') && href.length > 1) {
+        document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+        return;
+    }
+    showBuilderActionNotice(action?.dataset.builderAction || action?.dataset.demoAction || 'external');
+}
+
+function showBuilderActionNotice(actionType) {
+    document.querySelector('[data-builder-action-notice]')?.remove();
+    const overlay = document.createElement('div');
+    overlay.className = 'builder-action-notice-overlay';
+    overlay.dataset.builderActionNotice = 'true';
+    const dialog = document.createElement('section');
+    dialog.className = 'builder-action-notice';
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('aria-modal', 'true');
+    const eyebrow = document.createElement('span');
+    eyebrow.textContent = 'VISTA DEL EDITOR';
+    const title = document.createElement('strong');
+    title.textContent = 'Acción externa interceptada';
+    const messages = {
+        maps: 'Este botón abrirá Google Maps en la invitación publicada.',
+        waze: 'Este botón abrirá Waze en la invitación publicada.',
+        gifts: 'Este botón abrirá la opción de regalo en la invitación publicada.',
+        hotel: 'Este botón abrirá la reservación o información del hotel en la invitación publicada.',
+        calendar: 'Esta acción agregará los datos centrales del evento al calendario.',
+        whatsapp: 'Este botón abrirá WhatsApp con el mensaje configurado en una fase futura.',
+        rsvp: 'La confirmación real por WhatsApp se habilitará en una fase futura.'
+    };
+    const message = document.createElement('p');
+    message.textContent = messages[actionType] || 'Este enlace se habilitará únicamente en la invitación publicada.';
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.textContent = 'Continuar editando';
+    close.addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (event) => { if (event.target === overlay) overlay.remove(); });
+    dialog.append(eyebrow, title, message, close);
+    overlay.append(dialog);
+    document.body.append(overlay);
+    close.focus({ preventScroll: true });
 }
 
 function stopMedia() {

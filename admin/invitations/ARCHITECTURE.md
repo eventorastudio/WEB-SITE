@@ -1,10 +1,10 @@
-# Invitation Builder · Arquitectura de Fases 1, 2 y 2.1
+# Invitation Builder · Arquitectura de Fases 1, 2, 2.1 y 3
 
 ## Alcance
 
-Las fases 1, 2 y 2.1 implementan una aplicación administrativa dedicada para
+Las fases 1, 2, 2.1 y 3 implementan una aplicación administrativa dedicada para
 seleccionar un evento existente, paquete, colección y secciones; editar contenido
-canónico por módulo; y comprobar el resultado en una preview real. El draft vive
+canónico y logística estructurada por módulo; y comprobar el resultado en una preview real. El draft vive
 únicamente en memoria. No existe autosave, publicación, Storage ni escritura de
 configuraciones en Firestore.
 
@@ -359,8 +359,8 @@ una sección oculta el editor y el preview, pero nunca borra su contenido.
 
 ```js
 {
-  schemaVersion: 3,
-  contentSchemaVersion: 1,
+  schemaVersion: 4,
+  contentSchemaVersion: 2,
   eventId,
   packageId: null | 'esencial' | 'premium' | 'prestige',
   themeId,
@@ -372,7 +372,7 @@ una sección oculta el editor y el preview, pero nunca borra su contenido.
     welcome: { title, message, story },
     countdown: { title, preMessage },
     location: { title, description, buttonLabel },
-    dressCode: { title, name, description, paletteLabel },
+    dressCode: { title, name, description, note, recommendedColors, avoidedColors },
     rsvp: { title, message, buttonLabel, deadline },
     music: { title, description },
     video: { title, description },
@@ -383,13 +383,14 @@ una sección oculta el editor y el preview, pero nunca borra su contenido.
     access: { title, message }
   },
   media: { hero, gallery, audio, video },
-  locations: [{ name, address, city, state, mapsUrl }],
+  locations: [],
   itinerary: [],
   gifts: [],
-  links: {},
+  accommodations: [],
+  links: [],
   appearance: {},
   settings: { renderMode: 'builder' },
-  meta: { packageSource, loadedAt, touchedPaths: [] }
+  meta: { packageSource, loadedAt, touchedPaths: [], touchedCollections: [], entitySequences: {} }
 }
 ```
 
@@ -407,6 +408,156 @@ cambio. `touchedPaths` permanece local y no introduce persistencia.
 Las validaciones de nombre, fecha, hora y deadline actualizan `ui.validationErrors`
 sin bloquear la edición. Un snapshot de estado es una copia profunda: un módulo
 consumidor no puede mutar el draft central por referencia.
+
+### Location Contract
+
+`draft.locations` es la única fuente de verdad para sedes. No existen copias en
+`content`, en el protocolo o en el frame. Cada elemento usa este contrato:
+
+```js
+{
+  id: 'LOC-LOCAL-001',
+  type: 'ceremony' | 'reception' | 'party' | 'session' | 'accommodation' | 'other',
+  title,
+  venueName,
+  address,
+  city,
+  state,
+  time,
+  mapsUrl,
+  wazeUrl,
+  description,
+  notes
+}
+```
+
+Maps pertenece a Esencial. La capacidad `multiple-locations` proviene del
+contrato comercial y sólo existe en Prestige. El state nunca recorta el array
+al bajar de paquete: el preview deriva `getRenderableLocations()` y muestra sólo
+la ubicación principal hasta que el draft vuelve a Prestige.
+
+### Itinerary Contract
+
+```js
+{
+  id: 'ACT-LOCAL-001',
+  time,
+  title,
+  locationId: '' | 'LOC-LOCAL-001',
+  description,
+  notes
+}
+```
+
+El orden del array es el orden de presentación. `locationId` es una referencia,
+no una copia de dirección. Al eliminar una location, una sola mutación conserva
+las actividades y limpia cada referencia afectada. La validación no permite
+guardar una referencia nueva hacia un ID inexistente.
+
+### Dress Code Contract
+
+El copy permanece en `content.dressCode`. Las paletas semánticas viven en la
+misma estructura como `recommendedColors` y `avoidedColors`:
+
+```js
+{ id: 'CLR-LOCAL-001', name: 'Champagne', value: '#E6D2AE' }
+```
+
+El color se normaliza a hexadecimal de seis dígitos. Las plantillas deciden si
+lo presentan como swatch, leyenda, guía editorial u otra composición.
+
+### Gifts Contract
+
+```js
+{
+  id: 'GFT-LOCAL-001',
+  type: 'store' | 'transfer' | 'cash' | 'other',
+  name,
+  url,
+  reference,
+  description,
+  details: { bank, beneficiary, account, clabe, concept, instructions }
+}
+```
+
+`draft.gifts` es local durante Fase 3. Los datos de transferencia no se mandan
+a analytics, logs, query strings ni persistencia. Pueden aparecer como texto en
+la preview segura. Sólo una URL web HTTPS válida produce un control enlazable.
+
+### Accommodation Contract
+
+```js
+{
+  id: 'HOT-LOCAL-001',
+  name,
+  address,
+  description,
+  phone,
+  reservationUrl,
+  mapsUrl,
+  reservationCode,
+  notes
+}
+```
+
+La raíz canónica es `draft.accommodations`. El contrato comercial no declara
+múltiples hoteles, por lo que Fase 3 permite exactamente uno y no inventa una
+capacidad adicional. Se presenta dentro del bloque logístico de Ubicación.
+
+### Links Contract
+
+```js
+{
+  id: 'LNK-LOCAL-001',
+  type: 'whatsapp' | 'instagram' | 'calendar' | 'transport' | 'contact' | 'custom',
+  label,
+  url,
+  description,
+  phone,
+  message
+}
+```
+
+Maps/Waze permanecen en location, la URL de tienda en gift y la reservación en
+accommodation. Calendar deriva título, fecha, hora y ubicación principal del
+draft. WhatsApp normaliza un número internacional de 7 a 15 dígitos y construye
+una URL futura sin imponer país. Una publicación futura podrá ofrecer además un
+`.ics` generado en servidor o como descarga estática; Fase 3 no genera archivos.
+
+### Safe URL Policy
+
+`core/safe-url.js` es el único helper de protocolos. Bloquea de forma explícita
+`javascript:`, `data:` y `vbscript:`. Maps, Waze, regalos, reservaciones y links
+web aceptan `https:`. Un link de tipo contacto puede aceptar además `mailto:` y
+`tel:`. Una URL inválida permanece visible en el editor con error, pero nunca
+crea `<a href>` en preview. Todos los controles externos se interceptan dentro
+del iframe con el diálogo “Vista del editor”.
+
+### Relaciones, IDs y preservación
+
+Los IDs locales son correlativos y estables por draft: `LOC`, `ACT`, `GFT`,
+`HOT`, `LNK` y `CLR`, con formato `XXX-LOCAL-001`. El índice del array nunca es
+identidad lógica. `meta.entitySequences` evita reutilizar IDs después de borrar.
+
+`touchedCollections` extiende la política de Fase 2.1:
+
+- untouched: la colección puede conservar el fallback demo;
+- configured: se renderizan sólo datos reales;
+- explicit cleared: se oculta el bloque y no reaparece copy demo.
+
+Cambiar tema, desactivar sección o bajar paquete no muta estas colecciones. Sólo
+una eliminación explícita borra una entidad. Las secciones retenidas fuera del
+paquete siguen en `enabledSections`, pero el protocolo envía al frame únicamente
+la intersección efectiva permitida por `SECTION_REGISTRY`.
+
+### Editores Fase 3
+
+`SECTION_EDITOR_REGISTRY` declara `advancedEditors`; no existe un segundo sistema
+de secciones. `logistics-editor.js` monta los editores especializados de
+locations, itinerary, Dress Code, gifts, accommodations y links. Todos comparten
+cards colapsables, confirmación interna de borrado, controles subir/bajar y
+restauración de `#builder-editor.scrollTop`. El foco de un elemento recién creado
+usa `preventScroll`.
 
 ### Estrategia de preview
 
@@ -449,6 +600,11 @@ preview de producción ni permite CTAs externos.
 El frame rechaza mensajes con schema incompatible y conserva el último DOM válido.
 Cada respuesta incluye `requestId`, de modo que el controlador puede ignorar
 confirmaciones obsoletas. El countdown se recalcula desde `content.schedule`.
+En Fase 3 el payload incluye `packageId`, `locations`, `itinerary`, `gifts`,
+`accommodations`, `links`, `touchedPaths` y `touchedCollections`. Los arrays son
+pequeños y viajan completos; no se implementó un diff engine. Los once adapters
+declaran una variante Fase 3 y consumen las mismas entidades sin guardar estilos
+en el draft. Personalizada utiliza el mismo contrato con una composición base.
 
 ## Persistencia futura recomendada (no implementada)
 
@@ -500,8 +656,8 @@ imágenes, audio o video Base64 dentro del documento Firestore.**
 
 - No existe paquete en el contrato actual de creación de eventos.
 - Las Rules propuestas no cubren aún `invitacion` ni `invitacionVersiones`.
-- Los adapters de Fase 2.1 neutralizan el copy hardcodeado en Builder. Contenido
-  repetible, multimedia real y estructuras avanzadas siguen fuera de alcance.
+- Los adapters neutralizan el copy hardcodeado en Builder. Multimedia real,
+  RSVP, invitados, appearance avanzada y publicación siguen fuera de alcance.
 - `admin/dashboard.js` todavía accede a Firestore directamente; no se reescribió
   por no ampliar el alcance.
 - El editor legacy oculto y `themes` continúan existiendo para compatibilidad;
@@ -515,8 +671,8 @@ imágenes, audio o video Base64 dentro del documento Firestore.**
 1. Fases 1, 2 y 2.1 completadas: shell productivo, schema canónico, editores de
    copy, selección explícita, adapters semánticos de once colecciones y preview
    en vivo sin mezcla de copy demo configurado.
-2. Fase 3: editores estructurados de ubicaciones, itinerario, Dress Code,
-   regalos y enlaces.
+2. Fase 3 completada: ubicaciones, itinerario, Dress Code avanzado, regalos,
+   un hospedaje, enlaces, URLs seguras y adapters de preview.
 3. Fase 4: Storage y flujo multimedia optimizado/licenciado.
 4. Fase 5: RSVP, selección de pases y configuración de acceso enlazada a
    invitados existentes.
@@ -525,4 +681,4 @@ imágenes, audio o video Base64 dentro del documento Firestore.**
 7. Fase 8: validación, snapshot publicado y URL de producción.
 8. Fase 9: edición post-publicación, versiones, rollback y auditoría.
 
-No se implementó Fase 3 ni ninguna fase posterior en este cambio.
+No se implementó Fase 4 ni ninguna fase posterior en este cambio.
