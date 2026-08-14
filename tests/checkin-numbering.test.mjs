@@ -188,8 +188,8 @@ test('18. los datos usados por estadísticas no cambian al renumerar', () => {
     assert.equal(plan.moves.reduce((sum, item) => sum + item.data.pasesRegistrados, 0), 5);
 });
 
-test('19. la propuesta de Rules exige prefijo, contador y whitelist acotada', async () => {
-    const rules = await readFile(new URL('../firestore.rules.proposed', import.meta.url), 'utf8');
+test('19. las Rules canónicas exigen prefijo, contador y whitelist acotada', async () => {
+    const rules = await readFile(new URL('../firestore.rules', import.meta.url), 'utf8');
     assert.match(rules, /checkinIdMatchesGuest/);
     assert.match(rules, /after\.checkinSecuencia == before\.checkinSecuencia \+ 1/);
     assert.match(rules, /affectedKeys\(\)\.hasOnly/);

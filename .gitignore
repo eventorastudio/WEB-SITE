@@ -5,3 +5,13 @@ backups/
 node_modules/
 *.service-account.json
 service-account*.json
+
+# Artefactos locales de Firebase CLI / Emulator Suite.
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+storage-debug.log*
+ui-debug.log*
+
+# Evidencias temporales generadas por Microsoft Playwright MCP.
+.playwright-mcp/

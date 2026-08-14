@@ -11,6 +11,9 @@ final. Fases 3 y 4 no los usan como motivo para reescribir las plantillas.
 | Todas | Galería Fase 4 | Los selectores históricos de varias colecciones interferían con el grid y los captions; el adapter ya quedó aislado y validado con 6–20 imágenes. | Cerrada en QA | Mantener la cobertura visual móvil/desktop al modificar estilos de colección. |
 | Todas | Audio/video Fase 4 | Los controles nativos varían entre navegador y sistema operativo. | Baja / conocida | Validar contraste y ancho en Chrome real; conservar reproducción manual y accesibilidad nativa. |
 | Todas | Presets de preview Fase 4 | Las etiquetas M/T/D indican tamaños de referencia (por ejemplo, 390×844), pero la altura real del iframe se reduce cuando el alto disponible del Builder es menor. | Baja | Mostrar también el tamaño efectivo o permitir un modo de preview desacoplado del alto del workspace. |
+| Infraestructura | Huérfanos Fase 4.5 | Cerrar la pestaña entre upload completo y write de metadata, o perder red durante la compensación, puede dejar un objeto sin referencia. | Media / conocida | Añadir limpieza backend con período de gracia cuando se habiliten Functions y publicación. |
+| Infraestructura | Delete Fase 4.5 | Storage delete exitoso seguido de fallo Firestore deja metadata apuntando a un objeto ausente. | Media / conocida | Registrar el incidente y añadir reconciliación backend; el cliente ya muestra el error sin fingir éxito. |
+| Infraestructura | URLs públicas futuras | Las download URLs con token no equivalen a autorización por usuario. | Bloqueante para publicación | Definir la lectura pública durante publicación sin abrir indiscriminadamente el bucket. |
 
 ## QA visual ejecutado
 
@@ -24,3 +27,12 @@ La galería quedó aislada de los selectores históricos de cada tema y validada
 sin overflow horizontal. El único refinamiento visual abierto de esta pasada
 es la diferencia entre el tamaño nominal y el tamaño efectivo del preset cuando
 el workspace no dispone de altura suficiente.
+
+## QA Fase 4.5
+
+La interfaz habilitada y deshabilitada del Media Manager se validó con JSDOM y
+service mock, incluida la acción separada `Guardar multimedia` y el tratamiento
+textual de alt/caption maliciosos. En la sesión de Fase 4.5 el runtime de Browser
+no expuso ninguna instancia disponible, por lo que no se generaron screenshots
+Playwright nuevos ni se afirma una prueba visual de reload cloud. El QA remoto
+continúa bloqueado además por el feature flag y por Rules no desplegadas.

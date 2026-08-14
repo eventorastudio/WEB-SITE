@@ -1,13 +1,14 @@
-# Invitation Builder · Arquitectura de Fases 1 a 4
+# Invitation Builder · Arquitectura de Fases 1 a 4.6
 
 ## Alcance
 
-Las fases 1, 2, 2.1, 3 y 4 implementan una aplicación administrativa dedicada para
+Las fases 1, 2, 2.1, 3, 4, 4.5 y 4.6 implementan una aplicación administrativa dedicada para
 seleccionar un evento existente, paquete, colección y secciones; editar contenido
 canónico, logística y multimedia estructurada por rol; y comprobar el resultado en una preview real. El draft vive
-únicamente en memoria. No existe autosave, publicación ni escritura de configuraciones en Firestore.
-Multimedia usa object URLs locales. Storage remoto permanece bloqueado hasta que
-existan integración, Rules y App Check verificados.
+únicamente en memoria salvo por la capa multimedia remota ya implementada, que
+permanece inaccesible mientras su feature flag siga desactivado. No existe
+autosave ni publicación. Multimedia local usa object URLs y Storage remoto
+permanece bloqueado hasta que Rules y App Check se desplieguen y verifiquen.
 
 Ruta final: `/admin/invitations/builder.html?event={documentId}`.
 
@@ -53,28 +54,31 @@ contrato de `admin/core/state.js` excluye explícitamente drafts de formularios.
 Check/reCAPTCHA. El Builder importa servicios existentes, por lo que no duplica
 ni modifica `firebaseConfig`, Auth o App Check.
 
-Auditoría Fase 4: `firebaseConfig` referencia un nombre de bucket, pero el módulo
-no importa `firebase/storage`, no exporta `getStorage` y el repositorio no contiene
-Rules operativas ni configuración Firebase CLI. El diagnóstico administrativo ya
-reportaba Storage como no inicializado. La clasificación segura es **bucket
-referenciado, integración ausente, Rules ausentes y disponibilidad remota no
-verificada**. Por eso `invitation-media-service.js` expone `canUpload: false` y no
-realiza operaciones remotas. La propuesta `storage.rules.proposed` y los pasos de
-`STORAGE_SETUP.md` no están desplegados.
+La auditoría inicial de Fase 4 encontró el bucket sólo referenciado, sin
+`getStorage`, Rules operativas ni configuración Firebase CLI. Fases 4.5 y 4.6
+añadieron `getStorage(app)`, el servicio remoto, persistencia normalizada,
+propuestas finales y configuración local de CLI/emuladores. Firestore y Storage
+Rules pasan localmente en Emulator Suite, pero ninguna Rule fue desplegada y la
+disponibilidad remota continúa **no verificada**. Por eso
+`invitation-media-service.js` conserva
+`canUpload: false` mediante feature flag y no realiza operaciones remotas en el
+frontend actual.
 
-La propuesta local `firestore.rules.proposed` (no enlazada a `firebase.json` y
-no necesariamente desplegada) define:
+La propuesta local `firestore.rules.proposed` (enlazada a `firebase.json`, pero
+no desplegada) define:
 
 - lectura de eventos para roles internos;
 - mutación de eventos/invitados para gestores de plataforma;
 - edición de `themes` para CEO, Administrador y Diseñador;
+- lectura y escritura acotada de `eventos/{eventId}/invitacion/config` y su
+  subcolección `media` para esos mismos claims, con campos exactos, límites,
+  paths, tipos y auditoría de servidor;
 - acceso Portal por perfil `usuarios/{uid}`, asignación de evento y entitlements;
 - denegación por defecto de cualquier ruta no declarada.
 
-Incompatibilidad futura documentada: la ruta recomendada para persistir drafts
-no está contemplada por la propuesta actual y quedaría denegada. Las Rules
-deberán diseñarse, probarse en Emulator Suite y desplegarse manualmente en una
-fase de persistencia. No se cambiaron Rules en Fase 1.
+Las Rules todavía deben desplegarse y verificarse remotamente mediante un proceso
+manual autorizado. `invitacionVersiones` y lectura pública permanecen denegadas
+hasta sus fases.
 
 ### Modelo de evento real
 
@@ -737,19 +741,59 @@ Las publicaciones/versiones inmutables pueden vivir en
 `eventos/{eventId}/invitacionVersiones/{versionId}`. La publicación debe copiar
 un snapshot validado, no usar el draft mutable como release en vivo.
 
-La capa futura de upload usará Firebase Storage bajo
-`eventos/{eventId}/invitacion/media/{role}/{mediaId}.{ext}`; Firestore conservará
-URL, path, dimensiones, MIME, tamaño, alt y estado. **Nunca se guardarán imágenes,
-audio o video Base64 dentro del documento Firestore.** La preparación actual está
-bloqueada hasta completar los pasos de `STORAGE_SETUP.md`.
+Fase 4.6 conserva la capa de upload bajo
+`eventos/{eventId}/invitacion/media/{role}/{mediaId}-{objectVersion}.{ext}`.
+Firestore conserva el `storagePath` estable y metadata; `downloadUrl` sólo existe
+en runtime y se vuelve a resolver al hidratar. **Nunca se guardan imágenes, audio,
+video, Base64, Data URLs u object URLs dentro del documento Firestore.** La
+capacidad remota permanece bloqueada por feature flag hasta completar y desplegar
+los pasos de `STORAGE_SETUP.md` con autorización explícita.
+
+### Persistencia multimedia normalizada · Fase 4.6
+
+`eventos/{eventId}/invitacion/config` almacena sólo `schemaVersion`, el
+`mediaIndex` compacto y auditoría de servidor. Los documentos individuales viven
+en `eventos/{eventId}/invitacion/config/media/{mediaId}`. No existe colección
+global, documento paralelo ni array monolítico. `mediaIndex.galleryIds` es la
+única fuente persistida del orden; el `sortOrder` del estado se deriva al hidratar.
+El límite técnico de galería continúa en 20.
+
+`invitation-media-service.js` es la frontera única para Storage y Firestore; el
+editor no importa primitivas Firebase. La fase Firestore usa un solo `WriteBatch`
+para publicar config, media documents modificados y eliminaciones de forma
+atómica. Un reorder puro sólo modifica el índice. Las Rules validan cada documento
+con campos exactos y no hacen lecturas referenciales por asset, manteniendo el
+coste acotado para 20 elementos.
+
+La hidratación lee concurrentemente sólo los IDs referenciados, asigna roles y
+orden desde el índice y resuelve URLs efímeras con máximo cuatro solicitudes. Un
+documento faltante o corrupto se reporta y se omite; un huérfano no referenciado no
+se muestra.
+
+Storage permanece fuera de la atomicidad de Firestore. Después de uploads, un
+fallo del batch intenta borrar todos los objetos nuevos. El reemplazo publica la
+versión nueva antes de limpiar la anterior. El delete retira índice y documento
+en batch antes de borrar Storage; así un fallo Firestore conserva el asset
+funcional y un fallo Storage posterior deja sólo un binario huérfano, no una
+referencia rota. La galería limita los uploads a tres en paralelo.
+
+No existe migración productiva: el flag remoto nunca fue activado y el esquema
+monolítico anterior no produjo datos reales. La futura persistencia de las demás
+raíces deberá ampliar explícitamente el contrato de `config`; las versiones
+publicadas continuarán separadas en `invitacionVersiones`.
+
+`builderState.ui.mediaDirty` y `draftDirty` separan la persistencia multimedia del
+resto del borrador. Hidratar o guardar media no afirma que contenido o logística
+estén guardados. Downgrade, toggle y cambio de tema no mutan `draft.media`.
 
 ## Riesgos y pendientes
 
 - No existe paquete en el contrato actual de creación de eventos.
-- Las Rules propuestas no cubren aún `invitacion` ni `invitacionVersiones`.
-- Los adapters neutralizan el copy hardcodeado en Builder. Upload remoto,
-  thumbnails server-side, transcodificación, RSVP, invitados, appearance avanzada
-  y publicación siguen fuera de alcance.
+- Las Rules propuestas cubren `eventos/{eventId}/invitacion/config` y la
+  subcolección `media`; pasan Emulator Suite local, pero no fueron desplegadas.
+- Los adapters neutralizan el copy hardcodeado en Builder. Thumbnails server-side,
+  transcodificación, RSVP, invitados, appearance avanzada y publicación siguen
+  fuera de alcance.
 - `admin/dashboard.js` todavía accede a Firestore directamente; no se reescribió
   por no ampliar el alcance.
 - El editor legacy oculto y `themes` continúan existiendo para compatibilidad;
@@ -767,11 +811,16 @@ bloqueada hasta completar los pasos de `STORAGE_SETUP.md`.
    un hospedaje, enlaces, URLs seguras y adapters de preview.
 3. Fase 4 completada: Media Manager local-first, optimización, adapters y
    preparación segura de Storage sin habilitar escrituras remotas.
-4. Fase 5: RSVP, selección de pases y configuración de acceso enlazada a
+4. Fase 4.5 completada localmente: servicio Storage, ciclos iniciales de
+   upload/replace/delete, Rules propuestas y flag remoto deshabilitado.
+5. Fase 4.6 completada localmente: `mediaIndex`, subcolección por asset,
+   `WriteBatch`, hidratación escalable, compensaciones y pruebas Emulator
+   1/6/20/>20. El flag remoto continúa deshabilitado.
+6. Fase 5: RSVP, selección de pases y configuración de acceso enlazada a
    invitados existentes.
-5. Fase 6: appearance avanzada y editor del tema Personalizada.
-6. Fase 7: Rules, persistencia del draft, debounce y autosave.
-7. Fase 8: validación, snapshot publicado y URL de producción.
-8. Fase 9: edición post-publicación, versiones, rollback y auditoría.
+7. Fase 6: appearance avanzada y editor del tema Personalizada.
+8. Fase 7: persistencia del resto del draft, debounce y autosave.
+9. Fase 8: validación, snapshot publicado y URL de producción.
+10. Fase 9: edición post-publicación, versiones, rollback y auditoría.
 
 No se implementó Fase 5 ni ninguna fase posterior en este cambio.

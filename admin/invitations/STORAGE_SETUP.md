@@ -1,50 +1,208 @@
-# Storage para multimedia del Invitation Builder
+# Persistencia multimedia del Invitation Builder · Fase 4.6
 
-## Estado auditado en Fase 4
+## Estado verificado
 
-- `admin/firebase.js` declara `storageBucket: "eventorastudio-d6d95.firebasestorage.app"`, pero no importa ni inicializa Firebase Storage.
-- El módulo exporta una única app Firebase, Auth, Firestore y App Check. Fase 4 no creó una segunda app ni alteró App Check.
-- No existe `firebase.json`, `.firebaserc` ni `storage.rules` operativo en este repositorio.
-- No había servicio de Storage, `getStorage`, uploads reanudables, URLs de descarga ni borrado de objetos.
-- Por lo anterior, un nombre de bucket en la configuración no prueba que el bucket esté operativo ni que sus Rules sean seguras.
+- Proyecto configurado en cliente: `eventorastudio-d6d95`.
+- Bucket declarado: `eventorastudio-d6d95.firebasestorage.app`.
+- `admin/firebase.js` conserva una sola llamada a `initializeApp()`, App Check con
+  reCAPTCHA v3 e inicialización central de `getStorage(app)`.
+- Los claims admitidos para edición multimedia son `CEO`, `ADMINISTRADOR`,
+  `ADMIN` y `DISENADOR`, leídos desde `role` o `userRole`.
+- Firebase CLI, SDK cliente, Rules Unit Testing y Emulator Suite están instalados
+  localmente. `npm.cmd run test:rules` pasa con Firestore y Storage.
+- Storage Rules desplegadas: **NO**.
+- Firestore Rules desplegadas: **NO**.
+- Writes a producción durante esta fase: **0**.
+- `INVITATION_MEDIA_UPLOAD_ENABLED` permanece en `false`.
 
-Clasificación: **bucket referenciado; integración ausente; Rules locales ausentes; disponibilidad remota no verificada**.
+## Decisión de arquitectura
 
-El Builder funciona en `local-first`. `invitation-media-service.js` mantiene `canUpload: false`; no intenta escribir, borrar o consultar objetos remotos. `storage.rules.proposed` es sólo una propuesta no enlazada y no desplegada.
-
-## Convención preparada
+El documento canónico de configuración es:
 
 ```text
-eventos/{eventId}/invitacion/media/{role}/{mediaId}.{ext}
+eventos/{eventId}/invitacion/config
 ```
 
-Roles permitidos: `cover`, `gallery`, `video`, `videoPoster`, `music`. El nombre original nunca forma parte del path. El documento futuro conservará metadatos, `storagePath` y `downloadUrl`; nunca `File`, `Blob`, Base64 o Data URL.
+En Fase 4.6 contiene únicamente el índice compacto y auditoría:
 
-## Pasos manuales antes de habilitar uploads
+```js
+{
+  schemaVersion: 5,
+  mediaIndex: {
+    schemaVersion: 1,
+    coverId: 'MED-LOCAL-001' | null,
+    galleryIds: ['MED-LOCAL-002'],
+    videoId: 'MED-LOCAL-008' | null,
+    posterId: 'MED-LOCAL-009' | null,
+    audioId: 'MED-LOCAL-010' | null
+  },
+  updatedAt: serverTimestamp(),
+  updatedBy: auth.currentUser.uid
+}
+```
 
-1. Verificar en Firebase Console que el bucket pertenece al proyecto correcto, región, plan, retención, CORS y costos previstos.
-2. Confirmar que los custom claims reales usan exclusivamente `CEO`, `ADMINISTRADOR` y `DISENADOR` para `invitations:edit`.
-3. Revisar `storage.rules.proposed`, añadir pruebas de Rules en Emulator Suite y comprobar denegación para usuario sin claim, otro evento, path no permitido, MIME falso y sobrepeso.
-4. Definir explícitamente la política de lectura pública de una invitación publicada. La propuesta actual permite lectura sólo al equipo interno y deniega el resto.
-5. Decidir la política de App Check para Storage, habilitar enforcement primero en monitoreo y confirmar clientes autorizados.
-6. Crear/revisar `firebase.json` y `.firebaserc` de forma consciente; no copiar una configuración de otro proyecto.
-7. Integrar `getStorage(app)` en `admin/firebase.js`, reutilizando la app existente. No llamar `initializeApp()` de nuevo.
-8. Implementar en `invitation-media-service.js` un único upload reanudable con cancelación, retry, progreso y borrado restringido al path propiedad del mismo evento.
-9. Probar la integración completa en Emulator Suite y después en un evento no productivo con archivos ficticios.
-10. Desplegar Rules sólo mediante una acción manual revisada. Cambiar `canUpload` a `true` únicamente después de validar Rules y App Check desplegados.
-11. Para publicación, añadir una función backend que vuelva a verificar firma,
-    MIME, dimensiones/duración y ownership; genere thumbnails derivados y, si el
-    producto lo requiere, transcoding. La validación cliente y las Storage Rules
-    no sustituyen esa inspección server-side.
+La metadata individual vive en la subcolección acotada al evento:
 
-## Límites técnicos actuales
+```text
+eventos/{eventId}/invitacion/config/media/{mediaId}
+```
 
-| Recurso | Formatos | Entrada máxima | Duración | Procesado local |
-| --- | --- | ---: | ---: | --- |
-| Cover/galería/poster | JPEG, PNG, WebP | 20 MiB | — | decode, límite 40 MP, resize, re-encode y retiro de metadata |
-| Video | MP4, WebM | 80 MiB | 5 min | metadata y decode del navegador; sin transcodificación |
-| Música | MP3, M4A/AAC, OGG | 20 MiB | 15 min | metadata y decode del navegador; sin transcodificación |
+No existe colección global de media ni array monolítico dentro de `config`.
+`mediaIndex` es la única fuente persistida de pertenencia y orden. En particular,
+el orden de galería se obtiene exclusivamente de `galleryIds`; `sortOrder` sólo se
+deriva al hidratar el estado de runtime y nunca se persiste.
 
-Cover usa lado largo máximo de 2400 px; galería y poster, 1920 px. PNG conserva PNG para mantener alpha; JPEG y WebP se reencodan como WebP con calidad 0.88. El máximo técnico de galería es 20 y no representa una promesa comercial.
+La galería mantiene un máximo técnico de 20 elementos. Las Rules validan IDs,
+unicidad, roles singulares no duplicados y el límite con expresiones acotadas. No
+usan `exists()` o `get()` por cada referencia del índice: la integridad entre
+índice y documentos la garantiza el `WriteBatch` del servicio, evitando que el
+coste de Rules crezca con el número de assets.
 
-Estos límites controlan memoria, latencia y costo, pero no sustituyen cuotas, alertas de facturación, lifecycle rules, thumbnails server-side ni transcodificación futura.
+No se requiere migración de producción: el feature flag nunca se activó, por lo
+que el esquema monolítico de Fase 4.5 no generó documentos reales. Cualquier dato
+creado únicamente en emuladores es descartable.
+
+## Namespace de Storage
+
+```text
+eventos/{eventId}/invitacion/media/{role}/{mediaId}-{objectVersion}.{ext}
+```
+
+Roles: `cover`, `gallery`, `video`, `videoPoster`, `music`.
+
+El ID lógico se conserva durante un reemplazo. Cada binario usa una versión
+hexadecimal de 12 caracteres y un path inmutable; nunca se sobrescribe el objeto
+anterior. El servicio y Storage Rules comprueban que `eventId`, `mediaId`, `role`,
+MIME y extensión coincidan con el path. Los objetos son create-only; update está
+denegado.
+
+## Contrato de cada media document
+
+Campos funcionales exactos:
+
+```text
+id, role, kind, originalName, mimeType, size, width, height, duration,
+alt, caption, storagePath, focalPoint, objectVersion
+```
+
+Campos de auditoría exactos:
+
+```text
+createdAt, updatedAt, updatedBy
+```
+
+En create, `createdAt` y `updatedAt` son `request.time`. En update, `createdAt`
+permanece inmutable y `updatedAt` vuelve a ser `request.time`; `updatedBy` debe
+coincidir con el UID autenticado. Las Rules validan además ID de documento,
+evento, rol, kind, MIME/extensión, tamaño, focal point, longitudes y path.
+
+No se persisten `status`, `sortOrder`, `downloadUrl`, `previewUrl`, progreso,
+errores, `File`, `Blob`, object URLs, Data URLs, Base64 ni tokens de descarga.
+
+## Políticas sincronizadas
+
+| Rol | MIME | Máximo |
+| --- | --- | ---: |
+| Cover, galería, poster | `image/jpeg`, `image/png`, `image/webp` | 20 MiB |
+| Video | `video/mp4`, `video/webm` | 80 MiB |
+| Música | `audio/mpeg`, `audio/mp4`, `audio/aac`, `audio/ogg` | 20 MiB |
+
+SVG y `application/octet-stream` permanecen denegados. El límite de imagen se
+probó en ambos bordes: 20 MiB exactos permitido y 20 MiB + 1 byte denegado.
+
+## Lectura e hidratación
+
+1. Se lee `config` y se valida `mediaIndex`.
+2. Se solicitan concurrentemente sólo los media IDs referenciados, mediante
+   lecturas directas; `list` de la subcolección está denegado.
+3. Los documentos se validan contra evento, rol, path y versión.
+4. Se reconstruye `draft.media`; el índice asigna pertenencia y orden.
+5. Las download URLs se resuelven únicamente en runtime con concurrencia máxima
+   de cuatro.
+
+Un documento referenciado ausente o corrupto se omite y se reporta como
+inconsistencia sin derribar el resto de la hidratación. Un documento huérfano no
+referenciado no se consulta ni aparece en la UI.
+
+## Escritura y atomicidad
+
+La fase Firestore usa un único `WriteBatch` que incluye:
+
+- reemplazo completo de `config` con el `mediaIndex` nuevo;
+- create/update sólo de media documents nuevos o modificados;
+- delete de media documents retirados.
+
+El batch publica todo o nada. Un reorder puro cambia únicamente `mediaIndex`; no
+reescribe los 20 documentos. Storage no puede formar parte de una transacción
+Firestore, por lo que el servicio aplica las secuencias y compensaciones
+siguientes.
+
+### Guardado y compensación
+
+1. Selección, validación y procesamiento local.
+2. Preview `blob:` sin upload automático.
+3. Upload explícito, máximo tres objetos en paralelo.
+4. Al terminar Storage, commit atómico de `config` y media documents.
+5. Hidratación cloud y resolución de URLs.
+
+Si el batch falla, se intenta borrar cada objeto recién subido y se informa el
+número de compensaciones fallidas. No se presenta esta secuencia como una
+transacción distribuida.
+
+### Reemplazo
+
+El objeto A y su documento siguen canónicos mientras B es local. Después se sube
+B, el batch actualiza el mismo ID lógico hacia la versión B y sólo tras el commit
+se elimina A. Si upload o batch fallan, A continúa funcional. Si la limpieza de A
+falla, B sigue canónico y A queda como posible huérfano reportado.
+
+### Eliminación
+
+El batch retira primero la referencia de `mediaIndex` y elimina el media document.
+Sólo después se borra Storage. Si Firestore falla, el asset anterior permanece
+completamente funcional. Si Storage falla después del batch, no queda una
+referencia rota: se reporta el path binario huérfano para limpieza posterior.
+
+### Huérfanos pendientes
+
+- cierre del navegador entre upload y commit;
+- pérdida de red durante compensación;
+- fallo al limpiar una versión reemplazada;
+- fallo de Storage después de un delete ya publicado.
+
+No se añadieron cron jobs ni Cloud Functions. Una limpieza backend futura podrá
+listar versiones sin referencia canónica y aplicar un período de gracia.
+
+## UX y feature flag
+
+- Con flag `false`, los cinco editores, previews y object URLs locales siguen
+  operando, pero `canUpload` y `canDelete` son `false`.
+- Con flag `true`, el mismo editor expondría upload, retry, cancel y guardado; esta
+  fase **no activó** ese estado.
+- `ui.mediaDirty` está separado de `ui.draftDirty`.
+- Downgrade, toggle y cambio de tema no eliminan media persistida.
+
+## Validación local
+
+`firebase.json` enlaza exclusivamente `firestore.rules.proposed` y
+`storage.rules.proposed`, con emuladores Firestore en 8080 y Storage en 9199. No
+incluye Hosting ni Functions.
+
+```powershell
+npm.cmd run test:rules
+npm.cmd test
+```
+
+La suite de Emulator cubre roles admitidos, cliente, usuario anónimo,
+cross-event, MIME, tamaños, metadata mismatch, create-only, contrato Firestore,
+índices 1/6/20/>20, batch de 20 documentos, hidratación, reorder, replacement y
+delete. Usa exclusivamente el proyecto demo `demo-eventorastudio-phase45`.
+
+## Activación remota posterior
+
+La activación requiere una autorización y una fase distintas: revisar bucket,
+región, billing, CORS, retención y App Check; desplegar Rules; probar un evento no
+productivo con claims reales; y sólo entonces considerar el feature flag.
+
+En Fase 4.6 no se ejecutó login, deploy, escritura a producción ni activación de
+`canUpload`. Fase 5 no fue iniciada.

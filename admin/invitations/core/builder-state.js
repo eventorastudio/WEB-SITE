@@ -106,6 +106,8 @@ export class InvitationBuilderState {
         this._draft = null;
         this._ui = {
             isDirty: false,
+            draftDirty: false,
+            mediaDirty: false,
             activeStep: 'theme',
             previewDevice: 'mobile',
             validationErrors: {}
@@ -119,6 +121,8 @@ export class InvitationBuilderState {
         this._draft = createInvitationDraft(eventId, eventData);
         this._ui = {
             isDirty: false,
+            draftDirty: false,
+            mediaDirty: false,
             activeStep: 'theme',
             previewDevice: 'mobile',
             validationErrors: validateInvitationDraft(this._draft)
@@ -432,6 +436,58 @@ export class InvitationBuilderState {
         return { ok: true, changed: true };
     }
 
+    hydrateMedia(media, { persisted = true } = {}) {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        const previous = this.getSnapshot();
+        const normalize = (asset, role, sortOrder = 0) => asset ? createMediaAsset(asset.id, { ...asset, role, sortOrder }) : null;
+        this._draft.media = {
+            ...createEmptyInvitationMedia(),
+            schemaVersion: media?.schemaVersion ?? createEmptyInvitationMedia().schemaVersion,
+            cover: normalize(media?.cover, 'cover'),
+            gallery: (Array.isArray(media?.gallery) ? media.gallery : []).map((asset, sortOrder) => normalize(asset, 'gallery', sortOrder)),
+            video: normalize(media?.video, 'video'),
+            videoPoster: normalize(media?.videoPoster, 'videoPoster'),
+            music: normalize(media?.music, 'music')
+        };
+        const ids = [
+            this._draft.media.cover,
+            ...this._draft.media.gallery,
+            this._draft.media.video,
+            this._draft.media.videoPoster,
+            this._draft.media.music
+        ].filter(Boolean).map(({ id }) => Number.parseInt(String(id).replace(/^MED-LOCAL-/, ''), 10)).filter(Number.isFinite);
+        this._draft.meta.entitySequences.media = Math.max(this._draft.meta.entitySequences.media, ...ids, 0);
+        this._draft.meta.touchedMediaRoles = persisted
+            ? ['cover', 'gallery', 'video', 'videoPoster', 'music']
+            : ['cover', 'gallery', 'video', 'videoPoster', 'music']
+                .filter((role) => role === 'gallery' ? this._draft.media.gallery.length : this._draft.media[role]);
+        this._ui.mediaDirty = false;
+        this._ui.isDirty = this._ui.draftDirty;
+        this._ui.validationErrors = validateInvitationDraft(this._draft);
+        this._notify('media-hydrated', previous);
+        return this.getSnapshot();
+    }
+
+    markMediaPersisted() {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        if (!this._ui.mediaDirty) return { ok: true, changed: false };
+        const previous = this.getSnapshot();
+        this._ui.mediaDirty = false;
+        this._ui.isDirty = this._ui.draftDirty;
+        this._notify('media-persisted', previous);
+        return { ok: true, changed: true };
+    }
+
+    markMediaPending() {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        if (this._ui.mediaDirty) return { ok: true, changed: false };
+        const previous = this.getSnapshot();
+        this._ui.mediaDirty = true;
+        this._ui.isDirty = true;
+        this._notify('media-pending', previous);
+        return { ok: true, changed: true };
+    }
+
     setPreviewDevice(device) {
         if (!PREVIEW_DEVICES.includes(device)) return { ok: false, code: 'builder/unknown-device' };
         if (this._ui.previewDevice === device) return { ok: true, changed: false };
@@ -453,8 +509,10 @@ export class InvitationBuilderState {
         return this._draft.enabledSections.filter((sectionId) => !isSectionAllowed(sectionId, this._draft.packageId));
     }
 
-    _markDirty() {
-        this._ui.isDirty = true;
+    _markDirty(scope = 'draft') {
+        if (scope === 'media') this._ui.mediaDirty = true;
+        else this._ui.draftDirty = true;
+        this._ui.isDirty = this._ui.draftDirty || this._ui.mediaDirty;
     }
 
     _nextEntityId(collection) {
@@ -513,7 +571,7 @@ export class InvitationBuilderState {
 
     _commitMediaChange(previous, role, operation, id, details = {}) {
         this._ui.validationErrors = validateInvitationDraft(this._draft);
-        this._markDirty();
+        this._markDirty('media');
         this._notify('media-changed', previous, { role, operation, id, ...details });
     }
 

@@ -116,8 +116,8 @@ test('el Portal no escribe el evento padre y el debug no expone secretos', async
     assert.doesNotMatch(debugBlock, /qrToken|password|idToken|stack/);
 });
 
-test('la propuesta mantiene default deny y correlación getAfter sin write Portal al padre', async () => {
-    const rules = await readFile(new URL('../firestore.rules.proposed', import.meta.url), 'utf8');
+test('las Rules canónicas mantienen default deny y correlación getAfter sin write Portal al padre', async () => {
+    const rules = await readFile(new URL('../firestore.rules', import.meta.url), 'utf8');
     assert.match(rules, /after\.diff\(before\)\.affectedKeys\(\)\.hasOnly/);
     assert.match(rules, /after\.checkinSecuencia == before\.checkinSecuencia \+ 1/);
     assert.match(rules, /!exists\(historyPath\)\s*&& existsAfter\(historyPath\)/);

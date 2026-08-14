@@ -1,7 +1,7 @@
-import { getMediaRoleAvailability, getMediaAssetSource } from '../core/media-schema.js?v=phase4-media-20260813';
+import { getAllMediaAssets, getMediaAssetSource, getMediaRoleAvailability } from '../core/media-schema.js?v=phase4-media-persistence-20260814';
 import { MediaObjectUrlRegistry } from '../core/media-runtime.js?v=phase4-media-20260813';
 import { friendlyMediaError, inspectAndProcessMediaFile } from '../core/media-processor.js?v=phase4-media-20260813';
-import { getInvitationMediaStorageStatus } from '../services/invitation-media-service.js?v=phase4-media-20260813';
+import { invitationMediaService } from '../services/invitation-media-service.js?v=phase46-media-normalization-20260814';
 
 const ROLE_COPY = Object.freeze({
     cover: Object.freeze({ title: 'Portada / hero', copy: 'JPEG, PNG o WebP. Se optimiza localmente y conserva un punto focal por invitación.', accept: 'image/jpeg,image/png,image/webp' }),
@@ -11,8 +11,43 @@ const ROLE_COPY = Object.freeze({
     music: Object.freeze({ title: 'Música', copy: 'MP3, M4A/AAC u OGG, hasta 20 MiB y 15 minutos. Reproducción manual.', accept: 'audio/mpeg,audio/mp4,audio/aac,audio/ogg' })
 });
 
+const STATUS_LABELS = Object.freeze({
+    local: 'LOCAL',
+    processing: 'PROCESANDO',
+    ready: 'PENDIENTE DE SUBIR',
+    uploading: 'SUBIENDO',
+    uploaded: 'EN LA NUBE',
+    error: 'ERROR'
+});
+
 function roleAssets(media, role) {
     return role === 'gallery' ? (media.gallery ?? []) : [media[role]].filter(Boolean);
+}
+
+function findAsset(media, assetId) {
+    return getAllMediaAssets(media ?? {}).find(({ id }) => id === assetId) ?? null;
+}
+
+function replaceAsset(media, replacement) {
+    const next = structuredClone(media);
+    if (replacement.role === 'gallery') {
+        const index = next.gallery.findIndex(({ id }) => id === replacement.id);
+        if (index >= 0) next.gallery[index] = replacement;
+        else next.gallery.push(replacement);
+    } else {
+        next[replacement.role] = replacement;
+    }
+    return next;
+}
+
+function withoutAsset(media, assetId) {
+    const next = structuredClone(media);
+    next.gallery = (next.gallery ?? []).filter(({ id }) => id !== assetId)
+        .map((asset, sortOrder) => ({ ...asset, sortOrder }));
+    for (const role of ['cover', 'video', 'videoPoster', 'music']) {
+        if (next[role]?.id === assetId) next[role] = null;
+    }
+    return next;
 }
 
 function fileLabel(asset) {
@@ -28,7 +63,7 @@ function buildMediaPreview(asset) {
     const wrap = document.createElement('div');
     wrap.className = 'media-asset-preview';
     if (!source) {
-        wrap.textContent = asset.status === 'processing' ? 'Procesando…' : 'Vista local no disponible';
+        wrap.textContent = asset.status === 'processing' ? 'Procesando…' : 'Vista no disponible';
         return wrap;
     }
     if (asset.kind === 'image') {
@@ -36,6 +71,7 @@ function buildMediaPreview(asset) {
         image.src = source;
         image.alt = asset.alt || '';
         image.style.objectPosition = `${asset.focalPoint.x}% ${asset.focalPoint.y}%`;
+        image.addEventListener('error', () => wrap.classList.add('has-preview-error'), { once: true });
         wrap.append(image);
     } else {
         const media = document.createElement(asset.kind === 'video' ? 'video' : 'audio');
@@ -43,6 +79,7 @@ function buildMediaPreview(asset) {
         media.controls = true;
         media.preload = 'metadata';
         if (asset.kind === 'video') media.playsInline = true;
+        media.addEventListener('error', () => wrap.classList.add('has-preview-error'), { once: true });
         wrap.append(media);
     }
     return wrap;
@@ -73,7 +110,8 @@ function field(label, property, asset, { multiline = false } = {}) {
     return wrapper;
 }
 
-function createAssetCard(asset, role, index, total, storageStatus) {
+function createAssetCard(asset, role, index, total, { storageStatus, registry, savingIds }) {
+    const isUploading = savingIds.has(asset.id);
     const card = document.createElement('article');
     card.className = 'media-asset-card';
     card.dataset.assetId = asset.id;
@@ -85,24 +123,26 @@ function createAssetCard(asset, role, index, total, storageStatus) {
     meta.textContent = fileLabel(asset);
     copy.append(title, meta);
     const badge = document.createElement('span');
-    badge.className = `media-status media-status-${asset.status}`;
-    badge.textContent = asset.status === 'ready' ? 'LISTO LOCAL' : asset.status.toUpperCase();
+    badge.className = `media-status media-status-${isUploading ? 'uploading' : asset.status}`;
+    badge.textContent = STATUS_LABELS[isUploading ? 'uploading' : asset.status] ?? asset.status.toUpperCase();
     header.append(copy, badge);
 
     const body = document.createElement('div');
     body.className = 'media-asset-body';
     body.append(buildMediaPreview(asset));
-    if (['processing', 'uploading'].includes(asset.status)) {
+    if (isUploading) {
         const progress = document.createElement('div');
         progress.className = 'media-asset-progress';
         const label = document.createElement('span');
-        label.textContent = asset.status === 'uploading' ? 'Subiendo' : 'Procesando';
+        label.textContent = 'Subiendo';
         const meter = document.createElement('progress');
         meter.max = 100;
-        meter.value = asset.uploadProgress;
-        meter.setAttribute('aria-label', `${label.textContent}: ${Math.round(asset.uploadProgress)}%`);
+        meter.value = 0;
+        meter.dataset.uploadMeter = asset.id;
+        meter.setAttribute('aria-label', 'Subiendo: 0%');
         const value = document.createElement('small');
-        value.textContent = `${Math.round(asset.uploadProgress)}%`;
+        value.dataset.uploadValue = asset.id;
+        value.textContent = '0%';
         progress.append(label, meter, value);
         body.append(progress);
     }
@@ -121,7 +161,8 @@ function createAssetCard(asset, role, index, total, storageStatus) {
         focal.className = 'media-focal-fields';
         ['x', 'y'].forEach((axis) => {
             const label = document.createElement('label');
-            label.innerHTML = `<span>Foco ${axis.toUpperCase()}</span>`;
+            const caption = document.createElement('span');
+            caption.textContent = `Foco ${axis.toUpperCase()}`;
             const range = document.createElement('input');
             range.type = 'range';
             range.min = '0';
@@ -129,7 +170,7 @@ function createAssetCard(asset, role, index, total, storageStatus) {
             range.value = String(asset.focalPoint[axis]);
             range.dataset.mediaFocal = axis;
             range.dataset.assetId = asset.id;
-            label.append(range);
+            label.append(caption, range);
             focal.append(label);
         });
         fields.append(focal);
@@ -140,8 +181,8 @@ function createAssetCard(asset, role, index, total, storageStatus) {
     if (role === 'gallery') {
         const up = button('↑', 'up', asset.id, 'media-icon-action');
         const down = button('↓', 'down', asset.id, 'media-icon-action');
-        up.disabled = index === 0;
-        down.disabled = index === total - 1;
+        up.disabled = index === 0 || isUploading;
+        down.disabled = index === total - 1 || isUploading;
         actions.append(up, down);
     }
     const replacement = document.createElement('label');
@@ -152,17 +193,23 @@ function createAssetCard(asset, role, index, total, storageStatus) {
     replacementInput.accept = ROLE_COPY[role].accept;
     replacementInput.dataset.mediaFile = role;
     replacementInput.dataset.replaceId = asset.id;
+    replacementInput.disabled = isUploading;
     replacement.append(replacementInput);
-    const upload = button('Subir a Storage', 'upload', asset.id);
-    upload.disabled = !storageStatus.canUpload;
-    upload.title = storageStatus.message;
-    actions.append(replacement, upload, button('Eliminar', 'remove', asset.id, 'is-danger'));
+    actions.append(replacement);
+    if (storageStatus.canUpload && registry.get(asset.id)) {
+        actions.append(isUploading
+            ? button('Cancelar', 'cancel-upload', asset.id)
+            : button(asset.status === 'error' ? 'Reintentar' : 'Subir', 'upload', asset.id));
+    }
+    const remove = button('Eliminar', 'remove', asset.id, 'is-danger');
+    remove.disabled = isUploading;
+    actions.append(remove);
     body.append(actions);
     card.append(header, body);
     return card;
 }
 
-function createRoleSection(role, snapshot, activity, storageStatus) {
+function createRoleSection(role, snapshot, activity, context) {
     const media = snapshot.draft.media;
     const availability = getMediaRoleAvailability(role, snapshot.draft.packageId, snapshot.draft.enabledSections);
     const assets = roleAssets(media, role);
@@ -179,9 +226,7 @@ function createRoleSection(role, snapshot, activity, storageStatus) {
     copy.append(title, description);
     const state = document.createElement('span');
     state.className = 'media-role-badge';
-    state.textContent = !availability.packageAllowed
-        ? 'NO INCLUIDO'
-        : (!availability.sectionEnabled ? 'SECCIÓN INACTIVA' : 'DISPONIBLE');
+    state.textContent = !availability.packageAllowed ? 'NO INCLUIDO' : (!availability.sectionEnabled ? 'SECCIÓN INACTIVA' : 'DISPONIBLE');
     header.append(copy, state);
     section.append(header);
 
@@ -189,7 +234,7 @@ function createRoleSection(role, snapshot, activity, storageStatus) {
         const retained = document.createElement('p');
         retained.className = 'media-retained-note';
         retained.textContent = assets.length
-            ? 'El recurso permanece conservado en el borrador y reaparecerá al restaurar el paquete o la sección.'
+            ? 'El recurso permanece conservado y reaparecerá al restaurar el paquete o la sección.'
             : 'Activa la sección y usa un paquete compatible para configurar este recurso.';
         section.append(retained);
     }
@@ -203,7 +248,7 @@ function createRoleSection(role, snapshot, activity, storageStatus) {
     input.type = 'file';
     input.accept = ROLE_COPY[role].accept;
     input.multiple = role === 'gallery';
-    input.disabled = !availability.editable || (role === 'gallery' && assets.length >= 20);
+    input.disabled = !availability.editable || (role === 'gallery' && assets.length >= 20) || context.savingIds.size > 0;
     input.dataset.mediaFile = role;
     if (assets.length && role !== 'gallery') input.dataset.replaceId = assets[0].id;
     chooser.append(input);
@@ -226,7 +271,7 @@ function createRoleSection(role, snapshot, activity, storageStatus) {
     dropZone.dataset.mediaDrop = role;
     dropZone.setAttribute('role', 'group');
     dropZone.setAttribute('aria-label', `Soltar archivo para ${ROLE_COPY[role].title}`);
-    dropZone.setAttribute('aria-disabled', String(!availability.editable));
+    dropZone.setAttribute('aria-disabled', String(!availability.editable || context.savingIds.size > 0));
     dropZone.textContent = availability.editable
         ? (role === 'gallery' ? 'Arrastra aquí una o varias imágenes' : 'Arrastra aquí un archivo compatible')
         : 'Carga bloqueada por paquete o sección';
@@ -239,11 +284,11 @@ function createRoleSection(role, snapshot, activity, storageStatus) {
     section.append(message);
     const list = document.createElement('div');
     list.className = role === 'gallery' ? 'media-gallery-list' : 'media-single-list';
-    assets.forEach((asset, index) => list.append(createAssetCard(asset, role, index, assets.length, storageStatus)));
+    assets.forEach((asset, index) => list.append(createAssetCard(asset, role, index, assets.length, context)));
     if (!assets.length) {
         const empty = document.createElement('p');
         empty.className = 'media-empty';
-        empty.textContent = 'Sin archivo configurado. La plantilla conserva su demo hasta que selecciones o elimines explícitamente este rol.';
+        empty.textContent = 'Sin archivo configurado. La plantilla conserva su demo hasta que este rol se guarde explícitamente.';
         list.append(empty);
     }
     section.append(list);
@@ -260,21 +305,48 @@ function metadataFromProcessed(role, sourceFile, processed, previewUrl = '') {
         height: processed.height,
         duration: processed.duration,
         alt: sourceFile.name.replace(/\.[^.]+$/, '').slice(0, 220),
-        caption: '',
-        previewUrl,
-        storagePath: '',
-        downloadUrl: '',
-        status: previewUrl ? 'ready' : 'local',
-        uploadProgress: 0,
-        error: ''
+        caption: '', previewUrl, storagePath: '', downloadUrl: '',
+        status: previewUrl ? 'ready' : 'local', uploadProgress: 0, error: ''
     };
 }
 
-export function initMediaEditor({ container, state }) {
+function friendlyPersistenceError(error) {
+    const code = String(error?.code || error?.message || 'storage/unknown');
+    if (code.includes('cancel')) return 'La subida fue cancelada. El preview local se conserva.';
+    if (code.includes('unauthenticated')) return 'La sesión expiró antes de guardar la multimedia.';
+    if (code.includes('permission-denied') || code.includes('unauthorized')) return 'Firebase rechazó la operación. Revisa claims y Rules.';
+    if (code.includes('path-outside') || code.includes('ownership')) return 'El archivo no pertenece a este evento y fue rechazado.';
+    if (code.includes('metadata')) return 'Storage terminó, pero Firestore rechazó la metadata. Se intentó eliminar el archivo nuevo.';
+    return 'No fue posible guardar este recurso. El preview local permanece disponible para reintentar.';
+}
+
+function waitForCloudPreview(asset, timeoutMs = 8000) {
+    if (!asset?.downloadUrl) return Promise.resolve(false);
+    return new Promise((resolve) => {
+        const node = document.createElement(asset.kind === 'image' ? 'img' : (asset.kind === 'video' ? 'video' : 'audio'));
+        const successEvent = asset.kind === 'image' ? 'load' : 'loadedmetadata';
+        const timer = setTimeout(() => finish(false), timeoutMs);
+        const finish = (ok) => {
+            clearTimeout(timer);
+            node.removeAttribute('src');
+            node.load?.();
+            resolve(ok);
+        };
+        node.addEventListener(successEvent, () => finish(true), { once: true });
+        node.addEventListener('error', () => finish(false), { once: true });
+        node.src = asset.downloadUrl;
+        if (asset.kind !== 'image') node.load();
+    });
+}
+
+export function initMediaEditor({ container, state, mediaService = invitationMediaService }) {
     if (!container || !state) return () => {};
     const registry = new MediaObjectUrlRegistry();
-    const storageStatus = getInvitationMediaStorageStatus();
+    const storageStatus = mediaService.getStatus();
     const activity = {};
+    const savingIds = new Set();
+    let persistedMedia = structuredClone(state.getSnapshot().draft.media);
+    let applyingPersistenceResult = false;
     let disposed = false;
 
     const render = (snapshot = state.getSnapshot()) => {
@@ -283,12 +355,29 @@ export function initMediaEditor({ container, state }) {
         const scrollTop = scroller?.scrollTop ?? 0;
         const fragment = document.createDocumentFragment();
         const notice = document.createElement('aside');
-        notice.className = 'media-storage-notice';
-        notice.innerHTML = '<strong>Preview local segura</strong><p></p>';
-        notice.querySelector('p').textContent = storageStatus.message;
+        notice.className = `media-storage-notice ${storageStatus.canUpload ? 'is-enabled' : 'is-pending'}`;
+        const noticeCopy = document.createElement('div');
+        const title = document.createElement('strong');
+        title.textContent = storageStatus.canUpload ? 'Persistencia multimedia' : 'Preview local segura';
+        const description = document.createElement('p');
+        description.textContent = storageStatus.message;
+        noticeCopy.append(title, description);
+        notice.append(noticeCopy);
+        if (storageStatus.canUpload) {
+            const controls = document.createElement('div');
+            controls.className = 'media-save-controls';
+            const summary = document.createElement('small');
+            summary.dataset.mediaUploadSummary = '';
+            const pending = [...registry.entries.keys()].filter((id) => !findAsset(state.getSnapshot().draft.media, id)?.storagePath).length;
+            summary.textContent = pending ? `${pending} archivo${pending === 1 ? '' : 's'} pendiente${pending === 1 ? '' : 's'}` : 'Metadata lista para sincronizar';
+            const save = button('Guardar multimedia', 'save-media', '', 'is-primary');
+            save.disabled = !snapshot.ui.mediaDirty || savingIds.size > 0;
+            controls.append(summary, save);
+            notice.append(controls);
+        }
         fragment.append(notice);
         ['cover', 'gallery', 'video', 'videoPoster', 'music'].forEach((role) => {
-            fragment.append(createRoleSection(role, snapshot, activity, storageStatus));
+            fragment.append(createRoleSection(role, snapshot, activity, { storageStatus, registry, savingIds }));
         });
         container.replaceChildren(fragment);
         if (scroller) scroller.scrollTop = scrollTop;
@@ -320,11 +409,11 @@ export function initMediaEditor({ container, state }) {
                 assetId = added.entity.id;
             }
             const previewUrl = registry.set(assetId, processed.file);
-            const currentAsset = state.getSnapshot().draft.media.gallery.find(({ id }) => id === assetId)
-                ?? ['cover', 'video', 'videoPoster', 'music'].map((key) => state.getSnapshot().draft.media[key]).find((asset) => asset?.id === assetId);
+            const currentAsset = findAsset(state.getSnapshot().draft.media, assetId);
+            const metadata = metadataFromProcessed(role, file, processed, previewUrl);
             const update = state.replaceMediaAsset(assetId, {
-                ...metadataFromProcessed(role, file, processed, previewUrl),
-                alt: replaceId ? currentAsset?.alt : metadataFromProcessed(role, file, processed).alt,
+                ...metadata,
+                alt: replaceId ? currentAsset?.alt : metadata.alt,
                 caption: replaceId ? currentAsset?.caption : '',
                 focalPoint: replaceId ? currentAsset?.focalPoint : { x: 50, y: 50 }
             });
@@ -342,10 +431,7 @@ export function initMediaEditor({ container, state }) {
         const files = [...sourceFiles];
         if (!files.length) return;
         if (role === 'gallery') {
-            if (replaceId) {
-                await processFile(files[0], role, replaceId);
-                return;
-            }
+            if (replaceId) return processFile(files[0], role, replaceId);
             const availableSlots = 20 - (state.getSnapshot().draft.media.gallery?.length ?? 0);
             if (files.length > availableSlots) showMessage(role, `Solo se procesarán ${availableSlots} archivos para respetar el límite técnico.`);
             for (const [index, file] of files.slice(0, availableSlots).entries()) {
@@ -359,18 +445,134 @@ export function initMediaEditor({ container, state }) {
         await processFile(files[0], role, replaceId || current?.id || '');
     };
 
-    const handleFileInput = async (input) => {
-        await handleFiles(input.dataset.mediaFile, input.files ?? [], input.dataset.replaceId ?? '');
+    const saveMedia = async (onlyAssetIds = null) => {
+        if (!storageStatus.canUpload || savingIds.size) return;
+        const ids = onlyAssetIds ? new Set(onlyAssetIds) : null;
+        const files = [...registry.entries]
+            .filter(([assetId]) => !ids || ids.has(assetId))
+            .map(([assetId, { file }]) => ({ assetId, file }));
+        files.forEach(({ assetId }) => savingIds.add(assetId));
+        render();
+        const before = state.getSnapshot().draft.media;
+        try {
+            const result = await mediaService.saveMedia({
+                eventId: state.getSnapshot().draft.eventId,
+                media: before,
+                persistedMedia,
+                files,
+                schemaVersion: state.getSnapshot().draft.schemaVersion,
+                concurrency: 3,
+                onProgress: ({ assetId, assetProgress, completed, total, state: uploadState }) => {
+                    const meter = container.querySelector(`[data-upload-meter="${assetId}"]`);
+                    const value = container.querySelector(`[data-upload-value="${assetId}"]`);
+                    const summary = container.querySelector('[data-media-upload-summary]');
+                    if (meter) {
+                        meter.value = assetProgress;
+                        meter.setAttribute('aria-label', `Subiendo: ${Math.round(assetProgress)}%`);
+                    }
+                    if (value) value.textContent = `${Math.round(assetProgress)}%`;
+                    if (summary && total) summary.textContent = `${completed} de ${total} subidas${uploadState === 'error' ? ' · revisa errores' : ''}`;
+                }
+            });
+            let runtimeMedia = structuredClone(result.media);
+            const transitioned = [];
+            for (const assetId of result.uploadedAssetIds) {
+                const uploaded = findAsset(runtimeMedia, assetId);
+                const cloudReady = await waitForCloudPreview(uploaded);
+                if (cloudReady) transitioned.push(assetId);
+                else if (uploaded && registry.get(assetId)) {
+                    runtimeMedia = replaceAsset(runtimeMedia, {
+                        ...uploaded,
+                        previewUrl: registry.get(assetId).previewUrl,
+                        status: 'error',
+                        error: 'El archivo se guardó, pero la vista cloud no pudo cargarse. Se conserva el preview local.'
+                    });
+                }
+            }
+            for (const { assetId, code } of result.uploadErrors) {
+                const local = findAsset(before, assetId);
+                if (local) runtimeMedia = replaceAsset(runtimeMedia, { ...local, status: 'error', error: friendlyPersistenceError({ code }) });
+            }
+            for (const asset of getAllMediaAssets(before)) {
+                if (!asset.storagePath && !result.uploadedAssetIds.includes(asset.id) && !result.uploadErrors.some(({ assetId }) => assetId === asset.id)) {
+                    runtimeMedia = replaceAsset(runtimeMedia, asset);
+                }
+            }
+            persistedMedia = structuredClone(result.media);
+            applyingPersistenceResult = true;
+            try {
+                state.hydrateMedia(runtimeMedia, { persisted: true });
+            } finally {
+                applyingPersistenceResult = false;
+            }
+            transitioned.forEach((assetId) => registry.revoke(assetId));
+            if (getAllMediaAssets(runtimeMedia).some((asset) => !asset.storagePath)) state.markMediaPending();
+            if (result.replacementCleanupFailures) {
+                const role = findAsset(before, result.uploadedAssetIds[0])?.role ?? 'cover';
+                showMessage(role, 'La nueva versión quedó guardada, pero un archivo reemplazado requiere limpieza futura.', 'warning');
+            }
+            for (const { assetId, code } of result.uploadErrors) {
+                showMessage(findAsset(before, assetId)?.role ?? 'cover', friendlyPersistenceError({ code }));
+            }
+        } catch (error) {
+            for (const assetId of savingIds) {
+                const asset = findAsset(state.getSnapshot().draft.media, assetId);
+                if (asset) state.updateMediaAsset(assetId, { status: 'error', error: friendlyPersistenceError(error) });
+            }
+            const role = findAsset(before, [...savingIds][0])?.role ?? 'cover';
+            render();
+            showMessage(role, friendlyPersistenceError(error));
+        } finally {
+            savingIds.clear();
+            render();
+        }
+    };
+
+    const removeAsset = async (assetId) => {
+        const snapshot = state.getSnapshot();
+        const current = findAsset(snapshot.draft.media, assetId);
+        const persisted = findAsset(persistedMedia, assetId);
+        if (!current) return;
+        if (persisted?.storagePath && storageStatus.canDelete) {
+            if (typeof window.confirm === 'function' && !window.confirm('¿Eliminar este archivo de Storage y de la multimedia guardada?')) return;
+            try {
+                const result = await mediaService.deleteAsset({
+                    eventId: snapshot.draft.eventId,
+                    asset: persisted,
+                    media: snapshot.draft.media,
+                    persistedMedia,
+                    schemaVersion: snapshot.draft.schemaVersion
+                });
+                persistedMedia = structuredClone(result.media);
+                const removed = state.removeMediaAsset(assetId);
+                if (removed.ok) registry.revoke(assetId);
+                state.markMediaPersisted();
+            } catch (error) {
+                if (error.metadataDeleted) {
+                    persistedMedia = withoutAsset(persistedMedia, assetId);
+                    const removed = state.removeMediaAsset(assetId);
+                    if (removed.ok) registry.revoke(assetId);
+                    state.markMediaPersisted();
+                }
+                render();
+                showMessage(current.role, error.metadataDeleted
+                    ? 'La referencia se eliminó correctamente, pero el archivo quedó huérfano en Storage y requiere limpieza futura.'
+                    : friendlyPersistenceError(error));
+            }
+            return;
+        }
+        const removed = state.removeMediaAsset(assetId);
+        if (removed.ok) registry.revoke(assetId);
     };
 
     const onChange = (event) => {
         const input = event.target.closest('[data-media-file]');
         if (input) {
-            void handleFileInput(input);
+            void handleFiles(input.dataset.mediaFile, input.files ?? [], input.dataset.replaceId ?? '');
             return;
         }
-        const field = event.target.closest('[data-media-field]');
-        if (field) state.updateMediaAsset(field.dataset.assetId, { [field.dataset.mediaField]: field.value });
+        const mediaField = event.target.closest('[data-media-field]');
+        if (mediaField) state.updateMediaAsset(mediaField.dataset.assetId, { [mediaField.dataset.mediaField]: mediaField.value });
         const focal = event.target.closest('[data-media-focal]');
         if (focal) state.updateMediaAsset(focal.dataset.assetId, { focalPoint: { [focal.dataset.mediaFocal]: Number(focal.value) } });
     };
@@ -379,13 +581,11 @@ export function initMediaEditor({ container, state }) {
         const action = event.target.closest('[data-media-action]');
         if (!action || action.disabled) return;
         const assetId = action.dataset.assetId;
-        if (action.dataset.mediaAction === 'remove') {
-            const removed = state.removeMediaAsset(assetId);
-            if (removed.ok) registry.revoke(assetId);
-        }
-        if (action.dataset.mediaAction === 'up' || action.dataset.mediaAction === 'down') {
-            state.moveGalleryAsset(assetId, action.dataset.mediaAction);
-        }
+        if (action.dataset.mediaAction === 'remove') void removeAsset(assetId);
+        if (action.dataset.mediaAction === 'up' || action.dataset.mediaAction === 'down') state.moveGalleryAsset(assetId, action.dataset.mediaAction);
+        if (action.dataset.mediaAction === 'upload') void saveMedia([assetId]);
+        if (action.dataset.mediaAction === 'save-media') void saveMedia();
+        if (action.dataset.mediaAction === 'cancel-upload') mediaService.cancelUpload(assetId);
     };
 
     const onDragOver = (event) => {
@@ -394,11 +594,7 @@ export function initMediaEditor({ container, state }) {
         event.preventDefault();
         zone.classList.add('is-dragover');
     };
-
-    const onDragLeave = (event) => {
-        event.target.closest('[data-media-drop]')?.classList.remove('is-dragover');
-    };
-
+    const onDragLeave = (event) => event.target.closest('[data-media-drop]')?.classList.remove('is-dragover');
     const onDrop = (event) => {
         const zone = event.target.closest('[data-media-drop]');
         if (!zone || zone.getAttribute('aria-disabled') === 'true') return;
@@ -406,15 +602,26 @@ export function initMediaEditor({ container, state }) {
         zone.classList.remove('is-dragover');
         void handleFiles(zone.dataset.mediaDrop, event.dataTransfer?.files ?? []);
     };
+    const onBeforeUnload = (event) => {
+        const media = state.getSnapshot().draft.media;
+        const hasLocalPending = [...registry.entries.keys()].some((assetId) => !findAsset(media, assetId)?.storagePath);
+        if (!hasLocalPending) return;
+        event.preventDefault();
+        event.returnValue = '';
+    };
 
     container.addEventListener('change', onChange);
     container.addEventListener('click', onClick);
     container.addEventListener('dragover', onDragOver);
     container.addEventListener('dragleave', onDragLeave);
     container.addEventListener('drop', onDrop);
+    window.addEventListener('beforeunload', onBeforeUnload);
     render();
     const unsubscribe = state.subscribe(({ snapshot, reason }) => {
-        if (['initialized', 'package-changed', 'sections-changed', 'media-changed'].includes(reason)) render(snapshot);
+        if (reason === 'initialized' || (reason === 'media-hydrated' && !applyingPersistenceResult)) {
+            persistedMedia = structuredClone(snapshot.draft.media);
+        }
+        if (['initialized', 'package-changed', 'sections-changed', 'media-changed', 'media-hydrated', 'media-persisted', 'media-pending'].includes(reason)) render(snapshot);
     }, { source: 'media-editor' });
     return () => {
         disposed = true;
@@ -424,6 +631,7 @@ export function initMediaEditor({ container, state }) {
         container.removeEventListener('dragover', onDragOver);
         container.removeEventListener('dragleave', onDragLeave);
         container.removeEventListener('drop', onDrop);
+        window.removeEventListener('beforeunload', onBeforeUnload);
         registry.revokeAll();
     };
 }

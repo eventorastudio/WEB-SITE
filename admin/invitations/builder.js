@@ -6,7 +6,7 @@ import { eventBus } from '../core/event-bus.js';
 import { EVENT_TYPES } from '../core/event-types.js';
 import { hasPermission, PERMISSIONS } from '../core/roles.js';
 import { initThemeManager } from '../core/theme-manager.js';
-import { builderState } from './core/builder-state.js?v=phase4-media-20260813';
+import { builderState } from './core/builder-state.js?v=phase4-media-persistence-20260814';
 import { createBuilderUrl, readBuilderRoute } from './core/builder-routing.js?v=phase3-logistics-20260813';
 import {
     BUILDER_DESKTOP_MIN_WIDTH,
@@ -17,7 +17,8 @@ import { createBuilderDebugLogger } from './core/builder-debug.js?v=phase3-logis
 import { initIdentityEditor } from './editors/identity-editor.js?v=phase3-logistics-20260813';
 import { initSectionCopyEditors } from './editors/section-copy-editor.js?v=phase3-logistics-20260813';
 import { initLogisticsEditors } from './editors/logistics-editor.js?v=phase3-logistics-20260813';
-import { initMediaEditor } from './editors/media-editor.js?v=phase4-media-gallery-replace-20260814';
+import { initMediaEditor } from './editors/media-editor.js?v=phase46-media-normalization-20260814';
+import { invitationMediaService } from './services/invitation-media-service.js?v=phase46-media-normalization-20260814';
 import { renderEventSelector } from './modules/event-selector.js?v=phase3-logistics-20260813';
 import { initPackageSelector } from './modules/package-selector.js?v=phase3-logistics-20260813';
 import { initThemeSelector } from './modules/theme-selector.js?v=phase3-logistics-20260813';
@@ -227,6 +228,15 @@ async function loadEvent(eventId) {
 
         adminState.setState('event', { id: eventId, data: eventData, stats: null, isLoaded: true });
         builderState.initialize(eventId, eventData);
+        if (invitationMediaService.getStatus().canUpload) {
+            dom.gateContent.innerHTML = '<div class="builder-empty-state"><strong>Restaurando multimedia…</strong><p>Resolviendo los archivos guardados para este evento.</p></div>';
+            try {
+                const persisted = await invitationMediaService.loadMedia(eventId);
+                if (persisted.exists) builderState.hydrateMedia(persisted.media, { persisted: true });
+            } catch (mediaError) {
+                debugBuilder.captureError('media-hydration-failed', mediaError, { eventId });
+            }
+        }
         eventBus.emit(EVENT_TYPES.BUILDER_EVENT_SELECTED, { eventId, timestamp: Date.now() });
         updateEventChrome(eventData);
         mountModules();
@@ -351,7 +361,9 @@ function bindStepper() {
 function syncDraftChrome(snapshot) {
     if (!snapshot.draft) return;
     dom.draftStatus.classList.toggle('is-dirty', snapshot.ui.isDirty);
-    dom.draftStatus.lastChild.textContent = snapshot.ui.isDirty ? ' Cambios locales' : ' Borrador local';
+    dom.draftStatus.lastChild.textContent = snapshot.ui.mediaDirty
+        ? ' Multimedia pendiente'
+        : (snapshot.ui.draftDirty ? ' Cambios locales' : ' Borrador local');
 }
 
 function assertBuilderRootInvariant(context) {
