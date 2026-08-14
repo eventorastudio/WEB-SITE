@@ -1,6 +1,6 @@
 import { PREVIEW_DEVICES, PREVIEW_MESSAGE_TYPES, isPreviewMessage } from '../core/builder-events.js?v=phase3-logistics-20260813';
 import { SECTION_REGISTRY, isSectionAllowed } from '../core/section-registry.js?v=phase3-logistics-20260813';
-import { createTemplateSectionContract } from '../core/template-binding-registry.js?v=phase3-logistics-20260813';
+import { createTemplateSectionContract } from '../core/template-binding-registry.js?v=phase4-media-20260813';
 import { getThemeById } from '../core/theme-registry.js?v=phase3-logistics-20260813';
 
 const CONTENT_UPDATE_DEBOUNCE_MS = 80;
@@ -73,6 +73,7 @@ export function initPreviewController({
                     contentSchemaVersion: snapshot.draft.contentSchemaVersion,
                     packageId: snapshot.draft.packageId,
                     content: snapshot.draft.content,
+                    media: snapshot.draft.media,
                     locations: snapshot.draft.locations,
                     itinerary: snapshot.draft.itinerary,
                     gifts: snapshot.draft.gifts,
@@ -80,7 +81,8 @@ export function initPreviewController({
                     links: snapshot.draft.links,
                     meta: {
                         touchedPaths: snapshot.draft.meta?.touchedPaths ?? [],
-                        touchedCollections: snapshot.draft.meta?.touchedCollections ?? []
+                        touchedCollections: snapshot.draft.meta?.touchedCollections ?? [],
+                        touchedMediaRoles: snapshot.draft.meta?.touchedMediaRoles ?? []
                     }
                 },
                 enabledSections: snapshot.draft.enabledSections.filter((sectionId) => (
@@ -216,7 +218,7 @@ export function initPreviewController({
 
     const unsubscribe = state.subscribe(({ snapshot, reason }) => {
         if (reason === 'preview-device-changed') syncDevice(snapshot);
-        if (['initialized', 'theme-changed', 'sections-changed', 'content-changed', 'entities-changed', 'package-changed'].includes(reason)) {
+        if (['initialized', 'theme-changed', 'sections-changed', 'content-changed', 'entities-changed', 'media-changed', 'package-changed'].includes(reason)) {
             sendSnapshot(snapshot, reason);
         }
     }, { source: 'preview-controller' });

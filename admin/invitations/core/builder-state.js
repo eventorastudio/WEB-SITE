@@ -8,8 +8,8 @@ import {
     createInvitationContent,
     getDraftValue,
     setDraftValue
-} from './content-schema.js?v=phase3-logistics-20260813';
-import { validateInvitationDraft } from './builder-validation.js?v=phase3-logistics-20260813';
+} from './content-schema.js?v=phase4-media-20260813';
+import { validateInvitationDraft } from './builder-validation.js?v=phase4-media-20260813';
 import {
     DRESS_COLOR_GROUPS,
     ENTITY_COLLECTIONS,
@@ -23,6 +23,12 @@ import {
     normalizeEntity,
     packageAllowsMultipleLocations
 } from './logistics-schema.js?v=phase3-logistics-20260813';
+import {
+    createEmptyInvitationMedia,
+    createMediaAsset,
+    getMediaRole,
+    getMediaRoleAvailability
+} from './media-schema.js?v=phase4-media-20260813';
 
 const PREVIEW_DEVICES = Object.freeze(['mobile', 'tablet', 'desktop']);
 const LEGACY_CONTENT_PATHS = Object.freeze({
@@ -68,7 +74,7 @@ export function createInvitationDraft(eventId, eventData = {}) {
         themeId: null,
         enabledSections: [],
         content: createInvitationContent(eventData),
-        media: { hero: null, gallery: [], audio: null, video: null },
+        media: createEmptyInvitationMedia(),
         locations: createInitialLocations(eventData),
         itinerary: [],
         gifts: [],
@@ -80,13 +86,15 @@ export function createInvitationDraft(eventId, eventData = {}) {
             packageSource: packageId ? 'event' : 'unselected',
             touchedPaths: [],
             touchedCollections: [],
+            touchedMediaRoles: [],
             entitySequences: {
                 location: 1,
                 itinerary: 0,
                 gift: 0,
                 accommodation: 0,
                 link: 0,
-                dressColor: 0
+                dressColor: 0,
+                media: 0
             },
             loadedAt: new Date().toISOString()
         }
@@ -318,6 +326,112 @@ export class InvitationBuilderState {
         return this._moveArrayEntity(this._draft?.content.dressCode[group], 'dressCodeColors', id, direction, { group });
     }
 
+    addMediaAsset(role, seed = {}) {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        const definition = getMediaRole(role);
+        if (!definition) return { ok: false, code: 'builder/unknown-media-role' };
+        const availability = getMediaRoleAvailability(role, this._draft.packageId, this._draft.enabledSections);
+        if (!availability.editable) return { ok: false, code: availability.packageAllowed ? 'builder/media-section-disabled' : 'builder/media-not-allowed' };
+        if (definition.multiple && this._draft.media.gallery.length >= definition.technicalMaxItems) {
+            return { ok: false, code: 'builder/media-gallery-limit' };
+        }
+        if (!definition.multiple && this._draft.media[role]) return { ok: false, code: 'builder/media-role-occupied' };
+
+        const previous = this.getSnapshot();
+        const id = this._nextMediaId();
+        const target = definition.multiple ? this._draft.media.gallery : null;
+        const asset = createMediaAsset(id, {
+            ...seed,
+            role,
+            sortOrder: definition.multiple ? target.length : 0
+        });
+        if (definition.multiple) target.push(asset);
+        else this._draft.media[role] = asset;
+        this._markMediaRoleTouched(role);
+        this._commitMediaChange(previous, role, 'add', id);
+        return { ok: true, changed: true, entity: cloneInvitationValue(asset) };
+    }
+
+    updateMediaAsset(id, patch = {}) {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        const found = this._findMediaAsset(id);
+        if (!found) return { ok: false, code: 'builder/media-not-found' };
+        const availability = getMediaRoleAvailability(found.asset.role, this._draft.packageId, this._draft.enabledSections);
+        if (!availability.editable) return { ok: false, code: availability.packageAllowed ? 'builder/media-section-disabled' : 'builder/media-not-allowed' };
+        const next = createMediaAsset(id, {
+            ...found.asset,
+            ...cloneInvitationValue(patch),
+            focalPoint: { ...found.asset.focalPoint, ...(patch.focalPoint ?? {}) },
+            role: found.asset.role,
+            sortOrder: found.asset.sortOrder
+        });
+        if (JSON.stringify(next) === JSON.stringify(found.asset)) return { ok: true, changed: false };
+        const previous = this.getSnapshot();
+        found.assign(next);
+        this._markMediaRoleTouched(next.role);
+        this._commitMediaChange(previous, next.role, 'update', id);
+        return { ok: true, changed: true, entity: cloneInvitationValue(next) };
+    }
+
+    replaceMediaAsset(id, seed = {}) {
+        const found = this._findMediaAsset(id);
+        if (!found) return { ok: false, code: 'builder/media-not-found' };
+        return this.updateMediaAsset(id, {
+            ...seed,
+            role: found.asset.role,
+            sortOrder: found.asset.sortOrder,
+            status: seed.status ?? 'ready',
+            error: seed.error ?? ''
+        });
+    }
+
+    removeMediaAsset(id) {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        const found = this._findMediaAsset(id);
+        if (!found) return { ok: false, code: 'builder/media-not-found' };
+        const availability = getMediaRoleAvailability(found.asset.role, this._draft.packageId, this._draft.enabledSections);
+        if (!availability.editable) return { ok: false, code: availability.packageAllowed ? 'builder/media-section-disabled' : 'builder/media-not-allowed' };
+        const previous = this.getSnapshot();
+        found.remove();
+        this._normalizeGalleryOrder();
+        this._markMediaRoleTouched(found.asset.role);
+        this._commitMediaChange(previous, found.asset.role, 'remove', id);
+        return { ok: true, changed: true, entity: cloneInvitationValue(found.asset) };
+    }
+
+    clearMediaRole(role) {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        const definition = getMediaRole(role);
+        if (!definition) return { ok: false, code: 'builder/unknown-media-role' };
+        const availability = getMediaRoleAvailability(role, this._draft.packageId, this._draft.enabledSections);
+        if (!availability.editable) return { ok: false, code: availability.packageAllowed ? 'builder/media-section-disabled' : 'builder/media-not-allowed' };
+        const previous = this.getSnapshot();
+        const removed = definition.multiple ? [...this._draft.media.gallery] : [this._draft.media[role]].filter(Boolean);
+        if (definition.multiple) this._draft.media.gallery = [];
+        else this._draft.media[role] = null;
+        this._markMediaRoleTouched(role);
+        this._commitMediaChange(previous, role, 'clear', null, { removedIds: removed.map(({ id }) => id) });
+        return { ok: true, changed: removed.length > 0, removedIds: removed.map(({ id }) => id) };
+    }
+
+    moveGalleryAsset(id, direction) {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        const availability = getMediaRoleAvailability('gallery', this._draft.packageId, this._draft.enabledSections);
+        if (!availability.editable) return { ok: false, code: availability.packageAllowed ? 'builder/media-section-disabled' : 'builder/media-not-allowed' };
+        if (!['up', 'down'].includes(direction)) return { ok: false, code: 'builder/invalid-move-direction' };
+        const items = this._draft.media.gallery;
+        const index = items.findIndex((item) => item.id === id);
+        if (index < 0) return { ok: false, code: 'builder/media-not-found' };
+        const target = direction === 'up' ? index - 1 : index + 1;
+        if (target < 0 || target >= items.length) return { ok: true, changed: false };
+        const previous = this.getSnapshot();
+        [items[index], items[target]] = [items[target], items[index]];
+        this._normalizeGalleryOrder();
+        this._markMediaRoleTouched('gallery');
+        this._commitMediaChange(previous, 'gallery', 'move', id, { direction });
+        return { ok: true, changed: true };
+    }
+
     setPreviewDevice(device) {
         if (!PREVIEW_DEVICES.includes(device)) return { ok: false, code: 'builder/unknown-device' };
         if (this._ui.previewDevice === device) return { ok: true, changed: false };
@@ -355,6 +469,52 @@ export class InvitationBuilderState {
         const touched = new Set(this._draft.meta.touchedCollections ?? []);
         touched.add(collection);
         this._draft.meta.touchedCollections = [...touched];
+    }
+
+    _nextMediaId() {
+        const sequences = this._draft.meta.entitySequences;
+        sequences.media = (sequences.media ?? 0) + 1;
+        return `MED-LOCAL-${String(sequences.media).padStart(3, '0')}`;
+    }
+
+    _markMediaRoleTouched(role) {
+        const touched = new Set(this._draft.meta.touchedMediaRoles ?? []);
+        touched.add(role);
+        this._draft.meta.touchedMediaRoles = [...touched];
+    }
+
+    _findMediaAsset(id) {
+        const media = this._draft?.media;
+        if (!media) return null;
+        const galleryIndex = media.gallery.findIndex((asset) => asset.id === id);
+        if (galleryIndex >= 0) {
+            const asset = media.gallery[galleryIndex];
+            return {
+                asset,
+                assign: (next) => { media.gallery[galleryIndex] = next; },
+                remove: () => { media.gallery.splice(galleryIndex, 1); }
+            };
+        }
+        for (const role of ['cover', 'video', 'videoPoster', 'music']) {
+            if (media[role]?.id !== id) continue;
+            const asset = media[role];
+            return {
+                asset,
+                assign: (next) => { media[role] = next; },
+                remove: () => { media[role] = null; }
+            };
+        }
+        return null;
+    }
+
+    _normalizeGalleryOrder() {
+        this._draft.media.gallery = this._draft.media.gallery.map((asset, sortOrder) => ({ ...asset, sortOrder }));
+    }
+
+    _commitMediaChange(previous, role, operation, id, details = {}) {
+        this._ui.validationErrors = validateInvitationDraft(this._draft);
+        this._markDirty();
+        this._notify('media-changed', previous, { role, operation, id, ...details });
     }
 
     _addEntity(collection, factory) {

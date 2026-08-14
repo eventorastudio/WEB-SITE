@@ -1,12 +1,13 @@
 import { PREVIEW_MESSAGE_TYPES } from '../core/builder-events.js?v=phase3-logistics-20260813';
-import { INVITATION_CONTENT_SCHEMA_VERSION, PREVIEW_SEMANTIC_FALLBACKS } from '../core/content-schema.js?v=phase3-logistics-20260813';
+import { INVITATION_CONTENT_SCHEMA_VERSION, PREVIEW_SEMANTIC_FALLBACKS } from '../core/content-schema.js?v=phase4-media-20260813';
 import { applyPreviewSectionVisibility } from '../core/preview-sections.js?v=phase3-logistics-20260813';
 import {
     applyTemplateContentBindings,
     applyPhase3ContentBindings,
+    applyPhase4ContentBindings,
     formatInvitationEventLine,
     prepareBuilderTemplate
-} from '../core/template-binding-registry.js?v=phase3-gifts-hotfix-20260813';
+} from '../core/template-binding-registry.js?v=phase4-media-20260813';
 
 const parentOrigin = window.location.origin;
 let activeThemeLinks = [];
@@ -75,6 +76,7 @@ function validatePayload(payload) {
     if (!payload.theme?.id || !payload.theme?.name) throw new Error('Tema no encontrado.');
     if (payload.theme.id !== 'custom' && !payload.theme.templatePath) throw new Error('La colección no tiene una plantilla disponible.');
     if (!payload.draft?.content || payload.draft.contentSchemaVersion !== INVITATION_CONTENT_SCHEMA_VERSION) throw new Error('Contrato de contenido no válido.');
+    if (!payload.draft.media || !Array.isArray(payload.draft.media.gallery)) throw new Error('Contrato multimedia no válido.');
     if (!Array.isArray(payload.enabledSections) || !Array.isArray(payload.sections)) throw new Error('Contrato de secciones no válido.');
     return payload;
 }
@@ -131,13 +133,21 @@ async function renderCustom(payload, requestId) {
     const note = document.createElement('p');
     note.className = 'custom-preview-note';
     note.textContent = 'La configuración visual avanzada del tema Personalizada se añadirá en una fase posterior.';
-    content.append(eyebrow, title, date, phrase, note);
+    const cover = document.createElement('img');
+    cover.className = 'custom-preview-cover';
+    cover.dataset.customMedia = 'cover';
+    cover.alt = '';
+    cover.hidden = true;
+    content.append(cover, eyebrow, title, date, phrase, note);
     card.append(content);
     [
         ['location', 'multiple-locations'],
         ['dress-code', 'dress-code'],
         ['itinerary', 'itinerary'],
-        ['gift-registry', 'gift-registry']
+        ['gift-registry', 'gift-registry'],
+        ['gallery', 'gallery'],
+        ['welcome-video', 'welcome-video'],
+        ['music', 'music']
     ].forEach(([sectionId, feature]) => {
         const section = document.createElement('section');
         section.className = 'custom-preview-section';
@@ -154,6 +164,7 @@ function applyPayload(payload) {
     if (payload.theme.id === 'custom') {
         applyCustomContent(payload.draft);
         applyPhase3ContentBindings(document, payload.theme.id, payload.draft);
+        applyPhase4ContentBindings(document, payload.theme.id, payload.draft);
     }
     else applyTemplateContentBindings(document, payload.theme.id, payload.draft);
     applySectionVisibility(payload.sections, payload.enabledSections, payload.sectionGroups);

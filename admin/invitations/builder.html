@@ -7,7 +7,7 @@
     <title>Invitation Builder | Eventora Studio</title>
     <link rel="icon" href="../assets/images/favicon.ico">
     <link rel="stylesheet" href="../assets/css/theme.css">
-    <link rel="stylesheet" href="./builder.css?v=phase3-logistics-20260813">
+    <link rel="stylesheet" href="./builder.css?v=phase4-media-20260813">
 </head>
 <body>
     <div class="builder-auth-guard" id="builder-auth-guard" role="status" aria-live="polite">
@@ -78,15 +78,15 @@
                     <button class="builder-step is-active" type="button" data-step-target="theme"><span>01</span>Tema</button>
                     <button class="builder-step" type="button" data-step-target="sections"><span>02</span>Secciones</button>
                     <button class="builder-step" type="button" data-step-target="information"><span>03</span>Información</button>
-                    <button class="builder-step" type="button" disabled><span>04</span>Multimedia <small>Próximamente</small></button>
+                    <button class="builder-step" type="button" data-step-target="media"><span>04</span>Multimedia</button>
                     <button class="builder-step" type="button" data-step-target="logistics"><span>05</span>Ubicaciones</button>
                     <button class="builder-step" type="button" disabled><span>06</span>Detalles <small>Próximamente</small></button>
                     <button class="builder-step" type="button" disabled><span>07</span>Apariencia <small>Próximamente</small></button>
                     <button class="builder-step" type="button" disabled><span>08</span>Revisión <small>Próximamente</small></button>
                 </nav>
                 <div class="phase-card">
-                    <span>FASE 3</span>
-                    <p>Logística configurable y preview en vivo. Sin guardado ni publicación.</p>
+                    <span>FASE 4</span>
+                    <p>Multimedia local-first y preview en vivo. Sin guardado ni publicación.</p>
                 </div>
             </aside>
 
@@ -147,6 +147,14 @@
                     </div>
                 </section>
 
+                <section class="builder-panel" id="builder-panel-media" data-builder-panel="media">
+                    <header class="panel-heading">
+                        <div><span class="panel-number">04</span><h2>Multimedia</h2></div>
+                        <p>Configura portada, galería, video y música con preview local inmediata. Los archivos no se guardan en Firestore ni se suben sin una configuración segura de Storage.</p>
+                    </header>
+                    <div class="phase4-media-editor" id="phase4-media-editor"></div>
+                </section>
+
                 <section class="builder-panel" id="builder-panel-logistics" data-builder-panel="logistics">
                     <header class="panel-heading">
                         <div><span class="panel-number">05</span><h2>Ubicaciones y detalles</h2></div>
@@ -157,7 +165,7 @@
 
                 <section class="future-foundations" aria-label="Módulos preparados para fases posteriores">
                     <span>Preparado para próximas fases</span>
-                    <p>Multimedia real, apariencia avanzada, RSVP, invitados, persistencia y publicación permanecen fuera de esta fase.</p>
+                    <p>Apariencia avanzada, RSVP, invitados, persistencia y publicación permanecen fuera de esta fase.</p>
                 </section>
             </section>
 
@@ -181,17 +189,17 @@
                     <iframe
                         id="invitation-preview-frame"
                         class="preview-frame"
-                        data-src="./preview/frame.html?v=phase3-gifts-hotfix-20260813"
+                        data-src="./preview/frame.html?v=phase4-media-20260813"
                         title="Vista previa de la invitación"
                         sandbox="allow-scripts allow-same-origin"
                     ></iframe>
                 </div>
-                <p class="preview-security-note">Modo Builder · enlaces externos, audio y formularios desactivados</p>
+                <p class="preview-security-note">Modo Builder · navegación externa y formularios interceptados; audio/video solo manual</p>
             </aside>
         </main>
     </div>
 
     <div id="toast-container" aria-live="polite"></div>
-    <script type="module" src="./builder.js?v=phase3-logistics-20260813"></script>
+    <script type="module" src="./builder.js?v=phase4-media-20260813"></script>
 </body>
 </html>

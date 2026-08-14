@@ -2,12 +2,27 @@ import {
     INVITATION_EDITABLE_FIELDS,
     getDraftValue,
     getTouchedDraftPaths
-} from './content-schema.js?v=phase3-logistics-20260813';
+} from './content-schema.js?v=phase4-media-20260813';
 import {
     GENERAL_INFORMATION_FIELDS,
     SECTION_EDITOR_REGISTRY
 } from './section-editor-registry.js?v=phase3-logistics-20260813';
 import { applyPhase3TemplateBindings } from './phase3-template-bindings.js?v=phase3-gifts-hotfix-20260813';
+import { applyPhase4MediaBindings } from './phase4-media-bindings.js?v=phase4-media-20260813';
+
+const MEDIA_ADAPTERS = Object.freeze({
+    aloha: Object.freeze({ cover: '.hero > img.demo-photo', gallery: '[data-prestige-feature~="gallery"]', video: '[data-prestige-feature~="welcome-video"]', music: '[data-prestige-feature~="music"]', variant: 'aloha' }),
+    luxury: Object.freeze({ cover: '.hero .hero-visual img', gallery: '[data-prestige-feature~="gallery"]', video: '[data-prestige-feature~="welcome-video"]', music: '[data-prestige-feature~="music"]', variant: 'luxury' }),
+    botanical: Object.freeze({ cover: '.hero .hero-art img', gallery: '[data-prestige-feature~="gallery"]', video: '[data-prestige-feature~="welcome-video"]', music: '[data-prestige-feature~="music"]', variant: 'botanical' }),
+    midnight: Object.freeze({ cover: '.hero > img', gallery: '[data-prestige-feature~="gallery"]', video: '[data-prestige-feature~="welcome-video"]', music: '[data-prestige-feature~="music"]', variant: 'midnight' }),
+    romance: Object.freeze({ cover: '.hero .portrait img', gallery: '[data-prestige-feature~="gallery"]', video: '[data-prestige-feature~="welcome-video"]', music: '[data-prestige-feature~="music"]', variant: 'romance' }),
+    minimal: Object.freeze({ cover: '.hero .hero-crop img', gallery: '[data-prestige-feature~="gallery"]', video: '[data-prestige-feature~="welcome-video"]', music: '[data-prestige-feature~="music"]', variant: 'minimal' }),
+    celestial: Object.freeze({ cover: '.hero > img', gallery: '[data-prestige-feature~="gallery"]', video: '[data-prestige-feature~="welcome-video"]', music: '[data-prestige-feature~="music"]', variant: 'celestial' }),
+    vintage: Object.freeze({ cover: '.hero .lead-photo img', gallery: '[data-prestige-feature~="gallery"]', video: '[data-prestige-feature~="welcome-video"]', music: '[data-prestige-feature~="music"]', variant: 'vintage' }),
+    garden: Object.freeze({ cover: '.hero .garden-depth img', gallery: '[data-prestige-feature~="gallery"]', video: '[data-prestige-feature~="welcome-video"]', music: '[data-prestige-feature~="music"]', variant: 'garden' }),
+    champagne: Object.freeze({ cover: '.hero .hero-photo img', gallery: '[data-prestige-feature~="gallery"]', video: '[data-prestige-feature~="welcome-video"]', music: '[data-prestige-feature~="music"]', variant: 'champagne' }),
+    'neon-party': Object.freeze({ cover: '.hero .flash-photo img', gallery: '[data-prestige-feature~="gallery"]', video: '[data-prestige-feature~="welcome-video"]', music: '[data-prestige-feature~="music"]', variant: 'neon' })
+});
 
 const adapters = {
     aloha: {
@@ -84,7 +99,11 @@ const adapters = {
 };
 
 export const TEMPLATE_BINDING_REGISTRY = Object.freeze(Object.fromEntries(
-    Object.entries(adapters).map(([themeId, adapter]) => [themeId, Object.freeze({ themeId, ...adapter })])
+    Object.entries(adapters).map(([themeId, adapter]) => [themeId, Object.freeze({
+        themeId,
+        ...adapter,
+        media: MEDIA_ADAPTERS[themeId]
+    })])
 ));
 
 const SECTION_BINDINGS = Object.freeze({
@@ -700,6 +719,7 @@ export function applyTemplateContentBindings(documentRoot, themeId, draft = {}) 
         applySectionBinding(documentRoot, adapter, sectionId, definition, draft, collisions);
     });
     applyPhase3TemplateBindings(documentRoot, adapter, draft);
+    applyPhase4MediaBindings(documentRoot, adapter, draft);
     bindAccessIdentity(documentRoot, draft, collisions);
     neutralizeEventSpecificDemoCopy(documentRoot);
     return { applied: true, themeId, collisions };
@@ -708,6 +728,20 @@ export function applyTemplateContentBindings(documentRoot, themeId, draft = {}) 
 export function applyPhase3ContentBindings(documentRoot, themeId, draft = {}) {
     const adapter = TEMPLATE_BINDING_REGISTRY[themeId] ?? { themeId: 'custom', phase3Variant: 'custom' };
     return applyPhase3TemplateBindings(documentRoot, adapter, draft);
+}
+
+export function applyPhase4ContentBindings(documentRoot, themeId, draft = {}) {
+    const adapter = TEMPLATE_BINDING_REGISTRY[themeId] ?? {
+        themeId: 'custom',
+        media: {
+            cover: '[data-custom-media="cover"]',
+            gallery: '[data-prestige-feature~="gallery"]',
+            video: '[data-prestige-feature~="welcome-video"]',
+            music: '[data-prestige-feature~="music"]',
+            variant: 'custom'
+        }
+    };
+    return applyPhase4MediaBindings(documentRoot, adapter, draft);
 }
 
 export function createTemplateSectionContract(themeId, sections = []) {

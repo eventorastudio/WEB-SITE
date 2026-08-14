@@ -1,0 +1,54 @@
+rules_version = '2';
+
+// PROPUESTA FASE 4 PARA REVISIÓN Y EMULATOR SUITE.
+// No está vinculada a firebase.json, no se desplegó y no demuestra el estado
+// de las Rules que pudiera tener un bucket remoto.
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isInvitationMediaEditor() {
+      return request.auth != null
+        && (
+          request.auth.token.role in ['CEO', 'ADMINISTRADOR', 'DISENADOR']
+          || request.auth.token.userRole in ['CEO', 'ADMINISTRADOR', 'DISENADOR']
+        );
+    }
+
+    function isAllowedRole(role) {
+      return role in ['cover', 'gallery', 'video', 'videoPoster', 'music'];
+    }
+
+    function isAllowedFileName(fileName) {
+      return fileName.matches('^MED-LOCAL-[0-9]{3,}\\.(jpg|png|webp|mp4|webm|mp3|m4a|aac|ogg)$');
+    }
+
+    function isAllowedTypeAndSize(role) {
+      return request.resource != null
+        && (
+          ((role == 'cover' || role == 'gallery' || role == 'videoPoster')
+            && request.resource.contentType.matches('^image/(jpeg|png|webp)$')
+            && request.resource.size <= 20 * 1024 * 1024)
+          || (role == 'video'
+            && request.resource.contentType.matches('^video/(mp4|webm)$')
+            && request.resource.size <= 80 * 1024 * 1024)
+          || (role == 'music'
+            && request.resource.contentType.matches('^audio/(mpeg|mp4|aac|ogg)$')
+            && request.resource.size <= 20 * 1024 * 1024)
+        );
+    }
+
+    match /eventos/{eventId}/invitacion/media/{role}/{fileName} {
+      allow read: if isInvitationMediaEditor();
+      allow create, update: if isInvitationMediaEditor()
+        && isAllowedRole(role)
+        && isAllowedFileName(fileName)
+        && isAllowedTypeAndSize(role);
+      allow delete: if isInvitationMediaEditor()
+        && isAllowedRole(role)
+        && isAllowedFileName(fileName);
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

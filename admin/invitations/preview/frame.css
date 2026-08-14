@@ -82,6 +82,7 @@ body.builder-preview-custom {
 .custom-preview::before { width: 240px; height: 240px; top: -150px; right: -100px; }
 .custom-preview::after { width: 190px; height: 190px; bottom: -120px; left: -80px; }
 .custom-preview-content { z-index: 1; display: grid; justify-items: center; gap: 13px; }
+.custom-preview-cover { width: min(100%, 34rem); height: clamp(15rem, 52vw, 29rem); margin-bottom: 0.8rem; border-radius: 14rem 14rem 1.4rem 1.4rem; object-fit: cover; }
 .custom-preview-eyebrow { color: #a47b42; font-size: 0.58rem; font-weight: 700; letter-spacing: 0.18em; }
 .custom-preview h1 { max-width: 420px; margin: 0; overflow-wrap: anywhere; font-family: "Cormorant Garamond", Georgia, serif; font-size: clamp(2.5rem, 12vw, 5.4rem); font-weight: 500; letter-spacing: 0; line-height: 0.88; }
 .custom-preview-date { margin: 3px 0 0; color: #6f675c; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; }
@@ -138,6 +139,28 @@ body.builder-preview-custom {
 .builder-phase3-romance { --phase3-accent: #7b2435; --phase3-surface: rgba(255,246,244,0.85); --phase3-line: rgba(123,36,53,0.25); }
 .builder-phase3-aloha { --phase3-accent: #ef7e55; --phase3-surface: rgba(244,255,251,0.88); --phase3-line: rgba(8,59,75,0.22); }
 
+.builder-phase4-gallery { position: relative; z-index: 3; width: min(100%, 76rem); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: clamp(0.75rem, 2.5vw, 1.4rem); margin: clamp(1.4rem, 4vw, 3rem) auto 0; padding-inline: clamp(1rem, 4vw, 3rem); }
+.builder-phase4-gallery-item { min-width: 0; margin: 0; overflow: hidden; background: rgba(255,255,255,0.08); }
+.builder-phase4-gallery-item img { width: 100%; aspect-ratio: 4 / 5; display: block; object-fit: cover; }
+.builder-phase4-gallery-item figcaption { padding: 0.7rem 0.8rem; font-size: clamp(0.66rem, 1.8vw, 0.82rem); line-height: 1.45; opacity: 0.78; overflow-wrap: anywhere; }
+.builder-phase4-gallery-luxury .builder-phase4-gallery-item,
+.builder-phase4-gallery-minimal .builder-phase4-gallery-item,
+.builder-phase4-gallery-neon .builder-phase4-gallery-item { border-radius: 0; }
+.builder-phase4-gallery-garden .builder-phase4-gallery-item,
+.builder-phase4-gallery-botanical .builder-phase4-gallery-item { border-radius: 8rem 8rem 1rem 1rem; }
+.builder-phase4-gallery-romance .builder-phase4-gallery-item,
+.builder-phase4-gallery-champagne .builder-phase4-gallery-item { border-radius: 999px 999px 1rem 1rem; }
+.builder-phase4-gallery-aloha .builder-phase4-gallery-item { border-radius: 1.2rem; transform: rotate(-1deg); }
+.builder-phase4-gallery-aloha .builder-phase4-gallery-item:nth-child(even) { transform: rotate(1deg); }
+.builder-phase4-video { position: relative; z-index: 3; width: min(calc(100% - 2rem), 68rem); margin: clamp(1.5rem, 5vw, 3rem) auto 0; }
+.builder-phase4-video video { width: 100%; max-height: min(72vh, 44rem); display: block; border: 0; border-radius: clamp(0.5rem, 2vw, 1.3rem); background: #080808; object-fit: contain; }
+.builder-phase4-video-luxury video,
+.builder-phase4-video-minimal video,
+.builder-phase4-video-neon video { border-radius: 0; }
+.builder-phase4-music { position: relative; z-index: 3; width: min(calc(100% - 2rem), 32rem); margin: clamp(1.2rem, 4vw, 2.5rem) auto 0; }
+.builder-phase4-music audio { width: 100%; display: block; }
+[data-builder-media-state="cleared"] { min-height: 0; }
+
 .builder-action-notice-overlay { position: fixed; z-index: 100000; inset: 0; display: grid; place-items: center; padding: 1.2rem; background: rgba(16,14,12,0.58); backdrop-filter: blur(6px); }
 .builder-action-notice { width: min(100%, 23rem); padding: 1.7rem; border: 1px solid rgba(167,125,67,0.38); border-radius: 1rem; background: #fffdf8; color: #1b1814; box-shadow: 0 1.5rem 4rem rgba(0,0,0,0.25); text-align: center; }
 .builder-action-notice span { color: #a47b42; font-size: 0.58rem; font-weight: 700; letter-spacing: 0.14em; }
@@ -152,4 +175,7 @@ body.builder-preview-custom {
     .builder-phase3-timeline-item { grid-template-columns: 3.65rem minmax(0, 1fr); gap: 0 0.65rem; padding-left: 0.9rem; }
     .builder-phase3-actions { align-items: stretch; }
     .builder-phase3-action { flex: 1 1 7rem; }
+    .builder-phase4-gallery { grid-template-columns: minmax(0, 1fr); padding-inline: 1rem; }
+    .builder-phase4-gallery-item { width: 100%; transform: none !important; }
+    .builder-phase4-video { width: calc(100% - 2rem); }
 }

@@ -1,6 +1,6 @@
 import { createLocation } from './logistics-schema.js?v=phase3-logistics-20260813';
 
-export const INVITATION_DRAFT_SCHEMA_VERSION = 4;
+export const INVITATION_DRAFT_SCHEMA_VERSION = 5;
 export const INVITATION_CONTENT_SCHEMA_VERSION = 2;
 
 const FIELD_DEFINITIONS = [

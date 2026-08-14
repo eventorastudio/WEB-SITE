@@ -1,6 +1,7 @@
-import { getDraftValue } from './content-schema.js?v=phase3-logistics-20260813';
+import { getDraftValue } from './content-schema.js?v=phase4-media-20260813';
 import { DRESS_COLOR_GROUPS } from './logistics-schema.js?v=phase3-logistics-20260813';
 import { normalizeWhatsAppPhone, safeUrlError } from './safe-url.js?v=phase3-logistics-20260813';
+import { getAllMediaAssets, validateMediaAsset } from './media-schema.js?v=phase4-media-20260813';
 
 function isExactDate(value) {
     const match = String(value ?? '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -68,6 +69,7 @@ export function validateInvitationDraft(draft = {}) {
             }
         });
     });
+    validateMedia(draft, errors);
 
     return Object.freeze(errors);
 }
@@ -100,6 +102,24 @@ function validateEntityIds(draft, errors) {
             else if (seen.has(entity.id)) errors[path] = 'El ID local está duplicado.';
             else seen.add(entity.id);
         });
+    });
+}
+
+function validateMedia(draft, errors) {
+    const media = draft.media ?? {};
+    validateMediaAsset(media.cover, 'cover', errors, 'media.cover');
+    (media.gallery ?? []).forEach((asset, index) => validateMediaAsset(asset, 'gallery', errors, `media.gallery.${asset?.id || index}`));
+    validateMediaAsset(media.video, 'video', errors, 'media.video');
+    validateMediaAsset(media.videoPoster, 'videoPoster', errors, 'media.videoPoster');
+    validateMediaAsset(media.music, 'music', errors, 'media.music');
+
+    const seen = new Set();
+    getAllMediaAssets(media).forEach((asset) => {
+        if (seen.has(asset.id)) errors[`media.${asset.role}.${asset.id}.id`] = 'El ID del recurso está duplicado.';
+        seen.add(asset.id);
+        if (asset.previewUrl && !String(asset.previewUrl).startsWith('blob:')) {
+            errors[`media.${asset.role}.${asset.id}.previewUrl`] = 'La URL temporal local no es válida.';
+        }
     });
 }
 

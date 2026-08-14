@@ -66,10 +66,10 @@ function distinctiveValues() {
     }));
 }
 
-test('schema v4 distingue untouched, value y explicit clear sin persistencia', () => {
+test('schema v5 distingue untouched, value y explicit clear sin persistencia', () => {
     const state = new InvitationBuilderState();
     state.initialize('EVT-0001', { nombreEvento: 'Evento real', paquete: 'Prestige' });
-    assert.equal(INVITATION_DRAFT_SCHEMA_VERSION, 4);
+    assert.equal(INVITATION_DRAFT_SCHEMA_VERSION, 5);
     assert.deepEqual(state.getSnapshot().draft.meta.touchedPaths, []);
 
     const firstEmpty = state.updateDraftField('content.welcome.eyebrow', '');

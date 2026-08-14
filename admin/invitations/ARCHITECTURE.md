@@ -1,12 +1,13 @@
-# Invitation Builder · Arquitectura de Fases 1, 2, 2.1 y 3
+# Invitation Builder · Arquitectura de Fases 1 a 4
 
 ## Alcance
 
-Las fases 1, 2, 2.1 y 3 implementan una aplicación administrativa dedicada para
+Las fases 1, 2, 2.1, 3 y 4 implementan una aplicación administrativa dedicada para
 seleccionar un evento existente, paquete, colección y secciones; editar contenido
-canónico y logística estructurada por módulo; y comprobar el resultado en una preview real. El draft vive
-únicamente en memoria. No existe autosave, publicación, Storage ni escritura de
-configuraciones en Firestore.
+canónico, logística y multimedia estructurada por rol; y comprobar el resultado en una preview real. El draft vive
+únicamente en memoria. No existe autosave, publicación ni escritura de configuraciones en Firestore.
+Multimedia usa object URLs locales. Storage remoto permanece bloqueado hasta que
+existan integración, Rules y App Check verificados.
 
 Ruta final: `/admin/invitations/builder.html?event={documentId}`.
 
@@ -51,6 +52,15 @@ contrato de `admin/core/state.js` excluye explícitamente drafts de formularios.
 `admin/firebase.js` inicializa una sola app con Firebase Auth, Firestore y App
 Check/reCAPTCHA. El Builder importa servicios existentes, por lo que no duplica
 ni modifica `firebaseConfig`, Auth o App Check.
+
+Auditoría Fase 4: `firebaseConfig` referencia un nombre de bucket, pero el módulo
+no importa `firebase/storage`, no exporta `getStorage` y el repositorio no contiene
+Rules operativas ni configuración Firebase CLI. El diagnóstico administrativo ya
+reportaba Storage como no inicializado. La clasificación segura es **bucket
+referenciado, integración ausente, Rules ausentes y disponibilidad remota no
+verificada**. Por eso `invitation-media-service.js` expone `canUpload: false` y no
+realiza operaciones remotas. La propuesta `storage.rules.proposed` y los pasos de
+`STORAGE_SETUP.md` no están desplegados.
 
 La propuesta local `firestore.rules.proposed` (no enlazada a `firebase.json` y
 no necesariamente desplegada) define:
@@ -359,7 +369,7 @@ una sección oculta el editor y el preview, pero nunca borra su contenido.
 
 ```js
 {
-  schemaVersion: 4,
+  schemaVersion: 5,
   contentSchemaVersion: 2,
   eventId,
   packageId: null | 'esencial' | 'premium' | 'prestige',
@@ -382,7 +392,14 @@ una sección oculta el editor y el preview, pero nunca borra su contenido.
     itinerary: { title, intro },
     access: { title, message }
   },
-  media: { hero, gallery, audio, video },
+  media: {
+    schemaVersion: 1,
+    cover: null | mediaAsset,
+    gallery: mediaAsset[],
+    video: null | mediaAsset,
+    videoPoster: null | mediaAsset,
+    music: null | mediaAsset
+  },
   locations: [],
   itinerary: [],
   gifts: [],
@@ -390,7 +407,7 @@ una sección oculta el editor y el preview, pero nunca borra su contenido.
   links: [],
   appearance: {},
   settings: { renderMode: 'builder' },
-  meta: { packageSource, loadedAt, touchedPaths: [], touchedCollections: [], entitySequences: {} }
+  meta: { packageSource, loadedAt, touchedPaths: [], touchedCollections: [], touchedMediaRoles: [], entitySequences: {} }
 }
 ```
 
@@ -408,6 +425,66 @@ cambio. `touchedPaths` permanece local y no introduce persistencia.
 Las validaciones de nombre, fecha, hora y deadline actualizan `ui.validationErrors`
 sin bloquear la edición. Un snapshot de estado es una copia profunda: un módulo
 consumidor no puede mutar el draft central por referencia.
+
+### Multimedia Contract · Fase 4
+
+`draft.media` es la única fuente canónica de metadata. No guarda archivos. Cada
+asset usa un ID estable `MED-LOCAL-001` y este contrato:
+
+```js
+{
+  id,
+  role: 'cover' | 'gallery' | 'video' | 'videoPoster' | 'music',
+  kind: 'image' | 'video' | 'audio',
+  originalName,
+  mimeType,
+  size,
+  width,
+  height,
+  duration,
+  alt,
+  caption,
+  storagePath,
+  downloadUrl,
+  previewUrl,       // efímera, blob:, excluida de una persistencia futura
+  status: 'local' | 'processing' | 'ready' | 'uploading' | 'uploaded' | 'error',
+  uploadProgress,
+  error,
+  focalPoint: { x, y },
+  sortOrder
+}
+```
+
+El archivo procesado vive en `MediaObjectUrlRegistry`, fuera del draft. El
+registro crea object URLs y las revoca al reemplazar, eliminar o destruir el
+editor. El payload del iframe recibe únicamente strings y metadata serializable.
+No existe File/Blob, Base64 ni Data URL en state, Firestore o mensajes.
+
+La selección valida límite de bytes, MIME declarado, firma mágica y decode real.
+SVG, HEIC, HTML, JavaScript y ejecutables quedan fuera de la allowlist. Imágenes
+se decodifican con orientación aplicada, se limitan a 40 MP y se reencodan en
+canvas para retirar EXIF/metadata: PNG conserva alpha; JPEG/WebP producen WebP
+calidad 0.88. Cover limita el lado largo a 2400 px; galería/poster a 1920 px.
+Video y audio sólo validan metadata en navegador; no hay transcodificación pesada.
+
+Capacidades derivadas del contrato comercial:
+
+- `cover`: Diseño personalizado, disponible desde Esencial.
+- `music`: Música personalizada, disponible desde Esencial y ligada a la sección.
+- `video`/`videoPoster`: Video de bienvenida, Premium y Prestige.
+- `gallery`: Galería, Premium y Prestige. Máximo técnico local: 20 imágenes; no
+  constituye promesa comercial.
+
+Cambiar tema no recrea archivos. Desactivar sección o bajar paquete no elimina
+metadata ni object URLs; los controles quedan bloqueados y el contenido reaparece
+al restaurar capacidad/sección. Sólo una eliminación explícita borra el asset.
+Reemplazar conserva ID y posición; mover galería normaliza `sortOrder`.
+
+`TEMPLATE_BINDING_REGISTRY` contiene un adapter multimedia explícito para las once
+colecciones. `phase4-media-bindings.js` aplica portada/punto focal, galería, video,
+poster y audio sobre el DOM aislado. Untouched conserva media demo; configured la
+reemplaza; explicit cleared la oculta. Audio y video tienen controles, `preload`
+de metadata y nunca `autoplay`.
 
 ### Location Contract
 
@@ -612,8 +689,9 @@ preview de producción ni permite CTAs externos.
 El frame rechaza mensajes con schema incompatible y conserva el último DOM válido.
 Cada respuesta incluye `requestId`, de modo que el controlador puede ignorar
 confirmaciones obsoletas. El countdown se recalcula desde `content.schedule`.
-En Fase 3 el payload incluye `packageId`, `locations`, `itinerary`, `gifts`,
-`accommodations`, `links`, `touchedPaths` y `touchedCollections`. Los arrays son
+En Fase 4 el payload incluye `packageId`, `media`, `locations`, `itinerary`, `gifts`,
+`accommodations`, `links`, `touchedPaths`, `touchedCollections` y
+`touchedMediaRoles`. Los arrays son
 pequeños y viajan completos; no se implementó un diff engine. Los once adapters
 declaran una variante Fase 3 y consumen las mismas entidades sin guardar estilos
 en el draft. Personalizada utiliza el mismo contrato con una composición base.
@@ -659,17 +737,19 @@ Las publicaciones/versiones inmutables pueden vivir en
 `eventos/{eventId}/invitacionVersiones/{versionId}`. La publicación debe copiar
 un snapshot validado, no usar el draft mutable como release en vivo.
 
-Multimedia futura: Firebase Storage bajo un prefijo ligado al evento, por
-ejemplo `eventos/{eventId}/invitacion/...`; Firestore conserva URL, path,
-dimensiones, MIME, tamaño, alt y estado de procesamiento. **Nunca se guardarán
-imágenes, audio o video Base64 dentro del documento Firestore.**
+La capa futura de upload usará Firebase Storage bajo
+`eventos/{eventId}/invitacion/media/{role}/{mediaId}.{ext}`; Firestore conservará
+URL, path, dimensiones, MIME, tamaño, alt y estado. **Nunca se guardarán imágenes,
+audio o video Base64 dentro del documento Firestore.** La preparación actual está
+bloqueada hasta completar los pasos de `STORAGE_SETUP.md`.
 
 ## Riesgos y pendientes
 
 - No existe paquete en el contrato actual de creación de eventos.
 - Las Rules propuestas no cubren aún `invitacion` ni `invitacionVersiones`.
-- Los adapters neutralizan el copy hardcodeado en Builder. Multimedia real,
-  RSVP, invitados, appearance avanzada y publicación siguen fuera de alcance.
+- Los adapters neutralizan el copy hardcodeado en Builder. Upload remoto,
+  thumbnails server-side, transcodificación, RSVP, invitados, appearance avanzada
+  y publicación siguen fuera de alcance.
 - `admin/dashboard.js` todavía accede a Firestore directamente; no se reescribió
   por no ampliar el alcance.
 - El editor legacy oculto y `themes` continúan existiendo para compatibilidad;
@@ -685,7 +765,8 @@ imágenes, audio o video Base64 dentro del documento Firestore.**
    en vivo sin mezcla de copy demo configurado.
 2. Fase 3 completada: ubicaciones, itinerario, Dress Code avanzado, regalos,
    un hospedaje, enlaces, URLs seguras y adapters de preview.
-3. Fase 4: Storage y flujo multimedia optimizado/licenciado.
+3. Fase 4 completada: Media Manager local-first, optimización, adapters y
+   preparación segura de Storage sin habilitar escrituras remotas.
 4. Fase 5: RSVP, selección de pases y configuración de acceso enlazada a
    invitados existentes.
 5. Fase 6: appearance avanzada y editor del tema Personalizada.
@@ -693,4 +774,4 @@ imágenes, audio o video Base64 dentro del documento Firestore.**
 7. Fase 8: validación, snapshot publicado y URL de producción.
 8. Fase 9: edición post-publicación, versiones, rollback y auditoría.
 
-No se implementó Fase 4 ni ninguna fase posterior en este cambio.
+No se implementó Fase 5 ni ninguna fase posterior en este cambio.
