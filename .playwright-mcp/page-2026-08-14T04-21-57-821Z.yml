@@ -1,0 +1,658 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "Volver al Dashboard" [ref=e5] [cursor=pointer]:
+        - /url: ../dashboard.html
+        - text: ←
+      - img "Eventora Studio" [ref=e6]
+      - generic [ref=e8]:
+        - strong [ref=e9]: Invitation Builder
+        - generic [ref=e10]: María & Fernando · MARIA-FERNANDO
+    - generic [ref=e11]:
+      - generic [ref=e12]: Cambios locales
+      - button "Guardar borrador · Próximamente" [disabled] [ref=e14]
+  - main [ref=e24]:
+    - complementary "Etapas del Builder" [ref=e25]:
+      - generic [ref=e26]:
+        - generic [ref=e27]: Flujo
+        - strong [ref=e28]: Producción
+      - navigation [ref=e29]:
+        - button "01 Tema" [ref=e30] [cursor=pointer]:
+          - generic [ref=e31]: "01"
+          - text: Tema
+        - button "02 Secciones" [ref=e32] [cursor=pointer]:
+          - generic [ref=e33]: "02"
+          - text: Secciones
+        - button "03 Información" [ref=e34] [cursor=pointer]:
+          - generic [ref=e35]: "03"
+          - text: Información
+        - button "04 Multimedia" [active] [ref=e36] [cursor=pointer]:
+          - generic [ref=e37]: "04"
+          - text: Multimedia
+        - button "05 Ubicaciones" [ref=e38] [cursor=pointer]:
+          - generic [ref=e39]: "05"
+          - text: Ubicaciones
+        - button "06 Detalles Próximamente" [disabled] [ref=e40]:
+          - generic [ref=e41]: "06"
+          - text: Detalles
+          - generic [ref=e42]: Próximamente
+        - button "07 Apariencia Próximamente" [disabled] [ref=e43]:
+          - generic [ref=e44]: "07"
+          - text: Apariencia
+          - generic [ref=e45]: Próximamente
+        - button "08 Revisión Próximamente" [disabled] [ref=e46]:
+          - generic [ref=e47]: "08"
+          - text: Revisión
+          - generic [ref=e48]: Próximamente
+      - generic [ref=e49]:
+        - text: FASE 4
+        - paragraph [ref=e50]: Multimedia local-first y preview en vivo. Sin guardado ni publicación.
+    - generic [ref=e51]:
+      - generic [ref=e52]:
+        - generic [ref=e53]:
+          - generic [ref=e54]: EVENTO ACTIVO
+          - strong [ref=e55]: María & Fernando
+          - generic [ref=e56]: 2027-11-15 · Saltillo · MARIA-FERNANDO
+        - generic [ref=e57]:
+          - generic [ref=e58]: Paquete de la invitación
+          - combobox "Paquete de la invitación Selección local; no se guarda todavía." [ref=e59]:
+            - option "Selecciona un paquete" [disabled]
+            - option "Esencial"
+            - option "Premium"
+            - option "Prestige" [selected]
+          - generic [ref=e60]: Selección local; no se guarda todavía.
+      - generic [ref=e61]:
+        - generic [ref=e62]:
+          - generic [ref=e63]:
+            - generic [ref=e64]: "01"
+            - heading "Elige una colección" [level=2] [ref=e65]
+          - paragraph [ref=e66]: La colección define la presentación. Tu contenido permanece intacto al cambiarla.
+        - generic [ref=e67]:
+          - button "Aloha XV años · Celebraciones Color tropical, energía de resort y celebración junto al agua." [ref=e68] [cursor=pointer]:
+            - generic [ref=e70]:
+              - strong [ref=e71]: Aloha
+              - generic [ref=e72]: XV años · Celebraciones
+              - generic [ref=e73]: Color tropical, energía de resort y celebración junto al agua.
+          - button "Luxury Bodas · Celebraciones Editorial black-tie con contraste oscuro y detalles dorados." [ref=e74] [cursor=pointer]:
+            - generic [ref=e76]:
+              - strong [ref=e77]: Luxury
+              - generic [ref=e78]: Bodas · Celebraciones
+              - generic [ref=e79]: Editorial black-tie con contraste oscuro y detalles dorados.
+          - button "Botanical Bodas · Celebraciones Papel fino, eucalipto y una estética orgánica editorial." [ref=e80] [cursor=pointer]:
+            - generic [ref=e82]:
+              - strong [ref=e83]: Botanical
+              - generic [ref=e84]: Bodas · Celebraciones
+              - generic [ref=e85]: Papel fino, eucalipto y una estética orgánica editorial.
+          - button "Midnight XV años · Celebraciones Azul profundo, luces y ritmo visual después del anochecer." [ref=e86] [cursor=pointer]:
+            - generic [ref=e88]:
+              - strong [ref=e89]: Midnight
+              - generic [ref=e90]: XV años · Celebraciones
+              - generic [ref=e91]: Azul profundo, luces y ritmo visual después del anochecer.
+          - button "Romance Bodas Cartas, tonos vino y narrativa íntima para una historia de amor." [ref=e92] [cursor=pointer]:
+            - generic [ref=e94]:
+              - strong [ref=e95]: Romance
+              - generic [ref=e96]: Bodas
+              - generic [ref=e97]: Cartas, tonos vino y narrativa íntima para una historia de amor.
+          - button "Minimal Bodas · XV años · Celebraciones Tipografía precisa, blanco y negro, y espacio negativo." [ref=e98] [cursor=pointer]:
+            - generic [ref=e100]:
+              - strong [ref=e101]: Minimal
+              - generic [ref=e102]: Bodas · XV años · Celebraciones
+              - generic [ref=e103]: Tipografía precisa, blanco y negro, y espacio negativo.
+          - button "Celestial Bodas Luz lunar, constelaciones y una atmósfera azul tinta." [ref=e104] [cursor=pointer]:
+            - generic [ref=e106]:
+              - strong [ref=e107]: Celestial
+              - generic [ref=e108]: Bodas
+              - generic [ref=e109]: Luz lunar, constelaciones y una atmósfera azul tinta.
+          - button "Vintage Bodas · XV años · Celebraciones Papel, película y memoria analógica en una edición clásica." [ref=e110] [cursor=pointer]:
+            - generic [ref=e112]:
+              - strong [ref=e113]: Vintage
+              - generic [ref=e114]: Bodas · XV años · Celebraciones
+              - generic [ref=e115]: Papel, película y memoria analógica en una edición clásica.
+          - button "Garden Bodas Una celebración floral entre pérgolas, fuentes y primavera." [ref=e116] [cursor=pointer]:
+            - generic [ref=e118]:
+              - strong [ref=e119]: Garden
+              - generic [ref=e120]: Bodas
+              - generic [ref=e121]: Una celebración floral entre pérgolas, fuentes y primavera.
+          - button "Seleccionado Champagne Bodas · Celebraciones Seda, cristal y lujo luminoso en una edición cálida." [pressed] [ref=e122] [cursor=pointer]:
+            - generic [ref=e124]: Seleccionado
+            - generic [ref=e125]:
+              - strong [ref=e126]: Champagne
+              - generic [ref=e127]: Bodas · Celebraciones
+              - generic [ref=e128]: Seda, cristal y lujo luminoso en una edición cálida.
+          - button "Neon Party XV años · Celebraciones Flash, póster y energía de club para una noche protagonista." [ref=e129] [cursor=pointer]:
+            - generic [ref=e131]:
+              - strong [ref=e132]: Neon Party
+              - generic [ref=e133]: XV años · Celebraciones
+              - generic [ref=e134]: Flash, póster y energía de club para una noche protagonista.
+          - button "Aa Personalizada Base flexible · Fase futura Crea una identidad visual desde una base flexible." [ref=e135] [cursor=pointer]:
+            - generic [ref=e136]: Aa
+            - generic [ref=e138]:
+              - strong [ref=e139]: Personalizada
+              - generic [ref=e140]: Base flexible · Fase futura
+              - generic [ref=e141]: Crea una identidad visual desde una base flexible.
+      - generic [ref=e142]:
+        - generic [ref=e143]:
+          - generic [ref=e144]:
+            - generic [ref=e145]: "02"
+            - heading "Secciones disponibles" [level=2] [ref=e146]
+          - paragraph [ref=e147]: Activa solo lo que necesita esta invitación. Los permisos provienen del paquete.
+        - paragraph [ref=e148]: 3 de 13 secciones disponibles activas.
+        - generic [ref=e149]:
+          - generic [ref=e150] [cursor=pointer]:
+            - checkbox "Bienvenida e historia Narrativa introductoria propia de cada colección. Disponible"
+            - generic [ref=e152]:
+              - strong [ref=e153]: Bienvenida e historia
+              - generic [ref=e154]: Narrativa introductoria propia de cada colección.
+            - generic [ref=e155]: Disponible
+          - generic [ref=e156] [cursor=pointer]:
+            - checkbox "Cuenta regresiva Tiempo restante hasta el evento. Disponible"
+            - generic [ref=e158]:
+              - strong [ref=e159]: Cuenta regresiva
+              - generic [ref=e160]: Tiempo restante hasta el evento.
+            - generic [ref=e161]: Disponible
+          - generic [ref=e162] [cursor=pointer]:
+            - checkbox "Ubicación y mapa Lugar principal y acceso a Google Maps. Disponible"
+            - generic [ref=e164]:
+              - strong [ref=e165]: Ubicación y mapa
+              - generic [ref=e166]: Lugar principal y acceso a Google Maps.
+            - generic [ref=e167]: Disponible
+          - generic [ref=e168] [cursor=pointer]:
+            - checkbox "Dress Code Código de vestimenta y guía visual. Disponible"
+            - generic [ref=e170]:
+              - strong [ref=e171]: Dress Code
+              - generic [ref=e172]: Código de vestimenta y guía visual.
+            - generic [ref=e173]: Disponible
+          - generic [ref=e174] [cursor=pointer]:
+            - checkbox "Confirmación RSVP Confirmación de asistencia del invitado. Disponible"
+            - generic [ref=e176]:
+              - strong [ref=e177]: Confirmación RSVP
+              - generic [ref=e178]: Confirmación de asistencia del invitado.
+            - generic [ref=e179]: Disponible
+          - generic [ref=e180] [cursor=pointer]:
+            - checkbox "Música personalizada Audio de ambientación tras una interacción. Disponible" [checked]
+            - generic [ref=e181]: ✓
+            - generic [ref=e182]:
+              - strong [ref=e183]: Música personalizada
+              - generic [ref=e184]: Audio de ambientación tras una interacción.
+            - generic [ref=e185]: Disponible
+          - generic [ref=e186] [cursor=pointer]:
+            - checkbox "Video de bienvenida Bloque audiovisual de apertura. Disponible" [checked]
+            - generic [ref=e187]: ✓
+            - generic [ref=e188]:
+              - strong [ref=e189]: Video de bienvenida
+              - generic [ref=e190]: Bloque audiovisual de apertura.
+            - generic [ref=e191]: Disponible
+          - generic [ref=e192] [cursor=pointer]:
+            - checkbox "Galería de fotografías Composición visual de recuerdos. Disponible" [checked]
+            - generic [ref=e193]: ✓
+            - generic [ref=e194]:
+              - strong [ref=e195]: Galería de fotografías
+              - generic [ref=e196]: Composición visual de recuerdos.
+            - generic [ref=e197]: Disponible
+          - generic [ref=e198] [cursor=pointer]:
+            - checkbox "Mesa de regalos Accesos a tiendas o transferencia. Disponible"
+            - generic [ref=e200]:
+              - strong [ref=e201]: Mesa de regalos
+              - generic [ref=e202]: Accesos a tiendas o transferencia.
+            - generic [ref=e203]: Disponible
+          - generic [ref=e204] [cursor=pointer]:
+            - checkbox "Selección de pases Cantidad de pases que utilizará el invitado. Disponible"
+            - generic [ref=e206]:
+              - strong [ref=e207]: Selección de pases
+              - generic [ref=e208]: Cantidad de pases que utilizará el invitado.
+            - generic [ref=e209]: Disponible
+          - generic [ref=e210] [cursor=pointer]:
+            - checkbox "Itinerario del evento Secuencia completa de momentos del día. Disponible"
+            - generic [ref=e212]:
+              - strong [ref=e213]: Itinerario del evento
+              - generic [ref=e214]: Secuencia completa de momentos del día.
+            - generic [ref=e215]: Disponible
+          - generic [ref=e216] [cursor=pointer]:
+            - checkbox "Pase personalizado Vista digital e impresa del acceso. Disponible"
+            - generic [ref=e218]:
+              - strong [ref=e219]: Pase personalizado
+              - generic [ref=e220]: Vista digital e impresa del acceso.
+            - generic [ref=e221]: Disponible
+          - generic [ref=e222] [cursor=pointer]:
+            - checkbox "Sección especial Bloque avanzado propio de cada colección. Disponible"
+            - generic [ref=e224]:
+              - strong [ref=e225]: Sección especial
+              - generic [ref=e226]: Bloque avanzado propio de cada colección.
+            - generic [ref=e227]: Disponible
+      - generic [ref=e228]:
+        - generic [ref=e229]:
+          - generic [ref=e230]:
+            - generic [ref=e231]: "03"
+            - heading "Información" [level=2] [ref=e232]
+          - paragraph [ref=e233]: El contenido pertenece a la invitación y permanece intacto al cambiar de colección.
+        - generic [ref=e234]:
+          - region [ref=e235]:
+            - generic [ref=e236]:
+              - text: INFORMACIÓN GENERAL
+              - heading "Datos principales" [level=3] [ref=e237]
+              - paragraph [ref=e238]: Identidad, fecha y lugar base precargados desde el evento cuando están disponibles.
+            - generic [ref=e240]:
+              - generic [ref=e241]:
+                - generic [ref=e242]: Nombre principal / título
+                - textbox "Nombre principal / título" [ref=e243]:
+                  - /placeholder: María & Fernando
+                  - text: María & Fernando
+              - generic [ref=e245]:
+                - generic [ref=e246]: Nombre secundario
+                - textbox "Nombre secundario" [ref=e247]:
+                  - /placeholder: Opcional para parejas, familias o subtítulos
+              - generic [ref=e249]:
+                - generic [ref=e250]: Tipo de evento
+                - textbox "Tipo de evento" [ref=e251]:
+                  - /placeholder: Boda, XV años, cumpleaños…
+                  - text: Boda
+              - generic [ref=e253]:
+                - generic [ref=e254]: Fecha
+                - textbox "Fecha" [ref=e255]: 2027-11-15
+              - generic [ref=e257]:
+                - generic [ref=e258]: Hora
+                - textbox "Hora" [ref=e259]: 19:00
+              - generic [ref=e261]:
+                - generic [ref=e262]: Ciudad
+                - textbox "Ciudad" [ref=e263]:
+                  - /placeholder: Saltillo
+                  - text: Saltillo
+              - generic [ref=e265]:
+                - generic [ref=e266]: Estado
+                - textbox "Estado" [ref=e267]:
+                  - /placeholder: Coahuila
+                  - text: Coahuila
+              - generic [ref=e269]:
+                - generic [ref=e270]: Frase principal
+                - textbox "Frase principal 0 / 240" [ref=e271]:
+                  - /placeholder: Nos encantará compartir este día contigo.
+                - generic [ref=e272]: 0 / 240
+          - region [ref=e274]:
+            - generic [ref=e275]:
+              - text: CONTENIDO ACTIVO
+              - heading "Contenido de secciones" [level=3] [ref=e276]
+              - paragraph [ref=e277]: Solo aparecen los editores de las secciones activadas. Desactivarlas no elimina su contenido.
+            - generic [ref=e278]:
+              - group [ref=e279]:
+                - generic "Galería de fotografías Activa −" [ref=e280] [cursor=pointer]:
+                  - generic [ref=e281]: Galería de fotografías
+                  - generic [ref=e282]: Activa
+                  - text: −
+                - generic [ref=e283]:
+                  - generic [ref=e284]:
+                    - generic [ref=e285]:
+                      - generic [ref=e286]: Título
+                      - textbox "Título" [ref=e287]
+                    - generic [ref=e289]:
+                      - generic [ref=e290]: Subtítulo
+                      - textbox "Subtítulo" [ref=e291]
+                    - generic [ref=e293]:
+                      - generic [ref=e294]: Descripción breve
+                      - textbox "Descripción breve 0 / 500" [ref=e295]
+                      - generic [ref=e296]: 0 / 500
+                  - paragraph [ref=e298]: Las fotografías se configurarán en Multimedia. La preview conserva los assets demo de la colección.
+              - group [ref=e299]:
+                - generic "Video de bienvenida Activa +" [ref=e300] [cursor=pointer]:
+                  - generic [ref=e301]: Video de bienvenida
+                  - generic [ref=e302]: Activa
+                  - text: +
+              - group [ref=e303]:
+                - generic "Música personalizada Activa +" [ref=e304] [cursor=pointer]:
+                  - generic [ref=e305]: Música personalizada
+                  - generic [ref=e306]: Activa
+                  - text: +
+      - generic [ref=e307]:
+        - generic [ref=e308]:
+          - generic [ref=e309]:
+            - generic [ref=e310]: "04"
+            - heading "Multimedia" [level=2] [ref=e311]
+          - paragraph [ref=e312]: Configura portada, galería, video y música con preview local inmediata. Los archivos no se guardan en Firestore ni se suben sin una configuración segura de Storage.
+        - generic [ref=e313]:
+          - complementary [ref=e314]:
+            - strong [ref=e315]: Preview local segura
+            - paragraph [ref=e316]: Preview local activa. Storage requiere inicialización, Rules revisadas y validación de App Check antes de habilitar uploads.
+          - generic [ref=e317]:
+            - generic [ref=e318]:
+              - generic [ref=e319]:
+                - heading "Portada / hero" [level=3] [ref=e320]
+                - paragraph [ref=e321]: JPEG, PNG o WebP. Se optimiza localmente y conserva un punto focal por invitación.
+              - generic [ref=e322]: DISPONIBLE
+            - generic [ref=e324] [cursor=pointer]:
+              - text: Reemplazar archivo
+              - button "Reemplazar archivo" [ref=e325]
+            - group "Soltar archivo para Portada / hero" [ref=e326]: Arrastra aquí un archivo compatible
+            - article [ref=e328]:
+              - generic [ref=e329]:
+                - generic [ref=e330]:
+                  - strong [ref=e331]: Portada / hero
+                  - generic [ref=e332]: champagne-bridal-reflection.webp · 0.0 MiB · 1200×800
+                - generic [ref=e333]: LISTO LOCAL
+              - generic [ref=e334]:
+                - img "María y Fernando en una recepción luminosa" [ref=e336]
+                - generic [ref=e337]:
+                  - generic [ref=e338]:
+                    - generic [ref=e339]: Texto alternativo
+                    - textbox "Texto alternativo" [ref=e340]: María y Fernando en una recepción luminosa
+                  - generic [ref=e341]:
+                    - generic [ref=e342]:
+                      - generic [ref=e343]: Foco X
+                      - slider "Foco X" [ref=e344]: "52"
+                    - generic [ref=e345]:
+                      - generic [ref=e346]: Foco Y
+                      - slider "Foco Y" [ref=e347]: "45"
+                - generic [ref=e348]:
+                  - generic [ref=e349] [cursor=pointer]:
+                    - text: Reemplazar
+                    - button "Reemplazar" [ref=e350]
+                  - button "Subir a Storage" [disabled] [ref=e351]
+                  - button "Eliminar" [ref=e352] [cursor=pointer]
+          - generic [ref=e353]:
+            - generic [ref=e354]:
+              - generic [ref=e355]:
+                - heading "Galería" [level=3] [ref=e356]
+                - paragraph [ref=e357]: "Selección múltiple, orden estable, alt y caption. Límite técnico: 20 imágenes."
+              - generic [ref=e358]: DISPONIBLE
+            - generic [ref=e359]:
+              - generic [ref=e360] [cursor=pointer]:
+                - text: Agregar imágenes
+                - button "Agregar imágenes" [ref=e361]
+              - generic [ref=e362]: 6/20 imágenes
+            - group "Soltar archivo para Galería" [ref=e363]: Arrastra aquí una o varias imágenes
+            - paragraph [ref=e364]: El formato declarado no está permitido.
+            - generic [ref=e365]:
+              - article [ref=e366]:
+                - generic [ref=e367]:
+                  - generic [ref=e368]:
+                    - strong [ref=e369]: Imagen 1
+                    - generic [ref=e370]: garden-floral-arch.webp · 0.3 MiB · 1200×1798
+                  - generic [ref=e371]: LISTO LOCAL
+                - generic [ref=e372]:
+                  - img "Arco floral de la ceremonia" [ref=e374]
+                  - generic [ref=e375]:
+                    - generic [ref=e376]:
+                      - generic [ref=e377]: Texto alternativo
+                      - textbox "Texto alternativo" [ref=e378]: Arco floral de la ceremonia
+                    - generic [ref=e379]:
+                      - generic [ref=e380]: Caption opcional
+                      - textbox "Caption opcional" [ref=e381]: Nuestro lugar para el sí
+                  - generic [ref=e382]:
+                    - button "↑" [disabled] [ref=e383]
+                    - button "↓" [ref=e384] [cursor=pointer]
+                    - generic [ref=e385] [cursor=pointer]:
+                      - text: Reemplazar
+                      - button "Reemplazar" [ref=e386]
+                    - button "Subir a Storage" [disabled] [ref=e387]
+                    - button "Eliminar" [ref=e388] [cursor=pointer]
+              - article [ref=e389]:
+                - generic [ref=e390]:
+                  - generic [ref=e391]:
+                    - strong [ref=e392]: Imagen 2
+                    - generic [ref=e393]: champagne-floral-reception.webp · 0.2 MiB · 1800×1200
+                  - generic [ref=e394]: LISTO LOCAL
+                - generic [ref=e395]:
+                  - img "Arreglo floral de la recepción" [ref=e397]
+                  - generic [ref=e398]:
+                    - generic [ref=e399]:
+                      - generic [ref=e400]: Texto alternativo
+                      - textbox "Texto alternativo" [ref=e401]: Arreglo floral de la recepción
+                    - generic [ref=e402]:
+                      - generic [ref=e403]: Caption opcional
+                      - textbox "Caption opcional" [ref=e404]: Flores champagne y velas
+                  - generic [ref=e405]:
+                    - button "↑" [ref=e406] [cursor=pointer]
+                    - button "↓" [ref=e407] [cursor=pointer]
+                    - generic [ref=e408] [cursor=pointer]:
+                      - text: Reemplazar
+                      - button "Reemplazar" [ref=e409]
+                    - button "Subir a Storage" [disabled] [ref=e410]
+                    - button "Eliminar" [ref=e411] [cursor=pointer]
+              - article [ref=e412]:
+                - generic [ref=e413]:
+                  - generic [ref=e414]:
+                    - strong [ref=e415]: Imagen 3
+                    - generic [ref=e416]: champagne-crystal-detail.webp · 0.1 MiB · 1080×1920
+                  - generic [ref=e417]: LISTO LOCAL
+                - generic [ref=e418]:
+                  - img "Detalle de cristalería" [ref=e420]
+                  - generic [ref=e421]:
+                    - generic [ref=e422]:
+                      - generic [ref=e423]: Texto alternativo
+                      - textbox "Texto alternativo" [ref=e424]: Detalle de cristalería
+                    - generic [ref=e425]:
+                      - generic [ref=e426]: Caption opcional
+                      - textbox "Caption opcional" [ref=e427]: Brindis de María y Fernando
+                  - generic [ref=e428]:
+                    - button "↑" [ref=e429] [cursor=pointer]
+                    - button "↓" [ref=e430] [cursor=pointer]
+                    - generic [ref=e431] [cursor=pointer]:
+                      - text: Reemplazar
+                      - button "Reemplazar" [ref=e432]
+                    - button "Subir a Storage" [disabled] [ref=e433]
+                    - button "Eliminar" [ref=e434] [cursor=pointer]
+              - article [ref=e435]:
+                - generic [ref=e436]:
+                  - generic [ref=e437]:
+                    - strong [ref=e438]: Imagen 4
+                    - generic [ref=e439]: garden-reception.webp · 0.2 MiB · 1200×801
+                  - generic [ref=e440]: LISTO LOCAL
+                - generic [ref=e441]:
+                  - img "Mesa elegante con copas" [ref=e443]
+                  - generic [ref=e444]:
+                    - generic [ref=e445]:
+                      - generic [ref=e446]: Texto alternativo
+                      - textbox "Texto alternativo" [ref=e447]: Mesa elegante con copas
+                    - generic [ref=e448]:
+                      - generic [ref=e449]: Caption opcional
+                      - textbox "Caption opcional" [ref=e450]: Cena de celebración
+                  - generic [ref=e451]:
+                    - button "↑" [ref=e452] [cursor=pointer]
+                    - button "↓" [ref=e453] [cursor=pointer]
+                    - generic [ref=e454] [cursor=pointer]:
+                      - text: Reemplazar
+                      - button "Reemplazar" [ref=e455]
+                    - button "Subir a Storage" [disabled] [ref=e456]
+                    - button "Eliminar" [ref=e457] [cursor=pointer]
+              - article [ref=e458]:
+                - generic [ref=e459]:
+                  - generic [ref=e460]:
+                    - strong [ref=e461]: Imagen 5
+                    - generic [ref=e462]: garden-arch-couple-hero.webp · 0.3 MiB · 1800×1200
+                  - generic [ref=e463]: LISTO LOCAL
+                - generic [ref=e464]:
+                  - img "Pareja bajo arco floral" [ref=e466]
+                  - generic [ref=e467]:
+                    - generic [ref=e468]:
+                      - generic [ref=e469]: Texto alternativo
+                      - textbox "Texto alternativo" [ref=e470]: Pareja bajo arco floral
+                    - generic [ref=e471]:
+                      - generic [ref=e472]: Caption opcional
+                      - textbox "Caption opcional" [ref=e473]: Ceremonia en el jardín
+                  - generic [ref=e474]:
+                    - button "↑" [ref=e475] [cursor=pointer]
+                    - button "↓" [ref=e476] [cursor=pointer]
+                    - generic [ref=e477] [cursor=pointer]:
+                      - text: Reemplazar
+                      - button "Reemplazar" [ref=e478]
+                    - button "Subir a Storage" [disabled] [ref=e479]
+                    - button "Eliminar" [ref=e480] [cursor=pointer]
+              - article [ref=e481]:
+                - generic [ref=e482]:
+                  - generic [ref=e483]:
+                    - strong [ref=e484]: Imagen 6
+                    - generic [ref=e485]: minimal-bridal-portrait.webp · 0.0 MiB · 1200×1800
+                  - generic [ref=e486]: LISTO LOCAL
+                - generic [ref=e487]:
+                  - img "Retrato de novia" [ref=e489]
+                  - generic [ref=e490]:
+                    - generic [ref=e491]:
+                      - generic [ref=e492]: Texto alternativo
+                      - textbox "Texto alternativo" [ref=e493]: Retrato de novia
+                    - generic [ref=e494]:
+                      - generic [ref=e495]: Caption opcional
+                      - textbox "Caption opcional" [ref=e496]: Momentos antes de la ceremonia
+                  - generic [ref=e497]:
+                    - button "↑" [ref=e498] [cursor=pointer]
+                    - button "↓" [disabled] [ref=e499]
+                    - generic [ref=e500] [cursor=pointer]:
+                      - text: Reemplazar
+                      - button "Reemplazar" [ref=e501]
+                    - button "Subir a Storage" [disabled] [ref=e502]
+                    - button "Eliminar" [ref=e503] [cursor=pointer]
+          - generic [ref=e504]:
+            - generic [ref=e505]:
+              - generic [ref=e506]:
+                - heading "Video de bienvenida" [level=3] [ref=e507]
+                - paragraph [ref=e508]: MP4 o WebM, hasta 80 MiB y 5 minutos. Nunca inicia automáticamente.
+              - generic [ref=e509]: DISPONIBLE
+            - generic [ref=e511] [cursor=pointer]:
+              - text: Reemplazar archivo
+              - button "Reemplazar archivo" [ref=e512]
+            - group "Soltar archivo para Video de bienvenida" [ref=e513]: Arrastra aquí un archivo compatible
+            - article [ref=e515]:
+              - generic [ref=e516]:
+                - generic [ref=e517]:
+                  - strong [ref=e518]: Video de bienvenida
+                  - generic [ref=e519]: Esencial.mp4 · 4.4 MiB · 1366×768 · 6 s
+                - generic [ref=e520]: LISTO LOCAL
+              - generic [ref=e524]:
+                - generic [ref=e525] [cursor=pointer]:
+                  - text: Reemplazar
+                  - button "Reemplazar" [ref=e526]
+                - button "Subir a Storage" [disabled] [ref=e527]
+                - button "Eliminar" [ref=e528] [cursor=pointer]
+          - generic [ref=e529]:
+            - generic [ref=e530]:
+              - generic [ref=e531]:
+                - heading "Poster del video" [level=3] [ref=e532]
+                - paragraph [ref=e533]: Imagen opcional para presentar el video antes de reproducirlo.
+              - generic [ref=e534]: DISPONIBLE
+            - generic [ref=e536] [cursor=pointer]:
+              - text: Reemplazar archivo
+              - button "Reemplazar archivo" [ref=e537]
+            - group "Soltar archivo para Poster del video" [ref=e538]: Arrastra aquí un archivo compatible
+            - article [ref=e540]:
+              - generic [ref=e541]:
+                - generic [ref=e542]:
+                  - strong [ref=e543]: Poster del video
+                  - generic [ref=e544]: champagne-crystal-detail.webp · 0.1 MiB · 1080×1920
+                - generic [ref=e545]: LISTO LOCAL
+              - generic [ref=e546]:
+                - img "champagne-crystal-detail" [ref=e548]
+                - generic [ref=e550]:
+                  - generic [ref=e551]: Texto alternativo
+                  - textbox "Texto alternativo" [ref=e552]: champagne-crystal-detail
+                - generic [ref=e553]:
+                  - generic [ref=e554] [cursor=pointer]:
+                    - text: Reemplazar
+                    - button "Reemplazar" [ref=e555]
+                  - button "Subir a Storage" [disabled] [ref=e556]
+                  - button "Eliminar" [ref=e557] [cursor=pointer]
+          - generic [ref=e558]:
+            - generic [ref=e559]:
+              - generic [ref=e560]:
+                - heading "Música" [level=3] [ref=e561]
+                - paragraph [ref=e562]: MP3, M4A/AAC u OGG, hasta 20 MiB y 15 minutos. Reproducción manual.
+              - generic [ref=e563]: DISPONIBLE
+            - generic [ref=e565] [cursor=pointer]:
+              - text: Reemplazar archivo
+              - button "Reemplazar archivo" [ref=e566]
+            - group "Soltar archivo para Música" [ref=e567]: Arrastra aquí un archivo compatible
+            - article [ref=e569]:
+              - generic [ref=e570]:
+                - generic [ref=e571]:
+                  - strong [ref=e572]: Música
+                  - generic [ref=e573]: esencial.mp3 · 4.1 MiB · 180 s
+                - generic [ref=e574]: LISTO LOCAL
+              - generic [ref=e578]:
+                - generic [ref=e579] [cursor=pointer]:
+                  - text: Reemplazar
+                  - button "Reemplazar" [ref=e580]
+                - button "Subir a Storage" [disabled] [ref=e581]
+                - button "Eliminar" [ref=e582] [cursor=pointer]
+      - generic [ref=e583]:
+        - generic [ref=e584]:
+          - generic [ref=e585]:
+            - generic [ref=e586]: "05"
+            - heading "Ubicaciones y detalles" [level=2] [ref=e587]
+          - paragraph [ref=e588]: Configura la logística real de las secciones activas. Las colecciones controlan únicamente su presentación.
+        - generic [ref=e590]:
+          - strong [ref=e591]: Activa Ubicación, Itinerario, Dress Code o Mesa de regalos.
+          - paragraph [ref=e592]: Los datos configurados permanecen intactos cuando una sección se desactiva o cambia el paquete.
+      - region "Módulos preparados para fases posteriores" [ref=e593]:
+        - text: Preparado para próximas fases
+        - paragraph [ref=e594]: Apariencia avanzada, RSVP, invitados, persistencia y publicación permanecen fuera de esta fase.
+    - complementary "Vista previa de la invitación" [ref=e595]:
+      - generic [ref=e596]:
+        - generic [ref=e597]:
+          - generic [ref=e598]: PREVIEW EN VIVO
+          - strong [ref=e599]: Plantilla real
+        - group "Tamaño de preview" [ref=e600]:
+          - button "Vista móvil" [pressed] [ref=e601] [cursor=pointer]: M
+          - button "Vista tablet" [ref=e602] [cursor=pointer]: T
+          - button "Vista desktop" [ref=e603] [cursor=pointer]: D
+      - generic [ref=e604]:
+        - generic [ref=e605]: Champagne lista · Preview segura
+        - generic [ref=e606]: 390 × 844
+      - iframe [ref=e608]:
+        - generic [ref=f1e1]:
+          - main [ref=f1e2]:
+            - generic [ref=f1e3]:
+              - navigation "Navegación de la invitación" [ref=f1e4]:
+                - generic [ref=f1e5]: M · F
+                - link "Celebración" [ref=f1e6] [cursor=pointer]:
+                  - /url: "#celebracion"
+                - link "Guest card" [ref=f1e7] [cursor=pointer]:
+                  - /url: "#guest-card"
+              - img "Espacio amplio para fotografía bridal luminosa" [ref=f1e8]:
+                - img "María y Fernando en una recepción luminosa" [ref=f1e9]
+                - generic [ref=f1e10]: PORTRAIT · 01
+              - generic [ref=f1e11]:
+                - paragraph [ref=f1e12]: Boda
+                - heading "María & Fernando" [level=2] [ref=f1e13]
+                - paragraph [ref=f1e14]: 15 DE NOVIEMBRE DE 2027 · 19:00 · SALTILLO, COAHUILA
+                - generic [ref=f1e15]:
+                  - paragraph
+                  - strong
+            - region "Video de bienvenida" [ref=f1e16]:
+              - article [ref=f1e17]:
+                - paragraph [ref=f1e18]: 02 · OPENING FILM
+                - heading "Light, in motion." [level=2] [ref=f1e19]: Light,in motion.
+                - button "▶ Reproducir vista previa" [ref=f1e20] [cursor=pointer]
+                - generic [ref=f1e21]: Vista previa audiovisual preparada.
+              - generic [ref=f1e22]:
+                - generic [ref=f1e23]: E G
+                - generic [ref=f1e25]: FILM 02 · 00:11
+            - text: ↗ ↗ ↗
+            - region "Galería de boda estilo editorial de lujo" [ref=f1e28]:
+              - heading "Una historia en luz cálida." [level=2] [ref=f1e30]: Una historiaen luz cálida.
+              - figure [ref=f1e31]:
+                - img "Reflejo bridal junto a copas de champagne" [ref=f1e32]
+                - generic [ref=f1e33]: 01 · THE PORTRAIT
+              - figure [ref=f1e34]:
+                - generic [ref=f1e35]: 02 · SILK & LIGHT
+              - blockquote [ref=f1e36]: “Lo extraordinariovive en los detalles.”
+              - figure [ref=f1e37]:
+                - generic [ref=f1e38]: 03 · THE TABLE
+              - generic [ref=f1e39]:
+                - figure "Nuestro lugar para el sí" [ref=f1e40]:
+                  - img "Arco floral de la ceremonia" [ref=f1e41]
+                - figure "Flores champagne y velas" [ref=f1e43]:
+                  - img "Arreglo floral de la recepción" [ref=f1e44]
+                - figure "Brindis de María y Fernando" [ref=f1e46]:
+                  - img "Detalle de cristalería" [ref=f1e47]
+                - figure "Cena de celebración" [ref=f1e49]:
+                  - img "Mesa elegante con copas" [ref=f1e50]
+                - figure "Ceremonia en el jardín" [ref=f1e52]:
+                  - img "Pareja bajo arco floral" [ref=f1e53]
+                - figure "Momentos antes de la ceremonia" [ref=f1e55]:
+                  - img "Retrato de novia" [ref=f1e56]
+            - text: ↗ ↗
+            - generic [ref=f1e61]: ↗
+          - contentinfo [ref=f1e62]:
+            - generic [ref=f1e63]:
+              - generic [ref=f1e64]: EVENTORA STUDIO
+              - generic [ref=f1e65]: CHAMPAGNE COLLECTION · 2028
+            - paragraph [ref=f1e66]:
+              - strong [ref=f1e67]: Demostración Prestige.
+              - text: Esta demostración presenta funcionalidades disponibles en nuestro paquete Prestige. Los enlaces externos están simulados y las funciones pueden variar según el paquete contratado.
+      - paragraph [ref=e609]: Modo Builder · navegación externa y formularios interceptados; audio/video solo manual

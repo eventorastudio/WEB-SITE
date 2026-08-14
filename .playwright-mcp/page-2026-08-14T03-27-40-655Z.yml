@@ -1,0 +1,372 @@
+- generic [ref=f7e2]:
+  - banner [ref=f7e3]:
+    - generic [ref=f7e4]:
+      - link "Volver al Dashboard" [ref=f7e5] [cursor=pointer]:
+        - /url: ../dashboard.html
+        - text: ←
+      - img "Eventora Studio" [ref=f7e6]
+      - generic [ref=f7e8]:
+        - strong [ref=f7e9]: Invitation Builder
+        - generic [ref=f7e10]: María & Fernando · MARIA-FERNANDO
+    - generic [ref=f7e11]:
+      - generic [ref=f7e12]: Cambios locales
+      - button "Guardar borrador · Próximamente" [disabled] [ref=f7e14]
+  - main [ref=f7e15]:
+    - complementary "Etapas del Builder" [ref=f7e16]:
+      - generic [ref=f7e17]:
+        - generic [ref=f7e18]: Flujo
+        - strong [ref=f7e19]: Producción
+      - navigation [ref=f7e20]:
+        - button "01 Tema" [ref=f7e21] [cursor=pointer]:
+          - generic [ref=f7e22]: "01"
+          - text: Tema
+        - button "02 Secciones" [ref=f7e23] [cursor=pointer]:
+          - generic [ref=f7e24]: "02"
+          - text: Secciones
+        - button "03 Información" [ref=f7e25] [cursor=pointer]:
+          - generic [ref=f7e26]: "03"
+          - text: Información
+        - button "04 Multimedia" [ref=f7e27] [cursor=pointer]:
+          - generic [ref=f7e28]: "04"
+          - text: Multimedia
+        - button "05 Ubicaciones" [ref=f7e29] [cursor=pointer]:
+          - generic [ref=f7e30]: "05"
+          - text: Ubicaciones
+        - button "06 Detalles Próximamente" [disabled] [ref=f7e31]:
+          - generic [ref=f7e32]: "06"
+          - text: Detalles
+          - generic [ref=f7e33]: Próximamente
+        - button "07 Apariencia Próximamente" [disabled] [ref=f7e34]:
+          - generic [ref=f7e35]: "07"
+          - text: Apariencia
+          - generic [ref=f7e36]: Próximamente
+        - button "08 Revisión Próximamente" [disabled] [ref=f7e37]:
+          - generic [ref=f7e38]: "08"
+          - text: Revisión
+          - generic [ref=f7e39]: Próximamente
+      - generic [ref=f7e40]:
+        - text: FASE 4
+        - paragraph [ref=f7e41]: Multimedia local-first y preview en vivo. Sin guardado ni publicación.
+    - generic [ref=f7e42]:
+      - generic [ref=f7e43]:
+        - generic [ref=f7e44]:
+          - generic [ref=f7e45]: EVENTO ACTIVO
+          - strong [ref=f7e46]: María & Fernando
+          - generic [ref=f7e47]: 2027-11-15 · Saltillo · MARIA-FERNANDO
+        - generic [ref=f7e48]:
+          - generic [ref=f7e49]: Paquete de la invitación
+          - combobox "Paquete de la invitación Selección local; no se guarda todavía." [ref=f7e369]:
+            - option "Selecciona un paquete" [disabled]
+            - option "Esencial"
+            - option "Premium"
+            - option "Prestige" [selected]
+          - generic [ref=f7e51]: Selección local; no se guarda todavía.
+      - generic [ref=f7e52]:
+        - generic [ref=f7e53]:
+          - generic [ref=f7e54]:
+            - generic [ref=f7e55]: "01"
+            - heading "Elige una colección" [level=2] [ref=f7e56]
+          - paragraph [ref=f7e57]: La colección define la presentación. Tu contenido permanece intacto al cambiarla.
+        - generic [ref=f7e58]:
+          - button "Aloha XV años · Celebraciones Color tropical, energía de resort y celebración junto al agua." [ref=f7e59] [cursor=pointer]:
+            - generic [ref=f7e61]:
+              - strong [ref=f7e62]: Aloha
+              - generic [ref=f7e63]: XV años · Celebraciones
+              - generic [ref=f7e64]: Color tropical, energía de resort y celebración junto al agua.
+          - button "Luxury Bodas · Celebraciones Editorial black-tie con contraste oscuro y detalles dorados." [ref=f7e65] [cursor=pointer]:
+            - generic [ref=f7e67]:
+              - strong [ref=f7e68]: Luxury
+              - generic [ref=f7e69]: Bodas · Celebraciones
+              - generic [ref=f7e70]: Editorial black-tie con contraste oscuro y detalles dorados.
+          - button "Botanical Bodas · Celebraciones Papel fino, eucalipto y una estética orgánica editorial." [ref=f7e71] [cursor=pointer]:
+            - generic [ref=f7e73]:
+              - strong [ref=f7e74]: Botanical
+              - generic [ref=f7e75]: Bodas · Celebraciones
+              - generic [ref=f7e76]: Papel fino, eucalipto y una estética orgánica editorial.
+          - button "Midnight XV años · Celebraciones Azul profundo, luces y ritmo visual después del anochecer." [ref=f7e77] [cursor=pointer]:
+            - generic [ref=f7e79]:
+              - strong [ref=f7e80]: Midnight
+              - generic [ref=f7e81]: XV años · Celebraciones
+              - generic [ref=f7e82]: Azul profundo, luces y ritmo visual después del anochecer.
+          - button "Romance Bodas Cartas, tonos vino y narrativa íntima para una historia de amor." [ref=f7e83] [cursor=pointer]:
+            - generic [ref=f7e85]:
+              - strong [ref=f7e86]: Romance
+              - generic [ref=f7e87]: Bodas
+              - generic [ref=f7e88]: Cartas, tonos vino y narrativa íntima para una historia de amor.
+          - button "Minimal Bodas · XV años · Celebraciones Tipografía precisa, blanco y negro, y espacio negativo." [ref=f7e89] [cursor=pointer]:
+            - generic [ref=f7e91]:
+              - strong [ref=f7e92]: Minimal
+              - generic [ref=f7e93]: Bodas · XV años · Celebraciones
+              - generic [ref=f7e94]: Tipografía precisa, blanco y negro, y espacio negativo.
+          - button "Celestial Bodas Luz lunar, constelaciones y una atmósfera azul tinta." [ref=f7e95] [cursor=pointer]:
+            - generic [ref=f7e97]:
+              - strong [ref=f7e98]: Celestial
+              - generic [ref=f7e99]: Bodas
+              - generic [ref=f7e100]: Luz lunar, constelaciones y una atmósfera azul tinta.
+          - button "Vintage Bodas · XV años · Celebraciones Papel, película y memoria analógica en una edición clásica." [ref=f7e101] [cursor=pointer]:
+            - generic [ref=f7e103]:
+              - strong [ref=f7e104]: Vintage
+              - generic [ref=f7e105]: Bodas · XV años · Celebraciones
+              - generic [ref=f7e106]: Papel, película y memoria analógica en una edición clásica.
+          - button "Garden Bodas Una celebración floral entre pérgolas, fuentes y primavera." [ref=f7e107] [cursor=pointer]:
+            - generic [ref=f7e109]:
+              - strong [ref=f7e110]: Garden
+              - generic [ref=f7e111]: Bodas
+              - generic [ref=f7e112]: Una celebración floral entre pérgolas, fuentes y primavera.
+          - button "Champagne Bodas · Celebraciones Seda, cristal y lujo luminoso en una edición cálida." [ref=f7e113] [cursor=pointer]:
+            - generic [ref=f7e115]:
+              - strong [ref=f7e116]: Champagne
+              - generic [ref=f7e117]: Bodas · Celebraciones
+              - generic [ref=f7e118]: Seda, cristal y lujo luminoso en una edición cálida.
+          - button "Neon Party XV años · Celebraciones Flash, póster y energía de club para una noche protagonista." [ref=f7e119] [cursor=pointer]:
+            - generic [ref=f7e121]:
+              - strong [ref=f7e122]: Neon Party
+              - generic [ref=f7e123]: XV años · Celebraciones
+              - generic [ref=f7e124]: Flash, póster y energía de club para una noche protagonista.
+          - button "Aa Personalizada Base flexible · Fase futura Crea una identidad visual desde una base flexible." [ref=f7e125] [cursor=pointer]:
+            - generic [ref=f7e126]: Aa
+            - generic [ref=f7e128]:
+              - strong [ref=f7e129]: Personalizada
+              - generic [ref=f7e130]: Base flexible · Fase futura
+              - generic [ref=f7e131]: Crea una identidad visual desde una base flexible.
+      - generic [ref=f7e132]:
+        - generic [ref=f7e133]:
+          - generic [ref=f7e134]:
+            - generic [ref=f7e135]: "02"
+            - heading "Secciones disponibles" [level=2] [ref=f7e136]
+          - paragraph [ref=f7e137]: Activa solo lo que necesita esta invitación. Los permisos provienen del paquete.
+        - paragraph [ref=f7e138]: 0 de 13 secciones disponibles activas.
+        - generic [ref=f7e139]:
+          - generic [ref=f7e370] [cursor=pointer]:
+            - checkbox "Bienvenida e historia Narrativa introductoria propia de cada colección. Disponible"
+            - generic [ref=f7e372]:
+              - strong [ref=f7e373]: Bienvenida e historia
+              - generic [ref=f7e374]: Narrativa introductoria propia de cada colección.
+            - generic [ref=f7e375]: Disponible
+          - generic [ref=f7e376] [cursor=pointer]:
+            - checkbox "Cuenta regresiva Tiempo restante hasta el evento. Disponible"
+            - generic [ref=f7e378]:
+              - strong [ref=f7e379]: Cuenta regresiva
+              - generic [ref=f7e380]: Tiempo restante hasta el evento.
+            - generic [ref=f7e381]: Disponible
+          - generic [ref=f7e382] [cursor=pointer]:
+            - checkbox "Ubicación y mapa Lugar principal y acceso a Google Maps. Disponible"
+            - generic [ref=f7e384]:
+              - strong [ref=f7e385]: Ubicación y mapa
+              - generic [ref=f7e386]: Lugar principal y acceso a Google Maps.
+            - generic [ref=f7e387]: Disponible
+          - generic [ref=f7e388] [cursor=pointer]:
+            - checkbox "Dress Code Código de vestimenta y guía visual. Disponible"
+            - generic [ref=f7e390]:
+              - strong [ref=f7e391]: Dress Code
+              - generic [ref=f7e392]: Código de vestimenta y guía visual.
+            - generic [ref=f7e393]: Disponible
+          - generic [ref=f7e394] [cursor=pointer]:
+            - checkbox "Confirmación RSVP Confirmación de asistencia del invitado. Disponible"
+            - generic [ref=f7e396]:
+              - strong [ref=f7e397]: Confirmación RSVP
+              - generic [ref=f7e398]: Confirmación de asistencia del invitado.
+            - generic [ref=f7e399]: Disponible
+          - generic [ref=f7e400] [cursor=pointer]:
+            - checkbox "Música personalizada Audio de ambientación tras una interacción. Disponible"
+            - generic [ref=f7e402]:
+              - strong [ref=f7e403]: Música personalizada
+              - generic [ref=f7e404]: Audio de ambientación tras una interacción.
+            - generic [ref=f7e405]: Disponible
+          - generic [ref=f7e406] [cursor=pointer]:
+            - checkbox "Video de bienvenida Bloque audiovisual de apertura. Disponible"
+            - generic [ref=f7e408]:
+              - strong [ref=f7e409]: Video de bienvenida
+              - generic [ref=f7e410]: Bloque audiovisual de apertura.
+            - generic [ref=f7e411]: Disponible
+          - generic [ref=f7e412] [cursor=pointer]:
+            - checkbox "Galería de fotografías Composición visual de recuerdos. Disponible"
+            - generic [ref=f7e414]:
+              - strong [ref=f7e415]: Galería de fotografías
+              - generic [ref=f7e416]: Composición visual de recuerdos.
+            - generic [ref=f7e417]: Disponible
+          - generic [ref=f7e418] [cursor=pointer]:
+            - checkbox "Mesa de regalos Accesos a tiendas o transferencia. Disponible"
+            - generic [ref=f7e420]:
+              - strong [ref=f7e421]: Mesa de regalos
+              - generic [ref=f7e422]: Accesos a tiendas o transferencia.
+            - generic [ref=f7e423]: Disponible
+          - generic [ref=f7e424] [cursor=pointer]:
+            - checkbox "Selección de pases Cantidad de pases que utilizará el invitado. Disponible"
+            - generic [ref=f7e426]:
+              - strong [ref=f7e427]: Selección de pases
+              - generic [ref=f7e428]: Cantidad de pases que utilizará el invitado.
+            - generic [ref=f7e429]: Disponible
+          - generic [ref=f7e430] [cursor=pointer]:
+            - checkbox "Itinerario del evento Secuencia completa de momentos del día. Disponible"
+            - generic [ref=f7e432]:
+              - strong [ref=f7e433]: Itinerario del evento
+              - generic [ref=f7e434]: Secuencia completa de momentos del día.
+            - generic [ref=f7e435]: Disponible
+          - generic [ref=f7e436] [cursor=pointer]:
+            - checkbox "Pase personalizado Vista digital e impresa del acceso. Disponible"
+            - generic [ref=f7e438]:
+              - strong [ref=f7e439]: Pase personalizado
+              - generic [ref=f7e440]: Vista digital e impresa del acceso.
+            - generic [ref=f7e441]: Disponible
+          - generic [ref=f7e442] [cursor=pointer]:
+            - checkbox "Sección especial Bloque avanzado propio de cada colección. Disponible"
+            - generic [ref=f7e444]:
+              - strong [ref=f7e445]: Sección especial
+              - generic [ref=f7e446]: Bloque avanzado propio de cada colección.
+            - generic [ref=f7e447]: Disponible
+      - generic [ref=f7e218]:
+        - generic [ref=f7e219]:
+          - generic [ref=f7e220]:
+            - generic [ref=f7e221]: "03"
+            - heading "Información" [level=2] [ref=f7e222]
+          - paragraph [ref=f7e223]: El contenido pertenece a la invitación y permanece intacto al cambiar de colección.
+        - generic [ref=f7e224]:
+          - region [ref=f7e225]:
+            - generic [ref=f7e226]:
+              - text: INFORMACIÓN GENERAL
+              - heading "Datos principales" [level=3] [ref=f7e227]
+              - paragraph [ref=f7e228]: Identidad, fecha y lugar base precargados desde el evento cuando están disponibles.
+            - generic [ref=f7e230]:
+              - generic [ref=f7e231]:
+                - generic [ref=f7e232]: Nombre principal / título
+                - textbox "Nombre principal / título" [ref=f7e233]:
+                  - /placeholder: María & Fernando
+                  - text: María & Fernando
+              - generic [ref=f7e235]:
+                - generic [ref=f7e236]: Nombre secundario
+                - textbox "Nombre secundario" [ref=f7e237]:
+                  - /placeholder: Opcional para parejas, familias o subtítulos
+              - generic [ref=f7e239]:
+                - generic [ref=f7e240]: Tipo de evento
+                - textbox "Tipo de evento" [ref=f7e241]:
+                  - /placeholder: Boda, XV años, cumpleaños…
+                  - text: Boda
+              - generic [ref=f7e243]:
+                - generic [ref=f7e244]: Fecha
+                - textbox "Fecha" [ref=f7e245]: 2027-11-15
+              - generic [ref=f7e247]:
+                - generic [ref=f7e248]: Hora
+                - textbox "Hora" [ref=f7e249]: 19:00
+              - generic [ref=f7e251]:
+                - generic [ref=f7e252]: Ciudad
+                - textbox "Ciudad" [ref=f7e253]:
+                  - /placeholder: Saltillo
+                  - text: Saltillo
+              - generic [ref=f7e255]:
+                - generic [ref=f7e256]: Estado
+                - textbox "Estado" [ref=f7e257]:
+                  - /placeholder: Coahuila
+                  - text: Coahuila
+              - generic [ref=f7e259]:
+                - generic [ref=f7e260]: Frase principal
+                - textbox "Frase principal 0 / 240" [ref=f7e261]:
+                  - /placeholder: Nos encantará compartir este día contigo.
+                - generic [ref=f7e262]: 0 / 240
+          - region [ref=f7e264]:
+            - generic [ref=f7e265]:
+              - text: CONTENIDO ACTIVO
+              - heading "Contenido de secciones" [level=3] [ref=f7e266]
+              - paragraph [ref=f7e267]: Solo aparecen los editores de las secciones activadas. Desactivarlas no elimina su contenido.
+            - generic [ref=f7e448]:
+              - strong [ref=f7e449]: Activa una sección para editar su contenido.
+              - paragraph [ref=f7e450]: Los editores aparecerán aquí sin borrar los datos de las secciones que desactives.
+      - generic [ref=f7e272]:
+        - generic [ref=f7e273]:
+          - generic [ref=f7e274]:
+            - generic [ref=f7e275]: "04"
+            - heading "Multimedia" [level=2] [ref=f7e276]
+          - paragraph [ref=f7e277]: Configura portada, galería, video y música con preview local inmediata. Los archivos no se guardan en Firestore ni se suben sin una configuración segura de Storage.
+        - generic [ref=f7e278]:
+          - complementary [ref=f7e451]:
+            - strong [ref=f7e452]: Preview local segura
+            - paragraph [ref=f7e453]: Preview local activa. Storage requiere inicialización, Rules revisadas y validación de App Check antes de habilitar uploads.
+          - generic [ref=f7e454]:
+            - generic [ref=f7e455]:
+              - generic [ref=f7e456]:
+                - heading "Portada / hero" [level=3] [ref=f7e457]
+                - paragraph [ref=f7e458]: JPEG, PNG o WebP. Se optimiza localmente y conserva un punto focal por invitación.
+              - generic [ref=f7e459]: DISPONIBLE
+            - generic [ref=f7e461] [cursor=pointer]:
+              - text: Seleccionar archivo
+              - button "Seleccionar archivo"
+            - group "Soltar archivo para Portada / hero" [ref=f7e462]: Arrastra aquí un archivo compatible
+            - paragraph [ref=f7e464]: Sin archivo configurado. La plantilla conserva su demo hasta que selecciones o elimines explícitamente este rol.
+          - generic [ref=f7e465]:
+            - generic [ref=f7e466]:
+              - generic [ref=f7e467]:
+                - heading "Galería" [level=3] [ref=f7e468]
+                - paragraph [ref=f7e469]: "Selección múltiple, orden estable, alt y caption. Límite técnico: 20 imágenes."
+              - generic [ref=f7e470]: SECCIÓN INACTIVA
+            - paragraph [ref=f7e471]: Activa la sección y usa un paquete compatible para configurar este recurso.
+            - generic [ref=f7e473]:
+              - text: Agregar imágenes
+              - button "Agregar imágenes" [disabled]
+            - group "Soltar archivo para Galería" [disabled] [ref=f7e474]: Carga bloqueada por paquete o sección
+            - paragraph [ref=f7e476]: Sin archivo configurado. La plantilla conserva su demo hasta que selecciones o elimines explícitamente este rol.
+          - generic [ref=f7e477]:
+            - generic [ref=f7e478]:
+              - generic [ref=f7e479]:
+                - heading "Video de bienvenida" [level=3] [ref=f7e480]
+                - paragraph [ref=f7e481]: MP4 o WebM, hasta 80 MiB y 5 minutos. Nunca inicia automáticamente.
+              - generic [ref=f7e482]: SECCIÓN INACTIVA
+            - paragraph [ref=f7e483]: Activa la sección y usa un paquete compatible para configurar este recurso.
+            - generic [ref=f7e485]:
+              - text: Seleccionar archivo
+              - button "Seleccionar archivo" [disabled]
+            - group "Soltar archivo para Video de bienvenida" [disabled] [ref=f7e486]: Carga bloqueada por paquete o sección
+            - paragraph [ref=f7e488]: Sin archivo configurado. La plantilla conserva su demo hasta que selecciones o elimines explícitamente este rol.
+          - generic [ref=f7e489]:
+            - generic [ref=f7e490]:
+              - generic [ref=f7e491]:
+                - heading "Poster del video" [level=3] [ref=f7e492]
+                - paragraph [ref=f7e493]: Imagen opcional para presentar el video antes de reproducirlo.
+              - generic [ref=f7e494]: SECCIÓN INACTIVA
+            - paragraph [ref=f7e495]: Activa la sección y usa un paquete compatible para configurar este recurso.
+            - generic [ref=f7e497]:
+              - text: Seleccionar archivo
+              - button "Seleccionar archivo" [disabled]
+            - group "Soltar archivo para Poster del video" [disabled] [ref=f7e498]: Carga bloqueada por paquete o sección
+            - paragraph [ref=f7e500]: Sin archivo configurado. La plantilla conserva su demo hasta que selecciones o elimines explícitamente este rol.
+          - generic [ref=f7e501]:
+            - generic [ref=f7e502]:
+              - generic [ref=f7e503]:
+                - heading "Música" [level=3] [ref=f7e504]
+                - paragraph [ref=f7e505]: MP3, M4A/AAC u OGG, hasta 20 MiB y 15 minutos. Reproducción manual.
+              - generic [ref=f7e506]: SECCIÓN INACTIVA
+            - paragraph [ref=f7e507]: Activa la sección y usa un paquete compatible para configurar este recurso.
+            - generic [ref=f7e509]:
+              - text: Seleccionar archivo
+              - button "Seleccionar archivo" [disabled]
+            - group "Soltar archivo para Música" [disabled] [ref=f7e510]: Carga bloqueada por paquete o sección
+            - paragraph [ref=f7e512]: Sin archivo configurado. La plantilla conserva su demo hasta que selecciones o elimines explícitamente este rol.
+      - generic [ref=f7e342]:
+        - generic [ref=f7e343]:
+          - generic [ref=f7e344]:
+            - generic [ref=f7e345]: "05"
+            - heading "Ubicaciones y detalles" [level=2] [ref=f7e346]
+          - paragraph [ref=f7e347]: Configura la logística real de las secciones activas. Las colecciones controlan únicamente su presentación.
+        - generic [ref=f7e513]:
+          - strong [ref=f7e514]: Activa Ubicación, Itinerario, Dress Code o Mesa de regalos.
+          - paragraph [ref=f7e515]: Los datos configurados permanecen intactos cuando una sección se desactiva o cambia el paquete.
+      - region "Módulos preparados para fases posteriores" [ref=f7e352]:
+        - text: Preparado para próximas fases
+        - paragraph [ref=f7e353]: Apariencia avanzada, RSVP, invitados, persistencia y publicación permanecen fuera de esta fase.
+    - complementary "Vista previa de la invitación" [ref=f7e354]:
+      - generic [ref=f7e355]:
+        - generic [ref=f7e356]:
+          - generic [ref=f7e357]: PREVIEW EN VIVO
+          - strong [ref=f7e358]: Plantilla real
+        - group "Tamaño de preview" [ref=f7e359]:
+          - button "Vista móvil" [pressed] [ref=f7e360] [cursor=pointer]: M
+          - button "Vista tablet" [ref=f7e361] [cursor=pointer]: T
+          - button "Vista desktop" [ref=f7e362] [cursor=pointer]: D
+      - generic [ref=f7e363]:
+        - generic [ref=f7e364]: Selecciona una colección para iniciar la preview.
+        - generic [ref=f7e365]: 390 × 844
+      - iframe [ref=f7e367]:
+        - main [ref=f8e2]:
+          - generic [ref=f8e3]: EVENTORA STUDIO
+          - strong [ref=f8e4]: Preview en vivo
+          - paragraph [ref=f8e5]: Selecciona una colección para cargar su plantilla real.
+      - paragraph [ref=f7e368]: Modo Builder · navegación externa y formularios interceptados; audio/video solo manual

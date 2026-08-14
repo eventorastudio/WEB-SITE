@@ -1,0 +1,2 @@
+[     202ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:blank:0
+[    2375ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ https://eventorastudio.com/admin/invitations/preview/frame.html?v=phase4-media-20260813:0

@@ -252,9 +252,10 @@ button, a, input, select, textarea { outline-color: var(--builder-gold); }
 .media-role-controls { min-width: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 9px; margin-top: 13px; }
 .media-role-controls small { color: var(--builder-muted); font-size: 0.55rem; }
 .media-file-button, .media-action { min-height: 34px; display: inline-flex; align-items: center; justify-content: center; padding: 0 11px; border: 1px solid var(--builder-line); border-radius: 999px; background: #fff; color: var(--builder-ink); font-size: 0.56rem; font-weight: 700; cursor: pointer; }
+.media-file-button { position: relative; overflow: hidden; }
 .media-file-button.is-primary { border-color: var(--builder-ink); background: var(--builder-ink); color: #fff; }
 .media-file-button:has(input:disabled) { border-color: var(--builder-line); background: #e7e1d8; color: #8d8579; cursor: not-allowed; }
-.media-file-button input { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; }
+.media-file-button input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: inherit; }
 .media-action:disabled { opacity: 0.45; cursor: not-allowed; }
 .media-action.is-danger { color: var(--builder-danger); }
 .media-icon-action { width: 31px; padding: 0; }

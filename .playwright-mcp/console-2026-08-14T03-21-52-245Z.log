@@ -1,0 +1,11 @@
+[     268ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:blank:0
+[    2117ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ https://eventorastudio.com/admin/invitations/preview/frame.html?v=phase4-media-20260813:0
+[  554159ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:blank:0
+[  557406ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ https://eventorastudio.com/admin/invitations/preview/frame.html?v=phase4-media-20260813:0
+[  659502ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:blank:0
+[  660515ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ https://eventorastudio.com/admin/invitations/preview/frame.html?v=phase4-media-20260813:0
+[  703844ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:blank:0
+[  704569ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ https://eventorastudio.com/admin/invitations/preview/frame.html?v=phase4-media-20260813:0
+[ 1632330ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:blank:0
+[ 1633565ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ https://eventorastudio.com/admin/invitations/preview/frame.html?v=phase4-media-20260813:0
+[ 1712183ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=hM2IimphF12xfsAMTix7khKnZ3IeTmWb3iMOHTNrcH8qmgKxwPI-iA&VER=8&database=projects%2Feventorastudio-d6d95%2Fdatabases%2F(default)&RID=rpc&SID=k20eR08ZTIzeKOR4oiyyfg&AID=8&CI=0&TYPE=xmlhttp&zx=lnqwyu9ee8e8&t=1:0

@@ -342,6 +342,10 @@ export function initMediaEditor({ container, state }) {
         const files = [...sourceFiles];
         if (!files.length) return;
         if (role === 'gallery') {
+            if (replaceId) {
+                await processFile(files[0], role, replaceId);
+                return;
+            }
             const availableSlots = 20 - (state.getSnapshot().draft.media.gallery?.length ?? 0);
             if (files.length > availableSlots) showMessage(role, `Solo se procesarán ${availableSlots} archivos para respetar el límite técnico.`);
             for (const [index, file] of files.slice(0, availableSlots).entries()) {

@@ -139,10 +139,10 @@ body.builder-preview-custom {
 .builder-phase3-romance { --phase3-accent: #7b2435; --phase3-surface: rgba(255,246,244,0.85); --phase3-line: rgba(123,36,53,0.25); }
 .builder-phase3-aloha { --phase3-accent: #ef7e55; --phase3-surface: rgba(244,255,251,0.88); --phase3-line: rgba(8,59,75,0.22); }
 
-.builder-phase4-gallery { position: relative; z-index: 3; width: min(100%, 76rem); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: clamp(0.75rem, 2.5vw, 1.4rem); margin: clamp(1.4rem, 4vw, 3rem) auto 0; padding-inline: clamp(1rem, 4vw, 3rem); }
-.builder-phase4-gallery-item { min-width: 0; margin: 0; overflow: hidden; background: rgba(255,255,255,0.08); }
-.builder-phase4-gallery-item img { width: 100%; aspect-ratio: 4 / 5; display: block; object-fit: cover; }
-.builder-phase4-gallery-item figcaption { padding: 0.7rem 0.8rem; font-size: clamp(0.66rem, 1.8vw, 0.82rem); line-height: 1.45; opacity: 0.78; overflow-wrap: anywhere; }
+[data-builder-phase4="gallery"].builder-phase4-gallery { position: relative !important; inset: auto !important; z-index: 3; grid-column: 1 / -1 !important; align-self: stretch !important; flex: initial !important; min-width: 0 !important; max-width: 76rem !important; width: 100% !important; min-height: 0 !important; height: auto !important; display: grid !important; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)) !important; grid-auto-flow: row !important; grid-auto-columns: auto !important; grid-auto-rows: auto !important; justify-content: initial !important; align-items: stretch !important; gap: clamp(0.75rem, 2.5vw, 1.4rem) !important; margin: clamp(1.4rem, 4vw, 3rem) auto 0 !important; padding: 0 clamp(1rem, 4vw, 3rem) !important; overflow: visible !important; color: inherit !important; background: transparent !important; clip-path: none !important; transform: none !important; }
+.builder-phase4-gallery > .builder-phase4-gallery-item { position: relative !important; inset: auto !important; min-width: 0 !important; width: 100% !important; height: auto !important; display: grid !important; grid-template-columns: minmax(0, 1fr) !important; grid-template-rows: auto auto !important; align-items: stretch !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; background: rgba(255,255,255,0.08); }
+.builder-phase4-gallery > .builder-phase4-gallery-item img { position: static !important; inset: auto !important; min-width: 0 !important; max-width: none !important; width: 100% !important; height: auto !important; aspect-ratio: 4 / 5 !important; display: block !important; margin: 0 !important; object-fit: cover !important; }
+.builder-phase4-gallery > .builder-phase4-gallery-item figcaption { position: static !important; inset: auto !important; min-width: 0 !important; width: 100% !important; box-sizing: border-box !important; margin: 0 !important; padding: 0.7rem 0.8rem !important; font-size: clamp(0.66rem, 1.8vw, 0.82rem); line-height: 1.45; opacity: 0.78; overflow-wrap: anywhere; }
 .builder-phase4-gallery-luxury .builder-phase4-gallery-item,
 .builder-phase4-gallery-minimal .builder-phase4-gallery-item,
 .builder-phase4-gallery-neon .builder-phase4-gallery-item { border-radius: 0; }
@@ -175,7 +175,7 @@ body.builder-preview-custom {
     .builder-phase3-timeline-item { grid-template-columns: 3.65rem minmax(0, 1fr); gap: 0 0.65rem; padding-left: 0.9rem; }
     .builder-phase3-actions { align-items: stretch; }
     .builder-phase3-action { flex: 1 1 7rem; }
-    .builder-phase4-gallery { grid-template-columns: minmax(0, 1fr); padding-inline: 1rem; }
+    [data-builder-phase4="gallery"].builder-phase4-gallery { grid-template-columns: minmax(0, 1fr) !important; padding-inline: 1rem !important; }
     .builder-phase4-gallery-item { width: 100%; transform: none !important; }
     .builder-phase4-video { width: calc(100% - 2rem); }
 }

@@ -1,0 +1,15 @@
+- generic [active] [ref=f2e1]:
+  - option "Selecciona un tipo" [disabled] [selected]
+  - option "Boda"
+  - option "XV Años"
+  - option "Cumpleaños"
+  - option "Graduación"
+  - option "Empresarial"
+  - option "Baby Shower"
+  - option "Otro"
+  - option "Activo" [selected]
+  - option "Borrador"
+  - option "Finalizado"
+  - option "QR"
+  - option "Pase impreso"
+  - option "Ambos" [selected]

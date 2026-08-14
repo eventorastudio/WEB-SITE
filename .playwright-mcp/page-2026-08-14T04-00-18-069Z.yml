@@ -1,0 +1,23 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "Volver al Dashboard" [ref=e5] [cursor=pointer]:
+        - /url: ../dashboard.html
+        - text: ←
+      - img "Eventora Studio" [ref=e6]
+      - generic [ref=e8]:
+        - strong [ref=e9]: Invitation Builder
+        - generic [ref=e10]: Selecciona un evento
+    - generic [ref=e11]:
+      - generic [ref=e12]: Borrador local
+      - button "Guardar borrador · Próximamente" [disabled] [ref=e14]
+  - region [ref=e15]:
+    - generic [ref=e16]:
+      - text: EVENTORA STUDIO · PRODUCCIÓN
+      - heading "Preparando el Builder" [level=1] [ref=e17]
+      - paragraph [ref=e18]: Leyendo la información existente del evento. No se realizará ningún write.
+      - generic [ref=e20]:
+        - strong [ref=e21]: Cargando evento…
+        - paragraph [ref=e22]: Nombre, fecha, hora, tipo y ciudad se usarán como contenido inicial.
+      - link "Volver al Dashboard" [ref=e23] [cursor=pointer]:
+        - /url: ../dashboard.html
