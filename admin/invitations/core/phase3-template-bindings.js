@@ -27,7 +27,45 @@ function getRoot(documentRoot, selector) {
     try { return documentRoot.querySelector(selector); } catch { return null; }
 }
 
+function updateFeatureToken(element, feature, enabled) {
+    if (!element?.dataset) return;
+    const features = new Set(clean(element.dataset.prestigeFeature).split(' ').filter(Boolean));
+    if (enabled) features.add(feature);
+    else features.delete(feature);
+    if (features.size) element.dataset.prestigeFeature = [...features].join(' ');
+    else element.removeAttribute('data-prestige-feature');
+}
+
+function resolveFeatureRoot(documentRoot, feature, { create = false } = {}) {
+    const candidate = getRoot(documentRoot, `[data-prestige-feature~="${feature}"]`);
+    if (candidate && !candidate.matches?.('a,button')) return candidate;
+    if (candidate) {
+        const container = candidate.closest('section,article') ?? candidate.parentElement;
+        if (container) {
+            updateFeatureToken(container, feature, true);
+            updateFeatureToken(candidate, feature, false);
+            return container;
+        }
+        return candidate;
+    }
+    if (!create || !documentRoot?.body) return null;
+
+    const section = documentRoot.createElement('section');
+    section.className = 'builder-generated-feature builder-generated-gift-registry';
+    section.dataset.prestigeFeature = feature;
+    const insertionPoint = getRoot(documentRoot, '[data-prestige-feature~="rsvp"], footer');
+    if (insertionPoint) insertionPoint.before(section);
+    else documentRoot.body.append(section);
+    return section;
+}
+
 function prepareRoot(root, sectionId, variant) {
+    root.hidden = false;
+    delete root.dataset.builderSectionVisibility;
+    delete root.dataset.builderPhase3Demo;
+    delete root.dataset.builderDemoCopy;
+    delete root.dataset.builderDemoContainer;
+    delete root.dataset.builderEventSpecificDemo;
     root.querySelector(':scope > [data-builder-phase3-section]')?.remove();
     [...root.children].forEach((child) => {
         if (child.dataset.builderPhase3Section) return;
@@ -217,9 +255,9 @@ function renderDressCode(documentRoot, draft, variant) {
 }
 
 function renderGifts(documentRoot, draft, variant) {
-    const root = getRoot(documentRoot, '[data-prestige-feature~="gift-registry"]');
-    if (!root) return;
     const mode = getCollectionMode(draft, 'gifts');
+    const root = resolveFeatureRoot(documentRoot, 'gift-registry', { create: mode !== 'untouched' });
+    if (!root) return;
     if (mode === 'untouched') return;
     const gifts = meaningful(draft.gifts);
     if (!gifts.length) { markCleared(root); return; }

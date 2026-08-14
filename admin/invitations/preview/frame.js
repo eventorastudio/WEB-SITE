@@ -6,7 +6,7 @@ import {
     applyPhase3ContentBindings,
     formatInvitationEventLine,
     prepareBuilderTemplate
-} from '../core/template-binding-registry.js?v=phase3-logistics-20260813';
+} from '../core/template-binding-registry.js?v=phase3-gifts-hotfix-20260813';
 
 const parentOrigin = window.location.origin;
 let activeThemeLinks = [];

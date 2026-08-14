@@ -7,7 +7,7 @@ import {
     GENERAL_INFORMATION_FIELDS,
     SECTION_EDITOR_REGISTRY
 } from './section-editor-registry.js?v=phase3-logistics-20260813';
-import { applyPhase3TemplateBindings } from './phase3-template-bindings.js?v=phase3-logistics-20260813';
+import { applyPhase3TemplateBindings } from './phase3-template-bindings.js?v=phase3-gifts-hotfix-20260813';
 
 const adapters = {
     aloha: {

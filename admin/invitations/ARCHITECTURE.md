@@ -545,6 +545,18 @@ identidad lógica. `meta.entitySequences` evita reutilizar IDs después de borra
 - configured: se renderizan sólo datos reales;
 - explicit cleared: se oculta el bloque y no reaparece copy demo.
 
+`gift-registry` es el ID canónico de sección y `draft.gifts` su colección de
+datos. El renderer común promueve a su contenedor temático cualquier marcador
+que la plantilla haya declarado directamente sobre un enlace o botón; así la
+neutralización de acciones demo nunca puede ocultar las cards reales. Si una
+plantilla no aporta markup reutilizable, Builder Template Mode crea una sección
+mínima sin modificar la demo pública.
+
+Los módulos JavaScript publicados pueden permanecer en caché hasta cuatro horas.
+Por eso un hotfix del renderer debe cambiar la misma versión desde `builder.html`
+hasta `frame.html`, `frame.js`, el registry y `phase3-template-bindings.js`; cambiar
+sólo el archivo final dejaría al iframe ejecutando el grafo anterior.
+
 Cambiar tema, desactivar sección o bajar paquete no muta estas colecciones. Sólo
 una eliminación explícita borra una entidad. Las secciones retenidas fuera del
 paquete siguen en `enabledSections`, pero el protocolo envía al frame únicamente
