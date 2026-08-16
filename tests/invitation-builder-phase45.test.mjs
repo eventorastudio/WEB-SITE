@@ -527,13 +527,14 @@ test('Media Manager habilitado muestra Guardar multimedia y persiste metadata si
     }
 });
 
-test('feature flag de producción permanece false y el editor no importa Firebase Storage', async () => {
+test('feature flag de producción habilita uploads y el editor mantiene Firebase Storage centralizado', async () => {
     const [flags, editor, firebase] = await Promise.all([
         readFile(path.join(ROOT, 'admin/invitations/core/feature-flags.js'), 'utf8'),
         readFile(path.join(ROOT, 'admin/invitations/editors/media-editor.js'), 'utf8'),
         readFile(path.join(ROOT, 'admin/firebase.js'), 'utf8')
     ]);
-    assert.match(flags, /INVITATION_MEDIA_UPLOAD_ENABLED\s*=\s*false/);
+
+    assert.match(flags, /INVITATION_MEDIA_UPLOAD_ENABLED\s*=\s*true/);
     assert.doesNotMatch(editor, /firebase-storage|getStorage|uploadBytes|deleteObject\(/);
     assert.match(firebase, /getStorage\(app\)/);
     assert.equal((firebase.match(/initializeApp\(/g) ?? []).length, 1);

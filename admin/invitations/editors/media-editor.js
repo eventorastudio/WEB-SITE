@@ -1,7 +1,7 @@
 import { getAllMediaAssets, getMediaAssetSource, getMediaRoleAvailability } from '../core/media-schema.js?v=phase4-media-persistence-20260814';
 import { MediaObjectUrlRegistry } from '../core/media-runtime.js?v=phase4-media-20260813';
 import { friendlyMediaError, inspectAndProcessMediaFile } from '../core/media-processor.js?v=phase4-media-20260813';
-import { invitationMediaService } from '../services/invitation-media-service.js?v=phase46-media-normalization-20260814';
+import { invitationMediaService } from '../services/invitation-media-service.js?v=phase48-upload-enabled-20260816';
 
 const ROLE_COPY = Object.freeze({
     cover: Object.freeze({ title: 'Portada / hero', copy: 'JPEG, PNG o WebP. Se optimiza localmente y conserva un punto focal por invitación.', accept: 'image/jpeg,image/png,image/webp' }),

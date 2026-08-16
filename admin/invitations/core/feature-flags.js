@@ -1,3 +1,3 @@
-// Este flag permanece desactivado hasta que Storage, Firestore Rules y App Check
-// hayan sido desplegados y verificados expresamente para el proyecto remoto.
-export const INVITATION_MEDIA_UPLOAD_ENABLED = false;
+// Uploads multimedia habilitados tras validar Storage, Firestore Rules,
+// App Check y smoke test real del proyecto remoto.
+export const INVITATION_MEDIA_UPLOAD_ENABLED = true;

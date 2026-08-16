@@ -209,13 +209,33 @@ test('explicit clear no restaura media demo y Data URLs nunca se renderizan', as
     assert.equal(dom.window.document.documentElement.outerHTML.includes('data:image/png'), false);
 });
 
-test('Storage permanece bloqueado y las rutas preparadas son deterministas y acotadas', () => {
+test('Storage queda habilitado y las rutas preparadas siguen siendo deterministas y acotadas', () => {
     const status = getInvitationMediaStorageStatus();
-    assert.equal(status.canUpload, false);
-    assert.equal(status.mode, 'blocked');
-    assert.equal(buildInvitationMediaStoragePath({ eventId: 'EVT-0001', assetId: 'MED-LOCAL-001', role: 'cover', mimeType: 'image/webp' }), 'eventos/EVT-0001/invitacion/media/cover/MED-LOCAL-001.webp');
-    assert.throws(() => buildInvitationMediaStoragePath({ eventId: '../EVT', assetId: 'MED-LOCAL-001', role: 'cover', mimeType: 'image/webp' }), /storage\/invalid-event-id/);
-    assert.throws(() => startInvitationMediaUpload(), /storage\/not-integrated/);
+
+    assert.equal(status.canUpload, true);
+    assert.equal(status.canDelete, true);
+    assert.equal(status.mode, 'enabled');
+    assert.equal(status.code, 'storage/ready');
+
+    assert.equal(
+        buildInvitationMediaStoragePath({
+            eventId: 'EVT-0001',
+            assetId: 'MED-LOCAL-001',
+            role: 'cover',
+            mimeType: 'image/webp'
+        }),
+        'eventos/EVT-0001/invitacion/media/cover/MED-LOCAL-001.webp'
+    );
+
+    assert.throws(
+        () => buildInvitationMediaStoragePath({
+            eventId: '../EVT',
+            assetId: 'MED-LOCAL-001',
+            role: 'cover',
+            mimeType: 'image/webp'
+        }),
+        /storage\/invalid-event-id/
+    );
 });
 
 test('Media Manager monta drop zones, conserva scroll y retiene cards durante downgrade', () => {

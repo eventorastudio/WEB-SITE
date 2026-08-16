@@ -1,4 +1,4 @@
-import { INVITATION_MEDIA_UPLOAD_ENABLED } from '../core/feature-flags.js';
+import { INVITATION_MEDIA_UPLOAD_ENABLED } from '../core/feature-flags.js?v=phase48-upload-enabled-20260816';
 import {
     MEDIA_MIME_POLICY,
     MEDIA_ROLE_REGISTRY,
