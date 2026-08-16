@@ -1,13 +1,14 @@
 import { PREVIEW_MESSAGE_TYPES } from '../core/builder-events.js?v=phase3-logistics-20260813';
-import { INVITATION_CONTENT_SCHEMA_VERSION, PREVIEW_SEMANTIC_FALLBACKS } from '../core/content-schema.js?v=phase4-media-20260813';
+import { INVITATION_CONTENT_SCHEMA_VERSION, PREVIEW_SEMANTIC_FALLBACKS } from '../core/content-schema.js?v=phase51-rsvp-20260816';
 import { applyPreviewSectionVisibility } from '../core/preview-sections.js?v=phase3-logistics-20260813';
 import {
     applyTemplateContentBindings,
     applyPhase3ContentBindings,
     applyPhase4ContentBindings,
+    applyPhase5ContentBindings,
     formatInvitationEventLine,
     prepareBuilderTemplate
-} from '../core/template-binding-registry.js?v=phase4-media-20260813';
+} from '../core/template-binding-registry.js?v=phase51-rsvp-20260816';
 
 const parentOrigin = window.location.origin;
 let activeThemeLinks = [];
@@ -147,7 +148,8 @@ async function renderCustom(payload, requestId) {
         ['gift-registry', 'gift-registry'],
         ['gallery', 'gallery'],
         ['welcome-video', 'welcome-video'],
-        ['music', 'music']
+        ['music', 'music'],
+        ['rsvp', 'rsvp']
     ].forEach(([sectionId, feature]) => {
         const section = document.createElement('section');
         section.className = 'custom-preview-section';
@@ -165,6 +167,7 @@ function applyPayload(payload) {
         applyCustomContent(payload.draft);
         applyPhase3ContentBindings(document, payload.theme.id, payload.draft);
         applyPhase4ContentBindings(document, payload.theme.id, payload.draft);
+        applyPhase5ContentBindings(document, payload.theme.id, payload.draft);
     }
     else applyTemplateContentBindings(document, payload.theme.id, payload.draft);
     applySectionVisibility(payload.sections, payload.enabledSections, payload.sectionGroups);
@@ -355,8 +358,8 @@ function showBuilderActionNotice(actionType) {
         gifts: 'Este botón abrirá la opción de regalo en la invitación publicada.',
         hotel: 'Este botón abrirá la reservación o información del hotel en la invitación publicada.',
         calendar: 'Esta acción agregará los datos centrales del evento al calendario.',
-        whatsapp: 'Este botón abrirá WhatsApp con el mensaje configurado en una fase futura.',
-        rsvp: 'La confirmación real por WhatsApp se habilitará en una fase futura.'
+        whatsapp: 'Este botón abrirá WhatsApp con el mensaje configurado cuando la invitación esté publicada.',
+        rsvp: 'La confirmación interna se habilitará cuando exista el runtime público RSVP.'
     };
     const message = document.createElement('p');
     message.textContent = messages[actionType] || 'Este enlace se habilitará únicamente en la invitación publicada.';

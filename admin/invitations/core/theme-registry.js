@@ -118,7 +118,7 @@ export const THEME_REGISTRY = Object.freeze([
         category: 'Base flexible · Fase futura',
         cover: null,
         templatePath: null,
-        capabilities: Object.freeze(['personalized-design', 'responsive']),
+        capabilities: Object.freeze(['personalized-design', 'responsive', 'rsvp']),
         palette: ['#171513', '#c9a96a']
     })
 ]);

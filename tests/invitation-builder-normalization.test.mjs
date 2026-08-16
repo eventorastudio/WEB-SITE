@@ -168,13 +168,13 @@ test('ubicación configurada reemplaza todas las sedes demo en las once coleccio
     }
 });
 
-test('los 43 fields de copy tienen editor, handler y ownership sin colisiones en los once temas', async () => {
+test('los 51 fields canónicos (43 de copy + 8 de configuración RSVP) tienen editor y binding sin colisiones', async () => {
     const editorPaths = new Set([
         ...GENERAL_INFORMATION_FIELDS.map(({ path: fieldPath }) => fieldPath),
         ...Object.values(SECTION_EDITOR_REGISTRY).flatMap(({ fields }) => fields.map(({ path: fieldPath }) => fieldPath))
     ]);
     const editablePaths = Object.keys(INVITATION_EDITABLE_FIELDS);
-    assert.equal(editablePaths.length, 43);
+    assert.equal(editablePaths.length, 51);
     assert.deepEqual([...editorPaths].sort(), editablePaths.sort());
 
     const values = distinctiveValues();
@@ -184,8 +184,8 @@ test('los 43 fields de copy tienen editor, handler y ownership sin colisiones en
 
     for (const theme of COLLECTION_THEMES) {
         const coverage = getPhase2BindingCoverage(theme.id);
-        assert.equal(coverage.total, 43, theme.id);
-        assert.equal(coverage.bound, 43, theme.id);
+        assert.equal(coverage.total, 51, theme.id);
+        assert.equal(coverage.bound, 51, theme.id);
         assert.ok(Object.values(coverage.paths).every((status) => status === 'PASS'), theme.id);
 
         const dom = await createTemplate(theme);
@@ -199,6 +199,12 @@ test('los 43 fields de copy tienen editor, handler y ownership sin colisiones en
 
             editablePaths.forEach((fieldPath) => {
                 if (fieldPath === 'content.countdown.arrivedMessage') return;
+                if (fieldPath.startsWith('content.rsvp.') && ![
+                    'content.rsvp.title',
+                    'content.rsvp.message',
+                    'content.rsvp.buttonLabel',
+                    'content.rsvp.deadline'
+                ].includes(fieldPath)) return;
                 const directlyOwned = dom.window.document.querySelector(`[data-builder-bound-path="${fieldPath}"],[data-builder-field-path="${fieldPath}"]`);
                 const compositeOwned = [...dom.window.document.querySelectorAll('[data-builder-bound-paths]')]
                     .some((node) => node.dataset.builderBoundPaths.split(' ').includes(fieldPath));

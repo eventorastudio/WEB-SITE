@@ -6,7 +6,7 @@ import { eventBus } from '../core/event-bus.js';
 import { EVENT_TYPES } from '../core/event-types.js';
 import { hasPermission, PERMISSIONS } from '../core/roles.js';
 import { initThemeManager } from '../core/theme-manager.js';
-import { builderState } from './core/builder-state.js?v=phase4-media-persistence-20260814';
+import { builderState } from './core/builder-state.js?v=phase51-rsvp-20260816';
 import { createBuilderUrl, readBuilderRoute } from './core/builder-routing.js?v=phase3-logistics-20260813';
 import {
     BUILDER_DESKTOP_MIN_WIDTH,
@@ -15,7 +15,7 @@ import {
 } from './core/builder-platform.js?v=phase3-logistics-20260813';
 import { createBuilderDebugLogger } from './core/builder-debug.js?v=phase3-logistics-20260813';
 import { initIdentityEditor } from './editors/identity-editor.js?v=phase3-logistics-20260813';
-import { initSectionCopyEditors } from './editors/section-copy-editor.js?v=phase3-logistics-20260813';
+import { initSectionCopyEditors } from './editors/section-copy-editor.js?v=phase51-rsvp-20260816';
 import { initLogisticsEditors } from './editors/logistics-editor.js?v=phase3-logistics-20260813';
 import { initMediaEditor } from './editors/media-editor.js?v=phase48-upload-enabled-20260816';
 import { invitationMediaService } from './services/invitation-media-service.js?v=phase48-upload-enabled-20260816';
@@ -23,7 +23,7 @@ import { renderEventSelector } from './modules/event-selector.js?v=phase3-logist
 import { initPackageSelector } from './modules/package-selector.js?v=phase3-logistics-20260813';
 import { initThemeSelector } from './modules/theme-selector.js?v=phase3-logistics-20260813';
 import { initSectionSelector } from './modules/section-selector.js?v=phase3-logistics-20260813';
-import { initPreviewController } from './modules/preview-controller.js?v=phase4-media-20260813';
+import { initPreviewController } from './modules/preview-controller.js?v=phase51-rsvp-20260816';
 import { initBuilderEventBridge } from './modules/state-event-bridge.js?v=phase3-logistics-20260813';
 
 const dom = {

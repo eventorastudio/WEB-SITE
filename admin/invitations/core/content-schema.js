@@ -1,7 +1,11 @@
 import { createLocation } from './logistics-schema.js?v=phase3-logistics-20260813';
+import {
+    RSVP_EDITABLE_FIELD_DEFINITIONS,
+    normalizeRsvpConfig
+} from './rsvp-schema.js?v=phase51-rsvp-20260816';
 
 export const INVITATION_DRAFT_SCHEMA_VERSION = 5;
-export const INVITATION_CONTENT_SCHEMA_VERSION = 2;
+export const INVITATION_CONTENT_SCHEMA_VERSION = 3;
 
 const FIELD_DEFINITIONS = [
     ['content.identity.primaryName', 'text', 120],
@@ -25,10 +29,7 @@ const FIELD_DEFINITIONS = [
     ['content.dressCode.name', 'text', 120],
     ['content.dressCode.description', 'text', 500],
     ['content.dressCode.note', 'text', 300],
-    ['content.rsvp.title', 'text', 120],
-    ['content.rsvp.message', 'text', 500],
-    ['content.rsvp.buttonLabel', 'text', 80],
-    ['content.rsvp.deadline', 'date', 10],
+    ...RSVP_EDITABLE_FIELD_DEFINITIONS,
     ['content.music.title', 'text', 120],
     ['content.music.text', 'text', 300],
     ['content.video.title', 'text', 120],
@@ -99,7 +100,7 @@ export function createInvitationContent(eventData = {}) {
         countdown: { title: '', preMessage: '', arrivedMessage: '' },
         location: { title: '', intro: '' },
         dressCode: { title: '', name: '', description: '', note: '', recommendedColors: [], avoidedColors: [] },
-        rsvp: { title: '', message: '', buttonLabel: '', deadline: '' },
+        rsvp: normalizeRsvpConfig(),
         music: { title: '', text: '' },
         video: { title: '', subtitle: '', intro: '' },
         gallery: { title: '', subtitle: '', description: '' },
@@ -132,6 +133,7 @@ export function getDraftValue(draft, path) {
 export function normalizeEditableDraftValue(path, value) {
     const definition = INVITATION_EDITABLE_FIELDS[path];
     if (!definition) throw new TypeError(`builder/unknown-editable-path:${String(path)}`);
+    if (definition.type === 'boolean') return value === true || value === 'true';
     return String(value ?? '').slice(0, definition.maxLength);
 }
 
@@ -153,6 +155,14 @@ export function setDraftValue(draft, path, value) {
 export function cloneInvitationValue(value) {
     if (typeof structuredClone === 'function') return structuredClone(value);
     return JSON.parse(JSON.stringify(value));
+}
+
+export function migrateInvitationDraftContent(draft = {}) {
+    const migrated = cloneInvitationValue(draft);
+    migrated.content = migrated.content && typeof migrated.content === 'object' ? migrated.content : {};
+    migrated.content.rsvp = normalizeRsvpConfig(migrated.content.rsvp);
+    migrated.contentSchemaVersion = INVITATION_CONTENT_SCHEMA_VERSION;
+    return migrated;
 }
 
 export function getTouchedDraftPaths(draft) {

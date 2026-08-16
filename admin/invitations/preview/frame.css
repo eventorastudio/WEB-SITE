@@ -50,6 +50,12 @@ html, body { min-height: 100%; max-inline-size: 100%; overflow-x: clip; }
 .builder-semantic-meta,
 .builder-semantic-deadline,
 .builder-semantic-note { opacity: 0.78; }
+.builder-phase5-rsvp-config { position: relative; z-index: 4; width: min(calc(100% - 2rem), 42rem); display: grid; justify-items: center; gap: 0.8rem; margin: clamp(1rem, 3vw, 1.8rem) auto 0; padding: 1rem; border: 1px solid currentColor; border-radius: 1rem; text-align: center; opacity: 0.88; }
+.builder-phase5-rsvp-meta, .builder-phase5-rsvp-confirmation { margin: 0; font-size: clamp(0.66rem, 1.8vw, 0.82rem); line-height: 1.55; }
+.builder-phase5-rsvp-meta { font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.builder-phase5-rsvp-choices { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.55rem; }
+.builder-phase5-rsvp-choices span { padding: 0.45rem 0.75rem; border: 1px solid currentColor; border-radius: 999px; font-size: clamp(0.64rem, 1.7vw, 0.78rem); }
+.builder-phase5-rsvp-custom { min-height: 18rem; padding-block: clamp(2.5rem, 8vw, 5rem); }
 .builder-generated-feature {
     min-height: 16rem;
     padding: clamp(3rem, 10vw, 7rem) clamp(1.4rem, 7vw, 5rem);

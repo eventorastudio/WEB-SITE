@@ -39,6 +39,7 @@ export function safeUrlError(value, field, linkType = 'custom') {
 export function normalizeWhatsAppPhone(value) {
     const source = clean(value, 32);
     if (!source) return '';
+    if (BLOCKED_PROTOCOLS.some((protocol) => source.toLowerCase().startsWith(protocol))) return '';
     const digits = source.replace(/\D/g, '');
     return /^\d{7,15}$/.test(digits) ? digits : '';
 }

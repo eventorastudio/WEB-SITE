@@ -1,7 +1,12 @@
-import { getDraftValue } from './content-schema.js?v=phase4-media-20260813';
+import { getDraftValue } from './content-schema.js?v=phase51-rsvp-20260816';
 import { DRESS_COLOR_GROUPS } from './logistics-schema.js?v=phase3-logistics-20260813';
-import { normalizeWhatsAppPhone, safeUrlError } from './safe-url.js?v=phase3-logistics-20260813';
+import { normalizeWhatsAppPhone, safeUrlError } from './safe-url.js?v=phase51-rsvp-20260816';
 import { getAllMediaAssets, validateMediaAsset } from './media-schema.js?v=phase4-media-20260813';
+import {
+    RSVP_GUEST_POLICIES,
+    RSVP_METHODS,
+    isRsvpEnabled
+} from './rsvp-schema.js?v=phase51-rsvp-20260816';
 
 function isExactDate(value) {
     const match = String(value ?? '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -28,10 +33,7 @@ export function validateInvitationDraft(draft = {}) {
         errors['content.schedule.time'] = 'La hora no es válida.';
     }
 
-    const rsvpDeadline = String(getDraftValue(draft, 'content.rsvp.deadline') ?? '').trim();
-    if (rsvpDeadline && !isExactDate(rsvpDeadline)) {
-        errors['content.rsvp.deadline'] = 'La fecha límite no es válida.';
-    }
+    Object.assign(errors, validateRsvpConfig(draft.content?.rsvp));
 
     validateEntityIds(draft, errors);
     const locationIds = new Set((draft.locations ?? []).map(({ id }) => id));
@@ -71,6 +73,32 @@ export function validateInvitationDraft(draft = {}) {
     });
     validateMedia(draft, errors);
 
+    return Object.freeze(errors);
+}
+
+export function validateRsvpConfig(rsvp = {}) {
+    const errors = {};
+    if (!isRsvpEnabled(rsvp)) return Object.freeze(errors);
+
+    const deadline = String(rsvp?.deadline ?? '').trim();
+    const method = String(rsvp?.method ?? '').trim();
+    const guestPolicy = String(rsvp?.guestPolicy ?? '').trim();
+    const phone = String(rsvp?.whatsapp?.phone ?? '').trim();
+
+    if (deadline && !isExactDate(deadline)) {
+        errors['content.rsvp.deadline'] = 'La fecha límite no es válida.';
+    }
+    if (!RSVP_METHODS.includes(method)) {
+        errors['content.rsvp.method'] = 'Selecciona un método RSVP válido.';
+    } else if (method === 'whatsapp') {
+        if (!phone) errors['content.rsvp.whatsapp.phone'] = 'Escribe el teléfono de WhatsApp.';
+        else if (!normalizeWhatsAppPhone(phone)) {
+            errors['content.rsvp.whatsapp.phone'] = 'Usa un número internacional de 7 a 15 dígitos.';
+        }
+    }
+    if (!RSVP_GUEST_POLICIES.includes(guestPolicy)) {
+        errors['content.rsvp.guestPolicy'] = 'Selecciona una política de pases válida.';
+    }
     return Object.freeze(errors);
 }
 

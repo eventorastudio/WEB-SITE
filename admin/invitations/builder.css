@@ -157,14 +157,19 @@ button, a, input, select, textarea { outline-color: var(--builder-gold); }
 .field { display: grid; align-content: start; gap: 6px; }
 .field-wide { grid-column: 1 / -1; }
 .field > span { color: var(--builder-muted); font-size: 0.62rem; font-weight: 600; }
-.field input, .field textarea { min-width: 0; width: 100%; padding: 0 12px; border: 1px solid var(--builder-line); border-radius: 9px; background: #fff; color: var(--builder-ink); font-size: 0.76rem; transition: 0.2s ease; }
+.field input, .field select, .field textarea { min-width: 0; width: 100%; padding: 0 12px; border: 1px solid var(--builder-line); border-radius: 9px; background: #fff; color: var(--builder-ink); font-size: 0.76rem; transition: 0.2s ease; }
 .field input { min-height: 42px; }
+.field select { min-height: 42px; }
 .field textarea { min-height: 74px; padding-block: 10px; line-height: 1.55; resize: vertical; }
-.field input:focus, .field textarea:focus { border-color: var(--builder-gold); box-shadow: 0 0 0 3px var(--builder-gold-soft); }
-.field input[aria-invalid="true"], .field textarea[aria-invalid="true"] { border-color: var(--builder-danger); }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--builder-gold); box-shadow: 0 0 0 3px var(--builder-gold-soft); }
+.field input[aria-invalid="true"], .field select[aria-invalid="true"], .field textarea[aria-invalid="true"] { border-color: var(--builder-danger); }
 .field-footer { min-height: 14px; display: flex; justify-content: space-between; gap: 12px; }
 .field-error { color: var(--builder-danger); font-size: 0.55rem; }
 .field-counter { margin-left: auto; color: #9b9388; font-size: 0.52rem; }
+.field-help { color: #81786d; font-size: 0.54rem; line-height: 1.5; }
+.field-toggle-row { position: static; min-height: 42px; display: flex; align-items: center; gap: 10px; padding: 8px 11px; border: 1px solid var(--builder-line); border-radius: 9px; background: #fff; }
+.field-toggle-row input[type="checkbox"] { position: static; width: 18px; min-height: 18px; height: 18px; margin: 0; accent-color: var(--builder-gold); }
+.field-toggle-row strong { color: var(--builder-ink); font-size: 0.7rem; font-weight: 600; }
 .content-editor-empty { padding: 18px 0; border-block: 1px solid var(--builder-line); }
 .content-editor-empty strong { font-family: var(--builder-serif); font-size: 1.05rem; }
 .content-editor-empty p { margin: 5px 0 0; color: var(--builder-muted); font-size: 0.63rem; }

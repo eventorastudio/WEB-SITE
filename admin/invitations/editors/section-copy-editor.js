@@ -1,6 +1,6 @@
 import { getSectionById, isSectionAllowed } from '../core/section-registry.js?v=phase3-logistics-20260813';
-import { getSectionEditor } from '../core/section-editor-registry.js?v=phase3-logistics-20260813';
-import { createEditorFieldsGrid, syncEditorFields } from './editor-fields.js?v=phase3-logistics-20260813';
+import { getSectionEditor } from '../core/section-editor-registry.js?v=phase51-rsvp-20260816';
+import { createEditorFieldsGrid, syncEditorFields } from './editor-fields.js?v=phase51-rsvp-20260816';
 
 function createEmptyState() {
     const empty = document.createElement('div');
@@ -56,10 +56,13 @@ export function initSectionCopyEditors({ container, state }) {
     if (!container || !state) return () => {};
 
     const rebuild = (snapshot) => {
+        const scroller = document.getElementById('builder-editor');
+        const scrollTop = scroller?.scrollTop ?? 0;
         const openSections = new Set([...container.querySelectorAll('details[open]')].map((item) => item.dataset.sectionEditor));
         const enabled = snapshot.draft?.enabledSections ?? [];
         if (!enabled.length) {
             container.replaceChildren(createEmptyState());
+            if (scroller) scroller.scrollTop = scrollTop;
             return;
         }
         const fragment = document.createDocumentFragment();
@@ -69,6 +72,7 @@ export function initSectionCopyEditors({ container, state }) {
         });
         container.replaceChildren(fragment);
         syncEditorFields(container, snapshot);
+        if (scroller) scroller.scrollTop = scrollTop;
     };
 
     rebuild(state.getSnapshot());

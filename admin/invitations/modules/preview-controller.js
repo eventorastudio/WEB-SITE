@@ -1,7 +1,8 @@
 import { PREVIEW_DEVICES, PREVIEW_MESSAGE_TYPES, isPreviewMessage } from '../core/builder-events.js?v=phase3-logistics-20260813';
 import { SECTION_REGISTRY, isSectionAllowed } from '../core/section-registry.js?v=phase3-logistics-20260813';
-import { createTemplateSectionContract } from '../core/template-binding-registry.js?v=phase4-media-20260813';
+import { createTemplateSectionContract } from '../core/template-binding-registry.js?v=phase51-rsvp-20260816';
 import { getThemeById } from '../core/theme-registry.js?v=phase3-logistics-20260813';
+import { isRsvpEnabled } from '../core/rsvp-schema.js?v=phase51-rsvp-20260816';
 
 const CONTENT_UPDATE_DEBOUNCE_MS = 80;
 
@@ -87,6 +88,7 @@ export function initPreviewController({
                 },
                 enabledSections: snapshot.draft.enabledSections.filter((sectionId) => (
                     isSectionAllowed(sectionId, snapshot.draft.packageId)
+                    && (sectionId !== 'rsvp' || isRsvpEnabled(snapshot.draft.content?.rsvp))
                 )),
                 sections: sectionContract.sections,
                 sectionGroups: sectionContract.groups,

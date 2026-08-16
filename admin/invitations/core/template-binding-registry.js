@@ -2,13 +2,14 @@ import {
     INVITATION_EDITABLE_FIELDS,
     getDraftValue,
     getTouchedDraftPaths
-} from './content-schema.js?v=phase4-media-20260813';
+} from './content-schema.js?v=phase51-rsvp-20260816';
 import {
     GENERAL_INFORMATION_FIELDS,
     SECTION_EDITOR_REGISTRY
-} from './section-editor-registry.js?v=phase3-logistics-20260813';
+} from './section-editor-registry.js?v=phase51-rsvp-20260816';
 import { applyPhase3TemplateBindings } from './phase3-template-bindings.js?v=phase3-gifts-hotfix-20260813';
 import { applyPhase4MediaBindings } from './phase4-media-bindings.js?v=phase4-media-20260813';
+import { applyPhase5RsvpBindings } from './phase5-rsvp-bindings.js?v=phase51-rsvp-20260816';
 
 const MEDIA_ADAPTERS = Object.freeze({
     aloha: Object.freeze({ cover: '.hero > img.demo-photo', gallery: '[data-prestige-feature~="gallery"]', video: '[data-prestige-feature~="welcome-video"]', music: '[data-prestige-feature~="music"]', variant: 'aloha' }),
@@ -146,7 +147,15 @@ const SECTION_BINDINGS = Object.freeze({
             ['content.rsvp.title', 'title'],
             ['content.rsvp.message', 'body'],
             ['content.rsvp.deadline', 'deadline'],
-            ['content.rsvp.buttonLabel', 'cta']
+            ['content.rsvp.buttonLabel', 'cta'],
+            ['content.rsvp.enabled', 'runtime'],
+            ['content.rsvp.method', 'runtime'],
+            ['content.rsvp.whatsapp.phone', 'runtime'],
+            ['content.rsvp.whatsapp.message', 'runtime'],
+            ['content.rsvp.guestPolicy', 'runtime'],
+            ['content.rsvp.responses.acceptedLabel', 'runtime'],
+            ['content.rsvp.responses.declinedLabel', 'runtime'],
+            ['content.rsvp.responses.confirmationMessage', 'runtime']
         ],
         ctaSelector: '[data-demo-action="rsvp"]'
     },
@@ -541,13 +550,21 @@ export function sectionHasRealContent(draft, sectionId) {
     const definition = SECTION_BINDINGS[sectionId];
     if (!definition) return false;
     const touched = new Set(getTouchedDraftPaths(draft));
-    return sectionPaths(definition).some((path) => touched.has(path) || clean(getDraftValue(draft, path)));
+    return definition.fields.some(([path, role]) => (
+        touched.has(path) || (role !== 'runtime' && clean(getDraftValue(draft, path)))
+    ));
 }
 
-function sourceForRole(root, role) {
+function sourceForRole(root, role, path = '') {
     const label = safeQuery(root, LABEL_SELECTOR);
     const headings = safeQueryAll(root, 'h1,h2,h3,blockquote');
     const paragraphs = safeQueryAll(root, 'p').filter((node) => node !== label && !node.matches(LABEL_SELECTOR));
+    if (path === 'content.rsvp.message') return null;
+    if (path === 'content.rsvp.title') return safeQuery(root, ':scope > h1,:scope > h2,:scope > h3') ?? headings[0];
+    if (path === 'content.rsvp.deadline') {
+        return safeQuery(root, ':scope > p:not([class*="label"]):not([class*="kicker"]):not([class*="eyebrow"]):not([class*="script"]):not([class*="postmark"]):not([class*="section-no"])')
+            ?? paragraphs[0];
+    }
     if (role === 'eyebrow') return label ?? safeQuery(root, 'small');
     if (role === 'title') return headings[0] ?? paragraphs[0];
     if (role === 'meta' || role === 'deadline' || role === 'note') return safeQuery(root, 'small') ?? paragraphs.at(-1);
@@ -555,7 +572,7 @@ function sourceForRole(root, role) {
 }
 
 function cloneRoleNode(root, role, path) {
-    const source = sourceForRole(root, role);
+    const source = sourceForRole(root, role, path);
     const tagName = role === 'title' ? 'h2' : 'p';
     const node = source?.cloneNode(false) ?? root.ownerDocument.createElement(tagName);
     [...node.attributes].forEach((attribute) => {
@@ -636,7 +653,7 @@ function applySectionBinding(documentRoot, adapter, sectionId, definition, draft
         const transform = role === 'deadline'
             ? (value) => `Confirma antes del ${formatInvitationDate(value) || value}.`
             : null;
-        applyField(target, draft, path, collisions, { allowDemoFallback: false, transform });
+        applyField(target, draft, path, collisions, { allowDemoFallback: sectionId === 'rsvp', transform });
         if (target && !target.hidden) fitTextToContainer(target, { minimumSize: role === 'title' ? 24 : 14 });
     });
 }
@@ -720,6 +737,7 @@ export function applyTemplateContentBindings(documentRoot, themeId, draft = {}) 
     });
     applyPhase3TemplateBindings(documentRoot, adapter, draft);
     applyPhase4MediaBindings(documentRoot, adapter, draft);
+    applyPhase5RsvpBindings(documentRoot, adapter, draft);
     bindAccessIdentity(documentRoot, draft, collisions);
     neutralizeEventSpecificDemoCopy(documentRoot);
     return { applied: true, themeId, collisions };
@@ -742,6 +760,11 @@ export function applyPhase4ContentBindings(documentRoot, themeId, draft = {}) {
         }
     };
     return applyPhase4MediaBindings(documentRoot, adapter, draft);
+}
+
+export function applyPhase5ContentBindings(documentRoot, themeId, draft = {}) {
+    const adapter = TEMPLATE_BINDING_REGISTRY[themeId] ?? { themeId: 'custom' };
+    return applyPhase5RsvpBindings(documentRoot, adapter, draft);
 }
 
 export function createTemplateSectionContract(themeId, sections = []) {

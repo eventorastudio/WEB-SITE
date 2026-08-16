@@ -337,7 +337,8 @@ adapter, nunca con reemplazos globales de strings.
 
 La métrica se deriva de `INVITATION_EDITABLE_FIELDS`, los campos de los editores
 y los paths realmente declarados por los bindings. El contrato actual contiene
-46 fields editables y los 11 adapters resuelven 46/46 sin ownership collisions.
+51 fields editables: 43 paths de copy y 8 paths de configuración RSVP
+adicionales. Los 11 adapters resuelven 51/51 sin ownership collisions.
 
 | Theme | Identity | Welcome | Countdown | Location | DressCode | RSVP | Music | Video | Gallery | Gifts | Passes | Itinerary | Access |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -374,7 +375,7 @@ una sección oculta el editor y el preview, pero nunca borra su contenido.
 ```js
 {
   schemaVersion: 5,
-  contentSchemaVersion: 2,
+  contentSchemaVersion: 3,
   eventId,
   packageId: null | 'esencial' | 'premium' | 'prestige',
   themeId,
@@ -387,7 +388,12 @@ una sección oculta el editor y el preview, pero nunca borra su contenido.
     countdown: { title, preMessage },
     location: { title, description, buttonLabel },
     dressCode: { title, name, description, note, recommendedColors, avoidedColors },
-    rsvp: { title, message, buttonLabel, deadline },
+    rsvp: {
+      enabled, title, message, buttonLabel, deadline, method,
+      whatsapp: { phone, message },
+      guestPolicy,
+      responses: { acceptedLabel, declinedLabel, confirmationMessage }
+    },
     music: { title, description },
     video: { title, description },
     gallery: { title, subtitle, description },
@@ -792,7 +798,7 @@ estén guardados. Downgrade, toggle y cambio de tema no mutan `draft.media`.
 - Las Rules propuestas cubren `eventos/{eventId}/invitacion/config` y la
   subcolección `media`; pasan Emulator Suite local, pero no fueron desplegadas.
 - Los adapters neutralizan el copy hardcodeado en Builder. Thumbnails server-side,
-  transcodificación, RSVP, invitados, appearance avanzada y publicación siguen
+  transcodificación, RSVP público, invitados, appearance avanzada y publicación siguen
   fuera de alcance.
 - `admin/dashboard.js` todavía accede a Firestore directamente; no se reescribió
   por no ampliar el alcance.
@@ -816,8 +822,9 @@ estén guardados. Downgrade, toggle y cambio de tema no mutan `draft.media`.
 5. Fase 4.6 completada localmente: `mediaIndex`, subcolección por asset,
    `WriteBatch`, hidratación escalable, compensaciones y pruebas Emulator
    1/6/20/>20. El flag remoto continúa deshabilitado.
-6. Fase 5: RSVP, selección de pases y configuración de acceso enlazada a
-   invitados existentes.
+6. Fase 5.1 completada: contrato, editor, validación, WhatsApp seguro, policy de
+   pases y preview RSVP. El runtime público y su enlace a invitados quedan para
+   Fase 5.2.
 7. Fase 6: appearance avanzada y editor del tema Personalizada.
 8. Fase 7: persistencia del resto del draft, debounce y autosave.
 9. Fase 8: validación, snapshot publicado y URL de producción.

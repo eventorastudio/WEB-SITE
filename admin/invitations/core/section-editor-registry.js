@@ -62,12 +62,71 @@ export const SECTION_EDITOR_REGISTRY = Object.freeze({
     }),
     rsvp: editor({
         title: 'Confirmación RSVP',
-        notice: 'La confirmación real, WhatsApp, invitados y pases se implementarán en una fase posterior.',
+        notice: 'Fase 5.1 configura el contrato y la preview. El formulario público, invitados y pases reales permanecen fuera de alcance.',
         fields: [
-            field('content.rsvp.title', 'Título'),
-            field('content.rsvp.message', 'Mensaje', { kind: 'textarea', rows: 3 }),
-            field('content.rsvp.buttonLabel', 'Texto del botón'),
-            field('content.rsvp.deadline', 'Fecha límite', { kind: 'date' })
+            field('content.rsvp.enabled', 'RSVP activo', {
+                kind: 'toggle',
+                wide: true,
+                help: 'Desactivarlo oculta la confirmación sin borrar su configuración.'
+            }),
+            field('content.rsvp.deadline', 'Fecha límite', {
+                kind: 'date',
+                visibleWhen: [{ path: 'content.rsvp.enabled', equals: true }]
+            }),
+            field('content.rsvp.title', 'Título', {
+                visibleWhen: [{ path: 'content.rsvp.enabled', equals: true }]
+            }),
+            field('content.rsvp.message', 'Mensaje', {
+                kind: 'textarea', rows: 3,
+                visibleWhen: [{ path: 'content.rsvp.enabled', equals: true }]
+            }),
+            field('content.rsvp.buttonLabel', 'Texto del botón', {
+                visibleWhen: [{ path: 'content.rsvp.enabled', equals: true }]
+            }),
+            field('content.rsvp.method', 'Método de confirmación', {
+                kind: 'select',
+                options: [
+                    { value: 'internal', label: 'Confirmación interna' },
+                    { value: 'whatsapp', label: 'WhatsApp' }
+                ],
+                visibleWhen: [{ path: 'content.rsvp.enabled', equals: true }]
+            }),
+            field('content.rsvp.whatsapp.phone', 'Teléfono de WhatsApp', {
+                placeholder: '528441234567',
+                visibleWhen: [
+                    { path: 'content.rsvp.enabled', equals: true },
+                    { path: 'content.rsvp.method', equals: 'whatsapp' }
+                ]
+            }),
+            field('content.rsvp.whatsapp.message', 'Mensaje de WhatsApp', {
+                kind: 'textarea', rows: 3,
+                visibleWhen: [
+                    { path: 'content.rsvp.enabled', equals: true },
+                    { path: 'content.rsvp.method', equals: 'whatsapp' }
+                ]
+            }),
+            field('content.rsvp.guestPolicy', 'Política de pases', {
+                kind: 'select',
+                wide: true,
+                help: 'Nunca permite acompañantes fuera del límite asignado al invitado.',
+                options: [
+                    { value: 'assigned-only', label: 'Usar únicamente los pases asignados' },
+                    { value: 'select-up-to-assigned', label: 'Permitir seleccionar hasta el límite', requiredSection: 'pass-selection' }
+                ],
+                visibleWhen: [{ path: 'content.rsvp.enabled', equals: true }]
+            }),
+            field('content.rsvp.responses.acceptedLabel', 'Texto de respuesta positiva', {
+                placeholder: 'Sí, asistiré',
+                visibleWhen: [{ path: 'content.rsvp.enabled', equals: true }]
+            }),
+            field('content.rsvp.responses.declinedLabel', 'Texto para declinar', {
+                placeholder: 'No podré asistir',
+                visibleWhen: [{ path: 'content.rsvp.enabled', equals: true }]
+            }),
+            field('content.rsvp.responses.confirmationMessage', 'Mensaje posterior a la confirmación', {
+                kind: 'textarea', rows: 3,
+                visibleWhen: [{ path: 'content.rsvp.enabled', equals: true }]
+            })
         ]
     }),
     music: editor({

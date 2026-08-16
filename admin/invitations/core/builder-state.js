@@ -8,8 +8,8 @@ import {
     createInvitationContent,
     getDraftValue,
     setDraftValue
-} from './content-schema.js?v=phase4-media-20260813';
-import { validateInvitationDraft } from './builder-validation.js?v=phase4-media-20260813';
+} from './content-schema.js?v=phase51-rsvp-20260816';
+import { validateInvitationDraft } from './builder-validation.js?v=phase51-rsvp-20260816';
 import {
     DRESS_COLOR_GROUPS,
     ENTITY_COLLECTIONS,
@@ -29,6 +29,7 @@ import {
     getMediaRole,
     getMediaRoleAvailability
 } from './media-schema.js?v=phase4-media-20260813';
+import { RSVP_GUEST_POLICY_PATH } from './rsvp-schema.js?v=phase51-rsvp-20260816';
 
 const PREVIEW_DEVICES = Object.freeze(['mobile', 'tablet', 'desktop']);
 const LEGACY_CONTENT_PATHS = Object.freeze({
@@ -209,6 +210,13 @@ export class InvitationBuilderState {
         if (!this._draft) throw new Error('builder/not-initialized');
         const entries = Object.entries(fields);
         if (!entries.length) return { ok: false, code: 'builder/empty-content-patch' };
+        if (entries.some(([path, value]) => (
+            path === RSVP_GUEST_POLICY_PATH
+            && value === 'select-up-to-assigned'
+            && !isSectionAllowed('pass-selection', this._draft.packageId)
+        ))) {
+            return { ok: false, code: 'builder/rsvp-policy-not-allowed' };
+        }
 
         const normalized = entries.map(([path, value]) => {
             const draftCopy = cloneInvitationValue(this._draft);
