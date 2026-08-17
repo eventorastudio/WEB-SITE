@@ -1,22 +1,12 @@
-import { publicRsvpAccessLoader } from './services/rsvp-access-loader.js';
+import { createRsvpView } from './rsvp-view.js?v=phase54-public-rsvp-20260817';
+import { RsvpPageController } from './rsvp-controller.js?v=phase54-public-rsvp-20260817';
+import { publicRsvpSessionLoader } from './services/rsvp-session-loader.js?v=phase54-public-rsvp-20260817';
+import { rsvpResponseService } from './services/rsvp-response-service.js?v=phase54-public-rsvp-20260817';
 
-const card = document.getElementById('rsvp-card');
-const title = document.getElementById('rsvp-title');
-const message = document.getElementById('rsvp-message');
-const summary = document.getElementById('rsvp-access-summary');
-const guestName = document.getElementById('rsvp-guest-name');
-const passLimit = document.getElementById('rsvp-pass-limit');
+const controller = new RsvpPageController({
+    sessionLoader: publicRsvpSessionLoader,
+    responseService: rsvpResponseService,
+    view: createRsvpView(document)
+});
 
-const result = await publicRsvpAccessLoader.loadRoute(window.location.search);
-if (result.status === 'ready') {
-    title.textContent = 'Invitación verificada';
-    message.textContent = 'Este acceso RSVP está activo.';
-    guestName.textContent = result.access.displayName;
-    passLimit.textContent = `${result.access.passLimit} pase(s) asignado(s)`;
-    summary.hidden = false;
-} else {
-    title.textContent = 'Invitación no disponible';
-    message.textContent = 'El enlace no es válido, expiró o fue desactivado.';
-    summary.hidden = true;
-}
-card.setAttribute('aria-busy', 'false');
+await controller.start(window.location.search);

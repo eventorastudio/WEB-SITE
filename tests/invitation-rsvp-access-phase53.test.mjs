@@ -6,11 +6,15 @@ import {
     RSVP_ACCESS_PASS_LIMIT_MAX,
     RSVP_ACCESS_TOKEN_BITS,
     RSVP_ACCESS_TOKEN_BYTES,
+    RSVP_CONFIG_KEY_BITS,
+    RSVP_CONFIG_KEY_BYTES,
     assertRsvpAccessToken,
+    assertRsvpConfigKey,
     buildRsvpAccessDocument,
     buildRsvpUrl,
     deserializeRsvpAccessDocument,
     generateRsvpAccessToken,
+    generateRsvpConfigKey,
     isRsvpAccessExpired,
     isValidRsvpAccessToken,
     parseRsvpRoute,
@@ -26,6 +30,36 @@ const GUEST_ID = 'INV-0001';
 const UID = 'UID-PHASE53';
 const CREATED_AT = new Date('2026-08-16T12:00:00.000Z');
 const FUTURE = new Date('2030-01-01T00:00:00.000Z');
+const CONFIG_KEY = 'k'.repeat(43);
+
+function timestamp(value = CREATED_AT) {
+    const date = new Date(value);
+    return { toDate: () => new Date(date.getTime()) };
+}
+
+function publicationDocument(eventId = EVENT_ID, configKey = CONFIG_KEY) {
+    return {
+        schemaVersion: 1,
+        eventId,
+        configKey,
+        createdAt: timestamp(),
+        createdBy: UID,
+        updatedAt: timestamp(),
+        updatedBy: UID
+    };
+}
+
+function responseDocument(overrides = {}) {
+    return {
+        schemaVersion: 1,
+        eventId: EVENT_ID,
+        guestId: GUEST_ID,
+        status: 'accepted',
+        passesConfirmed: 4,
+        respondedAt: timestamp('2026-08-16T18:00:00.000Z'),
+        ...overrides
+    };
+}
 
 function fixedToken(character = 'A') {
     return character.repeat(43);
@@ -50,6 +84,7 @@ function accessDocument(overrides = {}) {
         eventId: EVENT_ID,
         guestId: GUEST_ID,
         guest: guest(),
+        configKey: CONFIG_KEY,
         active: true,
         expiresAt: null,
         ...overrides
@@ -61,15 +96,23 @@ function createGateway({
     initialAccess = {},
     failCreate = false,
     dropCreates = false,
-    failRevoke = false
+    failRevoke = false,
+    failRevokeTokens = [],
+    initialResponses = {},
+    failResponseMigration = false,
+    dropResponseMigration = false,
+    publication = publicationDocument()
 } = {}) {
     const guests = new Map(Object.entries(initialGuests));
     const access = new Map(Object.entries(initialAccess));
+    const responses = new Map(Object.entries(initialResponses));
     const operations = [];
+    const revokeFailures = new Set(failRevokeTokens);
     const key = (eventId, token) => `${eventId}/${token}`;
     return {
         guests,
         access,
+        responses,
         operations,
         getCurrentUid: () => UID,
         async readGuest(eventId, guestId) {
@@ -79,6 +122,14 @@ function createGateway({
         async readAccess(eventId, token) {
             operations.push({ type: 'read-access', eventId, token });
             return access.get(key(eventId, token)) ?? null;
+        },
+        async readPublication(eventId) {
+            operations.push({ type: 'read-publication', eventId });
+            return publication;
+        },
+        async readResponse(eventId, token) {
+            operations.push({ type: 'read-response', eventId, token });
+            return responses.get(key(eventId, token)) ?? null;
         },
         async createAccess(eventId, token, document) {
             operations.push({ type: 'create-access', eventId, token, document });
@@ -92,10 +143,20 @@ function createGateway({
         },
         async updateAccess(eventId, token, patch) {
             operations.push({ type: 'update-access', eventId, token, patch });
-            if (failRevoke && patch.active === false) throw new Error('revoke failed with unsafe details');
+            if (patch.active === false && (failRevoke || revokeFailures.has(token))) {
+                throw new Error('revoke failed with unsafe details');
+            }
             const current = access.get(key(eventId, token));
             if (!current) throw new Error('missing');
             access.set(key(eventId, token), { ...current, ...patch });
+        },
+        async migrateResponse(eventId, currentToken, replacementToken) {
+            operations.push({ type: 'migrate-response', eventId, currentToken, replacementToken });
+            if (failResponseMigration) throw new Error('migration failed with unsafe details');
+            const response = responses.get(key(eventId, currentToken)) ?? null;
+            if (!response) return { migrated: false, response: null };
+            if (!dropResponseMigration) responses.set(key(eventId, replacementToken), response);
+            return { migrated: true, response };
         },
         async findAccessByGuest(eventId, guestId) {
             operations.push({ type: 'find-access', eventId, guestId });
@@ -110,6 +171,8 @@ test('1. el contrato fija 256 bits y supera el mínimo de 192', () => {
     assert.equal(RSVP_ACCESS_TOKEN_BYTES, 32);
     assert.equal(RSVP_ACCESS_TOKEN_BITS, 256);
     assert.ok(RSVP_ACCESS_TOKEN_BITS >= 192);
+    assert.equal(RSVP_CONFIG_KEY_BYTES, 32);
+    assert.equal(RSVP_CONFIG_KEY_BITS, 256);
 });
 
 test('2. generate usa getRandomValues sobre exactamente 32 bytes', () => {
@@ -132,6 +195,13 @@ test('3. el token generado es base64url sin padding', () => {
     const token = generateRsvpAccessToken();
     assert.match(token, /^[A-Za-z0-9_-]{43}$/);
     assert.doesNotMatch(token, /[+/=]/);
+});
+
+test('3A. configKey usa una generación criptográfica separada con el mismo formato', () => {
+    const configKey = generateRsvpConfigKey();
+    assert.equal(configKey.length, 43);
+    assert.match(configKey, /^[A-Za-z0-9_-]{43}$/);
+    assert.doesNotThrow(() => assertRsvpConfigKey(configKey));
 });
 
 test('4. una muestra de tokens criptográficos no colisiona', () => {
@@ -184,15 +254,18 @@ test('10. passLimit exige enteros en el mismo rango 1–999 del invitado', () =>
 });
 
 test('11. el documento público raw tiene el esquema mínimo exacto y versionado', () => {
-    assert.deepEqual(Object.keys(accessDocument()).sort(), [
-        'active', 'displayName', 'eventId', 'expiresAt', 'guestId', 'passLimit', 'schemaVersion'
+    const document = accessDocument();
+    assert.deepEqual(Object.keys(document).sort(), [
+        'active', 'configKey', 'displayName', 'eventId', 'expiresAt', 'guestId', 'passLimit', 'schemaVersion'
     ]);
-    assert.equal(accessDocument().schemaVersion, 1);
+    assert.equal(document.schemaVersion, 2);
+    assert.equal('token' in document, false);
 });
 
 test('12. el documento Access raw no contiene UIDs, auditoría ni datos sensibles del invitado', () => {
     const document = accessDocument();
     for (const field of [
+        'token', 'uid', 'userId', 'ownerUid',
         'createdAt', 'createdBy', 'updatedAt', 'updatedBy',
         'qrToken', 'correo', 'email', 'telefono', 'phone', 'mesa', 'notas',
         'direccion', 'checkin', 'pasesDisponibles', 'pasesConfirmados',
@@ -255,7 +328,10 @@ test('20. creación persiste sólo la proyección Access y deja intacto al invit
     const service = new RsvpAccessService({ gateway, tokenFactory: () => fixedToken('F') });
     const result = await service.create({ eventId: EVENT_ID, guestId: GUEST_ID });
     assert.equal(result.token, fixedToken('F'));
-    assert.equal(gateway.operations.filter((item) => item.type === 'create-access').length, 1);
+    const createOperation = gateway.operations.find((item) => item.type === 'create-access');
+    assert.ok(createOperation);
+    assert.equal(createOperation.token, fixedToken('F'));
+    assert.equal('token' in createOperation.document, false);
     assert.equal('rsvpToken' in sourceGuest, false);
     assert.equal(sourceGuest.qrToken, 'QR_PRIVATE_VALUE_1234567890');
     assert.equal('qrToken' in result.access, false);
@@ -292,6 +368,16 @@ test('24. invitado inexistente no crea proyección', async () => {
     assert.equal(gateway.operations.some((item) => item.type === 'create-access'), false);
 });
 
+test('24A. publication de otro evento bloquea Access antes de crear', async () => {
+    const gateway = createGateway({ publication: publicationDocument('EVT-OTHER') });
+    await assert.rejects(
+        new RsvpAccessService({ gateway, tokenFactory: () => fixedToken('0') })
+            .create({ eventId: EVENT_ID, guestId: GUEST_ID }),
+        /invalid-publication/
+    );
+    assert.equal(gateway.operations.some((item) => item.type === 'create-access'), false);
+});
+
 test('25. lectura interna rechaza un documento de otro evento', async () => {
     const token = fixedToken('K');
     const document = accessDocument({ eventId: 'EVT-0002' });
@@ -312,6 +398,8 @@ test('26. rotación ejecuta crear, verificar y sólo entonces revocar', async ()
     assert.equal(result.previousRevoked, true);
     assert.equal(gateway.access.get(`${EVENT_ID}/${oldToken}`).active, false);
     assert.equal(gateway.access.get(`${EVENT_ID}/${newToken}`).active, true);
+    assert.equal('token' in gateway.access.get(`${EVENT_ID}/${oldToken}`), false);
+    assert.equal('token' in gateway.access.get(`${EVENT_ID}/${newToken}`), false);
 });
 
 test('27. fallo al crear reemplazo conserva activo el acceso anterior', async () => {
@@ -334,11 +422,108 @@ test('28. fallo de verificación conserva activo el acceso anterior', async () =
 test('29. fallo al revocar nunca deja al invitado sin acceso', async () => {
     const oldToken = fixedToken('R');
     const newToken = fixedToken('S');
-    const gateway = createGateway({ initialAccess: { [`${EVENT_ID}/${oldToken}`]: accessDocument() }, failRevoke: true });
+    const response = responseDocument({ status: 'declined', passesConfirmed: 0 });
+    const gateway = createGateway({
+        initialAccess: { [`${EVENT_ID}/${oldToken}`]: accessDocument() },
+        initialResponses: { [`${EVENT_ID}/${oldToken}`]: response },
+        failRevokeTokens: [oldToken]
+    });
     const service = new RsvpAccessService({ gateway, tokenFactory: () => newToken });
-    await assert.rejects(service.rotate({ eventId: EVENT_ID, guestId: GUEST_ID, currentToken: oldToken }), /rotation-revoke-failed/);
+    await assert.rejects(
+        service.rotate({ eventId: EVENT_ID, guestId: GUEST_ID, currentToken: oldToken }),
+        (error) => {
+            assert.equal(error.code, 'rsvp-access/rotation-rolled-back');
+            assert.equal(error.status, 'rolled-back');
+            assert.equal(error.responseAuthority, 'previous-access');
+            assert.doesNotMatch(JSON.stringify(error), new RegExp(`${oldToken}|${newToken}`));
+            return true;
+        }
+    );
+    assert.equal(gateway.access.get(`${EVENT_ID}/${oldToken}`).active, true);
+    assert.equal(gateway.access.get(`${EVENT_ID}/${newToken}`).active, false);
+    assert.equal(gateway.responses.get(`${EVENT_ID}/${oldToken}`), response);
+    assert.equal(gateway.responses.get(`${EVENT_ID}/${newToken}`), response);
+    const publicLoader = new PublicRsvpAccessLoader({ gateway: {
+        readPublicAccess: async (eventId, token) => gateway.access.get(`${eventId}/${token}`) ?? null
+    } });
+    assert.equal(
+        (await publicLoader.loadRoute(`?event=${EVENT_ID}&token=${newToken}`)).status,
+        'unavailable'
+    );
+});
+
+test('29A. rotación copia y verifica una respuesta existente sin alterar respondedAt', async () => {
+    const oldToken = fixedToken('1');
+    const newToken = fixedToken('2');
+    const response = responseDocument();
+    const gateway = createGateway({
+        initialAccess: { [`${EVENT_ID}/${oldToken}`]: accessDocument() },
+        initialResponses: { [`${EVENT_ID}/${oldToken}`]: response }
+    });
+    const result = await new RsvpAccessService({ gateway, tokenFactory: () => newToken })
+        .rotate({ eventId: EVENT_ID, guestId: GUEST_ID, currentToken: oldToken });
+    assert.equal(result.responseMigrated, true);
+    assert.equal(gateway.responses.get(`${EVENT_ID}/${newToken}`), response);
+    assert.equal(gateway.responses.get(`${EVENT_ID}/${newToken}`).respondedAt, response.respondedAt);
+    assert.equal(gateway.access.get(`${EVENT_ID}/${oldToken}`).active, false);
+});
+
+test('29B. fallo al migrar respuesta conserva activo el acceso anterior', async () => {
+    const oldToken = fixedToken('3');
+    const gateway = createGateway({
+        initialAccess: { [`${EVENT_ID}/${oldToken}`]: accessDocument() },
+        initialResponses: { [`${EVENT_ID}/${oldToken}`]: responseDocument() },
+        failResponseMigration: true
+    });
+    await assert.rejects(
+        new RsvpAccessService({ gateway, tokenFactory: () => fixedToken('4') })
+            .rotate({ eventId: EVENT_ID, guestId: GUEST_ID, currentToken: oldToken }),
+        /rotation-response-migration-failed/
+    );
+    assert.equal(gateway.access.get(`${EVENT_ID}/${oldToken}`).active, true);
+});
+
+test('29C. fallo de verificación de la respuesta conserva activo el acceso anterior', async () => {
+    const oldToken = fixedToken('5');
+    const gateway = createGateway({
+        initialAccess: { [`${EVENT_ID}/${oldToken}`]: accessDocument() },
+        initialResponses: { [`${EVENT_ID}/${oldToken}`]: responseDocument() },
+        dropResponseMigration: true
+    });
+    await assert.rejects(
+        new RsvpAccessService({ gateway, tokenFactory: () => fixedToken('6') })
+            .rotate({ eventId: EVENT_ID, guestId: GUEST_ID, currentToken: oldToken }),
+        /rotation-response-migration-failed/
+    );
+    assert.equal(gateway.access.get(`${EVENT_ID}/${oldToken}`).active, true);
+});
+
+test('29D. si falla revoke ambos accesos conservan la misma respuesta lógica', async () => {
+    const oldToken = fixedToken('7');
+    const newToken = fixedToken('8');
+    const response = responseDocument({ status: 'declined', passesConfirmed: 0 });
+    const gateway = createGateway({
+        initialAccess: { [`${EVENT_ID}/${oldToken}`]: accessDocument() },
+        initialResponses: { [`${EVENT_ID}/${oldToken}`]: response },
+        failRevoke: true
+    });
+    await assert.rejects(
+        new RsvpAccessService({ gateway, tokenFactory: () => newToken })
+            .rotate({ eventId: EVENT_ID, guestId: GUEST_ID, currentToken: oldToken }),
+        (error) => {
+            assert.equal(error.code, 'rsvp-access/rotation-reconciliation-required');
+            assert.equal(error.status, 'reconciliation-required');
+            assert.equal(error.responseAuthority, 'manual-reconciliation-required');
+            assert.equal(error.currentAccessFingerprint.length, 9);
+            assert.equal(error.replacementAccessFingerprint.length, 9);
+            assert.doesNotMatch(JSON.stringify(error), new RegExp(`${oldToken}|${newToken}`));
+            return true;
+        }
+    );
     assert.equal(gateway.access.get(`${EVENT_ID}/${oldToken}`).active, true);
     assert.equal(gateway.access.get(`${EVENT_ID}/${newToken}`).active, true);
+    assert.equal(gateway.responses.get(`${EVENT_ID}/${oldToken}`), response);
+    assert.equal(gateway.responses.get(`${EVENT_ID}/${newToken}`), response);
 });
 
 test('30. revoke usa active:false y nunca delete', async () => {
@@ -364,7 +549,7 @@ test('31. sync actualiza nombre y pases preservando identidad, estado y expiraci
     assert.equal(synced.active, true);
     assert.equal(synced.expiresAt, FUTURE);
     assert.deepEqual(Object.keys(synced).sort(), [
-        'active', 'displayName', 'eventId', 'expiresAt', 'guestId', 'passLimit', 'schemaVersion'
+        'active', 'configKey', 'displayName', 'eventId', 'expiresAt', 'guestId', 'passLimit', 'schemaVersion'
     ]);
 });
 
@@ -392,7 +577,8 @@ test('33. loader público hace un único get exacto y devuelve sólo el mínimo 
     const result = await loader.loadRoute(`?event=${EVENT_ID}&token=${fixedToken('X')}`);
     assert.equal(result.status, 'ready');
     assert.equal(calls.length, 1);
-    assert.deepEqual(Object.keys(result.access).sort(), ['active', 'displayName', 'eventId', 'expiresAt', 'guestId', 'passLimit', 'schemaVersion']);
+    assert.deepEqual(calls[0], { eventId: EVENT_ID, token: fixedToken('X') });
+    assert.deepEqual(Object.keys(result.access).sort(), ['active', 'configKey', 'displayName', 'eventId', 'expiresAt', 'guestId', 'passLimit', 'schemaVersion']);
     assert.equal('token' in result.access, false);
 });
 
@@ -438,12 +624,16 @@ test('37. los errores públicos no reflejan el secreto ni la causa de Firebase',
 });
 
 test('38. la página pública usa textContent y no persiste ni imprime secretos', async () => {
-    const [script, html] = await Promise.all([
-        readFile(new URL('../rsvp/rsvp.js', import.meta.url), 'utf8'),
+    const [script, controller, service, html] = await Promise.all([
+        readFile(new URL('../rsvp/rsvp-view.js', import.meta.url), 'utf8'),
+        readFile(new URL('../rsvp/rsvp-controller.js', import.meta.url), 'utf8'),
+        readFile(new URL('../admin/invitations/services/rsvp-access-service.js', import.meta.url), 'utf8'),
         readFile(new URL('../rsvp/index.html', import.meta.url), 'utf8')
     ]);
     assert.match(script, /guestName\.textContent/);
-    assert.doesNotMatch(script, /innerHTML|localStorage|sessionStorage|document\.cookie|console\.|dataset\./);
+    for (const source of [script, controller, service]) {
+        assert.doesNotMatch(source, /innerHTML|localStorage|sessionStorage|document\.cookie|console\.|dataset\./);
+    }
     assert.doesNotMatch(html, /data-token|name=["']token|value=["'][A-Za-z0-9_-]{43}/);
 });
 

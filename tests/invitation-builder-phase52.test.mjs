@@ -19,6 +19,7 @@ const EVENT_ID = 'EVT-0001';
 const UID = 'UID-RSVP-EDITOR';
 const UPDATED_AT = Object.freeze({ seconds: 1_776_000_000, nanoseconds: 0 });
 const RESPONSE_CLOSES_DATE = new Date('2026-12-21T00:30:00.000Z');
+const CONFIG_KEY = 'K'.repeat(43);
 
 function timestampFromDate(value) {
     const date = new Date(value.getTime());
@@ -71,11 +72,17 @@ function createGateway({ document = null, failWrite = null, writeHook = null } =
         serverTimestamp: () => UPDATED_AT,
         timestampFromDate,
         readRsvp: async () => document,
-        async writeRsvp(eventId, value) {
-            writes.push({ eventId, value });
-            if (writeHook) await writeHook(eventId, value);
+        async publishRsvp(eventId, { privateDocument, configKeyFactory }) {
+            writes.push({ eventId, value: privateDocument });
+            if (writeHook) await writeHook(eventId, privateDocument);
             if (failWrite) throw failWrite;
-            document = value;
+            document = privateDocument;
+            return {
+                configKey: CONFIG_KEY || configKeyFactory(),
+                metadata: { configKey: CONFIG_KEY },
+                publicProjection: { eventId },
+                created: true
+            };
         }
     };
 }

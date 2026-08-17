@@ -1,5 +1,10 @@
 # Fase 5.3 · Identidad RSVP, token y proyección pública
 
+> Nota de evolución: Fase 5.4 eleva `rsvpAccess` a schema 2 y añade `configKey`.
+> El contrato vigente y la estrategia de rotación con respuestas se documentan
+> en `PHASE_5_4_PUBLIC_RSVP.md`; el resto de este documento conserva el registro
+> histórico de Fase 5.3/5.3A.
+
 ## Resultado y límites
 
 La fase crea identidad RSVP por invitado sin reutilizar la identidad de check-in.

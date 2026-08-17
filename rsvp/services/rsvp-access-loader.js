@@ -4,11 +4,11 @@ import {
     isRsvpAccessExpired,
     parseRsvpRoute,
     toPublicRsvpAccess
-} from '../../shared/rsvp-access-contract.js';
+} from '../../shared/rsvp-access-contract.js?v=phase54-public-rsvp-20260817';
 
-function publicError() {
-    const error = new Error('rsvp-access/unavailable');
-    error.code = 'rsvp-access/unavailable';
+function publicError(code = 'rsvp-access/unavailable') {
+    const error = new Error(code);
+    error.code = code;
     return error;
 }
 
@@ -54,16 +54,19 @@ export class PublicRsvpAccessLoader {
         let document;
         try {
             document = await (await this.getGateway()).readPublicAccess(safeEventId, safeToken);
-        } catch {
+        } catch (error) {
+            if (isRetryableFirebaseError(error)) throw publicError('rsvp-access/error');
             throw publicError();
         }
         if (!document) throw publicError();
 
         try {
             const access = toPublicRsvpAccess(document, { expectedEventId: safeEventId });
-            if (!access.active || isRsvpAccessExpired(access.expiresAt, this.now())) throw publicError();
+            if (!access.active) throw publicError('rsvp-access/revoked');
+            if (isRsvpAccessExpired(access.expiresAt, this.now())) throw publicError('rsvp-access/expired');
             return access;
-        } catch {
+        } catch (error) {
+            if (['rsvp-access/revoked', 'rsvp-access/expired'].includes(error?.code)) throw error;
             throw publicError();
         }
     }
@@ -78,6 +81,11 @@ export class PublicRsvpAccessLoader {
             return unavailableResult();
         }
     }
+}
+
+function isRetryableFirebaseError(error) {
+    return ['unavailable', 'deadline-exceeded', 'resource-exhausted', 'firestore/unavailable']
+        .includes(String(error?.code ?? ''));
 }
 
 function unavailableResult() {

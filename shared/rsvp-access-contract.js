@@ -1,7 +1,10 @@
-export const RSVP_ACCESS_SCHEMA_VERSION = 1;
+export const RSVP_ACCESS_SCHEMA_VERSION = 2;
 export const RSVP_ACCESS_TOKEN_BYTES = 32;
 export const RSVP_ACCESS_TOKEN_BITS = RSVP_ACCESS_TOKEN_BYTES * 8;
 export const RSVP_ACCESS_TOKEN_LENGTH = 43;
+export const RSVP_CONFIG_KEY_BYTES = 32;
+export const RSVP_CONFIG_KEY_BITS = RSVP_CONFIG_KEY_BYTES * 8;
+export const RSVP_CONFIG_KEY_LENGTH = 43;
 export const RSVP_ACCESS_DEFAULT_URL = 'https://eventorastudio.com/rsvp/';
 export const RSVP_ACCESS_PASS_LIMIT_MAX = 999;
 
@@ -11,6 +14,7 @@ const GUEST_ID_PATTERN = /^[^/]{1,1500}$/;
 const TOKEN_PATTERN = /^[A-Za-z0-9_-]{43}$/;
 const ACCESS_DOCUMENT_FIELDS = Object.freeze([
     'active',
+    'configKey',
     'displayName',
     'eventId',
     'expiresAt',
@@ -49,10 +53,27 @@ export function assertRsvpAccessToken(value) {
 }
 
 export function generateRsvpAccessToken({ cryptoApi = globalThis.crypto } = {}) {
+    return generateCapability(RSVP_ACCESS_TOKEN_BYTES, cryptoApi);
+}
+
+export function isValidRsvpConfigKey(value) {
+    return typeof value === 'string' && TOKEN_PATTERN.test(value);
+}
+
+export function assertRsvpConfigKey(value) {
+    if (!isValidRsvpConfigKey(value)) throw new RsvpAccessContractError('rsvp-access/invalid-config-key');
+    return value;
+}
+
+export function generateRsvpConfigKey({ cryptoApi = globalThis.crypto } = {}) {
+    return generateCapability(RSVP_CONFIG_KEY_BYTES, cryptoApi);
+}
+
+function generateCapability(byteLength, cryptoApi) {
     if (!cryptoApi || typeof cryptoApi.getRandomValues !== 'function') {
         throw new RsvpAccessContractError('rsvp-access/secure-random-unavailable');
     }
-    const bytes = new Uint8Array(RSVP_ACCESS_TOKEN_BYTES);
+    const bytes = new Uint8Array(byteLength);
     cryptoApi.getRandomValues(bytes);
     return encodeBase64Url(bytes);
 }
@@ -79,6 +100,7 @@ export function buildRsvpAccessDocument({
     eventId,
     guestId,
     guest,
+    configKey,
     active = true,
     expiresAt = null
 } = {}) {
@@ -89,6 +111,7 @@ export function buildRsvpAccessDocument({
         schemaVersion: RSVP_ACCESS_SCHEMA_VERSION,
         eventId: projection.eventId,
         guestId: projection.guestId,
+        configKey: assertRsvpConfigKey(configKey),
         displayName: projection.displayName,
         passLimit: projection.passLimit,
         active,
@@ -118,11 +141,13 @@ export function deserializeRsvpAccessDocument(document, {
         { nombre: document.displayName, pases: document.passLimit },
         { eventId, guestId }
     );
+    const configKey = assertRsvpConfigKey(document.configKey);
     if (typeof document.active !== 'boolean') throw new RsvpAccessContractError('rsvp-access/invalid-active');
     assertOptionalTimestamp(document.expiresAt, 'rsvp-access/invalid-expiration');
     return Object.freeze({
         schemaVersion: RSVP_ACCESS_SCHEMA_VERSION,
         ...projection,
+        configKey,
         active: document.active,
         expiresAt: document.expiresAt
     });
@@ -134,6 +159,7 @@ export function toPublicRsvpAccess(document, { expectedEventId } = {}) {
         schemaVersion: access.schemaVersion,
         eventId: access.eventId,
         guestId: access.guestId,
+        configKey: access.configKey,
         displayName: access.displayName,
         passLimit: access.passLimit,
         active: access.active,

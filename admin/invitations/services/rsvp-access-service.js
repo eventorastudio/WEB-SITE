@@ -2,18 +2,39 @@ import {
     assertRsvpAccessEventId,
     assertRsvpAccessGuestId,
     assertRsvpAccessToken,
+    assertRsvpConfigKey,
     buildRsvpAccessDocument,
     buildRsvpUrl,
     deserializeRsvpAccessDocument,
     generateRsvpAccessToken
-} from '../../../shared/rsvp-access-contract.js';
+} from '../../../shared/rsvp-access-contract.js?v=phase54-public-rsvp-20260817';
+import {
+    areRsvpResponsesLogicallyEqual,
+    deserializeRsvpResponseDocument
+} from '../../../shared/rsvp-response-contract.js?v=phase54-public-rsvp-20260817';
+import { deserializeRsvpPublicationMetadata } from '../core/rsvp-publication-schema.js?v=phase54-public-rsvp-20260817';
 
 const TOKEN_GENERATION_ATTEMPTS = 5;
 
-function serviceError(code) {
+function serviceError(code, details = {}) {
     const error = new Error(code);
     error.code = code;
+    Object.assign(error, details);
     return error;
+}
+
+function redactAccessIdentifier(token) {
+    const safeToken = assertRsvpAccessToken(token);
+    return `${safeToken.slice(0, 4)}…${safeToken.slice(-4)}`;
+}
+
+function rotationFailureDetails(currentToken, replacementToken, responseMigrated, status) {
+    return {
+        status,
+        currentAccessFingerprint: redactAccessIdentifier(currentToken),
+        replacementAccessFingerprint: redactAccessIdentifier(replacementToken),
+        responseMigrated: Boolean(responseMigrated)
+    };
 }
 
 async function createFirebaseRsvpAccessGateway() {
@@ -23,6 +44,8 @@ async function createFirebaseRsvpAccessGateway() {
     ]);
     const guestRef = (eventId, guestId) => firestoreApi.doc(db, 'eventos', eventId, 'invitados', guestId);
     const accessRef = (eventId, token) => firestoreApi.doc(db, 'eventos', eventId, 'rsvpAccess', token);
+    const publicationRef = (eventId) => firestoreApi.doc(db, 'eventos', eventId, 'invitacion', 'rsvpPublication');
+    const responseRef = (eventId, token) => firestoreApi.doc(db, 'eventos', eventId, 'rsvpResponses', token);
     const readData = async (reference) => {
         const snapshot = await firestoreApi.getDoc(reference);
         return snapshot.exists() ? snapshot.data() : null;
@@ -31,6 +54,8 @@ async function createFirebaseRsvpAccessGateway() {
         getCurrentUid: () => auth.currentUser?.uid ?? '',
         readGuest: (eventId, guestId) => readData(guestRef(eventId, guestId)),
         readAccess: (eventId, token) => readData(accessRef(eventId, token)),
+        readPublication: (eventId) => readData(publicationRef(eventId)),
+        readResponse: (eventId, token) => readData(responseRef(eventId, token)),
         async createAccess(eventId, token, document) {
             await firestoreApi.runTransaction(db, async (transaction) => {
                 const reference = accessRef(eventId, token);
@@ -40,6 +65,22 @@ async function createFirebaseRsvpAccessGateway() {
             });
         },
         updateAccess: (eventId, token, patch) => firestoreApi.updateDoc(accessRef(eventId, token), patch),
+        async migrateResponse(eventId, currentToken, replacementToken, expectedGuestId) {
+            return firestoreApi.runTransaction(db, async (transaction) => {
+                const currentReference = responseRef(eventId, currentToken);
+                const replacementReference = responseRef(eventId, replacementToken);
+                const currentSnapshot = await transaction.get(currentReference);
+                if (!currentSnapshot.exists()) return { migrated: false, response: null };
+                const replacementSnapshot = await transaction.get(replacementReference);
+                if (replacementSnapshot.exists()) throw serviceError('rsvp-access/rotation-response-conflict');
+                const response = deserializeRsvpResponseDocument(currentSnapshot.data(), {
+                    expectedEventId: eventId,
+                    expectedGuestId
+                });
+                transaction.set(replacementReference, response);
+                return { migrated: true, response };
+            });
+        },
         async findAccessByGuest(eventId, guestId) {
             const accessQuery = firestoreApi.query(
                 firestoreApi.collection(db, 'eventos', eventId, 'rsvpAccess'),
@@ -94,7 +135,26 @@ export class RsvpAccessService {
         const safeGuestId = assertRsvpAccessGuestId(guestId);
         const gateway = await this.getGateway();
         requireUid(gateway);
-        const guest = await readGuestOrThrow(gateway, safeEventId, safeGuestId);
+        const [guest, publication] = await Promise.all([
+            readGuestOrThrow(gateway, safeEventId, safeGuestId),
+            readPublicationOrThrow(gateway, safeEventId)
+        ]);
+
+        return this.#createFromProjection({
+            eventId: safeEventId,
+            guestId: safeGuestId,
+            guest,
+            configKey: publication.configKey,
+            expiresAt
+        });
+    }
+
+    async #createFromProjection({ eventId, guestId, guest, configKey, expiresAt = null } = {}) {
+        const safeEventId = assertRsvpAccessEventId(eventId);
+        const safeGuestId = assertRsvpAccessGuestId(guestId);
+        const safeConfigKey = assertRsvpConfigKey(configKey);
+        const gateway = await this.getGateway();
+        requireUid(gateway);
 
         for (let attempt = 0; attempt < TOKEN_GENERATION_ATTEMPTS; attempt += 1) {
             const token = this.generateToken();
@@ -102,6 +162,7 @@ export class RsvpAccessService {
                 eventId: safeEventId,
                 guestId: safeGuestId,
                 guest,
+                configKey: safeConfigKey,
                 active: true,
                 expiresAt
             });
@@ -129,12 +190,52 @@ export class RsvpAccessService {
         const safeCurrentToken = assertRsvpAccessToken(currentToken);
         const current = await this.readInternal(safeEventId, safeCurrentToken, { expectedGuestId: safeGuestId });
         if (!current.active) throw serviceError('rsvp-access/inactive');
+        const gateway = await this.getGateway();
+        requireUid(gateway);
+        const publication = await readPublicationOrThrow(gateway, safeEventId);
+        if (publication.configKey !== current.configKey) {
+            throw serviceError('rsvp-access/config-key-ownership-mismatch');
+        }
 
-        const replacement = await this.create({
+        const replacement = await this.#createFromProjection({
             eventId: safeEventId,
             guestId: safeGuestId,
+            guest: { nombre: current.displayName, pases: current.passLimit },
+            configKey: current.configKey,
             expiresAt: expiresAt === undefined ? current.expiresAt : expiresAt
         });
+        let responseMigration;
+        try {
+            responseMigration = await gateway.migrateResponse(
+                safeEventId,
+                safeCurrentToken,
+                replacement.token,
+                safeGuestId
+            );
+            if (responseMigration?.migrated) {
+                const sourceResponse = deserializeRsvpResponseDocument(responseMigration.response, {
+                    expectedEventId: safeEventId,
+                    expectedGuestId: safeGuestId
+                });
+                const replacementDocument = await gateway.readResponse(safeEventId, replacement.token);
+                const replacementResponse = deserializeRsvpResponseDocument(replacementDocument, {
+                    expectedEventId: safeEventId,
+                    expectedGuestId: safeGuestId
+                });
+                if (!areRsvpResponsesLogicallyEqual(sourceResponse, replacementResponse)) {
+                    throw serviceError('rsvp-access/rotation-response-verification-failed');
+                }
+            }
+        } catch {
+            throw serviceError('rsvp-access/rotation-response-migration-failed', {
+                ...rotationFailureDetails(
+                    safeCurrentToken,
+                    replacement.token,
+                    responseMigration?.migrated,
+                    'failed'
+                )
+            });
+        }
         try {
             await this.revoke({
                 eventId: safeEventId,
@@ -142,9 +243,38 @@ export class RsvpAccessService {
                 expectedGuestId: safeGuestId
             });
         } catch {
-            throw serviceError('rsvp-access/rotation-revoke-failed');
+            const failureDetails = rotationFailureDetails(
+                safeCurrentToken,
+                replacement.token,
+                responseMigration?.migrated,
+                'rolled-back'
+            );
+            try {
+                const compensation = await this.revoke({
+                    eventId: safeEventId,
+                    token: replacement.token,
+                    expectedGuestId: safeGuestId
+                });
+                if (compensation.access.active) {
+                    throw serviceError('rsvp-access/rotation-compensation-verification-failed');
+                }
+            } catch {
+                throw serviceError('rsvp-access/rotation-reconciliation-required', {
+                    ...failureDetails,
+                    status: 'reconciliation-required',
+                    responseAuthority: 'manual-reconciliation-required'
+                });
+            }
+            throw serviceError('rsvp-access/rotation-rolled-back', {
+                ...failureDetails,
+                responseAuthority: 'previous-access'
+            });
         }
-        return Object.freeze({ ...replacement, previousRevoked: true });
+        return Object.freeze({
+            ...replacement,
+            previousRevoked: true,
+            responseMigrated: Boolean(responseMigration?.migrated)
+        });
     }
 
     async revoke({ eventId, token, expectedGuestId = null } = {}) {
@@ -177,6 +307,7 @@ export class RsvpAccessService {
             eventId: safeEventId,
             guestId: current.guestId,
             guest,
+            configKey: current.configKey,
             active: current.active,
             expiresAt: current.expiresAt
         });
@@ -262,6 +393,21 @@ async function readGuestOrThrow(gateway, eventId, guestId) {
     }
     if (!guest) throw serviceError('rsvp-access/guest-not-found');
     return guest;
+}
+
+async function readPublicationOrThrow(gateway, eventId) {
+    let document;
+    try {
+        document = await gateway.readPublication(eventId);
+    } catch {
+        throw serviceError('rsvp-access/publication-read-failed');
+    }
+    if (!document) throw serviceError('rsvp-access/publication-not-found');
+    try {
+        return deserializeRsvpPublicationMetadata(document, { expectedEventId: eventId });
+    } catch {
+        throw serviceError('rsvp-access/invalid-publication');
+    }
 }
 
 function isTokenConflict(error) {

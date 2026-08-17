@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Rules propuestas de Fase 5.3. El despliegue se controla exclusivamente mediante
+// Rules propuestas de Fase 5.4. El despliegue se controla exclusivamente mediante
 // el archivo canónico indicado en firebase.json.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -180,14 +180,123 @@ service cloud.firestore {
       return token is string && token.matches('^[A-Za-z0-9_-]{43}$');
     }
 
-    function validRsvpAccessDocument(data, eventId) {
+    function validRsvpConfigKey(configKey) {
+      return configKey is string && configKey.matches('^[A-Za-z0-9_-]{43}$');
+    }
+
+    function rsvpPublicationPath(eventId) {
+      return /databases/$(database)/documents/eventos/$(eventId)/invitacion/rsvpPublication;
+    }
+
+    function rsvpAccessPath(eventId, token) {
+      return /databases/$(database)/documents/eventos/$(eventId)/rsvpAccess/$(token);
+    }
+
+    function rsvpPublicPath(eventId, configKey) {
+      return /databases/$(database)/documents/eventos/$(eventId)/rsvpPublic/$(configKey);
+    }
+
+    function validRsvpPublicationDocument(data, eventId) {
       return data is map
         && data.keys().size() == 7
         && data.keys().hasOnly([
-          'schemaVersion', 'eventId', 'guestId', 'displayName', 'passLimit',
-          'active', 'expiresAt'
+          'schemaVersion', 'eventId', 'configKey', 'createdAt', 'createdBy',
+          'updatedAt', 'updatedBy'
         ])
         && data.schemaVersion == 1
+        && data.eventId == eventId
+        && validRsvpConfigKey(data.configKey)
+        && data.createdAt is timestamp
+        && data.createdBy is string
+        && data.createdBy.size() > 0
+        && data.createdBy.size() <= 128
+        && data.updatedAt is timestamp
+        && data.updatedBy is string
+        && data.updatedBy.size() > 0
+        && data.updatedBy.size() <= 128;
+    }
+
+    function validRsvpPublicationCreate(eventId) {
+      let data = request.resource.data;
+      return validRsvpPublicationDocument(data, eventId)
+        && data.createdAt == request.time
+        && data.updatedAt == request.time
+        && data.createdBy == request.auth.uid
+        && data.updatedBy == request.auth.uid;
+    }
+
+    function validRsvpPublicationUpdate(eventId) {
+      let before = resource.data;
+      let after = request.resource.data;
+      return validRsvpPublicationDocument(after, eventId)
+        && after.schemaVersion == before.schemaVersion
+        && after.eventId == before.eventId
+        && after.configKey == before.configKey
+        && after.createdAt == before.createdAt
+        && after.createdBy == before.createdBy
+        && after.updatedAt == request.time
+        && after.updatedBy == request.auth.uid
+        && after.diff(before).affectedKeys().hasOnly(['updatedAt', 'updatedBy']);
+    }
+
+    function validRsvpPublicConfigDocument(data, eventId) {
+      return data is map
+        && data.keys().size() == 12
+        && data.keys().hasOnly([
+          'schemaVersion', 'eventId', 'enabled', 'title', 'message',
+          'buttonLabel', 'method', 'guestPolicy', 'responses', 'whatsapp',
+          'deadlineTimeZone', 'responseClosesAt'
+        ])
+        && data.schemaVersion == 1
+        && data.eventId == eventId
+        && data.enabled is bool
+        && data.title is string && data.title.size() <= 120
+        && data.message is string && data.message.size() <= 500
+        && data.buttonLabel is string && data.buttonLabel.size() <= 80
+        && data.method in ['internal', 'whatsapp']
+        && data.guestPolicy in ['assigned-only', 'select-up-to-assigned']
+        && data.responses is map
+        && data.responses.keys().size() == 3
+        && data.responses.keys().hasOnly(['acceptedLabel', 'declinedLabel', 'confirmationMessage'])
+        && data.responses.acceptedLabel is string && data.responses.acceptedLabel.size() <= 120
+        && data.responses.declinedLabel is string && data.responses.declinedLabel.size() <= 120
+        && data.responses.confirmationMessage is string && data.responses.confirmationMessage.size() <= 500
+        && data.whatsapp is map
+        && data.whatsapp.keys().size() == 2
+        && data.whatsapp.keys().hasOnly(['phone', 'message'])
+        && data.whatsapp.phone is string && data.whatsapp.phone.size() <= 32
+        && data.whatsapp.message is string && data.whatsapp.message.size() <= 1000
+        && (data.method != 'whatsapp' || data.whatsapp.phone.matches('^\\+?[0-9 ()-]{7,32}$'))
+        && data.deadlineTimeZone is string && data.deadlineTimeZone.size() <= 100
+        && (
+          (data.responseClosesAt == null && data.deadlineTimeZone == '')
+          || (
+            data.responseClosesAt is timestamp
+            && data.deadlineTimeZone.matches('^(UTC|[A-Za-z_]+(/[A-Za-z0-9._+-]+)+)$')
+            && !data.deadlineTimeZone.matches('^Etc/GMT[+-].*$')
+          )
+        );
+    }
+
+    function validRsvpPublicConfigWrite(eventId, configKey) {
+      return validRsvpConfigKey(configKey)
+        && validRsvpPublicConfigDocument(request.resource.data, eventId);
+    }
+
+    function validPublicRsvpConfigGet(eventId, configKey) {
+      return validRsvpConfigKey(configKey)
+        && validRsvpPublicConfigDocument(resource.data, eventId)
+        && resource.data.enabled == true;
+    }
+
+    function validRsvpAccessDocument(data, eventId) {
+      return data is map
+        && data.keys().size() == 8
+        && data.keys().hasOnly([
+          'schemaVersion', 'eventId', 'guestId', 'displayName', 'passLimit',
+          'active', 'expiresAt', 'configKey'
+        ])
+        && data.schemaVersion == 2
         && data.eventId is string
         && data.eventId == eventId
         && data.eventId.matches('^[A-Za-z0-9_-]{1,150}$')
@@ -201,6 +310,7 @@ service cloud.firestore {
         && data.passLimit is int
         && data.passLimit >= 1
         && data.passLimit <= 999
+        && validRsvpConfigKey(data.configKey)
         && data.active is bool
         && (data.expiresAt == null || data.expiresAt is timestamp);
     }
@@ -209,7 +319,10 @@ service cloud.firestore {
       let data = request.resource.data;
       return isThemeEditor()
         && validRsvpAccessToken(token)
-        && validRsvpAccessDocument(data, eventId);
+        && validRsvpAccessDocument(data, eventId)
+        && exists(rsvpPublicationPath(eventId))
+        && validRsvpPublicationDocument(get(rsvpPublicationPath(eventId)).data, eventId)
+        && get(rsvpPublicationPath(eventId)).data.configKey == data.configKey;
     }
 
     function validRsvpAccessUpdate(eventId, token) {
@@ -221,6 +334,7 @@ service cloud.firestore {
         && after.schemaVersion == before.schemaVersion
         && after.eventId == before.eventId
         && after.guestId == before.guestId
+        && after.configKey == before.configKey
         && after.diff(before).affectedKeys().hasOnly([
           'displayName', 'passLimit', 'active', 'expiresAt'
         ]);
@@ -231,6 +345,86 @@ service cloud.firestore {
         && validRsvpAccessDocument(resource.data, eventId)
         && resource.data.active == true
         && (resource.data.expiresAt == null || request.time < resource.data.expiresAt);
+    }
+
+    function validRsvpResponseDocument(data, eventId, access, config) {
+      return data is map
+        && data.keys().size() == 6
+        && data.keys().hasOnly([
+          'schemaVersion', 'eventId', 'guestId', 'status',
+          'passesConfirmed', 'respondedAt'
+        ])
+        && data.schemaVersion == 1
+        && data.eventId == eventId
+        && data.guestId == access.guestId
+        && data.status in ['accepted', 'declined']
+        && data.passesConfirmed is int
+        && data.passesConfirmed >= 0
+        && data.passesConfirmed <= access.passLimit
+        && data.respondedAt is timestamp
+        && (
+          (data.status == 'declined' && data.passesConfirmed == 0)
+          || (
+            data.status == 'accepted'
+            && (
+              (config.guestPolicy == 'assigned-only' && data.passesConfirmed == access.passLimit)
+              || (
+                config.guestPolicy == 'select-up-to-assigned'
+                && data.passesConfirmed >= 1
+                && data.passesConfirmed <= access.passLimit
+              )
+            )
+          )
+        );
+    }
+
+    function validRsvpResponseContext(eventId, token, access, config) {
+      return validRsvpAccessToken(token)
+        && validRsvpAccessDocument(access, eventId)
+        && access.active == true
+        && (access.expiresAt == null || request.time < access.expiresAt)
+        && validRsvpPublicConfigDocument(config, eventId)
+        && config.enabled == true;
+    }
+
+    function validPublicRsvpResponseGet(eventId, token) {
+      let access = get(rsvpAccessPath(eventId, token)).data;
+      let config = get(rsvpPublicPath(eventId, access.configKey)).data;
+      return validRsvpResponseContext(eventId, token, access, config)
+        && validRsvpResponseDocument(resource.data, eventId, access, config);
+    }
+
+    function validPublicRsvpResponseWrite(eventId, token) {
+      let access = get(rsvpAccessPath(eventId, token)).data;
+      let config = get(rsvpPublicPath(eventId, access.configKey)).data;
+      return validRsvpResponseContext(eventId, token, access, config)
+        && config.method == 'internal'
+        && (config.responseClosesAt == null || request.time < config.responseClosesAt)
+        && validRsvpResponseDocument(request.resource.data, eventId, access, config)
+        && request.resource.data.respondedAt == request.time;
+    }
+
+    function validPublicRsvpResponseUpdate(eventId, token) {
+      let before = resource.data;
+      let after = request.resource.data;
+      return validPublicRsvpResponseWrite(eventId, token)
+        && after.schemaVersion == before.schemaVersion
+        && after.eventId == before.eventId
+        && after.guestId == before.guestId
+        && after.diff(before).affectedKeys().hasOnly([
+          'status', 'passesConfirmed', 'respondedAt'
+        ]);
+    }
+
+    function validInternalRsvpResponseMigration(eventId, token) {
+      let access = get(rsvpAccessPath(eventId, token)).data;
+      let config = get(rsvpPublicPath(eventId, access.configKey)).data;
+      return isThemeEditor()
+        && validRsvpAccessToken(token)
+        && validRsvpAccessDocument(access, eventId)
+        && validRsvpPublicConfigDocument(config, eventId)
+        && validRsvpResponseDocument(request.resource.data, eventId, access, config)
+        && request.resource.data.respondedAt <= request.time;
     }
 
     function validMediaDocumentCore(data, eventId, mediaId) {
@@ -492,6 +686,22 @@ service cloud.firestore {
         allow delete: if false;
       }
 
+      match /rsvpPublic/{configKey} {
+        allow get: if isThemeEditor() || validPublicRsvpConfigGet(eventId, configKey);
+        allow list: if false;
+        allow create, update: if isThemeEditor() && validRsvpPublicConfigWrite(eventId, configKey);
+        allow delete: if false;
+      }
+
+      match /rsvpResponses/{token} {
+        allow get: if isThemeEditor() || validPublicRsvpResponseGet(eventId, token);
+        allow list: if isThemeEditor();
+        allow create: if validInternalRsvpResponseMigration(eventId, token)
+          || validPublicRsvpResponseWrite(eventId, token);
+        allow update: if validPublicRsvpResponseUpdate(eventId, token);
+        allow delete: if false;
+      }
+
       match /invitados/{guestId} {
         allow get, list: if isInternalReader() || portalEnabled(eventId);
         allow create, delete: if isPlatformManager();
@@ -505,10 +715,14 @@ service cloud.firestore {
       }
 
       match /invitacion/{documentId} {
-        allow get: if documentId in ['config', 'rsvp'] && isThemeEditor();
+        allow get: if documentId in ['config', 'rsvp', 'rsvpPublication'] && isThemeEditor();
         allow list, delete: if false;
-        allow create, update: if (documentId == 'config' && isThemeEditor() && validInvitationConfigWrite())
-          || (documentId == 'rsvp' && isThemeEditor() && validRsvpWrite(eventId));
+        allow create: if (documentId == 'config' && isThemeEditor() && validInvitationConfigWrite())
+          || (documentId == 'rsvp' && isThemeEditor() && validRsvpWrite(eventId))
+          || (documentId == 'rsvpPublication' && isThemeEditor() && validRsvpPublicationCreate(eventId));
+        allow update: if (documentId == 'config' && isThemeEditor() && validInvitationConfigWrite())
+          || (documentId == 'rsvp' && isThemeEditor() && validRsvpWrite(eventId))
+          || (documentId == 'rsvpPublication' && isThemeEditor() && validRsvpPublicationUpdate(eventId));
       }
 
       match /invitacion/config/media/{mediaId} {

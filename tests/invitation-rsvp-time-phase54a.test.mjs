@@ -26,6 +26,7 @@ import { InvitationRsvpService } from '../admin/invitations/services/invitation-
 const EVENT_ID = 'EVT-TIME-001';
 const UID = 'UID-TIME-EDITOR';
 const UPDATED_AT = Object.freeze({ serverTimestamp: true });
+const CONFIG_KEY = 'K'.repeat(43);
 
 function timestampFromDate(value) {
     const milliseconds = value.getTime();
@@ -101,9 +102,15 @@ function createGateway({ document = null } = {}) {
             return timestampFromDate(value);
         },
         readRsvp: async () => document,
-        async writeRsvp(eventId, value) {
-            writes.push({ eventId, value });
-            document = value;
+        async publishRsvp(eventId, { privateDocument }) {
+            writes.push({ eventId, value: privateDocument });
+            document = privateDocument;
+            return {
+                configKey: CONFIG_KEY,
+                metadata: { configKey: CONFIG_KEY },
+                publicProjection: { eventId },
+                created: true
+            };
         }
     };
 }

@@ -6,21 +6,50 @@
     <meta name="robots" content="noindex,nofollow,noarchive">
     <meta name="referrer" content="no-referrer">
     <title>RSVP | Eventora Studio</title>
-    <link rel="stylesheet" href="./rsvp.css">
+    <link rel="stylesheet" href="./rsvp.css?v=phase54-public-rsvp-20260817">
 </head>
 <body>
     <main class="rsvp-shell" aria-labelledby="rsvp-title">
-        <section class="rsvp-card" id="rsvp-card" aria-live="polite" aria-busy="true">
+        <section class="rsvp-card" id="rsvp-card" aria-busy="true">
             <p class="rsvp-eyebrow">EVENTORA STUDIO</p>
             <h1 id="rsvp-title">Verificando invitación…</h1>
-            <p id="rsvp-message">Espera un momento mientras validamos este acceso.</p>
-            <div id="rsvp-access-summary" hidden>
-                <p>Invitación para <strong id="rsvp-guest-name"></strong></p>
-                <p id="rsvp-pass-limit"></p>
-                <p>La confirmación de asistencia estará disponible en la siguiente etapa.</p>
+            <p class="rsvp-message" id="rsvp-message">Espera un momento mientras validamos este acceso.</p>
+
+            <div class="rsvp-summary" id="rsvp-access-summary" hidden>
+                <p class="rsvp-for">Invitación para</p>
+                <p class="rsvp-guest-name" id="rsvp-guest-name"></p>
+                <p class="rsvp-pass-limit" id="rsvp-pass-limit"></p>
+                <p class="rsvp-deadline" id="rsvp-deadline" hidden></p>
             </div>
+
+            <form class="rsvp-form" id="rsvp-form" hidden>
+                <fieldset id="rsvp-fieldset">
+                    <legend>¿Podrás acompañarnos?</legend>
+                    <div class="rsvp-choice-grid">
+                        <label class="rsvp-choice">
+                            <input type="radio" name="rsvp-status" value="accepted" required>
+                            <span id="rsvp-accepted-label">Asistiré</span>
+                        </label>
+                        <label class="rsvp-choice">
+                            <input type="radio" name="rsvp-status" value="declined">
+                            <span id="rsvp-declined-label">No podré asistir</span>
+                        </label>
+                    </div>
+                    <label class="rsvp-pass-selector" id="rsvp-pass-selector" hidden>
+                        <span>Número de pases que confirmarás</span>
+                        <select id="rsvp-passes" inputmode="numeric"></select>
+                    </label>
+                </fieldset>
+                <button class="rsvp-primary" id="rsvp-submit" type="submit">Enviar respuesta</button>
+            </form>
+
+            <a class="rsvp-primary rsvp-whatsapp" id="rsvp-whatsapp" href="https://wa.me/" target="_blank" rel="noopener noreferrer" hidden>Responder por WhatsApp</a>
+
+            <p class="rsvp-current" id="rsvp-current-response" hidden></p>
+            <p class="rsvp-feedback" id="rsvp-feedback" role="status" aria-live="polite" aria-atomic="true" tabindex="-1"></p>
+            <button class="rsvp-retry" id="rsvp-retry" type="button" hidden>Intentar de nuevo</button>
         </section>
     </main>
-    <script type="module" src="./rsvp.js"></script>
+    <script type="module" src="./rsvp.js?v=phase54-public-rsvp-20260817"></script>
 </body>
 </html>

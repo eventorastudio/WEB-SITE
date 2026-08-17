@@ -1,4 +1,4 @@
-# Invitation Builder · Arquitectura de Fases 1 a 5.2
+# Invitation Builder · Arquitectura de Fases 1 a 5.4
 
 ## Alcance
 
@@ -837,8 +837,9 @@ derivar el instante en el cliente público.
 
 `eventos/{eventId}/rsvpAccess/{token}` contiene una proyección versionada y
 mínima por invitado: ownership, nombre de display, `passLimit`, estado,
-expiración y la referencia estable `guestId`; su forma cruda tiene exactamente
-siete campos y no contiene auditoría. `passLimit` deriva exclusivamente de `guest.pases`
+expiración, `configKey` y la referencia estable `guestId`; desde Fase 5.4 su
+schema es 2 y su forma cruda tiene exactamente ocho campos sin auditoría.
+`passLimit` deriva exclusivamente de `guest.pases`
 (entero 1–999); nunca de estadísticas del evento ni de pases disponibles de
 check-in. El invitado completo continúa privado y no recibe campos RSVP.
 `guestId` se conserva para correlación futura y sincronización interna; no
@@ -855,16 +856,50 @@ El loader público valida ruta antes de Firebase y hace un solo `getDoc` exacto.
 Rules habilita ese GET bearer tanto para sesiones anónimas como autenticadas,
 siempre sobre documentos activos y no expirados. List/query y toda escritura
 sin rol interno permanecen denegados. La página pública sólo muestra estado de
-acceso; respuestas y writes quedan para Fase 5.4.
+acceso. Fase 5.4 extiende este flujo sin abrir el invitado canónico.
+
+### RSVP público protegido · Fase 5.4
+
+`eventos/{eventId}/invitacion/rsvpPublication` guarda privadamente una
+`configKey` de 256 bits, estable por evento y separada del bearer individual.
+El guardado RSVP usa una transacción para mantener atómicamente config privada,
+metadata y `eventos/{eventId}/rsvpPublic/{configKey}`. La proyección pública
+contiene exactamente copy/método/policy/responses/WhatsApp y el cierre derivado;
+excluye touched, auditoría e identidad del invitado. Sólo permite GET exacto
+válido; list/query/write/delete públicos se deniegan.
+
+Cada respuesta vive en `eventos/{eventId}/rsvpResponses/{token}` con seis campos:
+schema, ownership, `status`, `passesConfirmed` y `respondedAt`. Rules resuelve en
+coste constante el Access y su public config, exige método interno, deadline
+abierto, pases dentro de policy y `respondedAt == request.time`. El runtime
+reutiliza App Check, hidrata respuesta existente, evita writes idempotentes,
+bloquea submits concurrentes y nunca escribe el guest.
+
+La rotación crea/verifica Access nuevo, copia/verifica cualquier respuesta con
+su timestamp original y sólo después revoca el anterior. La excepción interna
+de Rules para esa copia admite únicamente CREATE histórico exacto; no existe
+UPDATE administrativo. Un fallo conserva el Access anterior y nunca borra
+respuestas.
+
+### Hardening RSVP público · Fase 5.4B
+
+La forma física de Access permanece en schema 2 con ocho campos exactos:
+`schemaVersion`, `eventId`, `guestId`, `configKey`, `displayName`, `passLimit`,
+`active` y `expiresAt`. El token nunca es data: solo es Document ID/route
+parameter. Auth no altera una capability valida ni eleva permisos sin bearer.
+Si revoke del Access anterior falla, se revoca compensatoriamente el nuevo; un
+doble fallo produce `reconciliation-required` con IDs redactados y exige futura
+reparación administrativa, sin borrar responses históricas.
 
 ## Riesgos y pendientes
 
 - No existe paquete en el contrato actual de creación de eventos.
 - Las Rules propuestas cubren `eventos/{eventId}/invitacion/config`, su
-  subcolección `media`, el documento hermano `rsvp` y `rsvpAccess`; pasan Emulator Suite local,
+  subcolección `media`, `rsvp`, `rsvpPublication`, `rsvpAccess`, `rsvpPublic` y
+  `rsvpResponses`; pasan Emulator Suite local,
   pero no fueron desplegadas.
 - Los adapters neutralizan el copy hardcodeado en Builder. Thumbnails server-side,
-  transcodificación, respuestas RSVP, appearance avanzada y publicación siguen
+  transcodificación, sincronización RSVP→guest, appearance avanzada y publicación siguen
   fuera de alcance.
 - `admin/dashboard.js` todavía accede a Firestore directamente; no se reescribió
   por no ampliar el alcance.
@@ -896,10 +931,13 @@ acceso; respuestas y writes quedan para Fase 5.4.
    projection, ruta/lookup público exacto, rotación/revocación y Rules mínimas.
 9. Fase 5.4A completada localmente: fecha/hora/zona IANA, Timestamp de cierre,
    migración v1/v3 y Rules privadas v2.
-10. Fase 5.4: respuestas RSVP, idempotencia y escritura pública estricta.
-11. Fase 6: appearance avanzada y editor del tema Personalizada.
-12. Fase 7: persistencia del resto del draft, debounce y autosave.
-13. Fase 8: validación, snapshot publicado y URL de producción.
-14. Fase 9: edición post-publicación, versiones, rollback y auditoría.
+10. Fase 5.4 completada localmente: capability de config, proyección protegida,
+    respuesta pública, policies, deadline, idempotencia y rotación sin pérdida.
+11. Fase 5.5: sincronización confiable e idempotente de respuesta al invitado,
+    sin reinterpretar pases de check-in ni tocar QR.
+12. Fase 6: appearance avanzada y editor del tema Personalizada.
+13. Fase 7: persistencia del resto del draft, debounce y autosave.
+14. Fase 8: validación, snapshot publicado y URL de producción.
+15. Fase 9: edición post-publicación, versiones, rollback y auditoría.
 
-No se implementaron respuestas públicas RSVP, Fase 5.4 ni ninguna fase posterior.
+No se implementó la sincronización RSVP→guest de Fase 5.5 ni ninguna fase posterior.

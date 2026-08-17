@@ -22,6 +22,7 @@ const PROJECT_ID = 'demo-eventorastudio-phase53';
 const UID_PREFIX = 'UID-PHASE53';
 const FUTURE = new Date('2035-01-01T00:00:00.000Z');
 const EXPIRED = new Date('2020-01-01T00:00:00.000Z');
+const CONFIG_KEY = 'k'.repeat(43);
 
 let testEnv;
 
@@ -46,11 +47,24 @@ function accessRef(db, eventId, accessToken) {
     return doc(db, 'eventos', eventId, 'rsvpAccess', accessToken);
 }
 
-function validAccessDocument(eventId, uid, overrides = {}) {
+function publicationDocument(eventId, configKey = CONFIG_KEY) {
     return {
         schemaVersion: 1,
         eventId,
+        configKey,
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        createdBy: 'UID-INTERNAL',
+        updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+        updatedBy: 'UID-INTERNAL'
+    };
+}
+
+function validAccessDocument(eventId, uid, overrides = {}) {
+    return {
+        schemaVersion: 2,
+        eventId,
         guestId: 'INV-0001',
+        configKey: CONFIG_KEY,
         displayName: 'Andrea Téllez',
         passLimit: 4,
         active: true,
@@ -61,9 +75,10 @@ function validAccessDocument(eventId, uid, overrides = {}) {
 
 function seededAccessDocument(eventId, overrides = {}) {
     return {
-        schemaVersion: 1,
+        schemaVersion: 2,
         eventId,
         guestId: 'INV-0001',
+        configKey: CONFIG_KEY,
         displayName: 'Andrea Téllez',
         passLimit: 4,
         active: true,
@@ -86,6 +101,7 @@ for (const [role, claimName, marker] of [
     test(`${role}: CREATE, READ y UPDATE de Access pasan`, async () => {
         const eventId = `EVT-ACCESS-${role}`;
         const actor = context(role, claimName);
+        await seed(['eventos', eventId, 'invitacion', 'rsvpPublication'], publicationDocument(eventId));
         const reference = accessRef(actor.context.firestore(), eventId, token(marker));
         await assertSucceeds(setDoc(reference, validAccessDocument(eventId, actor.uid)));
         const snapshot = await assertSucceeds(getDoc(reference));
@@ -128,7 +144,7 @@ test('GET público exacto pasa para Access activo sin expiración', async () => 
     const snapshot = await assertSucceeds(getDoc(accessRef(testEnv.unauthenticatedContext().firestore(), eventId, accessToken)));
     assert.equal(snapshot.data().displayName, 'Andrea Téllez');
     assert.deepEqual(Object.keys(snapshot.data()).sort(), [
-        'active', 'displayName', 'eventId', 'expiresAt', 'guestId', 'passLimit', 'schemaVersion'
+        'active', 'configKey', 'displayName', 'eventId', 'expiresAt', 'guestId', 'passLimit', 'schemaVersion'
     ]);
     assert.equal('createdBy' in snapshot.data(), false);
     assert.equal('updatedBy' in snapshot.data(), false);

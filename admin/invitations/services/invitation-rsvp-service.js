@@ -6,8 +6,14 @@ import {
     normalizeRsvpTouchedPaths,
     serializeRsvpConfig
 } from '../core/rsvp-persistence-schema.js?v=phase54a-rsvp-time-20260817';
+import {
+    createPublicRsvpProjection,
+    deserializeRsvpPublicationMetadata,
+    serializeRsvpPublicationMetadata
+} from '../core/rsvp-publication-schema.js?v=phase54-public-rsvp-20260817';
 import { normalizeRsvpConfig } from '../core/rsvp-schema.js?v=phase54a-rsvp-time-20260817';
 import { deriveRsvpResponseClosesAt } from '../core/rsvp-time.js?v=phase54a-rsvp-time-20260817';
+import { generateRsvpConfigKey } from '../../../shared/rsvp-access-contract.js?v=phase54-public-rsvp-20260817';
 
 function serviceError(code, cause = null, details = {}) {
     const error = new Error(code);
@@ -23,6 +29,8 @@ async function createFirebaseRsvpGateway() {
         import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js')
     ]);
     const rsvpRef = (eventId) => firestoreApi.doc(db, 'eventos', eventId, 'invitacion', RSVP_DOCUMENT_ID);
+    const publicationRef = (eventId) => firestoreApi.doc(db, 'eventos', eventId, 'invitacion', 'rsvpPublication');
+    const publicConfigRef = (eventId, configKey) => firestoreApi.doc(db, 'eventos', eventId, 'rsvpPublic', configKey);
     return {
         getCurrentUid: () => auth.currentUser?.uid ?? '',
         serverTimestamp: () => firestoreApi.serverTimestamp(),
@@ -31,15 +39,64 @@ async function createFirebaseRsvpGateway() {
             const snapshot = await firestoreApi.getDoc(rsvpRef(eventId));
             return snapshot.exists() ? snapshot.data() : null;
         },
-        writeRsvp: (eventId, document) => firestoreApi.setDoc(rsvpRef(eventId), document)
+        async publishRsvp(eventId, { privateDocument, updatedBy, configKeyFactory }) {
+            return firestoreApi.runTransaction(db, async (transaction) => {
+                const metadataReference = publicationRef(eventId);
+                const metadataSnapshot = await transaction.get(metadataReference);
+                let metadata;
+                let configKey;
+                let created;
+
+                if (metadataSnapshot.exists()) {
+                    const current = deserializeRsvpPublicationMetadata(metadataSnapshot.data(), {
+                        expectedEventId: eventId
+                    });
+                    configKey = current.configKey;
+                    metadata = serializeRsvpPublicationMetadata({
+                        ...current,
+                        updatedAt: firestoreApi.serverTimestamp(),
+                        updatedBy
+                    });
+                    created = false;
+                } else {
+                    configKey = configKeyFactory();
+                    const publicReference = publicConfigRef(eventId, configKey);
+                    const publicSnapshot = await transaction.get(publicReference);
+                    if (publicSnapshot.exists()) throw serviceError('rsvp-publication/config-key-conflict');
+                    const timestamp = firestoreApi.serverTimestamp();
+                    metadata = serializeRsvpPublicationMetadata({
+                        eventId,
+                        configKey,
+                        createdAt: timestamp,
+                        createdBy: updatedBy,
+                        updatedAt: timestamp,
+                        updatedBy
+                    });
+                    created = true;
+                }
+
+                const publicProjection = createPublicRsvpProjection(privateDocument, {
+                    expectedEventId: eventId
+                });
+                transaction.set(rsvpRef(eventId), privateDocument);
+                transaction.set(metadataReference, metadata);
+                transaction.set(publicConfigRef(eventId, configKey), publicProjection);
+                return { configKey, metadata, publicProjection, created };
+            });
+        }
     };
 }
 
 export class InvitationRsvpService {
-    constructor({ gateway = null, gatewayFactory = createFirebaseRsvpGateway } = {}) {
+    constructor({
+        gateway = null,
+        gatewayFactory = createFirebaseRsvpGateway,
+        configKeyFactory = generateRsvpConfigKey
+    } = {}) {
         this.gateway = gateway;
         this.gatewayFactory = gatewayFactory;
         this.gatewayPromise = null;
+        this.configKeyFactory = configKeyFactory;
     }
 
     async getGateway() {
@@ -107,14 +164,22 @@ export class InvitationRsvpService {
             updatedAt: gateway.serverTimestamp(),
             updatedBy
         });
-        await gateway.writeRsvp(safeEventId, document);
+        const publication = await gateway.publishRsvp(safeEventId, {
+            privateDocument: document,
+            updatedBy,
+            configKeyFactory: this.configKeyFactory
+        });
         return Object.freeze({
             eventId: safeEventId,
             rsvp: normalizeRsvpConfig(rsvp),
             touchedPaths: normalizeRsvpTouchedPaths(touchedPaths),
             responseClosesAt,
             fingerprint: createRsvpPersistenceFingerprint(rsvp, { eventId: safeEventId, touchedPaths }),
-            document
+            document,
+            configKey: publication.configKey,
+            publicProjection: publication.publicProjection,
+            publicationMetadata: publication.metadata,
+            publicationCreated: publication.created
         });
     }
 
