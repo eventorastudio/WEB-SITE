@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Rules locales hasta Fase 6.2. El despliegue se controla exclusivamente mediante
+// Rules locales hasta Fase 6.3. El despliegue se controla exclusivamente mediante
 // el archivo canónico indicado en firebase.json.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -230,25 +230,34 @@ service cloud.firestore {
       return /databases/$(database)/documents/eventos/$(eventId)/invitacion/publication/revisions/$(revisionId);
     }
 
+    function invitationPublicProjectionPath(eventId, publicKey) {
+      return /databases/$(database)/documents/eventos/$(eventId)/invitacionPublic/$(publicKey);
+    }
+
     function validInvitationRevisionId(revisionId) {
       return revisionId is string && revisionId.matches('^REV-[0-9]{6,}$');
     }
 
+    function validInvitationPublicKey(publicKey) {
+      return publicKey is string && publicKey.matches('^[a-f0-9]{48}$');
+    }
+
     function validInvitationPublicationMetadata(data, eventId) {
       return data is map
-        && data.keys().size() == 6
+        && data.keys().size() == 7
         && data.keys().hasOnly([
           'schemaVersion', 'eventId', 'currentRevisionId',
-          'currentRevisionNumber', 'publishedAt', 'publishedBy'
+          'currentRevisionNumber', 'publicKey', 'publishedAt', 'publishedBy'
         ])
-        && data.schemaVersion == 1
+        && data.schemaVersion == 2
         && data.eventId == eventId
         && validInvitationRevisionId(data.currentRevisionId)
         && data.currentRevisionNumber is int
         && data.currentRevisionNumber >= 1
         && data.currentRevisionNumber <= 999999999
-        && data.publishedAt == request.time
-        && data.publishedBy == request.auth.uid;
+        && validInvitationPublicKey(data.publicKey)
+        && data.publishedAt is timestamp
+        && data.publishedBy is string;
     }
 
     function publicationPointsToRevision(data, eventId) {
@@ -260,19 +269,49 @@ service cloud.firestore {
         && getAfter(path).data.publishedBy == data.publishedBy;
     }
 
+    function publicationPointsToPublicProjection(data, eventId) {
+      let path = invitationPublicProjectionPath(eventId, data.publicKey);
+      return existsAfter(path)
+        && getAfter(path).data.eventId == eventId
+        && getAfter(path).data.publicKey == data.publicKey
+        && getAfter(path).data.revisionId == data.currentRevisionId
+        && getAfter(path).data.revisionNumber == data.currentRevisionNumber;
+    }
+
     function validInvitationPublicationCreate(eventId) {
       let data = request.resource.data;
       return validInvitationPublicationMetadata(data, eventId)
         && data.currentRevisionNumber == 1
-        && publicationPointsToRevision(data, eventId);
+        && data.publishedAt == request.time
+        && data.publishedBy == request.auth.uid
+        && publicationPointsToRevision(data, eventId)
+        && publicationPointsToPublicProjection(data, eventId);
     }
 
     function validInvitationPublicationUpdate(eventId) {
       let data = request.resource.data;
       return validInvitationPublicationMetadata(data, eventId)
-        && data.currentRevisionNumber == resource.data.currentRevisionNumber + 1
-        && data.currentRevisionId != resource.data.currentRevisionId
-        && publicationPointsToRevision(data, eventId);
+        && (
+          (
+            data.currentRevisionNumber == resource.data.currentRevisionNumber + 1
+            && data.currentRevisionId != resource.data.currentRevisionId
+            && data.publishedAt == request.time
+            && data.publishedBy == request.auth.uid
+            && (
+              resource.data.schemaVersion == 1
+              || (resource.data.schemaVersion == 2 && data.publicKey == resource.data.publicKey)
+            )
+          )
+          || (
+            resource.data.schemaVersion == 1
+            && data.currentRevisionNumber == resource.data.currentRevisionNumber
+            && data.currentRevisionId == resource.data.currentRevisionId
+            && data.publishedAt == resource.data.publishedAt
+            && data.publishedBy == resource.data.publishedBy
+          )
+        )
+        && publicationPointsToRevision(data, eventId)
+        && publicationPointsToPublicProjection(data, eventId);
     }
 
     function validInvitationRevisionCreate(eventId, revisionId) {
@@ -299,6 +338,55 @@ service cloud.firestore {
         && getAfter(publicationPath).data.currentRevisionNumber == data.revisionNumber
         && getAfter(publicationPath).data.publishedAt == data.publishedAt
         && getAfter(publicationPath).data.publishedBy == data.publishedBy;
+    }
+
+    function validInvitationPublicMedia(media) {
+      return media is map
+        && media.keys().size() == 7
+        && media.keys().hasOnly([
+          'schemaVersion', 'touchedRoles', 'cover', 'gallery',
+          'video', 'videoPoster', 'music'
+        ])
+        && media.schemaVersion == 1
+        && media.touchedRoles is list
+        && media.touchedRoles.size() <= 5
+        && media.touchedRoles.toSet().size() == media.touchedRoles.size()
+        && media.touchedRoles.toSet().hasOnly(['cover', 'gallery', 'video', 'videoPoster', 'music'])
+        && (media.cover == null || media.cover is map)
+        && media.gallery is list
+        && media.gallery.size() <= 20
+        && (media.video == null || media.video is map)
+        && (media.videoPoster == null || media.videoPoster is map)
+        && (media.music == null || media.music is map);
+    }
+
+    function validInvitationPublicProjection(eventId, publicKey) {
+      let data = request.resource.data;
+      let publicationPath = invitationPublicationPath(eventId);
+      return data.keys().size() == 17
+        && data.keys().hasOnly([
+          'schemaVersion', 'contentSchemaVersion', 'eventId', 'publicKey',
+          'revisionId', 'revisionNumber', 'theme', 'sections', 'content',
+          'locations', 'itinerary', 'gifts', 'accommodations', 'links',
+          'appearance', 'settings', 'media'
+        ])
+        && data.schemaVersion == 1
+        && data.contentSchemaVersion == 4
+        && data.publicKey == publicKey
+        && validInvitationPublicKey(publicKey)
+        && validInvitationRevisionSnapshot(data, eventId)
+        && !('rsvp' in data.sections)
+        && !('pass-selection' in data.sections)
+        && !('access-preview' in data.sections)
+        && data.revisionNumber is int
+        && data.revisionNumber >= 1
+        && data.revisionNumber <= 999999999
+        && validInvitationRevisionId(data.revisionId)
+        && validInvitationPublicMedia(data.media)
+        && existsAfter(publicationPath)
+        && getAfter(publicationPath).data.publicKey == publicKey
+        && getAfter(publicationPath).data.currentRevisionId == data.revisionId
+        && getAfter(publicationPath).data.currentRevisionNumber == data.revisionNumber;
     }
 
     function validMediaId(mediaId) {
@@ -1024,6 +1112,16 @@ service cloud.firestore {
         allow create: if isThemeEditor() && validMediaDocumentCreate(eventId, mediaId);
         allow update: if isThemeEditor() && validMediaDocumentUpdate(eventId, mediaId);
         allow delete: if isThemeEditor();
+      }
+
+      match /invitacionPublic/{publicKey} {
+        allow get: if validInvitationPublicKey(publicKey)
+          && resource.data.eventId == eventId
+          && resource.data.publicKey == publicKey;
+        allow list: if false;
+        allow create, update: if isThemeEditor()
+          && validInvitationPublicProjection(eventId, publicKey);
+        allow delete: if false;
       }
     }
 

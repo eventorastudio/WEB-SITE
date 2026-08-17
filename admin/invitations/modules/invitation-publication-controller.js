@@ -16,6 +16,7 @@ export function initInvitationPublicationController({
     if (!button || !state || !service) return () => {};
     let publishing = false;
     let outcome = 'idle';
+    let publicUrl = '';
     let disposed = false;
 
     const render = () => {
@@ -24,13 +25,22 @@ export function initInvitationPublicationController({
         button.textContent = labelForState({ publishing, outcome });
         button.dataset.state = publishing ? 'saving' : outcome;
         if (status) {
-            status.textContent = publishing
+            const message = publishing
                 ? 'Creando una revisión inmutable.'
                 : ({
-                    published: 'Nueva revisión publicada.',
+                    published: 'Invitación publicada.',
                     unchanged: 'El contenido ya coincide con la revisión activa.',
                     error: 'No se publicó. El draft local permanece disponible.'
                 })[outcome] ?? '';
+            status.textContent = message;
+            if (publicUrl && ['published', 'unchanged'].includes(outcome)) {
+                const link = status.ownerDocument.createElement('a');
+                link.href = publicUrl;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.textContent = 'Abrir invitación';
+                status.append(status.ownerDocument.createTextNode(' '), link);
+            }
         }
     };
 
@@ -43,14 +53,17 @@ export function initInvitationPublicationController({
             const snapshot = state.getSnapshot();
             const result = await service.publishState(state, snapshot.draft?.eventId);
             outcome = result.status;
+            publicUrl = createPublicUrl(result.eventId, result.publicKey);
             onTrace('invitation-published', {
                 eventId: snapshot.draft?.eventId,
                 status: result.status,
+                publicKey: result.publicKey,
                 revisionId: result.revisionId,
                 revisionNumber: result.revisionNumber
             });
         } catch (error) {
             outcome = 'error';
+            publicUrl = '';
             onError(error, {
                 source: 'invitation-publication',
                 reason: 'publish-invitation',
@@ -77,4 +90,12 @@ export function initInvitationPublicationController({
         button.removeEventListener('click', onClick);
         unsubscribe?.();
     };
+}
+
+function createPublicUrl(eventId, publicKey) {
+    if (!eventId || !publicKey || !globalThis.location?.origin) return '';
+    const url = new URL('/invitacion/', globalThis.location.origin);
+    url.searchParams.set('event', eventId);
+    url.searchParams.set('key', publicKey);
+    return url.href;
 }

@@ -21,7 +21,7 @@ import { initMediaEditor } from './editors/media-editor.js?v=phase48-upload-enab
 import { invitationMediaService } from './services/invitation-media-service.js?v=phase48-upload-enabled-20260816';
 import { invitationRsvpService } from './services/invitation-rsvp-service.js?v=phase54-public-rsvp-20260817';
 import { invitationDraftService } from './services/invitation-draft-service.js?v=phase61-draft-persistence-20260817';
-import { invitationPublicationService } from './services/invitation-publication-service.js?v=phase62-versioned-publication-20260817';
+import { invitationPublicationService } from './services/invitation-publication-service.js?v=phase63-public-invitation-20260817';
 import { renderEventSelector } from './modules/event-selector.js?v=phase3-logistics-20260813';
 import { initPackageSelector } from './modules/package-selector.js?v=phase3-logistics-20260813';
 import { initThemeSelector } from './modules/theme-selector.js?v=phase3-logistics-20260813';
@@ -30,7 +30,7 @@ import { initPreviewController } from './modules/preview-controller.js?v=phase54
 import { initBuilderEventBridge } from './modules/state-event-bridge.js?v=phase3-logistics-20260813';
 import { initRsvpPersistenceController } from './modules/rsvp-persistence-controller.js?v=phase52-rsvp-persistence-20260816';
 import { initDraftPersistenceController } from './modules/draft-persistence-controller.js?v=phase61-draft-persistence-20260817';
-import { initInvitationPublicationController } from './modules/invitation-publication-controller.js?v=phase62-versioned-publication-20260817';
+import { initInvitationPublicationController } from './modules/invitation-publication-controller.js?v=phase63-public-invitation-20260817';
 
 const dom = {
     guard: document.getElementById('builder-auth-guard'),

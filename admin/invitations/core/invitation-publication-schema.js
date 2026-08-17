@@ -6,11 +6,12 @@ import {
 } from './draft-persistence-schema.js?v=phase62-versioned-publication-20260817';
 
 export const INVITATION_PUBLICATION_DOCUMENT_ID = 'publication';
-export const INVITATION_PUBLICATION_SCHEMA_VERSION = 1;
+export const INVITATION_PUBLICATION_SCHEMA_VERSION = 2;
 export const INVITATION_REVISION_SCHEMA_VERSION = 1;
 
 const SAFE_EVENT_ID = /^[A-Za-z0-9_-]{1,150}$/;
 const SAFE_REVISION_ID = /^REV-[0-9]{6,}$/;
+const SAFE_PUBLIC_KEY = /^[a-f0-9]{48}$/;
 const SNAPSHOT_FIELDS = Object.freeze([
     'theme',
     'sections',
@@ -28,9 +29,13 @@ const PUBLICATION_FIELDS = Object.freeze([
     'eventId',
     'currentRevisionId',
     'currentRevisionNumber',
+    'publicKey',
     'publishedAt',
     'publishedBy'
 ]);
+const LEGACY_PUBLICATION_FIELDS = Object.freeze(
+    PUBLICATION_FIELDS.filter((field) => field !== 'publicKey')
+);
 const REVISION_FIELDS = Object.freeze([
     'schemaVersion',
     'contentSchemaVersion',
@@ -64,6 +69,23 @@ function assertUid(uid) {
     const normalized = String(uid ?? '');
     if (!normalized || normalized.length > 128) fail('publication/published-by-required');
     return normalized;
+}
+
+export function isInvitationPublicKey(value) {
+    return SAFE_PUBLIC_KEY.test(String(value ?? ''));
+}
+
+export function assertInvitationPublicKey(value) {
+    const normalized = String(value ?? '');
+    if (!isInvitationPublicKey(normalized)) fail('publication/invalid-public-key');
+    return normalized;
+}
+
+export function createInvitationPublicKey({ cryptoApi = globalThis.crypto } = {}) {
+    if (typeof cryptoApi?.getRandomValues !== 'function') fail('publication/random-source-unavailable');
+    const bytes = new Uint8Array(24);
+    cryptoApi.getRandomValues(bytes);
+    return [...bytes].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
 function assertRevisionNumber(value) {
@@ -164,6 +186,7 @@ export function serializeInvitationPublication({
     eventId,
     currentRevisionId,
     currentRevisionNumber,
+    publicKey,
     publishedAt,
     publishedBy
 } = {}) {
@@ -179,6 +202,7 @@ export function serializeInvitationPublication({
         eventId: assertEventId(eventId),
         currentRevisionId: safeRevisionId,
         currentRevisionNumber: safeRevisionNumber,
+        publicKey: assertInvitationPublicKey(publicKey),
         publishedAt,
         publishedBy: assertUid(publishedBy)
     };
@@ -186,18 +210,30 @@ export function serializeInvitationPublication({
 
 export function deserializeInvitationPublication(document, expectedEventId) {
     const safeEventId = assertEventId(expectedEventId);
-    if (!exactKeys(document, PUBLICATION_FIELDS)) fail('publication/invalid-metadata-shape');
-    if (document.schemaVersion !== INVITATION_PUBLICATION_SCHEMA_VERSION) {
+    const isLegacy = document?.schemaVersion === 1;
+    const isCurrent = document?.schemaVersion === INVITATION_PUBLICATION_SCHEMA_VERSION;
+    if (!isLegacy && !isCurrent) {
         fail('publication/unsupported-metadata-schema');
     }
+    if (!exactKeys(document, isLegacy ? LEGACY_PUBLICATION_FIELDS : PUBLICATION_FIELDS)) {
+        fail('publication/invalid-metadata-shape');
+    }
     if (document.eventId !== safeEventId) fail('publication/event-ownership-mismatch');
-    return Object.freeze(cloneInvitationValue(serializeInvitationPublication({
+    const currentRevisionNumber = assertRevisionNumber(document.currentRevisionNumber);
+    const currentRevisionId = String(document.currentRevisionId ?? '');
+    if (!SAFE_REVISION_ID.test(currentRevisionId)
+        || currentRevisionId !== createInvitationRevisionId(currentRevisionNumber)) {
+        fail('publication/invalid-current-revision-id');
+    }
+    return Object.freeze({
+        schemaVersion: document.schemaVersion,
         eventId: safeEventId,
-        currentRevisionId: document.currentRevisionId,
-        currentRevisionNumber: document.currentRevisionNumber,
+        currentRevisionId,
+        currentRevisionNumber,
+        publicKey: isCurrent ? assertInvitationPublicKey(document.publicKey) : null,
         publishedAt: assertTimestamp(document.publishedAt, 'publication/invalid-published-at'),
-        publishedBy: document.publishedBy
-    })));
+        publishedBy: assertUid(document.publishedBy)
+    });
 }
 
 export function createInvitationPublicationFingerprint(draft, { eventId = draft?.eventId } = {}) {

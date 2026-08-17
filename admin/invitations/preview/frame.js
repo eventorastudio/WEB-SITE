@@ -9,22 +9,46 @@ import {
     formatInvitationEventLine,
     prepareBuilderTemplate
 } from '../core/template-binding-registry.js?v=phase54a-rsvp-time-20260817';
+import { PublicInvitationPage } from '../../../invitacion/public-invitation-page.js?v=phase63-public-invitation-20260817';
 
 const parentOrigin = window.location.origin;
+const publicRuntime = document.documentElement.dataset.invitationRuntime === 'public';
 let activeThemeLinks = [];
 let latestRequestId = 0;
 let currentThemeId = null;
 let countdownTimer = null;
 
-window.addEventListener('message', handleParentMessage);
-window.addEventListener('click', interceptNavigation, true);
+if (publicRuntime) {
+    void startPublicInvitation();
+} else {
+    window.addEventListener('message', handleParentMessage);
+    window.addEventListener('click', interceptNavigation, true);
+    postToParent({ type: PREVIEW_MESSAGE_TYPES.SHELL_READY });
+}
 window.addEventListener('submit', (event) => event.preventDefault(), true);
 window.addEventListener('beforeunload', () => {
     window.clearInterval(countdownTimer);
     stopMedia();
 });
 
-postToParent({ type: PREVIEW_MESSAGE_TYPES.SHELL_READY });
+async function startPublicInvitation() {
+    const page = new PublicInvitationPage({
+        renderer: renderPublicPayload,
+        onUnavailable: () => showPublicUnavailable()
+    });
+    await page.load(window.location);
+}
+
+async function renderPublicPayload(payload) {
+    const requestId = ++latestRequestId;
+    const validated = validatePayload(payload);
+    showLoading(validated.theme.name);
+    const rendered = validated.theme.id === 'custom'
+        ? await renderCustom(validated, requestId)
+        : await renderTemplate(validated, requestId);
+    if (!rendered || requestId !== latestRequestId) return;
+    currentThemeId = validated.theme.id;
+}
 
 async function handleParentMessage(event) {
     if (event.origin !== parentOrigin || event.source !== window.parent) return;
@@ -73,7 +97,7 @@ async function handleParentMessage(event) {
 }
 
 function validatePayload(payload) {
-    if (!payload || payload.renderMode !== 'builder') throw new Error('Modo de preview no válido.');
+    if (!payload || !['builder', 'public'].includes(payload.renderMode)) throw new Error('Modo de invitación no válido.');
     if (!payload.theme?.id || !payload.theme?.name) throw new Error('Tema no encontrado.');
     if (payload.theme.id !== 'custom' && !payload.theme.templatePath) throw new Error('La colección no tiene una plantilla disponible.');
     if (!payload.draft?.content || payload.draft.contentSchemaVersion !== INVITATION_CONTENT_SCHEMA_VERSION) throw new Error('Contrato de contenido no válido.');
@@ -94,7 +118,7 @@ async function renderTemplate(payload, requestId) {
 
     await installThemeStyles(parsed, templateUrl);
     if (requestId !== latestRequestId) return false;
-    document.body.className = `${parsed.body.className.replace(/\blocked\b/g, '')} invitation-open builder-preview-rendered`.trim();
+    document.body.className = `${parsed.body.className.replace(/\blocked\b/g, '')} invitation-open builder-preview-rendered${publicRuntime ? ' public-invitation-rendered' : ''}`.trim();
     document.body.innerHTML = parsed.body.innerHTML;
 
     const invitation = document.getElementById('invitation');
@@ -113,7 +137,7 @@ async function renderTemplate(payload, requestId) {
 async function renderCustom(payload, requestId) {
     if (requestId !== latestRequestId) return false;
     clearThemeStyles();
-    document.body.className = 'builder-preview-custom';
+    document.body.className = publicRuntime ? 'builder-preview-custom public-invitation-rendered' : 'builder-preview-custom';
     document.body.replaceChildren();
 
     const card = document.createElement('main');
@@ -173,7 +197,9 @@ function applyPayload(payload) {
     applySectionVisibility(payload.sections, payload.enabledSections, payload.sectionGroups);
     renderCountdown(payload.draft);
     const title = resolveIdentity(payload.draft.content);
-    document.title = `${title || PREVIEW_SEMANTIC_FALLBACKS.primaryName} · Preview Builder`;
+    document.title = publicRuntime
+        ? `${title || PREVIEW_SEMANTIC_FALLBACKS.primaryName} · Invitación`
+        : `${title || PREVIEW_SEMANTIC_FALLBACKS.primaryName} · Preview Builder`;
 }
 
 function applyCustomContent(draft) {
@@ -394,7 +420,9 @@ function showLoading(themeName) {
     window.clearInterval(countdownTimer);
     document.body.className = 'builder-preview-loading';
     document.body.innerHTML = '<main class="preview-placeholder"><i class="preview-loader" aria-hidden="true"></i><span>EVENTORA STUDIO</span><strong>Cargando colección</strong><p></p></main>';
-    document.querySelector('.preview-placeholder p').textContent = `Preparando ${themeName} en modo Builder…`;
+    document.querySelector('.preview-placeholder p').textContent = publicRuntime
+        ? `Preparando ${themeName}…`
+        : `Preparando ${themeName} en modo Builder…`;
 }
 
 function showError(error) {
@@ -403,6 +431,14 @@ function showError(error) {
     document.body.className = 'builder-preview-error';
     document.body.innerHTML = '<main class="preview-placeholder"><span>PREVIEW NO DISPONIBLE</span><strong>Error controlado</strong><p></p></main>';
     document.querySelector('.preview-placeholder p').textContent = error?.message || 'No fue posible cargar esta colección.';
+}
+
+function showPublicUnavailable() {
+    clearThemeStyles();
+    window.clearInterval(countdownTimer);
+    document.title = 'Invitación no disponible | Eventora Studio';
+    document.body.className = 'builder-preview-error public-invitation-unavailable';
+    document.body.innerHTML = '<main class="preview-placeholder"><span>EVENTORA STUDIO</span><strong>Invitación no disponible</strong><p>Verifica el enlace o solicita uno nuevo.</p></main>';
 }
 
 function postToParent(message) {

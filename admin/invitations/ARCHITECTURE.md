@@ -1,13 +1,13 @@
-# Invitation Builder · Arquitectura de Fases 1 a 6.2
+# Invitation Builder · Arquitectura de Fases 1 a 6.3
 
 ## Alcance
 
-Las fases 1 a 6.2 implementan una aplicación administrativa dedicada para
+Las fases 1 a 6.3 implementan una aplicación administrativa dedicada para
 seleccionar un evento existente, paquete, colección y secciones; editar contenido
 canónico, logística y multimedia estructurada por rol; y comprobar el resultado
 en una preview real. El draft general, multimedia y la configuración RSVP usan
 documentos separados. No existe autosave; la publicación administrativa genera
-revisiones inmutables, todavía sin una ruta pública de invitación.
+revisiones inmutables y una proyección sanitizada para la ruta pública estable.
 
 Ruta final: `/admin/invitations/builder.html?event={documentId}`.
 
@@ -77,13 +77,16 @@ Ninguna Rule de esta fase fue desplegada. El archivo canónico define:
   roles con `invitations:edit`, con whitelist, ownership y auditoría estrictos;
 - publicación transaccional en `invitacion/publication` y CREATE inmutable de
   sus revisiones para esos mismos roles;
+- GET público exacto de `eventos/{eventId}/invitacionPublic/{publicKey}`, con
+  LIST y escrituras públicas denegadas;
 - lectura y escritura interna acotada de `eventos/{eventId}/invitacion/rsvp`,
   con ownership, schema, nested maps, touched paths y auditoría estrictos;
 - acceso Portal por perfil `usuarios/{uid}`, asignación de evento y entitlements;
 - denegación por defecto de cualquier ruta no declarada.
 
 Las Rules todavía deben desplegarse y verificarse remotamente mediante un proceso
-manual autorizado. La lectura pública de la publicación permanece denegada.
+manual autorizado. El pointer y las revisiones permanecen privados; sólo la
+proyección sanitizada admite GET exacto con su key.
 
 ### Reconciliación RSVP server-side
 
@@ -811,6 +814,20 @@ La publicación excluye `content.rsvp`, media y binarios. No guarda draft dirty 
 lo limpia: **Guardar borrador** y **Publicar** son acciones independientes. Esta
 fase no crea una vista pública ni cambia RSVP, uploads, QR o check-in.
 
+### Invitación pública · Fase 6.3
+
+`publication` schema 2 añade una key aleatoria de 192 bits creada una sola vez.
+La misma transacción que avanza la revisión actualiza
+`eventos/{eventId}/invitacionPublic/{publicKey}`. Esta proyección excluye
+auditoría, draft, RSVP, invitados, tokens, QR/check-in y metadata interna de
+uploads; conserva sólo snapshot renderizable y referencias HTTPS sanitizadas.
+
+`/invitacion/?event={eventId}&key={publicKey}` lee exclusivamente ese documento.
+La página ejecuta el mismo `preview/frame.js`, registries, adapters y bindings
+del Builder. Nunca cae al draft: ausencia, key incorrecta o shape inválido
+producen “Invitación no disponible”. Rules permite sólo GET exacto público y
+deniega LIST/query y writes públicos.
+
 Fase 4.6 conserva la capa de upload bajo
 `eventos/{eventId}/invitacion/media/{role}/{mediaId}-{objectVersion}.{ext}`.
 Firestore conserva el `storagePath` estable y metadata; `downloadUrl` sólo existe
@@ -953,12 +970,13 @@ reparación administrativa, sin borrar responses históricas.
 
 - No existe paquete en el contrato actual de creación de eventos.
 - Las Rules locales cubren `eventos/{eventId}/invitacion/config`, `draft`,
-  `publication`, sus revisiones, la subcolección `media`, `rsvp`,
+  `publication`, sus revisiones, `invitacionPublic`, la subcolección `media`, `rsvp`,
   `rsvpPublication`, `rsvpAccess`, `rsvpPublic` y
   `rsvpResponses`; pasan Emulator Suite local,
   pero no fueron desplegadas.
-- Los adapters neutralizan el copy hardcodeado en Builder. Thumbnails server-side,
-  transcodificación, appearance avanzada y render público siguen fuera de alcance.
+- Los adapters neutralizan el copy hardcodeado en Builder y alimentan también el
+  render público. Thumbnails server-side, transcodificación y appearance avanzada
+  siguen fuera de alcance.
 - `admin/dashboard.js` todavía accede a Firestore directamente; no se reescribió
   por no ampliar el alcance.
 - El editor legacy oculto y `themes` continúan existiendo para compatibilidad;
@@ -1000,6 +1018,8 @@ reparación administrativa, sin borrar responses históricas.
     accommodations, hidratación versionada, dirty independiente y Rules privadas.
 14. Fase 6.2 completada localmente: revisiones inmutables, pointer activo,
     transacción, deduplicación semántica y Rules privadas.
-15. Fase 6.3 y posteriores: pendientes; no iniciadas.
+15. Fase 6.3 completada localmente: publicKey estable, proyección sanitizada,
+    runtime público compartido y GET exacto sin queries.
+16. Fase 6.4 y posteriores: pendientes; no iniciadas.
 
-No se implementó ninguna fase posterior a Fase 6.2.
+No se implementó ninguna fase posterior a Fase 6.3.

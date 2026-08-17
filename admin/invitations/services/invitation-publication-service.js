@@ -1,13 +1,19 @@
 import {
     INVITATION_PUBLICATION_DOCUMENT_ID,
     createInvitationPublicationFingerprint,
+    createInvitationPublicKey,
     createInvitationRevisionFingerprint,
     createInvitationRevisionId,
     deserializeInvitationPublication,
     deserializeInvitationRevision,
     serializeInvitationPublication,
     serializeInvitationRevision
-} from '../core/invitation-publication-schema.js?v=phase62-versioned-publication-20260817';
+} from '../core/invitation-publication-schema.js?v=phase63-public-invitation-20260817';
+import {
+    INVITATION_PUBLIC_COLLECTION_ID,
+    createPublicInvitationProjectionFingerprint,
+    serializePublicInvitationProjection
+} from '../core/invitation-public-projection.js?v=phase63-public-invitation-20260817';
 
 function serviceError(code, cause = null, details = {}) {
     const error = new Error(code);
@@ -34,9 +40,16 @@ async function createFirebaseInvitationPublicationGateway() {
         'revisions',
         revisionId
     );
+    const publicProjectionRef = (eventId, publicKey) => firestoreApi.doc(
+        db,
+        'eventos',
+        eventId,
+        INVITATION_PUBLIC_COLLECTION_ID,
+        publicKey
+    );
     return {
         getCurrentUid: () => auth.currentUser?.uid ?? '',
-        async runPublicationTransaction(eventId, planner) {
+        async runPublicationTransaction(eventId, { createPublicKey: generatePublicKey, planner }) {
             return firestoreApi.runTransaction(db, async (transaction) => {
                 const metadataReference = publicationRef(eventId);
                 const metadataSnapshot = await transaction.get(metadataReference);
@@ -56,18 +69,27 @@ async function createFirebaseInvitationPublicationGateway() {
                     });
                 }
 
+                const publicKey = currentPublication?.publicKey ?? generatePublicKey();
+                const projectionReference = publicProjectionRef(eventId, publicKey);
+                const projectionSnapshot = await transaction.get(projectionReference);
+                const currentPublicProjection = projectionSnapshot.exists() ? projectionSnapshot.data() : null;
                 const plan = planner({
                     currentPublication,
                     currentRevision,
+                    currentPublicProjection,
+                    publicKey,
                     serverTimestamp: () => firestoreApi.serverTimestamp()
                 });
                 if (plan.status === 'unchanged') return plan;
 
-                const targetReference = revisionRef(eventId, plan.revisionId);
-                const targetSnapshot = await transaction.get(targetReference);
-                if (targetSnapshot.exists()) throw serviceError('publication/revision-id-conflict');
-                transaction.set(targetReference, plan.revision);
-                transaction.set(metadataReference, plan.publication);
+                if (plan.revision) {
+                    const targetReference = revisionRef(eventId, plan.revisionId);
+                    const targetSnapshot = await transaction.get(targetReference);
+                    if (targetSnapshot.exists()) throw serviceError('publication/revision-id-conflict');
+                    transaction.set(targetReference, plan.revision);
+                }
+                if (plan.publication) transaction.set(metadataReference, plan.publication);
+                transaction.set(projectionReference, plan.publicProjection);
                 return plan;
             });
         }
@@ -75,9 +97,14 @@ async function createFirebaseInvitationPublicationGateway() {
 }
 
 export class InvitationPublicationService {
-    constructor({ gateway = null, gatewayFactory = createFirebaseInvitationPublicationGateway } = {}) {
+    constructor({
+        gateway = null,
+        gatewayFactory = createFirebaseInvitationPublicationGateway,
+        publicKeyFactory = createInvitationPublicKey
+    } = {}) {
         this.gateway = gateway;
         this.gatewayFactory = gatewayFactory;
+        this.publicKeyFactory = publicKeyFactory;
         this.gatewayPromise = null;
     }
 
@@ -106,58 +133,117 @@ export class InvitationPublicationService {
         }
 
         try {
-            return await gateway.runPublicationTransaction(eventId, ({
-                currentPublication,
-                currentRevision,
-                serverTimestamp
-            }) => {
-                if (currentPublication && currentRevision) {
-                    const currentFingerprint = createInvitationRevisionFingerprint(
-                        currentRevision,
-                        eventId,
-                        {
-                            expectedRevisionId: currentPublication.currentRevisionId,
-                            expectedRevisionNumber: currentPublication.currentRevisionNumber
-                        }
-                    );
-                    if (currentFingerprint === draftFingerprint) {
-                        return Object.freeze({
-                            status: 'unchanged',
-                            eventId,
-                            revisionId: currentPublication.currentRevisionId,
-                            revisionNumber: currentPublication.currentRevisionNumber,
-                            publication: currentPublication,
-                            revision: currentRevision
-                        });
+            let generatedPublicKey = null;
+            return await gateway.runPublicationTransaction(eventId, {
+                createPublicKey: () => {
+                    if (!generatedPublicKey) generatedPublicKey = this.publicKeyFactory();
+                    return generatedPublicKey;
+                },
+                planner: ({
+                    currentPublication,
+                    currentRevision,
+                    currentPublicProjection,
+                    publicKey,
+                    serverTimestamp
+                }) => {
+                    if (!currentPublication && currentPublicProjection) {
+                        throw serviceError('publication/public-key-conflict');
                     }
-                } else if (currentPublication || currentRevision) {
-                    throw serviceError('publication/incomplete-current-state');
-                }
+                    const touchedMediaRoles = draft.meta?.touchedMediaRoles ?? [];
+                    if (currentPublication && currentRevision) {
+                        const currentFingerprint = createInvitationRevisionFingerprint(
+                            currentRevision,
+                            eventId,
+                            {
+                                expectedRevisionId: currentPublication.currentRevisionId,
+                                expectedRevisionNumber: currentPublication.currentRevisionNumber
+                            }
+                        );
+                        if (currentFingerprint === draftFingerprint) {
+                            const publicProjection = serializePublicInvitationProjection(currentRevision, {
+                                eventId,
+                                publicKey,
+                                revisionId: currentPublication.currentRevisionId,
+                                media: draft.media,
+                                touchedMediaRoles
+                            });
+                            const projectionMatches = currentPublicProjection
+                                && samePublicProjection(currentPublicProjection, publicProjection, eventId, publicKey);
+                            const requiresMetadataMigration = currentPublication.schemaVersion !== 2
+                                || currentPublication.publicKey !== publicKey;
+                            if (projectionMatches && !requiresMetadataMigration) {
+                                return Object.freeze({
+                                    status: 'unchanged',
+                                    eventId,
+                                    publicKey,
+                                    revisionId: currentPublication.currentRevisionId,
+                                    revisionNumber: currentPublication.currentRevisionNumber,
+                                    publication: currentPublication,
+                                    revision: currentRevision,
+                                    publicProjection
+                                });
+                            }
+                            const publication = requiresMetadataMigration
+                                ? serializeInvitationPublication({
+                                    eventId,
+                                    publicKey,
+                                    currentRevisionId: currentPublication.currentRevisionId,
+                                    currentRevisionNumber: currentPublication.currentRevisionNumber,
+                                    publishedAt: currentPublication.publishedAt,
+                                    publishedBy: currentPublication.publishedBy
+                                })
+                                : null;
+                            return Object.freeze({
+                                status: 'published',
+                                reason: projectionMatches ? 'metadata-migrated' : 'projection-updated',
+                                eventId,
+                                publicKey,
+                                revisionId: currentPublication.currentRevisionId,
+                                revisionNumber: currentPublication.currentRevisionNumber,
+                                publication,
+                                revision: null,
+                                publicProjection
+                            });
+                        }
+                    } else if (currentPublication || currentRevision) {
+                        throw serviceError('publication/incomplete-current-state');
+                    }
 
-                const revisionNumber = (currentPublication?.currentRevisionNumber ?? 0) + 1;
-                const revisionId = createInvitationRevisionId(revisionNumber);
-                const publishedAt = serverTimestamp();
-                const revision = serializeInvitationRevision(draft, {
-                    eventId,
-                    revisionNumber,
-                    publishedAt,
-                    publishedBy
-                });
-                const publication = serializeInvitationPublication({
-                    eventId,
-                    currentRevisionId: revisionId,
-                    currentRevisionNumber: revisionNumber,
-                    publishedAt,
-                    publishedBy
-                });
-                return Object.freeze({
-                    status: 'published',
-                    eventId,
-                    revisionId,
-                    revisionNumber,
-                    publication,
-                    revision
-                });
+                    const revisionNumber = (currentPublication?.currentRevisionNumber ?? 0) + 1;
+                    const revisionId = createInvitationRevisionId(revisionNumber);
+                    const publishedAt = serverTimestamp();
+                    const revision = serializeInvitationRevision(draft, {
+                        eventId,
+                        revisionNumber,
+                        publishedAt,
+                        publishedBy
+                    });
+                    const publication = serializeInvitationPublication({
+                        eventId,
+                        publicKey,
+                        currentRevisionId: revisionId,
+                        currentRevisionNumber: revisionNumber,
+                        publishedAt,
+                        publishedBy
+                    });
+                    const publicProjection = serializePublicInvitationProjection(revision, {
+                        eventId,
+                        publicKey,
+                        revisionId,
+                        media: draft.media,
+                        touchedMediaRoles
+                    });
+                    return Object.freeze({
+                        status: 'published',
+                        eventId,
+                        publicKey,
+                        revisionId,
+                        revisionNumber,
+                        publication,
+                        revision,
+                        publicProjection
+                    });
+                }
             });
         } catch (error) {
             if (String(error?.code ?? '').startsWith('publication/')) throw error;
@@ -173,6 +259,20 @@ export class InvitationPublicationService {
             draftEventId: snapshot.draft?.eventId,
             draft: snapshot.draft
         });
+    }
+}
+
+function samePublicProjection(current, expected, eventId, publicKey) {
+    try {
+        return createPublicInvitationProjectionFingerprint(current, {
+            expectedEventId: eventId,
+            expectedPublicKey: publicKey
+        }) === createPublicInvitationProjectionFingerprint(expected, {
+            expectedEventId: eventId,
+            expectedPublicKey: publicKey
+        });
+    } catch {
+        return false;
     }
 }
 
