@@ -809,14 +809,38 @@ logística o multimedia estén persistidos. Un fingerprint evita limpiar edicion
 locales realizadas mientras el write estaba en vuelo; los conflictos entre
 sesiones continúan last-write-wins hasta incorporar una revisión general.
 
+### Identidad y acceso público RSVP · Fase 5.3
+
+`eventos/{eventId}/rsvpAccess/{token}` contiene una proyección versionada y
+mínima por invitado: ownership, nombre de display, `passLimit`, estado,
+expiración y la referencia estable `guestId`; su forma cruda tiene exactamente
+siete campos y no contiene auditoría. `passLimit` deriva exclusivamente de `guest.pases`
+(entero 1–999); nunca de estadísticas del evento ni de pases disponibles de
+check-in. El invitado completo continúa privado y no recibe campos RSVP.
+`guestId` se conserva para correlación futura y sincronización interna; no
+habilita lectura del invitado ni query público. Firestore no filtra campos en un
+`get`, por lo que la privacidad reside en la forma almacenada y no en el loader.
+
+El token RSVP usa 32 bytes de Web Crypto y base64url sin padding. Es independiente
+de `qrToken`, vive sólo como Document ID y parámetro de la ruta
+`/rsvp/?event=...&token=...`. `rsvp-access-service.js` centraliza provisioning,
+verificación, query interno por `guestId`, sync explícito, rotación create-verify-
+revoke y revocación `active:false`; no existen listeners permanentes.
+
+El loader público valida ruta antes de Firebase y hace un solo `getDoc` exacto.
+Rules habilita ese GET bearer tanto para sesiones anónimas como autenticadas,
+siempre sobre documentos activos y no expirados. List/query y toda escritura
+sin rol interno permanecen denegados. La página pública sólo muestra estado de
+acceso; respuestas y writes quedan para Fase 5.4.
+
 ## Riesgos y pendientes
 
 - No existe paquete en el contrato actual de creación de eventos.
 - Las Rules propuestas cubren `eventos/{eventId}/invitacion/config`, su
-  subcolección `media` y el documento hermano `rsvp`; pasan Emulator Suite local,
+  subcolección `media`, el documento hermano `rsvp` y `rsvpAccess`; pasan Emulator Suite local,
   pero no fueron desplegadas.
 - Los adapters neutralizan el copy hardcodeado en Builder. Thumbnails server-side,
-  transcodificación, RSVP público, invitados, appearance avanzada y publicación siguen
+  transcodificación, respuestas RSVP, appearance avanzada y publicación siguen
   fuera de alcance.
 - `admin/dashboard.js` todavía accede a Firestore directamente; no se reescribió
   por no ampliar el alcance.
@@ -843,11 +867,13 @@ sesiones continúan last-write-wins hasta incorporar una revisión general.
 6. Fase 5.1 completada: contrato, editor, validación, WhatsApp seguro, policy de
    pases y preview RSVP.
 7. Fase 5.2 completada: persistencia administrativa RSVP, hidratación, save
-   central, Rules estrictas y Emulator aislado. El runtime público queda para
-   Fase 5.3.
-8. Fase 6: appearance avanzada y editor del tema Personalizada.
-9. Fase 7: persistencia del resto del draft, debounce y autosave.
-10. Fase 8: validación, snapshot publicado y URL de producción.
-11. Fase 9: edición post-publicación, versiones, rollback y auditoría.
+   central, Rules estrictas y Emulator aislado.
+8. Fase 5.3 completada localmente: identidad RSVP, token independiente, access
+   projection, ruta/lookup público exacto, rotación/revocación y Rules mínimas.
+9. Fase 5.4: respuestas RSVP, idempotencia y escritura pública estricta.
+10. Fase 6: appearance avanzada y editor del tema Personalizada.
+11. Fase 7: persistencia del resto del draft, debounce y autosave.
+12. Fase 8: validación, snapshot publicado y URL de producción.
+13. Fase 9: edición post-publicación, versiones, rollback y auditoría.
 
-No se implementó runtime público RSVP, Fase 5.3 ni ninguna fase posterior.
+No se implementaron respuestas públicas RSVP, Fase 5.4 ni ninguna fase posterior.

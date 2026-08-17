@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="robots" content="noindex,nofollow,noarchive">
+    <meta name="referrer" content="no-referrer">
+    <title>RSVP | Eventora Studio</title>
+    <link rel="stylesheet" href="./rsvp.css">
+</head>
+<body>
+    <main class="rsvp-shell" aria-labelledby="rsvp-title">
+        <section class="rsvp-card" id="rsvp-card" aria-live="polite" aria-busy="true">
+            <p class="rsvp-eyebrow">EVENTORA STUDIO</p>
+            <h1 id="rsvp-title">Verificando invitación…</h1>
+            <p id="rsvp-message">Espera un momento mientras validamos este acceso.</p>
+            <div id="rsvp-access-summary" hidden>
+                <p>Invitación para <strong id="rsvp-guest-name"></strong></p>
+                <p id="rsvp-pass-limit"></p>
+                <p>La confirmación de asistencia estará disponible en la siguiente etapa.</p>
+            </div>
+        </section>
+    </main>
+    <script type="module" src="./rsvp.js"></script>
+</body>
+</html>

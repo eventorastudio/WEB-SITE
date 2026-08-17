@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Rules propuestas de Fase 5.2. El despliegue se controla exclusivamente mediante
+// Rules propuestas de Fase 5.3. El despliegue se controla exclusivamente mediante
 // el archivo canónico indicado en firebase.json.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -154,6 +154,63 @@ service cloud.firestore {
         && validRsvpTouchedPaths(data.touchedPaths)
         && data.updatedAt == request.time
         && data.updatedBy == request.auth.uid;
+    }
+
+    function validRsvpAccessToken(token) {
+      return token is string && token.matches('^[A-Za-z0-9_-]{43}$');
+    }
+
+    function validRsvpAccessDocument(data, eventId) {
+      return data is map
+        && data.keys().size() == 7
+        && data.keys().hasOnly([
+          'schemaVersion', 'eventId', 'guestId', 'displayName', 'passLimit',
+          'active', 'expiresAt'
+        ])
+        && data.schemaVersion == 1
+        && data.eventId is string
+        && data.eventId == eventId
+        && data.eventId.matches('^[A-Za-z0-9_-]{1,150}$')
+        && data.guestId is string
+        && data.guestId.size() > 0
+        && data.guestId.size() <= 1500
+        && data.guestId.matches('^[^/]+$')
+        && data.displayName is string
+        && data.displayName.size() > 0
+        && data.displayName.size() <= 160
+        && data.passLimit is int
+        && data.passLimit >= 1
+        && data.passLimit <= 999
+        && data.active is bool
+        && (data.expiresAt == null || data.expiresAt is timestamp);
+    }
+
+    function validRsvpAccessCreate(eventId, token) {
+      let data = request.resource.data;
+      return isThemeEditor()
+        && validRsvpAccessToken(token)
+        && validRsvpAccessDocument(data, eventId);
+    }
+
+    function validRsvpAccessUpdate(eventId, token) {
+      let before = resource.data;
+      let after = request.resource.data;
+      return isThemeEditor()
+        && validRsvpAccessToken(token)
+        && validRsvpAccessDocument(after, eventId)
+        && after.schemaVersion == before.schemaVersion
+        && after.eventId == before.eventId
+        && after.guestId == before.guestId
+        && after.diff(before).affectedKeys().hasOnly([
+          'displayName', 'passLimit', 'active', 'expiresAt'
+        ]);
+    }
+
+    function validPublicRsvpAccessGet(eventId, token) {
+      return validRsvpAccessToken(token)
+        && validRsvpAccessDocument(resource.data, eventId)
+        && resource.data.active == true
+        && (resource.data.expiresAt == null || request.time < resource.data.expiresAt);
     }
 
     function validMediaDocumentCore(data, eventId, mediaId) {
@@ -406,6 +463,14 @@ service cloud.firestore {
       allow list: if isInternalReader();
       // El Portal nunca recibe update sobre el documento padre.
       allow create, update, delete: if isPlatformManager();
+
+      match /rsvpAccess/{token} {
+        allow get: if isThemeEditor() || validPublicRsvpAccessGet(eventId, token);
+        allow list: if isThemeEditor();
+        allow create: if validRsvpAccessCreate(eventId, token);
+        allow update: if validRsvpAccessUpdate(eventId, token);
+        allow delete: if false;
+      }
 
       match /invitados/{guestId} {
         allow get, list: if isInternalReader() || portalEnabled(eventId);
