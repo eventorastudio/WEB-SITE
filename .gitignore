@@ -3,6 +3,7 @@ backups/
 
 # Dependencias y credenciales administrativas locales.
 node_modules/
+functions/generated/
 *.service-account.json
 service-account*.json
 

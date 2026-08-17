@@ -1,4 +1,4 @@
-# Invitation Builder · Arquitectura de Fases 1 a 5.4
+# Invitation Builder · Arquitectura de Fases 1 a 5.5
 
 ## Alcance
 
@@ -81,6 +81,26 @@ Define:
 Las Rules todavía deben desplegarse y verificarse remotamente mediante un proceso
 manual autorizado. `invitacionVersiones` y lectura pública permanecen denegadas
 hasta sus fases.
+
+### Reconciliación RSVP server-side
+
+Fase 5.5 incorpora el primer codebase de Cloud Functions en `functions/`. Un
+trigger Firestore v2 relee transaccionalmente cada create/update de
+`eventos/{eventId}/rsvpResponses/{token}` y converge por `guestId` sobre la
+proyección privada `eventos/{eventId}/rsvpState/{guestId}`. La proyección no
+guarda el bearer y conserva el número exacto confirmado.
+
+El invitado real representa RSVP exclusivamente con `estado` y su booleano
+derivado `confirmado`; no contiene `pasesConfirmados`. La misma transacción
+actualiza sólo esos campos y reutiliza `createEventStatsMutation` para el
+resumen existente. Una llegada/check-in ya registrada siempre prevalece y no
+puede ser revertida por RSVP. Rules no cambiaron: `rsvpState` cae en la
+denegación recursiva por defecto y sólo Admin SDK puede escribirlo.
+
+La comparación por `respondedAt` ignora respuestas antiguas, convierte retries
+idénticos en no-op y reporta sin overwrite un empate con datos distintos. State,
+guest y agregado se confirman o abortan juntos. La arquitectura detallada y su
+suite de diez casos Emulator están en `docs/PHASE_5_5_RSVP_RECONCILIATION.md`.
 
 ### Modelo de evento real
 
@@ -899,8 +919,7 @@ reparación administrativa, sin borrar responses históricas.
   `rsvpResponses`; pasan Emulator Suite local,
   pero no fueron desplegadas.
 - Los adapters neutralizan el copy hardcodeado en Builder. Thumbnails server-side,
-  transcodificación, sincronización RSVP→guest, appearance avanzada y publicación siguen
-  fuera de alcance.
+  transcodificación, appearance avanzada y publicación siguen fuera de alcance.
 - `admin/dashboard.js` todavía accede a Firestore directamente; no se reescribió
   por no ampliar el alcance.
 - El editor legacy oculto y `themes` continúan existiendo para compatibilidad;
@@ -933,11 +952,12 @@ reparación administrativa, sin borrar responses históricas.
    migración v1/v3 y Rules privadas v2.
 10. Fase 5.4 completada localmente: capability de config, proyección protegida,
     respuesta pública, policies, deadline, idempotencia y rotación sin pérdida.
-11. Fase 5.5: sincronización confiable e idempotente de respuesta al invitado,
-    sin reinterpretar pases de check-in ni tocar QR.
+11. Fase 5.5 completada localmente: sincronización confiable e idempotente de
+    respuesta al invitado, estado privado por `guestId`, agregado canónico y
+    preservación estricta de pases operativos, check-in y QR.
 12. Fase 6: appearance avanzada y editor del tema Personalizada.
 13. Fase 7: persistencia del resto del draft, debounce y autosave.
 14. Fase 8: validación, snapshot publicado y URL de producción.
 15. Fase 9: edición post-publicación, versiones, rollback y auditoría.
 
-No se implementó la sincronización RSVP→guest de Fase 5.5 ni ninguna fase posterior.
+No se implementó ninguna fase posterior a Fase 5.5.

@@ -30,6 +30,7 @@ export const GUEST_FIELD_DEFINITIONS = Object.freeze({
 });
 
 export const CANONICAL_GUEST_FIELDS = Object.freeze(Object.keys(GUEST_FIELD_DEFINITIONS));
+export const RSVP_GUEST_FIELDS = Object.freeze(['estado', 'confirmado']);
 
 export class GuestContractError extends Error {
     constructor(code) {
@@ -185,6 +186,44 @@ export function normalizeGuestForRead(data = {}, { documentId = '' } = {}) {
 }
 
 export const normalizeStoredGuestData = normalizeGuestForRead;
+
+/**
+ * Proyecta una respuesta RSVP sobre los únicos campos RSVP del invitado.
+ * Una llegada ya registrada siempre prevalece: RSVP nunca revierte check-in.
+ */
+export function createGuestRsvpPatch(response = {}, current = {}) {
+    const source = asObject(current);
+    const status = response?.status;
+    const passesConfirmed = response?.passesConfirmed;
+    const totalPasses = parseInteger(source.pases);
+    if (!isValidPassTotal(totalPasses)) throw new GuestContractError('guest/invalid-passes');
+    if (status === 'accepted') {
+        if (!Number.isInteger(passesConfirmed) || passesConfirmed < 1 || passesConfirmed > totalPasses) {
+            throw new GuestContractError('guest/invalid-rsvp-passes');
+        }
+    } else if (status === 'declined') {
+        if (passesConfirmed !== 0) throw new GuestContractError('guest/invalid-rsvp-passes');
+    } else {
+        throw new GuestContractError('guest/invalid-rsvp-status');
+    }
+
+    let passState;
+    let sequence;
+    try {
+        passState = resolveGuestPassState(source, { strict: true });
+        sequence = normalizeCheckinSequence(source.checkinSecuencia, { strict: true });
+    } catch {
+        throw new GuestContractError('guest/invalid-checkin-state');
+    }
+    if (previouslyArrived(source) || passState.pasesUtilizados > 0 || sequence > 0) return Object.freeze({});
+
+    const estado = status === 'accepted' ? 'confirmado' : 'no_asistira';
+    const confirmado = status === 'accepted';
+    return Object.freeze({
+        ...(source.estado === estado ? {} : { estado }),
+        ...(source.confirmado === confirmado ? {} : { confirmado })
+    });
+}
 
 export function resolveGuestPassState(data = {}, { strict = false } = {}) {
     const source = asObject(data);
