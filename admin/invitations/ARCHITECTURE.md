@@ -1,12 +1,13 @@
-# Invitation Builder · Arquitectura de Fases 1 a 6.1B
+# Invitation Builder · Arquitectura de Fases 1 a 6.2
 
 ## Alcance
 
-Las fases 1 a 6.1B implementan una aplicación administrativa dedicada para
+Las fases 1 a 6.2 implementan una aplicación administrativa dedicada para
 seleccionar un evento existente, paquete, colección y secciones; editar contenido
 canónico, logística y multimedia estructurada por rol; y comprobar el resultado
 en una preview real. El draft general, multimedia y la configuración RSVP usan
-documentos separados. No existe autosave ni publicación de la invitación.
+documentos separados. No existe autosave; la publicación administrativa genera
+revisiones inmutables, todavía sin una ruta pública de invitación.
 
 Ruta final: `/admin/invitations/builder.html?event={documentId}`.
 
@@ -74,14 +75,15 @@ Ninguna Rule de esta fase fue desplegada. El archivo canónico define:
   paths, tipos y auditoría de servidor;
 - lectura y escritura acotada de `eventos/{eventId}/invitacion/draft` para los
   roles con `invitations:edit`, con whitelist, ownership y auditoría estrictos;
+- publicación transaccional en `invitacion/publication` y CREATE inmutable de
+  sus revisiones para esos mismos roles;
 - lectura y escritura interna acotada de `eventos/{eventId}/invitacion/rsvp`,
   con ownership, schema, nested maps, touched paths y auditoría estrictos;
 - acceso Portal por perfil `usuarios/{uid}`, asignación de evento y entitlements;
 - denegación por defecto de cualquier ruta no declarada.
 
 Las Rules todavía deben desplegarse y verificarse remotamente mediante un proceso
-manual autorizado. `invitacionVersiones` y lectura pública permanecen denegadas
-hasta sus fases.
+manual autorizado. La lectura pública de la publicación permanece denegada.
 
 ### Reconciliación RSVP server-side
 
@@ -789,6 +791,26 @@ schema 2 usando el default vigente `[]`, sin escribir durante la hidratación.
 si el fingerprint confirma que no aparecieron cambios nuevos durante el write.
 No hay autosave y este documento no se usa como publicación.
 
+### Publicación versionada · Fase 6.2
+
+`eventos/{eventId}/invitacion/publication` conserva únicamente el pointer activo:
+schema, ownership, `currentRevisionId`, `currentRevisionNumber` y auditoría de
+servidor. Cada snapshot vive en
+`eventos/{eventId}/invitacion/publication/revisions/{revisionId}` con ID
+secuencial `REV-000001`, número de revisión, content schema, auditoría y las diez
+raíces generales del draft.
+
+El servicio compara el snapshot normalizado contra la revisión activa. Si son
+idénticos devuelve `unchanged` sin writes. Si cambió, una sola transacción lee el
+pointer y la revisión vigente, verifica que el siguiente ID esté libre, crea la
+nueva revisión y mueve el pointer. La transacción de Firestore reintenta ante
+concurrencia; Rules enlaza ambos documentos con `getAfter()`. Las revisiones sólo
+admiten CREATE y nunca UPDATE/DELETE.
+
+La publicación excluye `content.rsvp`, media y binarios. No guarda draft dirty ni
+lo limpia: **Guardar borrador** y **Publicar** son acciones independientes. Esta
+fase no crea una vista pública ni cambia RSVP, uploads, QR o check-in.
+
 Fase 4.6 conserva la capa de upload bajo
 `eventos/{eventId}/invitacion/media/{role}/{mediaId}-{objectVersion}.{ext}`.
 Firestore conserva el `storagePath` estable y metadata; `downloadUrl` sólo existe
@@ -930,12 +952,13 @@ reparación administrativa, sin borrar responses históricas.
 ## Riesgos y pendientes
 
 - No existe paquete en el contrato actual de creación de eventos.
-- Las Rules locales cubren `eventos/{eventId}/invitacion/config`, `draft`, su
-  subcolección `media`, `rsvp`, `rsvpPublication`, `rsvpAccess`, `rsvpPublic` y
+- Las Rules locales cubren `eventos/{eventId}/invitacion/config`, `draft`,
+  `publication`, sus revisiones, la subcolección `media`, `rsvp`,
+  `rsvpPublication`, `rsvpAccess`, `rsvpPublic` y
   `rsvpResponses`; pasan Emulator Suite local,
   pero no fueron desplegadas.
 - Los adapters neutralizan el copy hardcodeado en Builder. Thumbnails server-side,
-  transcodificación, appearance avanzada y publicación siguen fuera de alcance.
+  transcodificación, appearance avanzada y render público siguen fuera de alcance.
 - `admin/dashboard.js` todavía accede a Firestore directamente; no se reescribió
   por no ampliar el alcance.
 - El editor legacy oculto y `themes` continúan existiendo para compatibilidad;
@@ -975,6 +998,8 @@ reparación administrativa, sin borrar responses históricas.
     observable en ADMIN, sin edición manual.
 13. Fase 6.1/6.1B completada localmente: persistencia explícita del draft general,
     accommodations, hidratación versionada, dirty independiente y Rules privadas.
-14. Fase 6.2 y posteriores: pendientes; no iniciadas.
+14. Fase 6.2 completada localmente: revisiones inmutables, pointer activo,
+    transacción, deduplicación semántica y Rules privadas.
+15. Fase 6.3 y posteriores: pendientes; no iniciadas.
 
-No se implementó ninguna fase posterior a Fase 6.1B.
+No se implementó ninguna fase posterior a Fase 6.2.

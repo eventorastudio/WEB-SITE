@@ -52,6 +52,18 @@ const COLLECTION_LIMITS = Object.freeze({
     accommodations: 1,
     links: 50
 });
+const SNAPSHOT_FIELDS = Object.freeze([
+    'theme',
+    'sections',
+    'content',
+    'locations',
+    'itinerary',
+    'gifts',
+    'accommodations',
+    'links',
+    'appearance',
+    'settings'
+]);
 
 function fail(code, details = {}) {
     const error = new TypeError(code);
@@ -236,6 +248,13 @@ export function deserializeInvitationDraft(document, expectedEventId) {
 
 export function createInvitationDraftFingerprint(draft, { eventId = draft?.eventId } = {}) {
     return stableStringify(createPayload(draft, eventId));
+}
+
+export function createInvitationDraftSnapshot(draft, { eventId = draft?.eventId } = {}) {
+    const payload = createPayload(draft, eventId);
+    return Object.freeze(cloneInvitationValue(Object.fromEntries(
+        SNAPSHOT_FIELDS.map((field) => [field, payload[field]])
+    )));
 }
 
 export function getPersistedGeneralContentPaths() {

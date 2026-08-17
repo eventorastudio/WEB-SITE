@@ -21,6 +21,7 @@ import { initMediaEditor } from './editors/media-editor.js?v=phase48-upload-enab
 import { invitationMediaService } from './services/invitation-media-service.js?v=phase48-upload-enabled-20260816';
 import { invitationRsvpService } from './services/invitation-rsvp-service.js?v=phase54-public-rsvp-20260817';
 import { invitationDraftService } from './services/invitation-draft-service.js?v=phase61-draft-persistence-20260817';
+import { invitationPublicationService } from './services/invitation-publication-service.js?v=phase62-versioned-publication-20260817';
 import { renderEventSelector } from './modules/event-selector.js?v=phase3-logistics-20260813';
 import { initPackageSelector } from './modules/package-selector.js?v=phase3-logistics-20260813';
 import { initThemeSelector } from './modules/theme-selector.js?v=phase3-logistics-20260813';
@@ -29,6 +30,7 @@ import { initPreviewController } from './modules/preview-controller.js?v=phase54
 import { initBuilderEventBridge } from './modules/state-event-bridge.js?v=phase3-logistics-20260813';
 import { initRsvpPersistenceController } from './modules/rsvp-persistence-controller.js?v=phase52-rsvp-persistence-20260816';
 import { initDraftPersistenceController } from './modules/draft-persistence-controller.js?v=phase61-draft-persistence-20260817';
+import { initInvitationPublicationController } from './modules/invitation-publication-controller.js?v=phase62-versioned-publication-20260817';
 
 const dom = {
     guard: document.getElementById('builder-auth-guard'),
@@ -52,6 +54,8 @@ const dom = {
     draftStatus: document.getElementById('builder-draft-status'),
     saveDraft: document.getElementById('builder-save-draft'),
     saveDraftStatus: document.getElementById('builder-save-draft-status'),
+    publish: document.getElementById('builder-publish'),
+    publishStatus: document.getElementById('builder-publish-status'),
     saveRsvp: document.getElementById('builder-save-rsvp'),
     saveRsvpStatus: document.getElementById('builder-save-rsvp-status'),
     runtimeError: document.getElementById('builder-runtime-error'),
@@ -313,6 +317,14 @@ function mountModules() {
         onError: reportRuntimeError,
         onTrace: (event, details) => debugBuilder.trace(event, details)
     }));
+    moduleCleanups.push(initInvitationPublicationController({
+        button: dom.publish,
+        status: dom.publishStatus,
+        state: builderState,
+        service: invitationPublicationService,
+        onError: reportRuntimeError,
+        onTrace: (event, details) => debugBuilder.trace(event, details)
+    }));
     moduleCleanups.push(initRsvpPersistenceController({
         button: dom.saveRsvp,
         status: dom.saveRsvpStatus,
@@ -480,6 +492,7 @@ function reportRuntimeError(error, { source = 'builder', reason = 'unknown', ret
         'section-copy-editors': 'No pudimos actualizar el contenido de esta sección.',
         'media-editor': 'No pudimos actualizar el recurso multimedia.',
         'draft-persistence': 'No pudimos guardar el borrador general.',
+        'invitation-publication': 'No pudimos publicar la invitación.',
         'rsvp-persistence': 'No pudimos guardar la configuración RSVP.',
         'state-event-bridge': 'No pudimos sincronizar el Builder.'
     };

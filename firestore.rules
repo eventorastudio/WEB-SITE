@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Rules locales hasta Fase 6.1B. El despliegue se controla exclusivamente mediante
+// Rules locales hasta Fase 6.2. El despliegue se controla exclusivamente mediante
 // el archivo canónico indicado en firebase.json.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -137,18 +137,8 @@ service cloud.firestore {
         && content.access.label is string;
     }
 
-    function validInvitationDraftWrite(eventId) {
-      let data = request.resource.data;
-      return data.keys().size() == 15
-        && data.keys().hasOnly([
-          'schemaVersion', 'contentSchemaVersion', 'eventId', 'theme',
-          'sections', 'content', 'locations', 'itinerary', 'gifts',
-          'accommodations', 'links', 'appearance', 'settings', 'updatedAt',
-          'updatedBy'
-        ])
-        && data.schemaVersion == 2
-        && data.contentSchemaVersion == 4
-        && data.eventId == eventId
+    function validInvitationSnapshot(data, eventId) {
+      return data.eventId == eventId
         && data.eventId is string
         && data.eventId.matches('^[A-Za-z0-9_-]{1,150}$')
         && (
@@ -173,9 +163,142 @@ service cloud.firestore {
         && (
           data.settings.packageId == null
           || data.settings.packageId in ['esencial', 'premium', 'prestige']
+        );
+    }
+
+    // Revisions are written only through the publication service, whose schema
+    // validator performs the deep field-by-field validation above before the
+    // transaction starts. Rules repeat the strict persisted-root whitelist and
+    // the bounded container checks without exhausting Firestore's per-request
+    // expression budget for the two-document atomic write.
+    function validInvitationRevisionSnapshot(data, eventId) {
+      return data.eventId == eventId
+        && data.eventId is string
+        && data.eventId.matches('^[A-Za-z0-9_-]{1,150}$')
+        && (
+          data.theme == null
+          || data.theme in [
+            'aloha', 'luxury', 'botanical', 'midnight', 'romance', 'minimal',
+            'celestial', 'vintage', 'garden', 'champagne', 'neon-party', 'custom'
+          ]
         )
+        && validDraftSections(data.sections)
+        && data.content is map
+        && data.content.keys().size() == 14
+        && data.content.keys().hasOnly([
+          'identity', 'schedule', 'place', 'welcome', 'countdown', 'location',
+          'dressCode', 'music', 'video', 'gallery', 'gifts', 'passes',
+          'itinerary', 'access'
+        ])
+        && data.locations is list && data.locations.size() <= 20
+        && data.itinerary is list && data.itinerary.size() <= 80
+        && data.gifts is list && data.gifts.size() <= 50
+        && data.accommodations is list && data.accommodations.size() <= 1
+        && data.links is list && data.links.size() <= 50
+        && data.appearance is map && data.appearance.keys().size() == 0
+        && data.settings is map
+        && data.settings.keys().size() == 2
+        && data.settings.keys().hasOnly(['renderMode', 'packageId'])
+        && data.settings.renderMode == 'builder'
+        && (
+          data.settings.packageId == null
+          || data.settings.packageId in ['esencial', 'premium', 'prestige']
+        );
+    }
+
+    function validInvitationDraftWrite(eventId) {
+      let data = request.resource.data;
+      return data.keys().size() == 15
+        && data.keys().hasOnly([
+          'schemaVersion', 'contentSchemaVersion', 'eventId', 'theme',
+          'sections', 'content', 'locations', 'itinerary', 'gifts',
+          'accommodations', 'links', 'appearance', 'settings', 'updatedAt',
+          'updatedBy'
+        ])
+        && data.schemaVersion == 2
+        && data.contentSchemaVersion == 4
+        && validInvitationSnapshot(data, eventId)
         && data.updatedAt == request.time
         && data.updatedBy == request.auth.uid;
+    }
+
+    function invitationPublicationPath(eventId) {
+      return /databases/$(database)/documents/eventos/$(eventId)/invitacion/publication;
+    }
+
+    function invitationRevisionPath(eventId, revisionId) {
+      return /databases/$(database)/documents/eventos/$(eventId)/invitacion/publication/revisions/$(revisionId);
+    }
+
+    function validInvitationRevisionId(revisionId) {
+      return revisionId is string && revisionId.matches('^REV-[0-9]{6,}$');
+    }
+
+    function validInvitationPublicationMetadata(data, eventId) {
+      return data is map
+        && data.keys().size() == 6
+        && data.keys().hasOnly([
+          'schemaVersion', 'eventId', 'currentRevisionId',
+          'currentRevisionNumber', 'publishedAt', 'publishedBy'
+        ])
+        && data.schemaVersion == 1
+        && data.eventId == eventId
+        && validInvitationRevisionId(data.currentRevisionId)
+        && data.currentRevisionNumber is int
+        && data.currentRevisionNumber >= 1
+        && data.currentRevisionNumber <= 999999999
+        && data.publishedAt == request.time
+        && data.publishedBy == request.auth.uid;
+    }
+
+    function publicationPointsToRevision(data, eventId) {
+      let path = invitationRevisionPath(eventId, data.currentRevisionId);
+      return existsAfter(path)
+        && getAfter(path).data.eventId == eventId
+        && getAfter(path).data.revisionNumber == data.currentRevisionNumber
+        && getAfter(path).data.publishedAt == data.publishedAt
+        && getAfter(path).data.publishedBy == data.publishedBy;
+    }
+
+    function validInvitationPublicationCreate(eventId) {
+      let data = request.resource.data;
+      return validInvitationPublicationMetadata(data, eventId)
+        && data.currentRevisionNumber == 1
+        && publicationPointsToRevision(data, eventId);
+    }
+
+    function validInvitationPublicationUpdate(eventId) {
+      let data = request.resource.data;
+      return validInvitationPublicationMetadata(data, eventId)
+        && data.currentRevisionNumber == resource.data.currentRevisionNumber + 1
+        && data.currentRevisionId != resource.data.currentRevisionId
+        && publicationPointsToRevision(data, eventId);
+    }
+
+    function validInvitationRevisionCreate(eventId, revisionId) {
+      let data = request.resource.data;
+      let publicationPath = invitationPublicationPath(eventId);
+      return data.keys().size() == 16
+        && data.keys().hasOnly([
+          'schemaVersion', 'contentSchemaVersion', 'eventId', 'revisionNumber',
+          'theme', 'sections', 'content', 'locations', 'itinerary', 'gifts',
+          'accommodations', 'links', 'appearance', 'settings', 'publishedAt',
+          'publishedBy'
+        ])
+        && data.schemaVersion == 1
+        && data.contentSchemaVersion == 4
+        && validInvitationRevisionSnapshot(data, eventId)
+        && data.revisionNumber is int
+        && data.revisionNumber >= 1
+        && data.revisionNumber <= 999999999
+        && validInvitationRevisionId(revisionId)
+        && data.publishedAt == request.time
+        && data.publishedBy == request.auth.uid
+        && existsAfter(publicationPath)
+        && getAfter(publicationPath).data.currentRevisionId == revisionId
+        && getAfter(publicationPath).data.currentRevisionNumber == data.revisionNumber
+        && getAfter(publicationPath).data.publishedAt == data.publishedAt
+        && getAfter(publicationPath).data.publishedBy == data.publishedBy;
     }
 
     function validMediaId(mediaId) {
@@ -875,16 +998,24 @@ service cloud.firestore {
       }
 
       match /invitacion/{documentId} {
-        allow get: if documentId in ['config', 'draft', 'rsvp', 'rsvpPublication'] && isThemeEditor();
+        allow get: if documentId in ['config', 'draft', 'publication', 'rsvp', 'rsvpPublication'] && isThemeEditor();
         allow list, delete: if false;
         allow create: if (documentId == 'config' && isThemeEditor() && validInvitationConfigWrite())
           || (documentId == 'draft' && isThemeEditor() && validInvitationDraftWrite(eventId))
+          || (documentId == 'publication' && isThemeEditor() && validInvitationPublicationCreate(eventId))
           || (documentId == 'rsvp' && isThemeEditor() && validRsvpWrite(eventId))
           || (documentId == 'rsvpPublication' && isThemeEditor() && validRsvpPublicationCreate(eventId));
         allow update: if (documentId == 'config' && isThemeEditor() && validInvitationConfigWrite())
           || (documentId == 'draft' && isThemeEditor() && validInvitationDraftWrite(eventId))
+          || (documentId == 'publication' && isThemeEditor() && validInvitationPublicationUpdate(eventId))
           || (documentId == 'rsvp' && isThemeEditor() && validRsvpWrite(eventId))
           || (documentId == 'rsvpPublication' && isThemeEditor() && validRsvpPublicationUpdate(eventId));
+      }
+
+      match /invitacion/publication/revisions/{revisionId} {
+        allow get, list: if isThemeEditor();
+        allow create: if isThemeEditor() && validInvitationRevisionCreate(eventId, revisionId);
+        allow update, delete: if false;
       }
 
       match /invitacion/config/media/{mediaId} {
