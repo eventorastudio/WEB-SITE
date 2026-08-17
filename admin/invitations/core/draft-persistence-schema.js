@@ -1,0 +1,243 @@
+import {
+    INVITATION_CONTENT_SCHEMA_VERSION,
+    INVITATION_EDITABLE_FIELDS,
+    cloneInvitationValue,
+    createInvitationContent,
+    getDraftValue,
+    setDraftValue
+} from './content-schema.js?v=phase61-draft-persistence-20260817';
+import { validateInvitationDraft } from './builder-validation.js?v=phase61-draft-persistence-20260817';
+import { getPackageById, getSectionById } from './section-registry.js?v=phase3-logistics-20260813';
+import { getThemeById } from './theme-registry.js?v=phase3-logistics-20260813';
+import {
+    DRESS_COLOR_GROUPS,
+    createDressColor,
+    normalizeEntity
+} from './logistics-schema.js?v=phase3-logistics-20260813';
+
+export const INVITATION_DRAFT_DOCUMENT_ID = 'draft';
+export const INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION = 2;
+
+const LEGACY_INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION = 1;
+
+const SAFE_EVENT_ID = /^[A-Za-z0-9_-]{1,150}$/;
+const GENERAL_CONTENT_PATHS = Object.freeze(
+    Object.keys(INVITATION_EDITABLE_FIELDS).filter((path) => !path.startsWith('content.rsvp.'))
+);
+const DOCUMENT_FIELDS = Object.freeze([
+    'schemaVersion',
+    'contentSchemaVersion',
+    'eventId',
+    'theme',
+    'sections',
+    'content',
+    'locations',
+    'itinerary',
+    'gifts',
+    'accommodations',
+    'links',
+    'appearance',
+    'settings',
+    'updatedAt',
+    'updatedBy'
+]);
+const LEGACY_DOCUMENT_FIELDS = Object.freeze(
+    DOCUMENT_FIELDS.filter((field) => field !== 'accommodations')
+);
+const SETTINGS_FIELDS = Object.freeze(['renderMode', 'packageId']);
+const COLLECTION_LIMITS = Object.freeze({
+    locations: 20,
+    itinerary: 80,
+    gifts: 50,
+    accommodations: 1,
+    links: 50
+});
+
+function fail(code, details = {}) {
+    const error = new TypeError(code);
+    error.code = code;
+    Object.assign(error, details);
+    throw error;
+}
+
+function exactKeys(value, fields) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+    const keys = Object.keys(value);
+    return keys.length === fields.length && keys.every((key) => fields.includes(key));
+}
+
+function assertEventId(eventId) {
+    const normalized = String(eventId ?? '');
+    if (!SAFE_EVENT_ID.test(normalized)) fail('draft/invalid-event-id');
+    return normalized;
+}
+
+function stableValue(value) {
+    if (Array.isArray(value)) return value.map(stableValue);
+    if (!value || typeof value !== 'object') return value;
+    return Object.fromEntries(Object.keys(value).sort().map((key) => [key, stableValue(value[key])]));
+}
+
+function stableStringify(value) {
+    return JSON.stringify(stableValue(value));
+}
+
+function setGeneralContentValue(content, path, value) {
+    setDraftValue({ content }, path, value);
+}
+
+function normalizeGeneralContent(source = {}) {
+    const content = createInvitationContent();
+    delete content.rsvp;
+    GENERAL_CONTENT_PATHS.forEach((path) => {
+        setGeneralContentValue(content, path, getDraftValue({ content: source }, path));
+    });
+    DRESS_COLOR_GROUPS.forEach((group) => {
+        const colors = Array.isArray(source?.dressCode?.[group]) ? source.dressCode[group] : [];
+        if (colors.length > 20) fail('draft/dress-colors-limit', { group });
+        content.dressCode[group] = colors.map((color) => createDressColor(String(color?.id ?? ''), color));
+    });
+    return content;
+}
+
+function normalizeSections(sections = []) {
+    if (!Array.isArray(sections)) fail('draft/invalid-sections');
+    const normalized = sections.map((section) => String(section ?? ''));
+    if (normalized.some((section) => !getSectionById(section))) fail('draft/unknown-section');
+    if (new Set(normalized).size !== normalized.length) fail('draft/duplicate-section');
+    return normalized;
+}
+
+function normalizeTheme(theme) {
+    if (theme == null || theme === '') return null;
+    const normalized = String(theme);
+    if (!getThemeById(normalized)) fail('draft/unknown-theme');
+    return normalized;
+}
+
+function normalizeSettings(settings = {}, packageId = undefined) {
+    const sourcePackage = packageId === undefined ? settings?.packageId : packageId;
+    const normalizedPackage = sourcePackage == null || sourcePackage === '' ? null : String(sourcePackage);
+    if (normalizedPackage && !getPackageById(normalizedPackage)) fail('draft/unknown-package');
+    const renderMode = String(settings?.renderMode ?? 'builder');
+    if (renderMode !== 'builder') fail('draft/invalid-render-mode');
+    return { renderMode, packageId: normalizedPackage };
+}
+
+function normalizeAppearance(value = {}) {
+    if (!exactKeys(value, [])) fail('draft/invalid-appearance-shape');
+    return {};
+}
+
+function normalizeCollection(collection, value) {
+    if (!Array.isArray(value)) fail(`draft/invalid-${collection}`);
+    if (value.length > COLLECTION_LIMITS[collection]) fail(`draft/${collection}-limit`);
+    const normalized = value.map((entity) => normalizeEntity(collection, entity));
+    const ids = normalized.map(({ id }) => id);
+    if (ids.some((id) => !/^[A-Z]{3}-LOCAL-[0-9]{3,}$/.test(id))) fail(`draft/invalid-${collection}-id`);
+    if (new Set(ids).size !== ids.length) fail(`draft/duplicate-${collection}-id`);
+    return normalized;
+}
+
+function assertGeneralValidation(draft) {
+    const errors = validateInvitationDraft(draft);
+    const relevant = Object.fromEntries(Object.entries(errors).filter(([path]) => (
+        !path.startsWith('content.rsvp.')
+        && !path.startsWith('media.')
+    )));
+    if (Object.keys(relevant).length) fail('draft/validation-failed', { validationErrors: relevant });
+}
+
+function createPayload(draft, eventId) {
+    const safeEventId = assertEventId(eventId);
+    if (!draft || draft.eventId !== safeEventId) fail('draft/event-ownership-mismatch');
+    assertGeneralValidation(draft);
+    return {
+        schemaVersion: INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION,
+        contentSchemaVersion: INVITATION_CONTENT_SCHEMA_VERSION,
+        eventId: safeEventId,
+        theme: normalizeTheme(draft.themeId),
+        sections: normalizeSections(draft.enabledSections),
+        content: normalizeGeneralContent(draft.content),
+        locations: normalizeCollection('locations', draft.locations ?? []),
+        itinerary: normalizeCollection('itinerary', draft.itinerary ?? []),
+        gifts: normalizeCollection('gifts', draft.gifts ?? []),
+        accommodations: normalizeCollection('accommodations', draft.accommodations ?? []),
+        links: normalizeCollection('links', draft.links ?? []),
+        appearance: normalizeAppearance(draft.appearance),
+        settings: normalizeSettings(draft.settings, draft.packageId)
+    };
+}
+
+function isTimestamp(value) {
+    if (value instanceof Date) return !Number.isNaN(value.getTime());
+    if (typeof value?.toDate === 'function') return value.toDate() instanceof Date;
+    return Number.isFinite(value?.seconds ?? value?._seconds);
+}
+
+export function serializeInvitationDraft(draft, {
+    eventId = draft?.eventId,
+    updatedAt,
+    updatedBy
+} = {}) {
+    const uid = String(updatedBy ?? '');
+    if (!uid || uid.length > 128) fail('draft/updated-by-required');
+    if (updatedAt == null) fail('draft/updated-at-required');
+    return {
+        ...createPayload(draft, eventId),
+        updatedAt,
+        updatedBy: uid
+    };
+}
+
+export function deserializeInvitationDraft(document, expectedEventId) {
+    const safeEventId = assertEventId(expectedEventId);
+    const isLegacyDocument = document?.schemaVersion === LEGACY_INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION;
+    const isCurrentDocument = document?.schemaVersion === INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION;
+    if (!isLegacyDocument && !isCurrentDocument) fail('draft/unsupported-schema');
+    if (!exactKeys(document, isLegacyDocument ? LEGACY_DOCUMENT_FIELDS : DOCUMENT_FIELDS)) {
+        fail('draft/invalid-document-shape');
+    }
+    if (!Number.isInteger(document.contentSchemaVersion)
+        || document.contentSchemaVersion < 1
+        || document.contentSchemaVersion > INVITATION_CONTENT_SCHEMA_VERSION) {
+        fail('draft/unsupported-content-schema');
+    }
+    if (document.eventId !== safeEventId) fail('draft/event-ownership-mismatch');
+    if (!isTimestamp(document.updatedAt)) fail('draft/invalid-updated-at');
+    const updatedBy = String(document.updatedBy ?? '');
+    if (!updatedBy || updatedBy.length > 128) fail('draft/invalid-updated-by');
+    if (!exactKeys(document.settings, SETTINGS_FIELDS)) fail('draft/invalid-settings-shape');
+
+    const normalized = {
+        schemaVersion: INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION,
+        contentSchemaVersion: INVITATION_CONTENT_SCHEMA_VERSION,
+        eventId: safeEventId,
+        theme: normalizeTheme(document.theme),
+        sections: normalizeSections(document.sections),
+        content: normalizeGeneralContent(document.content),
+        locations: normalizeCollection('locations', document.locations),
+        itinerary: normalizeCollection('itinerary', document.itinerary),
+        gifts: normalizeCollection('gifts', document.gifts),
+        accommodations: normalizeCollection('accommodations', document.accommodations ?? []),
+        links: normalizeCollection('links', document.links),
+        appearance: normalizeAppearance(document.appearance),
+        settings: normalizeSettings(document.settings),
+        updatedAt: document.updatedAt,
+        updatedBy
+    };
+
+    if (isCurrentDocument && document.contentSchemaVersion === INVITATION_CONTENT_SCHEMA_VERSION) {
+        const comparable = { ...normalized, updatedAt: document.updatedAt };
+        if (stableStringify(comparable) !== stableStringify(document)) fail('draft/non-canonical-document');
+    }
+    return Object.freeze(cloneInvitationValue(normalized));
+}
+
+export function createInvitationDraftFingerprint(draft, { eventId = draft?.eventId } = {}) {
+    return stableStringify(createPayload(draft, eventId));
+}
+
+export function getPersistedGeneralContentPaths() {
+    return [...GENERAL_CONTENT_PATHS];
+}

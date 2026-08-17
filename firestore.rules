@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Rules propuestas hasta Fase 5.6. El despliegue se controla exclusivamente mediante
+// Rules locales hasta Fase 6.1B. El despliegue se controla exclusivamente mediante
 // el archivo canónico indicado en firebase.json.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -26,6 +26,156 @@ service cloud.firestore {
 
     function isThemeEditor() {
       return hasClaimedRole(['CEO', 'ADMINISTRADOR', 'ADMIN', 'DISENADOR']);
+    }
+
+    function validDraftSections(sections) {
+      return sections is list
+        && sections.size() <= 13
+        && sections.toSet().size() == sections.size()
+        && sections.toSet().hasOnly([
+          'welcome-story', 'countdown', 'location', 'dress-code', 'rsvp',
+          'music', 'welcome-video', 'gallery', 'gift-registry',
+          'pass-selection', 'itinerary', 'access-preview',
+          'advanced-personalization'
+        ]);
+    }
+
+    function validDraftContent(content) {
+      return content is map
+        && content.keys().size() == 14
+        && content.keys().hasOnly([
+          'identity', 'schedule', 'place', 'welcome', 'countdown', 'location',
+          'dressCode', 'music', 'video', 'gallery', 'gifts', 'passes',
+          'itinerary', 'access'
+        ])
+        && content.identity is map
+        && content.identity.keys().size() == 4
+        && content.identity.keys().hasOnly(['primaryName', 'secondaryName', 'eventType', 'phrase'])
+        && content.identity.primaryName is string
+        && content.identity.secondaryName is string
+        && content.identity.eventType is string
+        && content.identity.phrase is string
+        && content.schedule is map
+        && content.schedule.keys().size() == 2
+        && content.schedule.keys().hasOnly(['date', 'time'])
+        && content.schedule.date is string
+        && content.schedule.time is string
+        && content.place is map
+        && content.place.keys().size() == 2
+        && content.place.keys().hasOnly(['city', 'state'])
+        && content.place.city is string
+        && content.place.state is string
+        && content.welcome is map
+        && content.welcome.keys().size() == 4
+        && content.welcome.keys().hasOnly(['eyebrow', 'title', 'message', 'story'])
+        && content.welcome.eyebrow is string
+        && content.welcome.title is string
+        && content.welcome.message is string
+        && content.welcome.story is string
+        && content.countdown is map
+        && content.countdown.keys().size() == 3
+        && content.countdown.keys().hasOnly(['title', 'preMessage', 'arrivedMessage'])
+        && content.countdown.title is string
+        && content.countdown.preMessage is string
+        && content.countdown.arrivedMessage is string
+        && content.location is map
+        && content.location.keys().size() == 2
+        && content.location.keys().hasOnly(['title', 'intro'])
+        && content.location.title is string
+        && content.location.intro is string
+        && content.dressCode is map
+        && content.dressCode.keys().size() == 6
+        && content.dressCode.keys().hasOnly([
+          'title', 'name', 'description', 'note', 'recommendedColors', 'avoidedColors'
+        ])
+        && content.dressCode.title is string
+        && content.dressCode.name is string
+        && content.dressCode.description is string
+        && content.dressCode.note is string
+        && content.dressCode.recommendedColors is list
+        && content.dressCode.recommendedColors.size() <= 20
+        && content.dressCode.avoidedColors is list
+        && content.dressCode.avoidedColors.size() <= 20
+        && content.music is map
+        && content.music.keys().size() == 2
+        && content.music.keys().hasOnly(['title', 'text'])
+        && content.music.title is string
+        && content.music.text is string
+        && content.video is map
+        && content.video.keys().size() == 3
+        && content.video.keys().hasOnly(['title', 'subtitle', 'intro'])
+        && content.video.title is string
+        && content.video.subtitle is string
+        && content.video.intro is string
+        && content.gallery is map
+        && content.gallery.keys().size() == 3
+        && content.gallery.keys().hasOnly(['title', 'subtitle', 'description'])
+        && content.gallery.title is string
+        && content.gallery.subtitle is string
+        && content.gallery.description is string
+        && content.gifts is map
+        && content.gifts.keys().size() == 3
+        && content.gifts.keys().hasOnly(['title', 'description', 'ctaLabel'])
+        && content.gifts.title is string
+        && content.gifts.description is string
+        && content.gifts.ctaLabel is string
+        && content.passes is map
+        && content.passes.keys().size() == 2
+        && content.passes.keys().hasOnly(['title', 'instructions'])
+        && content.passes.title is string
+        && content.passes.instructions is string
+        && content.itinerary is map
+        && content.itinerary.keys().size() == 2
+        && content.itinerary.keys().hasOnly(['title', 'intro'])
+        && content.itinerary.title is string
+        && content.itinerary.intro is string
+        && content.access is map
+        && content.access.keys().size() == 3
+        && content.access.keys().hasOnly(['title', 'description', 'label'])
+        && content.access.title is string
+        && content.access.description is string
+        && content.access.label is string;
+    }
+
+    function validInvitationDraftWrite(eventId) {
+      let data = request.resource.data;
+      return data.keys().size() == 15
+        && data.keys().hasOnly([
+          'schemaVersion', 'contentSchemaVersion', 'eventId', 'theme',
+          'sections', 'content', 'locations', 'itinerary', 'gifts',
+          'accommodations', 'links', 'appearance', 'settings', 'updatedAt',
+          'updatedBy'
+        ])
+        && data.schemaVersion == 2
+        && data.contentSchemaVersion == 4
+        && data.eventId == eventId
+        && data.eventId is string
+        && data.eventId.matches('^[A-Za-z0-9_-]{1,150}$')
+        && (
+          data.theme == null
+          || data.theme in [
+            'aloha', 'luxury', 'botanical', 'midnight', 'romance', 'minimal',
+            'celestial', 'vintage', 'garden', 'champagne', 'neon-party', 'custom'
+          ]
+        )
+        && validDraftSections(data.sections)
+        && validDraftContent(data.content)
+        && data.locations is list && data.locations.size() <= 20
+        && data.itinerary is list && data.itinerary.size() <= 80
+        && data.gifts is list && data.gifts.size() <= 50
+        && data.accommodations is list && data.accommodations.size() <= 1
+        && data.links is list && data.links.size() <= 50
+        && data.appearance is map && data.appearance.keys().size() == 0
+        && data.settings is map
+        && data.settings.keys().size() == 2
+        && data.settings.keys().hasOnly(['renderMode', 'packageId'])
+        && data.settings.renderMode == 'builder'
+        && (
+          data.settings.packageId == null
+          || data.settings.packageId in ['esencial', 'premium', 'prestige']
+        )
+        && data.updatedAt == request.time
+        && data.updatedBy == request.auth.uid;
     }
 
     function validMediaId(mediaId) {
@@ -725,12 +875,14 @@ service cloud.firestore {
       }
 
       match /invitacion/{documentId} {
-        allow get: if documentId in ['config', 'rsvp', 'rsvpPublication'] && isThemeEditor();
+        allow get: if documentId in ['config', 'draft', 'rsvp', 'rsvpPublication'] && isThemeEditor();
         allow list, delete: if false;
         allow create: if (documentId == 'config' && isThemeEditor() && validInvitationConfigWrite())
+          || (documentId == 'draft' && isThemeEditor() && validInvitationDraftWrite(eventId))
           || (documentId == 'rsvp' && isThemeEditor() && validRsvpWrite(eventId))
           || (documentId == 'rsvpPublication' && isThemeEditor() && validRsvpPublicationCreate(eventId));
         allow update: if (documentId == 'config' && isThemeEditor() && validInvitationConfigWrite())
+          || (documentId == 'draft' && isThemeEditor() && validInvitationDraftWrite(eventId))
           || (documentId == 'rsvp' && isThemeEditor() && validRsvpWrite(eventId))
           || (documentId == 'rsvpPublication' && isThemeEditor() && validRsvpPublicationUpdate(eventId));
       }

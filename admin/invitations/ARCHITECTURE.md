@@ -1,13 +1,12 @@
-# Invitation Builder · Arquitectura de Fases 1 a 5.6
+# Invitation Builder · Arquitectura de Fases 1 a 6.1B
 
 ## Alcance
 
-Las fases 1, 2, 2.1, 3, 4, 4.5, 4.6, 5.1 y 5.2 implementan una aplicación administrativa dedicada para
+Las fases 1 a 6.1B implementan una aplicación administrativa dedicada para
 seleccionar un evento existente, paquete, colección y secciones; editar contenido
 canónico, logística y multimedia estructurada por rol; y comprobar el resultado
-en una preview real. El draft vive en memoria salvo por multimedia y la
-configuración RSVP interna, persistidas en documentos separados. No existe
-autosave, persistencia general, RSVP público ni publicación.
+en una preview real. El draft general, multimedia y la configuración RSVP usan
+documentos separados. No existe autosave ni publicación de la invitación.
 
 Ruta final: `/admin/invitations/builder.html?event={documentId}`.
 
@@ -63,9 +62,9 @@ disponibilidad remota continúa **no verificada**. Por eso
 `canUpload: false` mediante feature flag y no realiza operaciones remotas en el
 frontend actual.
 
-La propuesta local `firestore.rules.proposed` se sincroniza con
-`firestore.rules`, archivo enlazado por `firebase.json`; ninguno fue desplegado.
-Define:
+`firestore.rules` es el archivo canónico local enlazado por `firebase.json`;
+`firestore.rules.proposed` conserva la propuesta histórica anterior a Fase 6.1.
+Ninguna Rule de esta fase fue desplegada. El archivo canónico define:
 
 - lectura de eventos para roles internos;
 - mutación de eventos/invitados para gestores de plataforma;
@@ -73,6 +72,8 @@ Define:
 - lectura y escritura acotada de `eventos/{eventId}/invitacion/config` y su
   subcolección `media` para esos mismos claims, con campos exactos, límites,
   paths, tipos y auditoría de servidor;
+- lectura y escritura acotada de `eventos/{eventId}/invitacion/draft` para los
+  roles con `invitations:edit`, con whitelist, ownership y auditoría estrictos;
 - lectura y escritura interna acotada de `eventos/{eventId}/invitacion/rsvp`,
   con ownership, schema, nested maps, touched paths y auditoría estrictos;
 - acceso Portal por perfil `usuarios/{uid}`, asignación de evento y entitlements;
@@ -746,46 +747,47 @@ pequeños y viajan completos; no se implementó un diff engine. Los once adapter
 declaran una variante Fase 3 y consumen las mismas entidades sin guardar estilos
 en el draft. Personalizada utiliza el mismo contrato con una composición base.
 
-## Persistencia general futura recomendada (parcialmente implementada)
+## Persistencia general del draft · Fase 6.1
 
-Opciones evaluadas:
+El borrador general mutable vive en `eventos/{eventId}/invitacion/draft`. Es un
+documento hermano de `config` (índice multimedia), `rsvp` y
+`rsvpPublication`; cada uno conserva su propio ciclo de escritura y dirty.
 
-1. `eventos/{eventId}.invitationConfig`: simple, pero mezcla estadísticas y
-   operación con un documento que cambiará frecuentemente, aumenta conflictos y
-   acerca el límite de 1 MiB.
-2. colección raíz paralela: facilita consultas globales, pero debilita la
-   pertenencia canónica al evento y aumenta el riesgo de invitaciones huérfanas.
-3. `eventos/{eventId}/invitacion/config`: conserva propiedad, separa frecuencia
-   de writes y permite Rules específicas. Es la opción recomendada.
-
-Contrato propuesto para el documento canónico:
+Contrato persistido:
 
 ```js
 {
-  schemaVersion,
-  status: 'draft' | 'published',
-  packageId,
-  themeId,
-  enabledSections,
+  schemaVersion: 2,
+  contentSchemaVersion: 4,
+  eventId,
+  theme,
+  sections,
   content,
-  media,       // metadatos y URLs, nunca binarios/Base64
   locations,
   itinerary,
   gifts,
+  accommodations,
   links,
   appearance,
   settings,
-  version,
   updatedAt,
-  updatedBy,
-  publishedAt,
-  publishedVersion
+  updatedBy
 }
 ```
 
-Las publicaciones/versiones inmutables pueden vivir en
-`eventos/{eventId}/invitacionVersiones/{versionId}`. La publicación debe copiar
-un snapshot validado, no usar el draft mutable como release en vivo.
+La serialización usa whitelist y normalización estrictas. Excluye `content.rsvp`,
+`media`, `mediaIndex`, access tokens, guest, QR y check-in. Al
+abrir, un documento existente se valida y migra al content schema vigente antes
+de hidratar; uno ausente conserva los defaults del evento. La hidratación no
+ensucia el estado.
+
+Fase 6.1B incorpora `accommodations` y migra documentos schema 1 sin esa clave al
+schema 2 usando el default vigente `[]`, sin escribir durante la hidratación.
+
+`ui.generalDraftDirty` separa este ciclo de `rsvpDirty` y `mediaDirty`. El botón
+**Guardar borrador** escribe el documento completo y sólo limpia el dirty general
+si el fingerprint confirma que no aparecieron cambios nuevos durante el write.
+No hay autosave y este documento no se usa como publicación.
 
 Fase 4.6 conserva la capa de upload bajo
 `eventos/{eventId}/invitacion/media/{role}/{mediaId}-{objectVersion}.{ext}`.
@@ -928,7 +930,7 @@ reparación administrativa, sin borrar responses históricas.
 ## Riesgos y pendientes
 
 - No existe paquete en el contrato actual de creación de eventos.
-- Las Rules propuestas cubren `eventos/{eventId}/invitacion/config`, su
+- Las Rules locales cubren `eventos/{eventId}/invitacion/config`, `draft`, su
   subcolección `media`, `rsvp`, `rsvpPublication`, `rsvpAccess`, `rsvpPublic` y
   `rsvpResponses`; pasan Emulator Suite local,
   pero no fueron desplegadas.
@@ -971,9 +973,8 @@ reparación administrativa, sin borrar responses históricas.
     preservación estricta de pases operativos, check-in y QR.
 12. Fase 5.6 completada localmente: conflicto privado idempotente y estado RSVP
     observable en ADMIN, sin edición manual.
-13. Fase 6: appearance avanzada y editor del tema Personalizada.
-14. Fase 7: persistencia del resto del draft, debounce y autosave.
-15. Fase 8: validación, snapshot publicado y URL de producción.
-16. Fase 9: edición post-publicación, versiones, rollback y auditoría.
+13. Fase 6.1/6.1B completada localmente: persistencia explícita del draft general,
+    accommodations, hidratación versionada, dirty independiente y Rules privadas.
+14. Fase 6.2 y posteriores: pendientes; no iniciadas.
 
-No se implementó ninguna fase posterior a Fase 5.6.
+No se implementó ninguna fase posterior a Fase 6.1B.

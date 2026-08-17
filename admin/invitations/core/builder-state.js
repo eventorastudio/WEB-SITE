@@ -34,6 +34,7 @@ import {
     RSVP_GUEST_POLICY_PATH,
     normalizeRsvpConfig
 } from './rsvp-schema.js?v=phase54a-rsvp-time-20260817';
+import { getPersistedGeneralContentPaths } from './draft-persistence-schema.js?v=phase61-draft-persistence-20260817';
 
 const PREVIEW_DEVICES = Object.freeze(['mobile', 'tablet', 'desktop']);
 const RSVP_EDITABLE_PATHS = Object.freeze(RSVP_EDITABLE_FIELD_DEFINITIONS.map(([path]) => path));
@@ -47,6 +48,13 @@ const LEGACY_CONTENT_PATHS = Object.freeze({
     state: 'content.place.state',
     phrase: 'content.identity.phrase'
 });
+
+function maxEntitySequence(items, prefix) {
+    return Math.max(0, ...(Array.isArray(items) ? items : [])
+        .map(({ id }) => String(id ?? '').match(new RegExp(`^${prefix}-LOCAL-(\\d+)$`))?.[1])
+        .map(Number)
+        .filter(Number.isFinite));
+}
 
 export function assertEnabledSections(value) {
     if (!Array.isArray(value)) throw new TypeError('builder/enabled-sections-must-be-array');
@@ -88,7 +96,7 @@ export function createInvitationDraft(eventId, eventData = {}) {
         accommodations: [],
         links: [],
         appearance: {},
-        settings: { renderMode: 'builder' },
+        settings: { renderMode: 'builder', packageId },
         meta: {
             packageSource: packageId ? 'event' : 'unselected',
             touchedPaths: [],
@@ -114,6 +122,7 @@ export class InvitationBuilderState {
         this._ui = {
             isDirty: false,
             draftDirty: false,
+            generalDraftDirty: false,
             rsvpDirty: false,
             mediaDirty: false,
             activeStep: 'theme',
@@ -132,6 +141,7 @@ export class InvitationBuilderState {
         this._ui = {
             isDirty: false,
             draftDirty: false,
+            generalDraftDirty: false,
             rsvpDirty: false,
             mediaDirty: false,
             activeStep: 'theme',
@@ -165,6 +175,7 @@ export class InvitationBuilderState {
         if (this._draft.packageId === packageId) return { ok: true, changed: false };
         const previous = this.getSnapshot();
         this._draft.packageId = packageId;
+        this._draft.settings.packageId = packageId;
         this._draft.meta.packageSource = 'local-selection';
         this._markDirty();
         this._notify('package-changed', previous);
@@ -455,6 +466,66 @@ export class InvitationBuilderState {
         return { ok: true, changed: true };
     }
 
+    hydrateDraft(persisted) {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        if (!persisted || persisted.eventId !== this._draft.eventId) {
+            throw new Error('draft/event-ownership-mismatch');
+        }
+        assertEnabledSections(persisted.sections);
+        const previous = this.getSnapshot();
+        const retainedRsvp = normalizeRsvpConfig(this._draft.content?.rsvp);
+        const retainedRsvpTouched = (this._draft.meta.touchedPaths ?? [])
+            .filter((path) => RSVP_EDITABLE_PATH_SET.has(path));
+
+        this._draft.themeId = persisted.theme ?? null;
+        this._draft.enabledSections = cloneInvitationValue(persisted.sections);
+        this._draft.content = {
+            ...cloneInvitationValue(persisted.content),
+            rsvp: retainedRsvp
+        };
+        this._draft.locations = cloneInvitationValue(persisted.locations);
+        this._draft.itinerary = cloneInvitationValue(persisted.itinerary);
+        this._draft.gifts = cloneInvitationValue(persisted.gifts);
+        this._draft.accommodations = cloneInvitationValue(persisted.accommodations);
+        this._draft.links = cloneInvitationValue(persisted.links);
+        this._draft.appearance = cloneInvitationValue(persisted.appearance);
+        this._draft.settings = cloneInvitationValue(persisted.settings);
+        this._draft.packageId = persisted.settings?.packageId ?? null;
+        this._draft.meta.packageSource = this._draft.packageId ? 'persisted-draft' : 'unselected';
+        this._draft.meta.touchedPaths = [
+            ...getPersistedGeneralContentPaths(),
+            ...retainedRsvpTouched
+        ];
+        this._draft.meta.touchedCollections = ['locations', 'itinerary', 'gifts', 'accommodations', 'links', 'dressCodeColors'];
+        this._draft.meta.entitySequences = {
+            ...this._draft.meta.entitySequences,
+            location: maxEntitySequence(this._draft.locations, 'LOC'),
+            itinerary: maxEntitySequence(this._draft.itinerary, 'ACT'),
+            gift: maxEntitySequence(this._draft.gifts, 'GFT'),
+            accommodation: maxEntitySequence(this._draft.accommodations, 'HOT'),
+            link: maxEntitySequence(this._draft.links, 'LNK'),
+            dressColor: Math.max(
+                maxEntitySequence(this._draft.content.dressCode?.recommendedColors, 'CLR'),
+                maxEntitySequence(this._draft.content.dressCode?.avoidedColors, 'CLR')
+            )
+        };
+        this._otherDraftDirty = false;
+        this._syncDirtyState();
+        this._ui.validationErrors = validateInvitationDraft(this._draft);
+        this._notify('draft-hydrated', previous);
+        return this.getSnapshot();
+    }
+
+    markDraftPersisted() {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        if (!this._otherDraftDirty) return { ok: true, changed: false };
+        const previous = this.getSnapshot();
+        this._otherDraftDirty = false;
+        this._syncDirtyState();
+        this._notify('draft-persisted', previous);
+        return { ok: true, changed: true };
+    }
+
     hydrateMedia(media, { persisted = true } = {}) {
         if (!this._draft) throw new Error('builder/not-initialized');
         const previous = this.getSnapshot();
@@ -561,6 +632,7 @@ export class InvitationBuilderState {
     }
 
     _syncDirtyState() {
+        this._ui.generalDraftDirty = this._otherDraftDirty;
         this._ui.draftDirty = this._otherDraftDirty || this._ui.rsvpDirty;
         this._ui.isDirty = this._ui.draftDirty || this._ui.mediaDirty;
     }

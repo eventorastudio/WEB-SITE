@@ -38,6 +38,8 @@
             </div>
             <div class="builder-header-actions">
                 <span class="draft-status" id="builder-draft-status"><i></i> Borrador local</span>
+                <button class="builder-save" id="builder-save-draft" type="button" disabled title="Guarda únicamente el borrador general de este evento">Guardar borrador</button>
+                <span class="builder-save-status" id="builder-save-draft-status" role="status" aria-live="polite"></span>
                 <button class="builder-save" id="builder-save-rsvp" type="button" disabled title="Guarda únicamente la configuración RSVP de este evento">Guardar RSVP</button>
                 <span class="builder-save-status" id="builder-save-rsvp-status" role="status" aria-live="polite"></span>
             </div>
@@ -86,8 +88,8 @@
                     <button class="builder-step" type="button" disabled><span>08</span>Revisión <small>Próximamente</small></button>
                 </nav>
                 <div class="phase-card">
-                    <span>FASE 5.2</span>
-                    <p>RSVP canónico persistente y multimedia productiva. Sin RSVP público ni publicación.</p>
+                    <span>FASE 6.1</span>
+                    <p>Draft general persistente, separado de RSVP y multimedia. Sin publicación.</p>
                 </div>
             </aside>
 
@@ -201,6 +203,6 @@
     </div>
 
     <div id="toast-container" aria-live="polite"></div>
-    <script type="module" src="./builder.js?v=phase54-public-rsvp-20260817"></script>
+    <script type="module" src="./builder.js?v=phase61-draft-persistence-20260817"></script>
 </body>
 </html>
