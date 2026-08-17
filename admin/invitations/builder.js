@@ -6,7 +6,7 @@ import { eventBus } from '../core/event-bus.js';
 import { EVENT_TYPES } from '../core/event-types.js';
 import { hasPermission, PERMISSIONS } from '../core/roles.js';
 import { initThemeManager } from '../core/theme-manager.js';
-import { builderState } from './core/builder-state.js?v=phase51-rsvp-20260816';
+import { builderState } from './core/builder-state.js?v=phase52-rsvp-persistence-20260816';
 import { createBuilderUrl, readBuilderRoute } from './core/builder-routing.js?v=phase3-logistics-20260813';
 import {
     BUILDER_DESKTOP_MIN_WIDTH,
@@ -19,12 +19,14 @@ import { initSectionCopyEditors } from './editors/section-copy-editor.js?v=phase
 import { initLogisticsEditors } from './editors/logistics-editor.js?v=phase3-logistics-20260813';
 import { initMediaEditor } from './editors/media-editor.js?v=phase48-upload-enabled-20260816';
 import { invitationMediaService } from './services/invitation-media-service.js?v=phase48-upload-enabled-20260816';
+import { invitationRsvpService } from './services/invitation-rsvp-service.js?v=phase52-rsvp-persistence-20260816';
 import { renderEventSelector } from './modules/event-selector.js?v=phase3-logistics-20260813';
 import { initPackageSelector } from './modules/package-selector.js?v=phase3-logistics-20260813';
 import { initThemeSelector } from './modules/theme-selector.js?v=phase3-logistics-20260813';
 import { initSectionSelector } from './modules/section-selector.js?v=phase3-logistics-20260813';
 import { initPreviewController } from './modules/preview-controller.js?v=phase51-rsvp-20260816';
 import { initBuilderEventBridge } from './modules/state-event-bridge.js?v=phase3-logistics-20260813';
+import { initRsvpPersistenceController } from './modules/rsvp-persistence-controller.js?v=phase52-rsvp-persistence-20260816';
 
 const dom = {
     guard: document.getElementById('builder-auth-guard'),
@@ -46,6 +48,8 @@ const dom = {
     activeEvent: document.getElementById('builder-active-event'),
     activeEventMeta: document.getElementById('builder-active-event-meta'),
     draftStatus: document.getElementById('builder-draft-status'),
+    saveRsvp: document.getElementById('builder-save-rsvp'),
+    saveRsvpStatus: document.getElementById('builder-save-rsvp-status'),
     runtimeError: document.getElementById('builder-runtime-error'),
     runtimeErrorTitle: document.getElementById('builder-runtime-error-title'),
     runtimeErrorMessage: document.getElementById('builder-runtime-error-message'),
@@ -228,6 +232,8 @@ async function loadEvent(eventId) {
 
         adminState.setState('event', { id: eventId, data: eventData, stats: null, isLoaded: true });
         builderState.initialize(eventId, eventData);
+        dom.gateContent.innerHTML = '<div class="builder-empty-state"><strong>Restaurando RSVP…</strong><p>Validando la configuración interna guardada para este evento.</p></div>';
+        await invitationRsvpService.hydrateState(builderState, eventId);
         if (invitationMediaService.getStatus().canUpload) {
             dom.gateContent.innerHTML = '<div class="builder-empty-state"><strong>Restaurando multimedia…</strong><p>Resolviendo los archivos guardados para este evento.</p></div>';
             try {
@@ -292,6 +298,14 @@ function mountModules() {
     moduleCleanups.push(initMediaEditor({
         container: document.getElementById('phase4-media-editor'),
         state: builderState
+    }));
+    moduleCleanups.push(initRsvpPersistenceController({
+        button: dom.saveRsvp,
+        status: dom.saveRsvpStatus,
+        state: builderState,
+        service: invitationRsvpService,
+        onError: reportRuntimeError,
+        onTrace: (event, details) => debugBuilder.trace(event, details)
     }));
     moduleCleanups.push(initPreviewController({
         frame: document.getElementById('invitation-preview-frame'),
@@ -363,7 +377,7 @@ function syncDraftChrome(snapshot) {
     dom.draftStatus.classList.toggle('is-dirty', snapshot.ui.isDirty);
     dom.draftStatus.lastChild.textContent = snapshot.ui.mediaDirty
         ? ' Multimedia pendiente'
-        : (snapshot.ui.draftDirty ? ' Cambios locales' : ' Borrador local');
+        : (snapshot.ui.rsvpDirty ? ' RSVP pendiente' : (snapshot.ui.draftDirty ? ' Cambios locales' : ' Borrador local'));
 }
 
 function assertBuilderRootInvariant(context) {
@@ -451,6 +465,7 @@ function reportRuntimeError(error, { source = 'builder', reason = 'unknown', ret
         'identity-editor': 'No pudimos actualizar la información.',
         'section-copy-editors': 'No pudimos actualizar el contenido de esta sección.',
         'media-editor': 'No pudimos actualizar el recurso multimedia.',
+        'rsvp-persistence': 'No pudimos guardar la configuración RSVP.',
         'state-event-bridge': 'No pudimos sincronizar el Builder.'
     };
     if (dom.runtimeErrorTitle) dom.runtimeErrorTitle.textContent = titles[source] ?? 'No pudimos completar esta actualización.';

@@ -8,7 +8,7 @@ import {
     isRsvpEnabled
 } from './rsvp-schema.js?v=phase51-rsvp-20260816';
 
-function isExactDate(value) {
+export function isExactDate(value) {
     const match = String(value ?? '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
     const parsed = match ? new Date(`${value}T12:00:00`) : null;
     return Boolean(parsed && !Number.isNaN(parsed.getTime())

@@ -268,7 +268,7 @@ test('el layout del editor mantiene tres regiones estables y ya no intenta conve
     assert.doesNotMatch(css, /@media \(max-width: (?:1020|760|480)px\)/);
 });
 
-test('Fase 1 no importa primitivas de escritura Firestore ni simula guardado', async () => {
+test('Builder no importa primitivas Firestore y expone Guardar RSVP desacoplado', async () => {
     const builderFiles = [
         'admin/invitations/builder.js',
         'admin/invitations/core/builder-debug.js',
@@ -286,8 +286,8 @@ test('Fase 1 no importa primitivas de escritura Firestore ni simula guardado', a
     assert.doesNotMatch(source, /saveTheme|saveDraft|autosave/i);
 
     const html = await read('admin/invitations/builder.html');
-    assert.match(html, /Guardar borrador · Próximamente/);
-    assert.match(html, /class="builder-save" type="button" disabled/);
+    assert.match(html, /id="builder-save-rsvp"[^>]*disabled[^>]*>Guardar RSVP/);
+    assert.equal((html.match(/id="builder-save-rsvp"/g) ?? []).length, 1);
 });
 
 test('builder y frame tienen HTML balanceado, IDs únicos y referencias locales existentes', async () => {

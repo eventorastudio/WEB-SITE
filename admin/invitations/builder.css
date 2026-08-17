@@ -41,7 +41,11 @@ button, a, input, select, textarea { outline-color: var(--builder-gold); }
 .draft-status { display: inline-flex; align-items: center; gap: 7px; color: var(--builder-muted); font-size: 0.71rem; }
 .draft-status i { width: 7px; height: 7px; border-radius: 50%; background: #aaa49a; }
 .draft-status.is-dirty i { background: var(--builder-gold); box-shadow: 0 0 0 4px var(--builder-gold-soft); }
-.builder-save { min-height: 38px; padding: 0 16px; border: 1px solid var(--builder-line); border-radius: 999px; background: #f0ede7; color: #938c82; font-size: 0.7rem; font-weight: 600; cursor: not-allowed; }
+.builder-save { min-height: 38px; padding: 0 16px; border: 1px solid var(--builder-ink); border-radius: 999px; background: var(--builder-ink); color: #fff; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: 0.2s ease; }
+.builder-save:hover:not(:disabled) { border-color: var(--builder-gold); background: var(--builder-gold); }
+.builder-save:disabled { border-color: var(--builder-line); background: #f0ede7; color: #938c82; cursor: not-allowed; }
+.builder-save[data-state="saved"] { border-color: var(--builder-green); background: var(--builder-green); color: #fff; }
+.builder-save-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
 .builder-runtime-error { position: fixed; z-index: 1000; top: 84px; left: 50%; width: min(560px, calc(100% - 32px)); display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 15px 17px; border: 1px solid #e3b8b4; border-radius: 13px; background: #fff7f6; color: var(--builder-danger); box-shadow: 0 18px 45px rgba(74, 32, 29, 0.18); transform: translateX(-50%); }
 .builder-runtime-error div { display: grid; gap: 3px; }
 .builder-runtime-error strong { font-family: var(--builder-serif); font-size: 1.08rem; }

@@ -1,14 +1,13 @@
-# Invitation Builder · Arquitectura de Fases 1 a 4.6
+# Invitation Builder · Arquitectura de Fases 1 a 5.2
 
 ## Alcance
 
-Las fases 1, 2, 2.1, 3, 4, 4.5 y 4.6 implementan una aplicación administrativa dedicada para
+Las fases 1, 2, 2.1, 3, 4, 4.5, 4.6, 5.1 y 5.2 implementan una aplicación administrativa dedicada para
 seleccionar un evento existente, paquete, colección y secciones; editar contenido
-canónico, logística y multimedia estructurada por rol; y comprobar el resultado en una preview real. El draft vive
-únicamente en memoria salvo por la capa multimedia remota ya implementada, que
-permanece inaccesible mientras su feature flag siga desactivado. No existe
-autosave ni publicación. Multimedia local usa object URLs y Storage remoto
-permanece bloqueado hasta que Rules y App Check se desplieguen y verifiquen.
+canónico, logística y multimedia estructurada por rol; y comprobar el resultado
+en una preview real. El draft vive en memoria salvo por multimedia y la
+configuración RSVP interna, persistidas en documentos separados. No existe
+autosave, persistencia general, RSVP público ni publicación.
 
 Ruta final: `/admin/invitations/builder.html?event={documentId}`.
 
@@ -64,8 +63,9 @@ disponibilidad remota continúa **no verificada**. Por eso
 `canUpload: false` mediante feature flag y no realiza operaciones remotas en el
 frontend actual.
 
-La propuesta local `firestore.rules.proposed` (enlazada a `firebase.json`, pero
-no desplegada) define:
+La propuesta local `firestore.rules.proposed` se sincroniza con
+`firestore.rules`, archivo enlazado por `firebase.json`; ninguno fue desplegado.
+Define:
 
 - lectura de eventos para roles internos;
 - mutación de eventos/invitados para gestores de plataforma;
@@ -73,6 +73,8 @@ no desplegada) define:
 - lectura y escritura acotada de `eventos/{eventId}/invitacion/config` y su
   subcolección `media` para esos mismos claims, con campos exactos, límites,
   paths, tipos y auditoría de servidor;
+- lectura y escritura interna acotada de `eventos/{eventId}/invitacion/rsvp`,
+  con ownership, schema, nested maps, touched paths y auditoría estrictos;
 - acceso Portal por perfil `usuarios/{uid}`, asignación de evento y entitlements;
 - denegación por defecto de cualquier ruta no declarada.
 
@@ -430,7 +432,9 @@ canónico y fallback semántico exclusivo del preview. Los textos decorativos de
 las demos nunca se copian al draft. `builder-state` registra todo path editado,
 incluso cuando el valor final es vacío, para soportar explicit clear. La whitelist
 `INVITATION_EDITABLE_FIELDS` limita paths, tipos y longitud antes de aceptar un
-cambio. `touchedPaths` permanece local y no introduce persistencia.
+cambio. `touchedPaths` permanece local para el resto del draft. Fase 5.2
+persiste sólo los doce paths RSVP permitidos porque son necesarios para
+distinguir untouched de explicit clear después de reabrir el Builder.
 
 Las validaciones de nombre, fecha, hora y deadline actualizan `ui.validationErrors`
 sin bloquear la edición. Un snapshot de estado es una copia profunda: un módulo
@@ -706,7 +710,7 @@ pequeños y viajan completos; no se implementó un diff engine. Los once adapter
 declaran una variante Fase 3 y consumen las mismas entidades sin guardar estilos
 en el draft. Personalizada utiliza el mismo contrato con una composición base.
 
-## Persistencia futura recomendada (no implementada)
+## Persistencia general futura recomendada (parcialmente implementada)
 
 Opciones evaluadas:
 
@@ -792,11 +796,25 @@ publicadas continuarán separadas en `invitacionVersiones`.
 resto del borrador. Hidratar o guardar media no afirma que contenido o logística
 estén guardados. Downgrade, toggle y cambio de tema no mutan `draft.media`.
 
+### Persistencia RSVP · Fase 5.2
+
+`eventos/{eventId}/invitacion/rsvp` almacena únicamente el contrato semántico
+RSVP, versiones, `eventId`, touched paths RSVP y auditoría de servidor. Se eligió
+un documento hermano porque `config` permanece exacto y exclusivamente
+multimedia. `invitation-rsvp-service.js` centraliza lectura, write completo,
+ownership, serialización e hidratación. Un documento ausente no provoca writes.
+
+`ui.rsvpDirty` permite limpiar sólo el scope guardado sin afirmar que tema,
+logística o multimedia estén persistidos. Un fingerprint evita limpiar ediciones
+locales realizadas mientras el write estaba en vuelo; los conflictos entre
+sesiones continúan last-write-wins hasta incorporar una revisión general.
+
 ## Riesgos y pendientes
 
 - No existe paquete en el contrato actual de creación de eventos.
-- Las Rules propuestas cubren `eventos/{eventId}/invitacion/config` y la
-  subcolección `media`; pasan Emulator Suite local, pero no fueron desplegadas.
+- Las Rules propuestas cubren `eventos/{eventId}/invitacion/config`, su
+  subcolección `media` y el documento hermano `rsvp`; pasan Emulator Suite local,
+  pero no fueron desplegadas.
 - Los adapters neutralizan el copy hardcodeado en Builder. Thumbnails server-side,
   transcodificación, RSVP público, invitados, appearance avanzada y publicación siguen
   fuera de alcance.
@@ -823,11 +841,13 @@ estén guardados. Downgrade, toggle y cambio de tema no mutan `draft.media`.
    `WriteBatch`, hidratación escalable, compensaciones y pruebas Emulator
    1/6/20/>20. El flag remoto continúa deshabilitado.
 6. Fase 5.1 completada: contrato, editor, validación, WhatsApp seguro, policy de
-   pases y preview RSVP. El runtime público y su enlace a invitados quedan para
-   Fase 5.2.
-7. Fase 6: appearance avanzada y editor del tema Personalizada.
-8. Fase 7: persistencia del resto del draft, debounce y autosave.
-9. Fase 8: validación, snapshot publicado y URL de producción.
-10. Fase 9: edición post-publicación, versiones, rollback y auditoría.
+   pases y preview RSVP.
+7. Fase 5.2 completada: persistencia administrativa RSVP, hidratación, save
+   central, Rules estrictas y Emulator aislado. El runtime público queda para
+   Fase 5.3.
+8. Fase 6: appearance avanzada y editor del tema Personalizada.
+9. Fase 7: persistencia del resto del draft, debounce y autosave.
+10. Fase 8: validación, snapshot publicado y URL de producción.
+11. Fase 9: edición post-publicación, versiones, rollback y auditoría.
 
-No se implementó Fase 5 ni ninguna fase posterior en este cambio.
+No se implementó runtime público RSVP, Fase 5.3 ni ninguna fase posterior.

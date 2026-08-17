@@ -29,9 +29,15 @@ import {
     getMediaRole,
     getMediaRoleAvailability
 } from './media-schema.js?v=phase4-media-20260813';
-import { RSVP_GUEST_POLICY_PATH } from './rsvp-schema.js?v=phase51-rsvp-20260816';
+import {
+    RSVP_EDITABLE_FIELD_DEFINITIONS,
+    RSVP_GUEST_POLICY_PATH,
+    normalizeRsvpConfig
+} from './rsvp-schema.js?v=phase52-rsvp-persistence-20260816';
 
 const PREVIEW_DEVICES = Object.freeze(['mobile', 'tablet', 'desktop']);
+const RSVP_EDITABLE_PATHS = Object.freeze(RSVP_EDITABLE_FIELD_DEFINITIONS.map(([path]) => path));
+const RSVP_EDITABLE_PATH_SET = new Set(RSVP_EDITABLE_PATHS);
 const LEGACY_CONTENT_PATHS = Object.freeze({
     title: 'content.identity.primaryName',
     date: 'content.schedule.date',
@@ -108,11 +114,13 @@ export class InvitationBuilderState {
         this._ui = {
             isDirty: false,
             draftDirty: false,
+            rsvpDirty: false,
             mediaDirty: false,
             activeStep: 'theme',
             previewDevice: 'mobile',
             validationErrors: {}
         };
+        this._otherDraftDirty = false;
         this._listeners = new Set();
         this._errorListeners = new Set();
     }
@@ -120,9 +128,11 @@ export class InvitationBuilderState {
     initialize(eventId, eventData) {
         if (!eventId) throw new Error('builder/event-required');
         this._draft = createInvitationDraft(eventId, eventData);
+        this._otherDraftDirty = false;
         this._ui = {
             isDirty: false,
             draftDirty: false,
+            rsvpDirty: false,
             mediaDirty: false,
             activeStep: 'theme',
             previewDevice: 'mobile',
@@ -238,7 +248,8 @@ export class InvitationBuilderState {
         });
         this._draft.meta.touchedPaths = [...touchedPaths];
         this._ui.validationErrors = validateInvitationDraft(this._draft);
-        this._markDirty();
+        if (normalized.some(([path]) => RSVP_EDITABLE_PATH_SET.has(path))) this._markDirty('rsvp');
+        if (normalized.some(([path]) => !RSVP_EDITABLE_PATH_SET.has(path))) this._markDirty('draft');
         this._notify('content-changed', previous);
         return { ok: true, changed: true, errors: cloneInvitationValue(this._ui.validationErrors) };
     }
@@ -470,7 +481,7 @@ export class InvitationBuilderState {
             : ['cover', 'gallery', 'video', 'videoPoster', 'music']
                 .filter((role) => role === 'gallery' ? this._draft.media.gallery.length : this._draft.media[role]);
         this._ui.mediaDirty = false;
-        this._ui.isDirty = this._ui.draftDirty;
+        this._syncDirtyState();
         this._ui.validationErrors = validateInvitationDraft(this._draft);
         this._notify('media-hydrated', previous);
         return this.getSnapshot();
@@ -481,7 +492,7 @@ export class InvitationBuilderState {
         if (!this._ui.mediaDirty) return { ok: true, changed: false };
         const previous = this.getSnapshot();
         this._ui.mediaDirty = false;
-        this._ui.isDirty = this._ui.draftDirty;
+        this._syncDirtyState();
         this._notify('media-persisted', previous);
         return { ok: true, changed: true };
     }
@@ -493,6 +504,31 @@ export class InvitationBuilderState {
         this._ui.mediaDirty = true;
         this._ui.isDirty = true;
         this._notify('media-pending', previous);
+        return { ok: true, changed: true };
+    }
+
+    hydrateRsvp(rsvp, { touchedPaths = [] } = {}) {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        const previous = this.getSnapshot();
+        const retainedTouchedPaths = (this._draft.meta.touchedPaths ?? [])
+            .filter((path) => !RSVP_EDITABLE_PATH_SET.has(path));
+        const persistedTouchedPaths = RSVP_EDITABLE_PATHS.filter((path) => touchedPaths.includes(path));
+        this._draft.content.rsvp = normalizeRsvpConfig(rsvp);
+        this._draft.meta.touchedPaths = [...retainedTouchedPaths, ...persistedTouchedPaths];
+        this._ui.rsvpDirty = false;
+        this._syncDirtyState();
+        this._ui.validationErrors = validateInvitationDraft(this._draft);
+        this._notify('rsvp-hydrated', previous);
+        return this.getSnapshot();
+    }
+
+    markRsvpPersisted() {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        if (!this._ui.rsvpDirty) return { ok: true, changed: false };
+        const previous = this.getSnapshot();
+        this._ui.rsvpDirty = false;
+        this._syncDirtyState();
+        this._notify('rsvp-persisted', previous);
         return { ok: true, changed: true };
     }
 
@@ -519,7 +555,13 @@ export class InvitationBuilderState {
 
     _markDirty(scope = 'draft') {
         if (scope === 'media') this._ui.mediaDirty = true;
-        else this._ui.draftDirty = true;
+        else if (scope === 'rsvp') this._ui.rsvpDirty = true;
+        else this._otherDraftDirty = true;
+        this._syncDirtyState();
+    }
+
+    _syncDirtyState() {
+        this._ui.draftDirty = this._otherDraftDirty || this._ui.rsvpDirty;
         this._ui.isDirty = this._ui.draftDirty || this._ui.mediaDirty;
     }
 

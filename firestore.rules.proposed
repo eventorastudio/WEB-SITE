@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Rules finales de Fase 4.7. El despliegue se controla exclusivamente mediante
+// Rules propuestas de Fase 5.2. El despliegue se controla exclusivamente mediante
 // el archivo canónico indicado en firebase.json.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -94,6 +94,64 @@ service cloud.firestore {
         && data.keys().hasOnly(['schemaVersion', 'mediaIndex', 'updatedAt', 'updatedBy'])
         && data.schemaVersion == 5
         && validMediaIndex(data.mediaIndex)
+        && data.updatedAt == request.time
+        && data.updatedBy == request.auth.uid;
+    }
+
+    function validRsvpTouchedPaths(paths) {
+      return paths is list
+        && paths.size() <= 12
+        && paths.toSet().size() == paths.size()
+        && paths.toSet().hasOnly([
+          'content.rsvp.enabled',
+          'content.rsvp.title',
+          'content.rsvp.message',
+          'content.rsvp.buttonLabel',
+          'content.rsvp.deadline',
+          'content.rsvp.method',
+          'content.rsvp.whatsapp.phone',
+          'content.rsvp.whatsapp.message',
+          'content.rsvp.guestPolicy',
+          'content.rsvp.responses.acceptedLabel',
+          'content.rsvp.responses.declinedLabel',
+          'content.rsvp.responses.confirmationMessage'
+        ]);
+    }
+
+    function validRsvpWrite(eventId) {
+      let data = request.resource.data;
+      return data.keys().size() == 15
+        && data.keys().hasOnly([
+          'schemaVersion', 'contentSchemaVersion', 'eventId', 'enabled', 'title',
+          'message', 'buttonLabel', 'deadline', 'method', 'whatsapp',
+          'guestPolicy', 'responses', 'touchedPaths', 'updatedAt', 'updatedBy'
+        ])
+        && data.schemaVersion == 1
+        && data.contentSchemaVersion == 3
+        && data.eventId is string
+        && data.eventId == eventId
+        && data.eventId.matches('^[A-Za-z0-9_-]{1,150}$')
+        && data.enabled is bool
+        && data.title is string && data.title.size() <= 120
+        && data.message is string && data.message.size() <= 500
+        && data.buttonLabel is string && data.buttonLabel.size() <= 80
+        && data.deadline is string && data.deadline.size() <= 10
+        && (data.deadline == '' || data.deadline.matches('^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$'))
+        && data.method in ['whatsapp', 'internal']
+        && data.whatsapp is map
+        && data.whatsapp.keys().size() == 2
+        && data.whatsapp.keys().hasOnly(['phone', 'message'])
+        && data.whatsapp.phone is string && data.whatsapp.phone.size() <= 32
+        && data.whatsapp.message is string && data.whatsapp.message.size() <= 1000
+        && (data.method != 'whatsapp' || data.whatsapp.phone.matches('^\\+?[0-9 ()-]{7,32}$'))
+        && data.guestPolicy in ['assigned-only', 'select-up-to-assigned']
+        && data.responses is map
+        && data.responses.keys().size() == 3
+        && data.responses.keys().hasOnly(['acceptedLabel', 'declinedLabel', 'confirmationMessage'])
+        && data.responses.acceptedLabel is string && data.responses.acceptedLabel.size() <= 120
+        && data.responses.declinedLabel is string && data.responses.declinedLabel.size() <= 120
+        && data.responses.confirmationMessage is string && data.responses.confirmationMessage.size() <= 500
+        && validRsvpTouchedPaths(data.touchedPaths)
         && data.updatedAt == request.time
         && data.updatedBy == request.auth.uid;
     }
@@ -362,11 +420,10 @@ service cloud.firestore {
       }
 
       match /invitacion/{documentId} {
-        allow get: if documentId == 'config' && isThemeEditor();
+        allow get: if documentId in ['config', 'rsvp'] && isThemeEditor();
         allow list, delete: if false;
-        allow create, update: if documentId == 'config'
-          && isThemeEditor()
-          && validInvitationConfigWrite();
+        allow create, update: if (documentId == 'config' && isThemeEditor() && validInvitationConfigWrite())
+          || (documentId == 'rsvp' && isThemeEditor() && validRsvpWrite(eventId));
       }
 
       match /invitacion/config/media/{mediaId} {

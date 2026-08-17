@@ -7,7 +7,7 @@
     <title>Invitation Builder | Eventora Studio</title>
     <link rel="icon" href="../assets/images/favicon.ico">
     <link rel="stylesheet" href="../assets/css/theme.css">
-    <link rel="stylesheet" href="./builder.css?v=phase51-rsvp-20260816">
+    <link rel="stylesheet" href="./builder.css?v=phase52-rsvp-persistence-20260816">
 </head>
 <body>
     <div class="builder-auth-guard" id="builder-auth-guard" role="status" aria-live="polite">
@@ -38,7 +38,8 @@
             </div>
             <div class="builder-header-actions">
                 <span class="draft-status" id="builder-draft-status"><i></i> Borrador local</span>
-                <button class="builder-save" type="button" disabled title="La persistencia se añadirá en una fase posterior">Guardar borrador · Próximamente</button>
+                <button class="builder-save" id="builder-save-rsvp" type="button" disabled title="Guarda únicamente la configuración RSVP de este evento">Guardar RSVP</button>
+                <span class="builder-save-status" id="builder-save-rsvp-status" role="status" aria-live="polite"></span>
             </div>
         </header>
 
@@ -85,8 +86,8 @@
                     <button class="builder-step" type="button" disabled><span>08</span>Revisión <small>Próximamente</small></button>
                 </nav>
                 <div class="phase-card">
-                    <span>FASE 5.1</span>
-                    <p>RSVP canónico y multimedia productiva. Sin RSVP público ni publicación.</p>
+                    <span>FASE 5.2</span>
+                    <p>RSVP canónico persistente y multimedia productiva. Sin RSVP público ni publicación.</p>
                 </div>
             </aside>
 
@@ -165,7 +166,7 @@
 
                 <section class="future-foundations" aria-label="Módulos preparados para fases posteriores">
                     <span>Preparado para próximas fases</span>
-                    <p>Apariencia avanzada, RSVP público, invitados, persistencia general y publicación permanecen fuera de esta fase.</p>
+                    <p>Apariencia avanzada, RSVP público, invitados, persistencia general restante y publicación permanecen fuera de esta fase.</p>
                 </section>
             </section>
 
@@ -200,6 +201,6 @@
     </div>
 
     <div id="toast-container" aria-live="polite"></div>
-    <script type="module" src="./builder.js?v=phase51-rsvp-20260816"></script>
+    <script type="module" src="./builder.js?v=phase52-rsvp-persistence-20260816"></script>
 </body>
 </html>

@@ -84,10 +84,11 @@ usa flujo normal (`position: static`) y el editor conserva `scrollTop` y foco.
 
 ## Persistencia y Firebase
 
-RSVP queda preparado en el draft local y el payload de preview, pero no se
-persiste. No se añadieron writes, rutas Firestore, Rules ni pruebas Emulator. No
-se modificaron invitados, pases reales, tokens, QR o check-in. `mediaIndex`
-continúa siendo exclusivamente multimedia.
+En el alcance histórico de Fase 5.1, RSVP quedó preparado en el draft local y el
+payload de preview, sin persistencia. Fase 5.2 añadió después un documento interno
+independiente en `eventos/{eventId}/invitacion/rsvp`; el contrato y sus límites se
+documentan en `docs/PHASE_5_2_RSVP_PERSISTENCE.md`. `mediaIndex` continúa siendo
+exclusivamente multimedia y Fase 5.1 sigue sin incluir runtime público.
 
 ## Pruebas
 
@@ -96,8 +97,9 @@ enabled/disabled, fechas, métodos, teléfono/URL, touched/clear, paquetes, 11
 temas, Personalizada, copy neutral, XSS, intercepción, UPDATE sin reload,
 dirty/mediaDirty, scroll, regresiones Fase 3/Multimedia y root inmutable.
 
-## Pendiente para Fase 5.2
+## Continuidad
 
-Implementar el runtime público interno con autenticación/token RSVP apropiado,
-lectura del límite real de pases por invitado, writes transaccionales, Rules y
-Emulator Suite. Fase 5.1 no crea endpoint público, tokens ni respuestas reales.
+Fase 5.2 persiste únicamente esta configuración administrativa. El runtime
+público, autenticación/token RSVP, lectura del límite real de pases y respuestas
+de invitados permanecen fuera de ambas fases y corresponden a Fase 5.3. No se
+crearon endpoint público, tokens ni respuestas reales.
