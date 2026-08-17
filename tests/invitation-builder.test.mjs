@@ -229,7 +229,7 @@ test('la preview usa plantilla real, postMessage tipado y bloquea navegación ex
         read('admin/invitations/builder.html')
     ]);
     assert.match(html, /sandbox="allow-scripts allow-same-origin"/);
-    assert.match(html, /data-src="\.\/preview\/frame\.html\?v=phase51-rsvp-/);
+    assert.match(html, /data-src="\.\/preview\/frame\.html\?v=phase54a-rsvp-/);
     assert.doesNotMatch(html, /\s+src="\.\/preview\/frame\.html/);
     assert.match(controller, /postMessage\(message, targetOrigin\)/);
     assert.match(controller, /event\.origin !== targetOrigin/);

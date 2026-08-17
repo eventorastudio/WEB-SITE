@@ -336,14 +336,14 @@ test('el frame conserva intercepción de gifts y el CSS móvil evita overflow ho
     assert.match(css, /\.builder-phase3-grid \{ grid-template-columns: minmax\(0, 1fr\); \}/);
 });
 
-test('el cache-buster Fase 5.1 alcanza iframe, frame y registry sin perder el renderer hotfix', async () => {
+test('el cache-buster Fase 5.4A alcanza iframe, frame y registry sin perder el renderer hotfix', async () => {
     const [builderHtml, frameHtml, frame, registry] = await Promise.all([
         readFile(path.join(ROOT, 'admin/invitations/builder.html'), 'utf8'),
         readFile(path.join(ROOT, 'admin/invitations/preview/frame.html'), 'utf8'),
         readFile(path.join(ROOT, 'admin/invitations/preview/frame.js'), 'utf8'),
         readFile(path.join(ROOT, 'admin/invitations/core/template-binding-registry.js'), 'utf8')
     ]);
-    const version = 'phase51-rsvp-20260816';
+    const version = 'phase54a-rsvp-time-20260817';
     assert.match(builderHtml, new RegExp(`preview/frame\\.html\\?v=${version}`));
     assert.match(frameHtml, new RegExp(`frame\\.js\\?v=${version}`));
     assert.match(frame, new RegExp(`template-binding-registry\\.js\\?v=${version}`));

@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
-    "test:rules": "firebase emulators:exec --project demo-eventorastudio-phase45 --only firestore,storage \"node --test tests/firebase-rules-phase45.emulator.mjs\" && firebase emulators:exec --project demo-eventorastudio-phase52 --only firestore \"node --test tests/firebase-rules-phase52.emulator.mjs\" && firebase emulators:exec --project demo-eventorastudio-phase53 --only firestore \"node --test tests/firebase-rules-phase53.emulator.mjs\"",
+    "test:rules": "firebase emulators:exec --project demo-eventorastudio-phase45 --only firestore,storage \"node --test tests/firebase-rules-phase45.emulator.mjs\" && firebase emulators:exec --project demo-eventorastudio-phase52 --only firestore \"node --test tests/firebase-rules-phase52.emulator.mjs\" && firebase emulators:exec --project demo-eventorastudio-phase53 --only firestore \"node --test tests/firebase-rules-phase53.emulator.mjs\" && firebase emulators:exec --project demo-eventorastudio-phase54a --only firestore \"node --test tests/firebase-rules-phase54a.emulator.mjs\"",
     "normalize-guests": "node scripts/normalize-guests-from-reference.mjs",
     "renumber-guests": "node scripts/renumber-guests-alphabetically.mjs",
     "renumber-checkins": "node scripts/renumber-checkins-by-guest.mjs",

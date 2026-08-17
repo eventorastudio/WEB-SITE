@@ -2,14 +2,14 @@ import {
     INVITATION_EDITABLE_FIELDS,
     getDraftValue,
     getTouchedDraftPaths
-} from './content-schema.js?v=phase51-rsvp-20260816';
+} from './content-schema.js?v=phase54a-rsvp-time-20260817';
 import {
     GENERAL_INFORMATION_FIELDS,
     SECTION_EDITOR_REGISTRY
-} from './section-editor-registry.js?v=phase51-rsvp-20260816';
+} from './section-editor-registry.js?v=phase54a-rsvp-time-20260817';
 import { applyPhase3TemplateBindings } from './phase3-template-bindings.js?v=phase3-gifts-hotfix-20260813';
 import { applyPhase4MediaBindings } from './phase4-media-bindings.js?v=phase4-media-20260813';
-import { applyPhase5RsvpBindings } from './phase5-rsvp-bindings.js?v=phase51-rsvp-20260816';
+import { applyPhase5RsvpBindings } from './phase5-rsvp-bindings.js?v=phase54a-rsvp-time-20260817';
 
 const MEDIA_ADAPTERS = Object.freeze({
     aloha: Object.freeze({ cover: '.hero > img.demo-photo', gallery: '[data-prestige-feature~="gallery"]', video: '[data-prestige-feature~="welcome-video"]', music: '[data-prestige-feature~="music"]', variant: 'aloha' }),
@@ -147,6 +147,8 @@ const SECTION_BINDINGS = Object.freeze({
             ['content.rsvp.title', 'title'],
             ['content.rsvp.message', 'body'],
             ['content.rsvp.deadline', 'deadline'],
+            ['content.rsvp.deadlineTime', 'runtime'],
+            ['content.rsvp.deadlineTimeZone', 'runtime'],
             ['content.rsvp.buttonLabel', 'cta'],
             ['content.rsvp.enabled', 'runtime'],
             ['content.rsvp.method', 'runtime'],

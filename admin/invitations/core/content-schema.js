@@ -2,10 +2,10 @@ import { createLocation } from './logistics-schema.js?v=phase3-logistics-2026081
 import {
     RSVP_EDITABLE_FIELD_DEFINITIONS,
     normalizeRsvpConfig
-} from './rsvp-schema.js?v=phase51-rsvp-20260816';
+} from './rsvp-schema.js?v=phase54a-rsvp-time-20260817';
 
 export const INVITATION_DRAFT_SCHEMA_VERSION = 5;
-export const INVITATION_CONTENT_SCHEMA_VERSION = 3;
+export const INVITATION_CONTENT_SCHEMA_VERSION = 4;
 
 const FIELD_DEFINITIONS = [
     ['content.identity.primaryName', 'text', 120],

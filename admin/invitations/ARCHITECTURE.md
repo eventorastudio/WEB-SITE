@@ -339,8 +339,8 @@ adapter, nunca con reemplazos globales de strings.
 
 La métrica se deriva de `INVITATION_EDITABLE_FIELDS`, los campos de los editores
 y los paths realmente declarados por los bindings. El contrato actual contiene
-51 fields editables: 43 paths de copy y 8 paths de configuración RSVP
-adicionales. Los 11 adapters resuelven 51/51 sin ownership collisions.
+53 fields editables: 39 paths generales y 14 paths de configuración RSVP. Los
+11 adapters resuelven 53/53 sin ownership collisions.
 
 | Theme | Identity | Welcome | Countdown | Location | DressCode | RSVP | Music | Video | Gallery | Gifts | Passes | Itinerary | Access |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -377,7 +377,7 @@ una sección oculta el editor y el preview, pero nunca borra su contenido.
 ```js
 {
   schemaVersion: 5,
-  contentSchemaVersion: 3,
+  contentSchemaVersion: 4,
   eventId,
   packageId: null | 'esencial' | 'premium' | 'prestige',
   themeId,
@@ -391,7 +391,9 @@ una sección oculta el editor y el preview, pero nunca borra su contenido.
     location: { title, description, buttonLabel },
     dressCode: { title, name, description, note, recommendedColors, avoidedColors },
     rsvp: {
-      enabled, title, message, buttonLabel, deadline, method,
+      enabled, title, message, buttonLabel,
+      deadline, deadlineTime, deadlineTimeZone,
+      method,
       whatsapp: { phone, message },
       guestPolicy,
       responses: { acceptedLabel, declinedLabel, confirmationMessage }
@@ -809,6 +811,28 @@ logística o multimedia estén persistidos. Un fingerprint evita limpiar edicion
 locales realizadas mientras el write estaba en vuelo; los conflictos entre
 sesiones continúan last-write-wins hasta incorporar una revisión general.
 
+### Contrato temporal RSVP · Fase 5.4A
+
+El draft editable conserva la fecha local `deadline` y añade `deadlineTime`
+(`HH:mm`) y `deadlineTimeZone` (ID IANA). Los tres campos deben estar vacíos o
+completos. La zona detectada del navegador sólo se sugiere en el editor y nunca
+se copia automáticamente al draft.
+
+El servicio administrativo deriva un instante independiente del timezone del
+dispositivo mediante `Intl`, rechaza horas locales inexistentes o ambiguas por
+DST y lo convierte con `Timestamp.fromDate()`. El resultado vive únicamente en
+el documento privado como `responseClosesAt`; no es editable ni se hidrata al
+draft. El documento RSVP usa `schemaVersion: 2` y `contentSchemaVersion: 4`.
+Documentos v1/v3 pueden leerse para migración: conservan su deadline y dejan
+hora/zona vacías, por lo que requieren intervención antes de volver a guardarse.
+
+Rules exige que los cuatro campos temporales estén totalmente vacíos con
+`responseClosesAt: null` o totalmente presentes con un Timestamp. La conversión
+IANA no puede verificarse matemáticamente en Rules; la frontera de confianza es
+el write exclusivo de CEO, Administrador y Diseñador. Fase 5.4 reutilizará el
+Timestamp persistido y aplicará `request.time < responseClosesAt`; no volverá a
+derivar el instante en el cliente público.
+
 ### Identidad y acceso público RSVP · Fase 5.3
 
 `eventos/{eventId}/rsvpAccess/{token}` contiene una proyección versionada y
@@ -870,10 +894,12 @@ acceso; respuestas y writes quedan para Fase 5.4.
    central, Rules estrictas y Emulator aislado.
 8. Fase 5.3 completada localmente: identidad RSVP, token independiente, access
    projection, ruta/lookup público exacto, rotación/revocación y Rules mínimas.
-9. Fase 5.4: respuestas RSVP, idempotencia y escritura pública estricta.
-10. Fase 6: appearance avanzada y editor del tema Personalizada.
-11. Fase 7: persistencia del resto del draft, debounce y autosave.
-12. Fase 8: validación, snapshot publicado y URL de producción.
-13. Fase 9: edición post-publicación, versiones, rollback y auditoría.
+9. Fase 5.4A completada localmente: fecha/hora/zona IANA, Timestamp de cierre,
+   migración v1/v3 y Rules privadas v2.
+10. Fase 5.4: respuestas RSVP, idempotencia y escritura pública estricta.
+11. Fase 6: appearance avanzada y editor del tema Personalizada.
+12. Fase 7: persistencia del resto del draft, debounce y autosave.
+13. Fase 8: validación, snapshot publicado y URL de producción.
+14. Fase 9: edición post-publicación, versiones, rollback y auditoría.
 
 No se implementaron respuestas públicas RSVP, Fase 5.4 ni ninguna fase posterior.

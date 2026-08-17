@@ -100,7 +100,7 @@ service cloud.firestore {
 
     function validRsvpTouchedPaths(paths) {
       return paths is list
-        && paths.size() <= 12
+        && paths.size() <= 14
         && paths.toSet().size() == paths.size()
         && paths.toSet().hasOnly([
           'content.rsvp.enabled',
@@ -108,6 +108,8 @@ service cloud.firestore {
           'content.rsvp.message',
           'content.rsvp.buttonLabel',
           'content.rsvp.deadline',
+          'content.rsvp.deadlineTime',
+          'content.rsvp.deadlineTimeZone',
           'content.rsvp.method',
           'content.rsvp.whatsapp.phone',
           'content.rsvp.whatsapp.message',
@@ -118,16 +120,32 @@ service cloud.firestore {
         ]);
     }
 
+    function validRsvpDeadline(data) {
+      return (
+          data.deadline == ''
+          && data.deadlineTime == ''
+          && data.deadlineTimeZone == ''
+          && data.responseClosesAt == null
+        ) || (
+          data.deadline.matches('^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$')
+          && data.deadlineTime.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$')
+          && data.deadlineTimeZone.matches('^(UTC|[A-Za-z_]+(/[A-Za-z0-9._+-]+)+)$')
+          && !data.deadlineTimeZone.matches('^Etc/GMT[+-].*$')
+          && data.responseClosesAt is timestamp
+        );
+    }
+
     function validRsvpWrite(eventId) {
       let data = request.resource.data;
-      return data.keys().size() == 15
+      return data.keys().size() == 18
         && data.keys().hasOnly([
           'schemaVersion', 'contentSchemaVersion', 'eventId', 'enabled', 'title',
-          'message', 'buttonLabel', 'deadline', 'method', 'whatsapp',
+          'message', 'buttonLabel', 'deadline', 'deadlineTime',
+          'deadlineTimeZone', 'responseClosesAt', 'method', 'whatsapp',
           'guestPolicy', 'responses', 'touchedPaths', 'updatedAt', 'updatedBy'
         ])
-        && data.schemaVersion == 1
-        && data.contentSchemaVersion == 3
+        && data.schemaVersion == 2
+        && data.contentSchemaVersion == 4
         && data.eventId is string
         && data.eventId == eventId
         && data.eventId.matches('^[A-Za-z0-9_-]{1,150}$')
@@ -136,7 +154,9 @@ service cloud.firestore {
         && data.message is string && data.message.size() <= 500
         && data.buttonLabel is string && data.buttonLabel.size() <= 80
         && data.deadline is string && data.deadline.size() <= 10
-        && (data.deadline == '' || data.deadline.matches('^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$'))
+        && data.deadlineTime is string && data.deadlineTime.size() <= 5
+        && data.deadlineTimeZone is string && data.deadlineTimeZone.size() <= 100
+        && validRsvpDeadline(data)
         && data.method in ['whatsapp', 'internal']
         && data.whatsapp is map
         && data.whatsapp.keys().size() == 2

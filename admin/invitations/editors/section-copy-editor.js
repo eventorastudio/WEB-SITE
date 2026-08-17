@@ -1,6 +1,6 @@
 import { getSectionById, isSectionAllowed } from '../core/section-registry.js?v=phase3-logistics-20260813';
-import { getSectionEditor } from '../core/section-editor-registry.js?v=phase51-rsvp-20260816';
-import { createEditorFieldsGrid, syncEditorFields } from './editor-fields.js?v=phase51-rsvp-20260816';
+import { getSectionEditor } from '../core/section-editor-registry.js?v=phase54a-rsvp-time-20260817';
+import { createEditorFieldsGrid, syncEditorFields } from './editor-fields.js?v=phase54a-rsvp-time-20260817';
 
 function createEmptyState() {
     const empty = document.createElement('div');

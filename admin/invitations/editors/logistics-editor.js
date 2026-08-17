@@ -1,4 +1,4 @@
-import { getSectionEditor } from '../core/section-editor-registry.js?v=phase3-logistics-20260813';
+import { getSectionEditor } from '../core/section-editor-registry.js?v=phase54a-rsvp-time-20260817';
 import { initAccommodationEditor } from './accommodation-editor.js?v=phase3-logistics-20260813';
 import { initDressCodeEditor } from './dress-code-editor.js?v=phase3-logistics-20260813';
 import { initGiftEditor } from './gift-editor.js?v=phase3-logistics-20260813';

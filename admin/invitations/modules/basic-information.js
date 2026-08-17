@@ -1,4 +1,4 @@
-import { getDraftValue } from '../core/content-schema.js?v=phase3-logistics-20260813';
+import { getDraftValue } from '../core/content-schema.js?v=phase54a-rsvp-time-20260817';
 
 const FIELD_MAP = Object.freeze({
     'invitation-title': 'content.identity.primaryName',

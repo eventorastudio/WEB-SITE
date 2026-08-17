@@ -7,6 +7,7 @@ import {
     initializeTestEnvironment
 } from '@firebase/rules-unit-testing';
 import {
+    Timestamp,
     deleteDoc,
     doc,
     getDoc,
@@ -23,6 +24,8 @@ const TOUCHED_PATHS = [
     'content.rsvp.message',
     'content.rsvp.buttonLabel',
     'content.rsvp.deadline',
+    'content.rsvp.deadlineTime',
+    'content.rsvp.deadlineTimeZone',
     'content.rsvp.method',
     'content.rsvp.whatsapp.phone',
     'content.rsvp.whatsapp.message',
@@ -53,14 +56,17 @@ function rsvpRef(db, eventId) {
 
 function validDocument(eventId, uid, overrides = {}) {
     return {
-        schemaVersion: 1,
-        contentSchemaVersion: 3,
+        schemaVersion: 2,
+        contentSchemaVersion: 4,
         eventId,
         enabled: true,
         title: 'Confirma tu asistencia',
         message: 'Nos encantará contar contigo.',
         buttonLabel: 'Confirmar',
         deadline: '2026-12-20',
+        deadlineTime: '18:30',
+        deadlineTimeZone: 'America/Mexico_City',
+        responseClosesAt: Timestamp.fromDate(new Date('2026-12-21T00:30:00.000Z')),
         method: 'whatsapp',
         whatsapp: { phone: '+525512345678', message: 'Confirmo mi asistencia' },
         guestPolicy: 'assigned-only',
@@ -140,8 +146,8 @@ test('cross-event se deniega cuando eventId del documento no coincide con el pat
 
 test('schemaVersion o contentSchemaVersion inválidos se deniegan', async () => {
     const actor = context('CEO');
-    await assertFails(setDoc(rsvpRef(actor.context.firestore(), 'EVT-BAD-SCHEMA-1'), validDocument('EVT-BAD-SCHEMA-1', actor.uid, { schemaVersion: 2 })));
-    await assertFails(setDoc(rsvpRef(actor.context.firestore(), 'EVT-BAD-SCHEMA-2'), validDocument('EVT-BAD-SCHEMA-2', actor.uid, { contentSchemaVersion: 2 })));
+    await assertFails(setDoc(rsvpRef(actor.context.firestore(), 'EVT-BAD-SCHEMA-1'), validDocument('EVT-BAD-SCHEMA-1', actor.uid, { schemaVersion: 1 })));
+    await assertFails(setDoc(rsvpRef(actor.context.firestore(), 'EVT-BAD-SCHEMA-2'), validDocument('EVT-BAD-SCHEMA-2', actor.uid, { contentSchemaVersion: 3 })));
 });
 
 test('campo extra se deniega por whitelist exacta', async () => {

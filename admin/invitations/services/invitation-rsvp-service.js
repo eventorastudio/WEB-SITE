@@ -5,8 +5,9 @@ import {
     deserializeRsvpConfig,
     normalizeRsvpTouchedPaths,
     serializeRsvpConfig
-} from '../core/rsvp-persistence-schema.js?v=phase52-rsvp-persistence-20260816';
-import { normalizeRsvpConfig } from '../core/rsvp-schema.js?v=phase52-rsvp-persistence-20260816';
+} from '../core/rsvp-persistence-schema.js?v=phase54a-rsvp-time-20260817';
+import { normalizeRsvpConfig } from '../core/rsvp-schema.js?v=phase54a-rsvp-time-20260817';
+import { deriveRsvpResponseClosesAt } from '../core/rsvp-time.js?v=phase54a-rsvp-time-20260817';
 
 function serviceError(code, cause = null, details = {}) {
     const error = new Error(code);
@@ -25,6 +26,7 @@ async function createFirebaseRsvpGateway() {
     return {
         getCurrentUid: () => auth.currentUser?.uid ?? '',
         serverTimestamp: () => firestoreApi.serverTimestamp(),
+        timestampFromDate: (value) => firestoreApi.Timestamp.fromDate(value),
         async readRsvp(eventId) {
             const snapshot = await firestoreApi.getDoc(rsvpRef(eventId));
             return snapshot.exists() ? snapshot.data() : null;
@@ -66,8 +68,10 @@ export class InvitationRsvpService {
                 touchedPaths: [],
                 schemaVersion: null,
                 contentSchemaVersion: null,
+                responseClosesAt: null,
                 updatedAt: null,
-                updatedBy: ''
+                updatedBy: '',
+                migrated: false
             });
         }
         return Object.freeze({ exists: true, ...deserializeRsvpConfig(document, safeEventId) });
@@ -89,9 +93,17 @@ export class InvitationRsvpService {
         const gateway = await this.getGateway();
         const updatedBy = String(gateway.getCurrentUid?.() ?? '');
         if (!updatedBy) throw serviceError('rsvp/unauthenticated');
+        let responseClosesAt;
+        try {
+            const instant = deriveRsvpResponseClosesAt(rsvp);
+            responseClosesAt = instant ? gateway.timestampFromDate(instant) : null;
+        } catch (error) {
+            throw serviceError(error?.code ?? 'rsvp/response-closes-at-derivation-failed', error);
+        }
         const document = serializeRsvpConfig(rsvp, {
             eventId: safeEventId,
             touchedPaths,
+            responseClosesAt,
             updatedAt: gateway.serverTimestamp(),
             updatedBy
         });
@@ -100,6 +112,7 @@ export class InvitationRsvpService {
             eventId: safeEventId,
             rsvp: normalizeRsvpConfig(rsvp),
             touchedPaths: normalizeRsvpTouchedPaths(touchedPaths),
+            responseClosesAt,
             fingerprint: createRsvpPersistenceFingerprint(rsvp, { eventId: safeEventId, touchedPaths }),
             document
         });

@@ -1,8 +1,12 @@
 import {
     INVITATION_EDITABLE_FIELDS,
     getDraftValue
-} from '../core/content-schema.js?v=phase51-rsvp-20260816';
+} from '../core/content-schema.js?v=phase54a-rsvp-time-20260817';
 import { isSectionAllowed } from '../core/section-registry.js?v=phase3-logistics-20260813';
+import {
+    getDetectedIanaTimeZone,
+    getSupportedIanaTimeZones
+} from '../core/rsvp-time.js?v=phase54a-rsvp-time-20260817';
 
 function fieldId(path) {
     return `invitation-${path.replace(/[^a-z0-9]+/gi, '-')}`;
@@ -38,6 +42,22 @@ export function createEditorField(definition, onInput) {
         });
     } else control.type = definition.kind === 'toggle' ? 'checkbox' : (definition.kind === 'date' || definition.kind === 'time' ? definition.kind : 'text');
     if (definition.placeholder) control.placeholder = definition.placeholder;
+    let dataList = null;
+    if (definition.kind === 'timezone') {
+        dataList = document.createElement('datalist');
+        dataList.id = `${control.id}-options`;
+        control.setAttribute('list', dataList.id);
+        getSupportedIanaTimeZones().forEach((timeZone) => {
+            const option = document.createElement('option');
+            option.value = timeZone;
+            option.label = `${timeZone.split('/').at(-1).replaceAll('_', ' ')} (${timeZone})`;
+            dataList.append(option);
+        });
+        if (definition.suggestDetectedTimeZone) {
+            const detected = getDetectedIanaTimeZone();
+            if (detected) control.placeholder = `Sugerida: ${detected}`;
+        }
+    }
     if (definition.required) control.required = true;
     const commit = () => {
         const scroller = document.getElementById('builder-editor');
@@ -73,7 +93,10 @@ export function createEditorField(definition, onInput) {
         stateLabel.dataset.toggleStateFor = definition.path;
         row.append(control, stateLabel);
         label.append(row);
-    } else label.append(control);
+    } else {
+        label.append(control);
+        if (dataList) label.append(dataList);
+    }
     if (definition.help) {
         const help = document.createElement('small');
         help.className = 'field-help';

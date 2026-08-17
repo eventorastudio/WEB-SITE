@@ -168,13 +168,13 @@ test('ubicación configurada reemplaza todas las sedes demo en las once coleccio
     }
 });
 
-test('los 51 fields canónicos (43 de copy + 8 de configuración RSVP) tienen editor y binding sin colisiones', async () => {
+test('los 53 fields canónicos incluyen hora y zona RSVP con editor y binding sin colisiones', async () => {
     const editorPaths = new Set([
         ...GENERAL_INFORMATION_FIELDS.map(({ path: fieldPath }) => fieldPath),
         ...Object.values(SECTION_EDITOR_REGISTRY).flatMap(({ fields }) => fields.map(({ path: fieldPath }) => fieldPath))
     ]);
     const editablePaths = Object.keys(INVITATION_EDITABLE_FIELDS);
-    assert.equal(editablePaths.length, 51);
+    assert.equal(editablePaths.length, 53);
     assert.deepEqual([...editorPaths].sort(), editablePaths.sort());
 
     const values = distinctiveValues();
@@ -184,8 +184,8 @@ test('los 51 fields canónicos (43 de copy + 8 de configuración RSVP) tienen ed
 
     for (const theme of COLLECTION_THEMES) {
         const coverage = getPhase2BindingCoverage(theme.id);
-        assert.equal(coverage.total, 51, theme.id);
-        assert.equal(coverage.bound, 51, theme.id);
+        assert.equal(coverage.total, 53, theme.id);
+        assert.equal(coverage.bound, 53, theme.id);
         assert.ok(Object.values(coverage.paths).every((status) => status === 'PASS'), theme.id);
 
         const dom = await createTemplate(theme);

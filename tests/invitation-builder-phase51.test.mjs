@@ -51,6 +51,8 @@ function configureRsvp(state, overrides = {}) {
     const fields = {
         'content.rsvp.enabled': true,
         'content.rsvp.deadline': '2027-11-01',
+        'content.rsvp.deadlineTime': '18:30',
+        'content.rsvp.deadlineTimeZone': 'America/Monterrey',
         'content.rsvp.title': 'Confirma tu asistencia',
         'content.rsvp.message': 'Queremos saber si podremos compartir este evento contigo.',
         'content.rsvp.buttonLabel': 'Responder invitación',
@@ -113,9 +115,10 @@ function installDom(html) {
 test('1. contrato RSVP canónico amplía content.rsvp y versiona sólo el schema de contenido', () => {
     const content = createInvitationContent();
     assert.equal(INVITATION_DRAFT_SCHEMA_VERSION, 5);
-    assert.equal(INVITATION_CONTENT_SCHEMA_VERSION, 3);
+    assert.equal(INVITATION_CONTENT_SCHEMA_VERSION, 4);
     assert.deepEqual(Object.keys(content.rsvp), [
-        'enabled', 'title', 'message', 'buttonLabel', 'deadline', 'method', 'whatsapp', 'guestPolicy', 'responses'
+        'enabled', 'title', 'message', 'buttonLabel', 'deadline', 'deadlineTime',
+        'deadlineTimeZone', 'method', 'whatsapp', 'guestPolicy', 'responses'
     ]);
     assert.deepEqual(Object.keys(content.rsvp.whatsapp), ['phone', 'message']);
     assert.deepEqual(Object.keys(content.rsvp.responses), ['acceptedLabel', 'declinedLabel', 'confirmationMessage']);
@@ -130,8 +133,11 @@ test('2. defaults RSVP son neutrales y la migración conserva los cuatro campos 
         contentSchemaVersion: 2,
         content: { rsvp: { title: 'Título legado', message: 'Mensaje', buttonLabel: 'Confirmar', deadline: '2027-10-01' } }
     });
-    assert.equal(migrated.contentSchemaVersion, 3);
+    assert.equal(migrated.contentSchemaVersion, 4);
     assert.equal(migrated.content.rsvp.title, 'Título legado');
+    assert.equal(migrated.content.rsvp.deadline, '2027-10-01');
+    assert.equal(migrated.content.rsvp.deadlineTime, '');
+    assert.equal(migrated.content.rsvp.deadlineTimeZone, '');
     assert.equal(migrated.content.rsvp.whatsapp.phone, '');
 });
 
@@ -156,6 +162,8 @@ test('4. disabled no exige campos activos y conserva toda la configuración', ()
 test('5. deadline calendárica válida es aceptada', () => {
     const draft = createInvitationDraft('EVT-1', { nombreEvento: 'Evento', fecha: '2027-11-15' });
     draft.content.rsvp.deadline = '2027-10-31';
+    draft.content.rsvp.deadlineTime = '23:59';
+    draft.content.rsvp.deadlineTimeZone = 'America/Monterrey';
     assert.equal(validateInvitationDraft(draft)['content.rsvp.deadline'], undefined);
 });
 

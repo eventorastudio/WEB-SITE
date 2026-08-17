@@ -1,9 +1,11 @@
 import { buildWhatsAppUrl } from './safe-url.js?v=phase51-rsvp-20260816';
 import { isSectionAllowed } from './section-registry.js?v=phase3-logistics-20260813';
-import { isRsvpEnabled, resolveRsvpGuestPolicy } from './rsvp-schema.js?v=phase51-rsvp-20260816';
+import { isRsvpEnabled, resolveRsvpGuestPolicy } from './rsvp-schema.js?v=phase54a-rsvp-time-20260817';
 
 const CONFIG_PATHS = Object.freeze([
     'content.rsvp.enabled',
+    'content.rsvp.deadlineTime',
+    'content.rsvp.deadlineTimeZone',
     'content.rsvp.method',
     'content.rsvp.whatsapp.phone',
     'content.rsvp.whatsapp.message',
@@ -28,13 +30,17 @@ function touchedPaths(draft) {
     return new Set(Array.isArray(draft?.meta?.touchedPaths) ? draft.meta.touchedPaths : []);
 }
 
-function formatDeadline(value) {
-    const match = clean(value, 10).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+function formatDeadline(rsvp) {
+    const value = clean(rsvp?.deadline, 10);
+    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     const date = match ? new Date(`${value}T12:00:00`) : null;
     if (!date || Number.isNaN(date.getTime())) return '';
-    return `Confirma antes del ${new Intl.DateTimeFormat('es-MX', {
+    const formattedDate = new Intl.DateTimeFormat('es-MX', {
         day: 'numeric', month: 'long', year: 'numeric'
-    }).format(date)}.`;
+    }).format(date);
+    const time = clean(rsvp?.deadlineTime, 5);
+    const timeZone = clean(rsvp?.deadlineTimeZone, 100);
+    return `Confirma antes del ${formattedDate}${time ? ` a las ${time}` : ''}${timeZone ? ` (${timeZone})` : ''}.`;
 }
 
 function findRoot(documentRoot) {
@@ -69,7 +75,7 @@ function ensureCustomFields(documentRoot, draft) {
         const path = `content.rsvp.${field}`;
         const element = wrapper.querySelector(`[data-builder-rsvp-field="${field}"]`);
         if (!element) return;
-        const source = field === 'deadline' ? formatDeadline(rsvp[field]) : clean(rsvp[field]);
+        const source = field === 'deadline' ? formatDeadline(rsvp) : clean(rsvp[field]);
         const value = source || (touched.has(path) ? '' : fallback);
         element.textContent = value;
         element.hidden = !value;

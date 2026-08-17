@@ -1,5 +1,9 @@
 # Fase 5.2 · Persistencia canónica RSVP
 
+> Este documento conserva la decisión histórica v1 de Fase 5.2. El contrato
+> vigente fue ampliado a `schemaVersion: 2` y `contentSchemaVersion: 4` por
+> Fase 5.4A; véase `PHASE_5_4A_RSVP_TIME_CONTRACT.md`.
+
 ## Decisión de arquitectura
 
 La configuración administrativa RSVP vive en:

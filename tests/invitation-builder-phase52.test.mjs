@@ -18,6 +18,18 @@ import { InvitationRsvpService } from '../admin/invitations/services/invitation-
 const EVENT_ID = 'EVT-0001';
 const UID = 'UID-RSVP-EDITOR';
 const UPDATED_AT = Object.freeze({ seconds: 1_776_000_000, nanoseconds: 0 });
+const RESPONSE_CLOSES_DATE = new Date('2026-12-21T00:30:00.000Z');
+
+function timestampFromDate(value) {
+    const date = new Date(value.getTime());
+    return Object.freeze({
+        seconds: Math.floor(date.getTime() / 1000),
+        nanoseconds: 0,
+        toDate: () => new Date(date.getTime())
+    });
+}
+
+const RESPONSE_CLOSES_AT = timestampFromDate(RESPONSE_CLOSES_DATE);
 
 function validRsvp(overrides = {}) {
     return normalizeRsvpConfig({
@@ -26,6 +38,8 @@ function validRsvp(overrides = {}) {
         message: 'Nos encantará contar contigo.',
         buttonLabel: 'Confirmar',
         deadline: '2026-12-20',
+        deadlineTime: '18:30',
+        deadlineTimeZone: 'America/Mexico_City',
         method: 'whatsapp',
         whatsapp: { phone: '+525512345678', message: 'Confirmo mi asistencia' },
         guestPolicy: 'select-up-to-assigned',
@@ -43,6 +57,7 @@ function persistedDocument(overrides = {}) {
     return serializeRsvpConfig(config, {
         eventId: overrides.eventId ?? EVENT_ID,
         touchedPaths: overrides.touchedPaths ?? RSVP_PERSISTED_TOUCHED_PATHS,
+        responseClosesAt: overrides.responseClosesAt ?? RESPONSE_CLOSES_AT,
         updatedAt: overrides.updatedAt ?? UPDATED_AT,
         updatedBy: overrides.updatedBy ?? UID
     });
@@ -54,6 +69,7 @@ function createGateway({ document = null, failWrite = null, writeHook = null } =
         writes,
         getCurrentUid: () => UID,
         serverTimestamp: () => UPDATED_AT,
+        timestampFromDate,
         readRsvp: async () => document,
         async writeRsvp(eventId, value) {
             writes.push({ eventId, value });
@@ -73,12 +89,13 @@ function createState() {
 test('1. serialize produce el documento RSVP pequeño, exacto y versionado', () => {
     const document = persistedDocument();
     assert.deepEqual(Object.keys(document).sort(), [
-        'buttonLabel', 'contentSchemaVersion', 'deadline', 'enabled', 'eventId',
-        'guestPolicy', 'message', 'method', 'responses', 'schemaVersion', 'title',
-        'touchedPaths', 'updatedAt', 'updatedBy', 'whatsapp'
+        'buttonLabel', 'contentSchemaVersion', 'deadline', 'deadlineTime',
+        'deadlineTimeZone', 'enabled', 'eventId', 'guestPolicy', 'message', 'method',
+        'responseClosesAt', 'responses', 'schemaVersion', 'title', 'touchedPaths',
+        'updatedAt', 'updatedBy', 'whatsapp'
     ]);
-    assert.equal(document.schemaVersion, 1);
-    assert.equal(document.contentSchemaVersion, 3);
+    assert.equal(document.schemaVersion, 2);
+    assert.equal(document.contentSchemaVersion, 4);
     assert.equal(document.eventId, EVENT_ID);
 });
 
@@ -88,7 +105,13 @@ test('2. serialize elimina propiedades desconocidas del draft y objetos anidados
         injected: '<script>',
         whatsapp: { ...validRsvp().whatsapp, token: 'secret' },
         responses: { ...validRsvp().responses, html: '<b>unsafe</b>' }
-    }, { eventId: EVENT_ID, touchedPaths: [], updatedAt: UPDATED_AT, updatedBy: UID });
+    }, {
+        eventId: EVENT_ID,
+        touchedPaths: [],
+        responseClosesAt: RESPONSE_CLOSES_AT,
+        updatedAt: UPDATED_AT,
+        updatedBy: UID
+    });
     assert.equal('injected' in document, false);
     assert.deepEqual(Object.keys(document.whatsapp).sort(), ['message', 'phone']);
     assert.deepEqual(Object.keys(document.responses).sort(), ['acceptedLabel', 'confirmationMessage', 'declinedLabel']);
@@ -111,6 +134,7 @@ test('5. roundtrip conserva todos los valores RSVP', () => {
     const result = deserializeRsvpConfig(serializeRsvpConfig(source, {
         eventId: EVENT_ID,
         touchedPaths: RSVP_PERSISTED_TOUCHED_PATHS,
+        responseClosesAt: RESPONSE_CLOSES_AT,
         updatedAt: UPDATED_AT,
         updatedBy: UID
     }), EVENT_ID);

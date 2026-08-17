@@ -1,4 +1,4 @@
-import { getDraftValue } from './content-schema.js?v=phase51-rsvp-20260816';
+import { getDraftValue } from './content-schema.js?v=phase54a-rsvp-time-20260817';
 import { DRESS_COLOR_GROUPS } from './logistics-schema.js?v=phase3-logistics-20260813';
 import { normalizeWhatsAppPhone, safeUrlError } from './safe-url.js?v=phase51-rsvp-20260816';
 import { getAllMediaAssets, validateMediaAsset } from './media-schema.js?v=phase4-media-20260813';
@@ -6,15 +6,14 @@ import {
     RSVP_GUEST_POLICIES,
     RSVP_METHODS,
     isRsvpEnabled
-} from './rsvp-schema.js?v=phase51-rsvp-20260816';
+} from './rsvp-schema.js?v=phase54a-rsvp-time-20260817';
+import {
+    deriveRsvpResponseClosesAt,
+    isValidRsvpDeadlineDate
+} from './rsvp-time.js?v=phase54a-rsvp-time-20260817';
 
 export function isExactDate(value) {
-    const match = String(value ?? '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    const parsed = match ? new Date(`${value}T12:00:00`) : null;
-    return Boolean(parsed && !Number.isNaN(parsed.getTime())
-        && parsed.getFullYear() === Number(match[1])
-        && parsed.getMonth() + 1 === Number(match[2])
-        && parsed.getDate() === Number(match[3]));
+    return isValidRsvpDeadlineDate(value);
 }
 
 export function validateInvitationDraft(draft = {}) {
@@ -78,16 +77,36 @@ export function validateInvitationDraft(draft = {}) {
 
 export function validateRsvpConfig(rsvp = {}) {
     const errors = {};
-    if (!isRsvpEnabled(rsvp)) return Object.freeze(errors);
-
     const deadline = String(rsvp?.deadline ?? '').trim();
+    const deadlineTime = String(rsvp?.deadlineTime ?? '').trim();
+    const deadlineTimeZone = String(rsvp?.deadlineTimeZone ?? '').trim();
     const method = String(rsvp?.method ?? '').trim();
     const guestPolicy = String(rsvp?.guestPolicy ?? '').trim();
     const phone = String(rsvp?.whatsapp?.phone ?? '').trim();
 
-    if (deadline && !isExactDate(deadline)) {
-        errors['content.rsvp.deadline'] = 'La fecha límite no es válida.';
+    try {
+        deriveRsvpResponseClosesAt({ deadline, deadlineTime, deadlineTimeZone });
+    } catch (error) {
+        const code = error?.code ?? '';
+        if (code === 'rsvp-time/deadline-required' || code === 'rsvp-time/invalid-deadline') {
+            errors['content.rsvp.deadline'] = code.endsWith('required')
+                ? 'Selecciona una fecha límite para la hora o zona configurada.'
+                : 'La fecha límite no es válida.';
+        } else if (code === 'rsvp-time/deadline-time-zone-required' || code === 'rsvp-time/invalid-time-zone') {
+            errors['content.rsvp.deadlineTimeZone'] = code.endsWith('required')
+                ? 'Selecciona y confirma una zona horaria IANA.'
+                : 'La zona horaria IANA no es válida.';
+        } else {
+            errors['content.rsvp.deadlineTime'] = ({
+                'rsvp-time/deadline-time-required': 'Selecciona una hora límite.',
+                'rsvp-time/invalid-deadline-time': 'La hora límite debe usar el formato HH:mm.',
+                'rsvp-time/nonexistent-local-time': 'Esta hora local no existe por un cambio de horario. Elige otra.',
+                'rsvp-time/ambiguous-local-time': 'Esta hora local es ambigua por un cambio de horario. Elige otra.'
+            })[code] ?? 'La hora límite no es válida.';
+        }
     }
+
+    if (!isRsvpEnabled(rsvp)) return Object.freeze(errors);
     if (!RSVP_METHODS.includes(method)) {
         errors['content.rsvp.method'] = 'Selecciona un método RSVP válido.';
     } else if (method === 'whatsapp') {

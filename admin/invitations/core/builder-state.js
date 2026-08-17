@@ -8,8 +8,8 @@ import {
     createInvitationContent,
     getDraftValue,
     setDraftValue
-} from './content-schema.js?v=phase51-rsvp-20260816';
-import { validateInvitationDraft } from './builder-validation.js?v=phase51-rsvp-20260816';
+} from './content-schema.js?v=phase54a-rsvp-time-20260817';
+import { validateInvitationDraft } from './builder-validation.js?v=phase54a-rsvp-time-20260817';
 import {
     DRESS_COLOR_GROUPS,
     ENTITY_COLLECTIONS,
@@ -33,7 +33,7 @@ import {
     RSVP_EDITABLE_FIELD_DEFINITIONS,
     RSVP_GUEST_POLICY_PATH,
     normalizeRsvpConfig
-} from './rsvp-schema.js?v=phase52-rsvp-persistence-20260816';
+} from './rsvp-schema.js?v=phase54a-rsvp-time-20260817';
 
 const PREVIEW_DEVICES = Object.freeze(['mobile', 'tablet', 'desktop']);
 const RSVP_EDITABLE_PATHS = Object.freeze(RSVP_EDITABLE_FIELD_DEFINITIONS.map(([path]) => path));

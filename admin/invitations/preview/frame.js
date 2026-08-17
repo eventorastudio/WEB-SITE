@@ -1,5 +1,5 @@
 import { PREVIEW_MESSAGE_TYPES } from '../core/builder-events.js?v=phase3-logistics-20260813';
-import { INVITATION_CONTENT_SCHEMA_VERSION, PREVIEW_SEMANTIC_FALLBACKS } from '../core/content-schema.js?v=phase51-rsvp-20260816';
+import { INVITATION_CONTENT_SCHEMA_VERSION, PREVIEW_SEMANTIC_FALLBACKS } from '../core/content-schema.js?v=phase54a-rsvp-time-20260817';
 import { applyPreviewSectionVisibility } from '../core/preview-sections.js?v=phase3-logistics-20260813';
 import {
     applyTemplateContentBindings,
@@ -8,7 +8,7 @@ import {
     applyPhase5ContentBindings,
     formatInvitationEventLine,
     prepareBuilderTemplate
-} from '../core/template-binding-registry.js?v=phase51-rsvp-20260816';
+} from '../core/template-binding-registry.js?v=phase54a-rsvp-time-20260817';
 
 const parentOrigin = window.location.origin;
 let activeThemeLinks = [];

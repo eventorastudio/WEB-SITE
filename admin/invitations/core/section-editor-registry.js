@@ -73,6 +73,18 @@ export const SECTION_EDITOR_REGISTRY = Object.freeze({
                 kind: 'date',
                 visibleWhen: [{ path: 'content.rsvp.enabled', equals: true }]
             }),
+            field('content.rsvp.deadlineTime', 'Hora límite', {
+                kind: 'time',
+                help: 'Formato de 24 horas. Sólo se usa cuando existe una fecha límite.',
+                visibleWhen: [{ path: 'content.rsvp.enabled', equals: true }]
+            }),
+            field('content.rsvp.deadlineTimeZone', 'Zona horaria', {
+                kind: 'timezone',
+                wide: true,
+                suggestDetectedTimeZone: true,
+                help: 'Selecciona una zona IANA y confírmala; la zona detectada del navegador es sólo una sugerencia.',
+                visibleWhen: [{ path: 'content.rsvp.enabled', equals: true }]
+            }),
             field('content.rsvp.title', 'Título', {
                 visibleWhen: [{ path: 'content.rsvp.enabled', equals: true }]
             }),

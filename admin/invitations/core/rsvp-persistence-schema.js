@@ -1,13 +1,14 @@
-import { isExactDate, validateRsvpConfig } from './builder-validation.js?v=phase52-rsvp-persistence-20260816';
-import { INVITATION_CONTENT_SCHEMA_VERSION } from './content-schema.js?v=phase52-rsvp-persistence-20260816';
+import { isExactDate, validateRsvpConfig } from './builder-validation.js?v=phase54a-rsvp-time-20260817';
+import { INVITATION_CONTENT_SCHEMA_VERSION } from './content-schema.js?v=phase54a-rsvp-time-20260817';
 import {
     RSVP_EDITABLE_FIELD_DEFINITIONS,
     RSVP_GUEST_POLICIES,
     RSVP_METHODS,
     normalizeRsvpConfig
-} from './rsvp-schema.js?v=phase52-rsvp-persistence-20260816';
+} from './rsvp-schema.js?v=phase54a-rsvp-time-20260817';
+import { deriveRsvpResponseClosesAt } from './rsvp-time.js?v=phase54a-rsvp-time-20260817';
 
-export const RSVP_PERSISTENCE_SCHEMA_VERSION = 1;
+export const RSVP_PERSISTENCE_SCHEMA_VERSION = 2;
 export const RSVP_DOCUMENT_ID = 'rsvp';
 
 export const RSVP_PERSISTED_TOUCHED_PATHS = Object.freeze(
@@ -20,11 +21,14 @@ const RSVP_DOCUMENT_FIELDS = Object.freeze([
     'buttonLabel',
     'contentSchemaVersion',
     'deadline',
+    'deadlineTime',
+    'deadlineTimeZone',
     'enabled',
     'eventId',
     'guestPolicy',
     'message',
     'method',
+    'responseClosesAt',
     'responses',
     'schemaVersion',
     'title',
@@ -33,10 +37,20 @@ const RSVP_DOCUMENT_FIELDS = Object.freeze([
     'updatedBy',
     'whatsapp'
 ]);
-const RSVP_FIELDS = Object.freeze([
-    'buttonLabel', 'deadline', 'enabled', 'guestPolicy', 'message', 'method',
-    'responses', 'title', 'whatsapp'
+const LEGACY_RSVP_DOCUMENT_FIELDS = Object.freeze([
+    'buttonLabel', 'contentSchemaVersion', 'deadline', 'enabled', 'eventId',
+    'guestPolicy', 'message', 'method', 'responses', 'schemaVersion', 'title',
+    'touchedPaths', 'updatedAt', 'updatedBy', 'whatsapp'
 ]);
+const RSVP_FIELDS = Object.freeze([
+    'buttonLabel', 'deadline', 'deadlineTime', 'deadlineTimeZone', 'enabled',
+    'guestPolicy', 'message', 'method', 'responses', 'title', 'whatsapp'
+]);
+const LEGACY_RSVP_FIELDS = Object.freeze(RSVP_FIELDS.filter((field) => !['deadlineTime', 'deadlineTimeZone'].includes(field)));
+const LEGACY_TOUCHED_PATHS = Object.freeze(RSVP_PERSISTED_TOUCHED_PATHS.filter((path) => ![
+    'content.rsvp.deadlineTime',
+    'content.rsvp.deadlineTimeZone'
+].includes(path)));
 const WHATSAPP_FIELDS = Object.freeze(['message', 'phone']);
 const RESPONSE_FIELDS = Object.freeze(['acceptedLabel', 'confirmationMessage', 'declinedLabel']);
 const PATH_LIMITS = Object.freeze(Object.fromEntries(
@@ -126,6 +140,8 @@ function createSemanticPayload(config, { eventId, touchedPaths = [] } = {}) {
         message: normalized.message,
         buttonLabel: normalized.buttonLabel,
         deadline: normalized.deadline,
+        deadlineTime: normalized.deadlineTime,
+        deadlineTimeZone: normalized.deadlineTimeZone,
         method: normalized.method,
         whatsapp: {
             phone: normalized.whatsapp.phone,
@@ -144,14 +160,18 @@ function createSemanticPayload(config, { eventId, touchedPaths = [] } = {}) {
 export function serializeRsvpConfig(config, {
     eventId,
     touchedPaths = [],
+    responseClosesAt,
     updatedAt,
     updatedBy
 } = {}) {
     if (updatedAt == null) throw persistenceError('rsvp/updated-at-required');
     const uid = String(updatedBy ?? '');
     if (!SAFE_UID.test(uid)) throw persistenceError('rsvp/updated-by-required');
+    const semantic = createSemanticPayload(config, { eventId, touchedPaths });
+    assertResponseClosesAt(semantic, responseClosesAt);
     return {
-        ...createSemanticPayload(config, { eventId, touchedPaths }),
+        ...semantic,
+        responseClosesAt,
         updatedAt,
         updatedBy: uid
     };
@@ -167,6 +187,7 @@ function assertPersistedTouchedPaths(paths) {
 }
 
 export function deserializeRsvpConfig(document, expectedEventId) {
+    if (document?.schemaVersion === 1) return deserializeLegacyRsvpConfig(document, expectedEventId);
     if (!exactKeys(document, RSVP_DOCUMENT_FIELDS)) throw persistenceError('rsvp/invalid-document-shape');
     if (document.schemaVersion !== RSVP_PERSISTENCE_SCHEMA_VERSION) throw persistenceError('rsvp/unsupported-schema');
     if (document.contentSchemaVersion !== INVITATION_CONTENT_SCHEMA_VERSION) {
@@ -188,17 +209,86 @@ export function deserializeRsvpConfig(document, expectedEventId) {
     if (Object.keys(validationErrors).length) {
         throw persistenceError('rsvp/invalid-config', { validationErrors });
     }
+    assertResponseClosesAt(normalized, document.responseClosesAt);
     return Object.freeze({
         eventId,
         rsvp: normalized,
         touchedPaths: normalizeRsvpTouchedPaths(document.touchedPaths),
         schemaVersion: document.schemaVersion,
         contentSchemaVersion: document.contentSchemaVersion,
+        responseClosesAt: document.responseClosesAt,
         updatedAt: document.updatedAt,
-        updatedBy: document.updatedBy
+        updatedBy: document.updatedBy,
+        migrated: false
     });
 }
 
 export function createRsvpPersistenceFingerprint(config, { eventId, touchedPaths = [] } = {}) {
     return JSON.stringify(createSemanticPayload(config, { eventId, touchedPaths }));
+}
+
+function assertResponseClosesAt(config, value) {
+    const expected = deriveRsvpResponseClosesAt(config);
+    if (!expected) {
+        if (value !== null) throw persistenceError('rsvp/response-closes-at-must-be-null');
+        return;
+    }
+    if (!isTimestamp(value)) throw persistenceError('rsvp/invalid-response-closes-at');
+    if (value.toDate().getTime() !== expected.getTime()) {
+        throw persistenceError('rsvp/response-closes-at-mismatch');
+    }
+}
+
+function isTimestamp(value) {
+    if (!value || typeof value.toDate !== 'function') return false;
+    try {
+        const date = value.toDate();
+        return date instanceof Date && !Number.isNaN(date.getTime());
+    } catch {
+        return false;
+    }
+}
+
+function deserializeLegacyRsvpConfig(document, expectedEventId) {
+    if (!exactKeys(document, LEGACY_RSVP_DOCUMENT_FIELDS)) throw persistenceError('rsvp/invalid-document-shape');
+    if (document.contentSchemaVersion !== 3) throw persistenceError('rsvp/unsupported-content-schema');
+    const eventId = assertSafeRsvpEventId(expectedEventId);
+    if (document.eventId !== eventId) throw persistenceError('rsvp/cross-event-document');
+    if (!exactKeys(document.whatsapp, WHATSAPP_FIELDS)) throw persistenceError('rsvp/invalid-whatsapp-shape');
+    if (!exactKeys(document.responses, RESPONSE_FIELDS)) throw persistenceError('rsvp/invalid-responses-shape');
+    assertLegacyPersistedTouchedPaths(document.touchedPaths);
+    if (document.updatedAt == null || !SAFE_UID.test(String(document.updatedBy ?? ''))) {
+        throw persistenceError('rsvp/invalid-audit-fields');
+    }
+
+    const legacyConfig = Object.fromEntries(LEGACY_RSVP_FIELDS.map((field) => [field, document[field]]));
+    assertRsvpSource(legacyConfig);
+    const normalized = normalizeRsvpConfig(legacyConfig);
+    const validationErrors = validateRsvpConfig(normalized);
+    const nonTemporalErrors = Object.keys(validationErrors).filter((path) => ![
+        'content.rsvp.deadlineTime',
+        'content.rsvp.deadlineTimeZone'
+    ].includes(path));
+    if (nonTemporalErrors.length) throw persistenceError('rsvp/invalid-config', { validationErrors });
+
+    return Object.freeze({
+        eventId,
+        rsvp: normalized,
+        touchedPaths: normalizeRsvpTouchedPaths(document.touchedPaths),
+        schemaVersion: document.schemaVersion,
+        contentSchemaVersion: document.contentSchemaVersion,
+        responseClosesAt: null,
+        updatedAt: document.updatedAt,
+        updatedBy: document.updatedBy,
+        migrated: true
+    });
+}
+
+function assertLegacyPersistedTouchedPaths(paths) {
+    if (!Array.isArray(paths) || paths.length > LEGACY_TOUCHED_PATHS.length) {
+        throw persistenceError('rsvp/invalid-touched-paths');
+    }
+    if (new Set(paths).size !== paths.length || paths.some((path) => !LEGACY_TOUCHED_PATHS.includes(path))) {
+        throw persistenceError('rsvp/invalid-touched-paths');
+    }
 }
