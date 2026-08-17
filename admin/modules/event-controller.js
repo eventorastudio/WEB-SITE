@@ -1,6 +1,10 @@
 // admin/modules/event-controller.js
 import { EVENT_TYPES } from '../core/event-types.js';
 import { getEventStatusPresentation } from '../../shared/event-status.js';
+import {
+    createGuestRsvpOperationalElement,
+    indexRsvpOperationalDocuments
+} from './guests/rsvp-operational-view.js';
 
 /* ========================================================================== 
  * Variables privadas
@@ -29,10 +33,14 @@ let eventDataOverride = null;
 
 /** Desuscripción del listener realtime de invitados. */
 let guestSubscriptionCleanup = null;
+let rsvpOperationsSubscriptionCleanup = null;
 
 /** Estado de carga independiente de la subcolección de invitados. */
 let guestLoadState = 'idle';
 let guestLoadError = null;
+let rsvpOperationsLoadState = 'idle';
+let rsvpStatesByGuestId = new Map();
+let rsvpConflictGuestIds = new Set();
 
 /** Filtros visuales efímeros; las listas completas nunca se guardan en State. */
 let guestFilters = { search: '', status: 'all', table: 'all', sort: 'name-asc' };
@@ -86,17 +94,22 @@ export function destroy() {
     runCleanups(domCleanups);
     runCleanups(eventBusCleanups);
     guestSubscriptionCleanup?.();
+    rsvpOperationsSubscriptionCleanup?.();
     if (guestSearchTimer) window.clearTimeout(guestSearchTimer);
 
     domCleanups = [];
     eventBusCleanups = [];
     guestSubscriptionCleanup = null;
+    rsvpOperationsSubscriptionCleanup = null;
     guestSearchTimer = null;
     guestsById.clear();
     hasGuestSnapshot = false;
     eventDataOverride = null;
     guestLoadState = 'idle';
     guestLoadError = null;
+    rsvpOperationsLoadState = 'idle';
+    rsvpStatesByGuestId.clear();
+    rsvpConflictGuestIds.clear();
     guestFilters = { search: '', status: 'all', table: 'all', sort: 'name-asc' };
     guestVisibleLimit = 50;
     activeGuestMode = 'create';
@@ -308,6 +321,7 @@ async function ensureGuestsLoaded() {
         replaceGuests(guests);
         guestLoadState = 'loaded';
         startGuestSubscription();
+        startRsvpOperationsSubscription();
         renderGuestsAndStatistics();
     } catch (error) {
         console.error('[Event Controller] Error cargando invitados:', error);
@@ -320,6 +334,43 @@ async function ensureGuestsLoaded() {
             type: 'error'
         });
     }
+}
+
+/** Mantiene la proyección RSVP privada y sus conflictos separada del guest. */
+function startRsvpOperationsSubscription() {
+    if (rsvpOperationsSubscriptionCleanup) return;
+    const subscribe = deps.services.rsvpOperations?.subscribeToGuestRsvpOperations;
+    if (typeof subscribe !== 'function') {
+        rsvpOperationsLoadState = 'error';
+        return;
+    }
+
+    rsvpOperationsLoadState = 'loading';
+    rsvpOperationsSubscriptionCleanup = subscribe(
+        deps.eventContext.eventId,
+        (documents) => {
+            const index = indexRsvpOperationalDocuments(documents);
+            rsvpStatesByGuestId = index.statesByGuestId;
+            rsvpConflictGuestIds = index.conflictGuestIds;
+            rsvpOperationsLoadState = 'loaded';
+            renderGuests(getEventData());
+        },
+        (error) => {
+            console.error('[Event Controller] Error cargando estado RSVP:', error);
+            const firstFailure = rsvpOperationsLoadState !== 'error';
+            rsvpOperationsLoadState = 'error';
+            rsvpStatesByGuestId.clear();
+            rsvpConflictGuestIds.clear();
+            renderGuests(getEventData());
+            if (firstFailure) {
+                deps.ui.showToast({
+                    title: 'Estado RSVP no disponible',
+                    message: 'La lista de invitados continúa disponible sin datos operativos RSVP.',
+                    type: 'warning'
+                });
+            }
+        }
+    );
 }
 
 /** Mantiene la lista actualizada sin consultas adicionales desde la interfaz. */
@@ -440,7 +491,7 @@ function createGuestTable(guests) {
     const table = document.createElement('table');
     table.className = 'guest-table';
     table.setAttribute('aria-label', 'Lista de invitados');
-    const headers = ['Invitado', 'Contacto', 'Pases', 'Estado', 'Mesa', 'Código', 'Llegada', 'Acciones'];
+    const headers = ['Invitado', 'Contacto', 'Pases', 'Estado', 'RSVP', 'Mesa', 'Código', 'Llegada', 'Acciones'];
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
     headers.forEach((label) => {
@@ -480,6 +531,9 @@ function createGuestTableRow(guest) {
     const statusCell = document.createElement('td');
     statusCell.appendChild(createGuestStatusBadge(guest));
 
+    const rsvpCell = document.createElement('td');
+    rsvpCell.appendChild(createGuestRsvpSummary(guest));
+
     const tableCell = document.createElement('td');
     tableCell.textContent = getGuestTable(guest) || 'Sin mesa';
 
@@ -498,7 +552,7 @@ function createGuestTableRow(guest) {
         createGuestActionButton('delete', 'Eliminar', guest, true)
     );
 
-    row.append(nameCell, contactCell, passesCell, statusCell, tableCell, codeCell, arrivalCell, actionsCell);
+    row.append(nameCell, contactCell, passesCell, statusCell, rsvpCell, tableCell, codeCell, arrivalCell, actionsCell);
     return row;
 }
 
@@ -517,6 +571,7 @@ function createGuestCards(guests) {
         appendGuestCardDetail(details, 'Correo', getDisplayValue(guest.correo ?? guest.email, '—'));
         appendGuestCardDetail(details, 'Teléfono', getDisplayValue(guest.telefono ?? guest.tel ?? guest.phone, '—'));
         appendGuestCardDetail(details, 'Pases', formatNumber(getGuestPasses(guest)));
+        appendGuestCardRsvpDetail(details, guest);
         appendGuestCardDetail(details, 'Mesa', getGuestTable(guest) || 'Sin mesa');
         appendGuestCardDetail(details, 'Código', getGuestCode(guest) || '—');
         appendGuestCardDetail(details, 'Llegada', hasGuestArrival(guest) ? 'Registrada' : 'Pendiente');
@@ -532,6 +587,28 @@ function createGuestCards(guests) {
         list.appendChild(card);
     });
     return list;
+}
+
+function appendGuestCardRsvpDetail(list, guest) {
+    const row = document.createElement('div');
+    const term = document.createElement('dt');
+    const detail = document.createElement('dd');
+    term.textContent = 'RSVP';
+    detail.appendChild(createGuestRsvpSummary(guest));
+    row.append(term, detail);
+    list.appendChild(row);
+}
+
+function createGuestRsvpSummary(guest) {
+    const guestId = String(guest?.id ?? '');
+    return createGuestRsvpOperationalElement(
+        document,
+        rsvpStatesByGuestId.get(guestId) ?? null,
+        {
+            hasConflict: rsvpConflictGuestIds.has(guestId),
+            availability: rsvpOperationsLoadState
+        }
+    );
 }
 
 function appendGuestCardDetail(list, label, value) {

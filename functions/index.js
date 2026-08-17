@@ -24,7 +24,9 @@ export const syncRsvpResponseToGuest = onDocumentWritten({
             logger.error('RSVP reconciliation requires conflict review.', {
                 code: 'rsvp-sync/same-timestamp-conflict',
                 eventId: outcome.eventId,
-                guestId: outcome.guestId
+                guestId: outcome.guestId,
+                conflictId: outcome.conflictId,
+                conflictCreated: outcome.conflictCreated
             });
         }
         return outcome;

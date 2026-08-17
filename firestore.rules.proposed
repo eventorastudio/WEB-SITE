@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Rules propuestas de Fase 5.4. El despliegue se controla exclusivamente mediante
+// Rules propuestas hasta Fase 5.6. El despliegue se controla exclusivamente mediante
 // el archivo canónico indicado en firebase.json.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -700,6 +700,16 @@ service cloud.firestore {
           || validPublicRsvpResponseWrite(eventId, token);
         allow update: if validPublicRsvpResponseUpdate(eventId, token);
         allow delete: if false;
+      }
+
+      match /rsvpState/{guestId} {
+        allow get, list: if isInternalReader();
+        allow create, update, delete: if false;
+      }
+
+      match /rsvpConflicts/{conflictId} {
+        allow get, list: if isInternalReader();
+        allow create, update, delete: if false;
       }
 
       match /invitados/{guestId} {

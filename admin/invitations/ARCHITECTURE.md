@@ -1,4 +1,4 @@
-# Invitation Builder · Arquitectura de Fases 1 a 5.5
+# Invitation Builder · Arquitectura de Fases 1 a 5.6
 
 ## Alcance
 
@@ -101,6 +101,20 @@ La comparación por `respondedAt` ignora respuestas antiguas, convierte retries
 idénticos en no-op y reporta sin overwrite un empate con datos distintos. State,
 guest y agregado se confirman o abortan juntos. La arquitectura detallada y su
 suite de diez casos Emulator están en `docs/PHASE_5_5_RSVP_RECONCILIATION.md`.
+
+### Estado operativo y conflictos RSVP
+
+Fase 5.6 hace consultables los empates reales mediante
+`eventos/{eventId}/rsvpConflicts/{conflictId}`. El ID SHA-256 es determinista y
+no contiene bearer; cada documento guarda sólo event, guest, tipo, timestamp,
+los dos pares status/pases comparables y `createdAt`. La misma transacción crea
+el conflicto una vez y un retry conserva el documento existente.
+
+La pestaña Invitados escucha `rsvpState` y `rsvpConflicts` mediante un servicio
+de sólo lectura. Tabla y tarjetas muestran Confirmado/No asistirá/Pendiente,
+pases exactos de state e indicador de conflicto, siempre separados de Estado y
+Llegada. Rules conceden GET/LIST sólo a roles internos y niegan toda escritura
+de cliente. El detalle ejecutable está en `docs/PHASE_5_6_RSVP_OPERATIONS.md`.
 
 ### Modelo de evento real
 
@@ -955,9 +969,11 @@ reparación administrativa, sin borrar responses históricas.
 11. Fase 5.5 completada localmente: sincronización confiable e idempotente de
     respuesta al invitado, estado privado por `guestId`, agregado canónico y
     preservación estricta de pases operativos, check-in y QR.
-12. Fase 6: appearance avanzada y editor del tema Personalizada.
-13. Fase 7: persistencia del resto del draft, debounce y autosave.
-14. Fase 8: validación, snapshot publicado y URL de producción.
-15. Fase 9: edición post-publicación, versiones, rollback y auditoría.
+12. Fase 5.6 completada localmente: conflicto privado idempotente y estado RSVP
+    observable en ADMIN, sin edición manual.
+13. Fase 6: appearance avanzada y editor del tema Personalizada.
+14. Fase 7: persistencia del resto del draft, debounce y autosave.
+15. Fase 8: validación, snapshot publicado y URL de producción.
+16. Fase 9: edición post-publicación, versiones, rollback y auditoría.
 
-No se implementó ninguna fase posterior a Fase 5.5.
+No se implementó ninguna fase posterior a Fase 5.6.

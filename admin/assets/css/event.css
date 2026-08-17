@@ -435,7 +435,7 @@ select.form-control { padding-right: 42px; cursor: pointer; }
 
 .guests-grid { min-height: 1px; }
 .guest-table-wrapper { overflow-x: auto; border: 1px solid var(--event-border); border-radius: var(--event-radius); background: var(--event-surface); box-shadow: var(--event-shadow-xs); }
-.guest-table { width: 100%; min-width: 940px; border-collapse: collapse; color: var(--event-text); font-size: 0.8rem; }
+.guest-table { width: 100%; min-width: 1080px; border-collapse: collapse; color: var(--event-text); font-size: 0.8rem; }
 .guest-table th { padding: 13px 14px; border-bottom: 1px solid var(--event-border); background: var(--event-surface-muted); color: var(--event-muted); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.075em; text-align: left; text-transform: uppercase; white-space: nowrap; }
 .guest-table td { padding: 14px; border-bottom: 1px solid var(--event-border); vertical-align: middle; }
 .guest-table tbody tr { transition: background 0.18s ease; }
@@ -450,6 +450,10 @@ select.form-control { padding-right: 42px; cursor: pointer; }
 .guest-status--pendiente { background: var(--warning-subtle); color: var(--warning); }
 .guest-status--no_asistira { background: var(--danger-subtle); color: var(--danger); }
 .guest-status--llego { background: var(--info-subtle); color: var(--info); }
+.guest-rsvp-operational { display: grid; justify-items: start; gap: 4px; min-width: 112px; }
+.guest-rsvp-passes { color: var(--event-muted); font-size: 0.68rem; white-space: nowrap; }
+.guest-rsvp-conflict { display: inline-flex !important; align-items: center; min-height: 22px; padding: 3px 7px; border: 1px solid var(--danger); border-radius: 999px; background: var(--danger-subtle); color: var(--danger); font-size: 0.63rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+.guest-card dd .guest-rsvp-operational { justify-items: end; }
 .guest-actions-cell, .guest-card-actions { display: flex; align-items: center; gap: 6px; }
 .guest-action { min-width: 44px; min-height: 36px; padding: 7px 9px; border: 1px solid var(--event-border); border-radius: 8px; background: var(--event-surface); color: var(--event-text); cursor: pointer; font: inherit; font-size: 0.71rem; font-weight: 700; transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease; }
 .guest-action:hover, .guest-action:focus-visible { border-color: var(--color-gold); background: var(--primary-subtle); color: var(--primary); outline: none; }

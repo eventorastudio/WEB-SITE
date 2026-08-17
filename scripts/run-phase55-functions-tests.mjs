@@ -7,6 +7,17 @@ const environment = {
     FIREBASE_FUNCTIONS_DISCOVERY_OUTPUT_PATH: 'true'
 };
 delete environment.DEBUG;
+const allowedTestFiles = new Set([
+    'tests/firebase-functions-phase55.emulator.mjs',
+    'tests/firebase-functions-phase56.emulator.mjs'
+]);
+const requestedTestFiles = process.argv.slice(2);
+const testFiles = requestedTestFiles.length > 0
+    ? requestedTestFiles
+    : [...allowedTestFiles];
+if (testFiles.some((file) => !allowedTestFiles.has(file))) {
+    throw new Error('phase-functions/invalid-test-file');
+}
 
 const child = spawn(process.execPath, [
     firebaseCli,
@@ -15,7 +26,7 @@ const child = spawn(process.execPath, [
     'demo-eventorastudio-phase55',
     '--only',
     'firestore,functions',
-    'node --test tests/firebase-functions-phase55.emulator.mjs'
+    `node --test ${testFiles.join(' ')}`
 ], {
     cwd: process.cwd(),
     env: environment,

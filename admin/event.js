@@ -2,6 +2,7 @@
 import { authService } from './services/auth-service.js';
 import { eventService } from './services/event-service.js';
 import { guestService } from './services/guest-service.js';
+import { rsvpOperationsService } from './services/rsvp-operations-service.js';
 import { eventStatsService } from './services/event-stats-service.js';
 import { themeService } from './services/theme-service.js';
 import { state } from './core/state.js';
@@ -226,6 +227,7 @@ function createDependencyContainer(eventId, eventData, eventStats, session) {
         event: eventService,
         stats: eventStatsService,
         guest: guestService,
+        rsvpOperations: rsvpOperationsService,
         theme: themeService
     };
 

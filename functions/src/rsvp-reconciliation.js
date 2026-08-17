@@ -1,28 +1,24 @@
+import { createHash } from 'node:crypto';
+
 import { FieldValue } from 'firebase-admin/firestore';
 
 import { createEventStatsMutation } from '../generated/event-stats.js';
 import { RSVP_GUEST_FIELDS, createGuestRsvpPatch } from '../generated/guest-contract.js';
 import {
-    RSVP_RESPONSE_STATUSES,
     deserializeRsvpResponseDocument
 } from '../generated/rsvp-response-contract.js';
 import {
     assertRsvpAccessEventId,
-    assertRsvpAccessGuestId,
     assertRsvpAccessToken
 } from '../generated/rsvp-access-contract.js';
+import {
+    RSVP_STATE_SCHEMA_VERSION,
+    buildRsvpConflictDocument,
+    deserializeRsvpConflictDocument,
+    deserializeRsvpStateDocument
+} from '../generated/rsvp-operations-contract.js';
 
-export const RSVP_STATE_SCHEMA_VERSION = 1;
-
-const STATE_FIELDS = Object.freeze([
-    'eventId',
-    'guestId',
-    'passesConfirmed',
-    'respondedAt',
-    'schemaVersion',
-    'status',
-    'syncedAt'
-]);
+export { RSVP_STATE_SCHEMA_VERSION };
 
 export class RsvpReconciliationError extends Error {
     constructor(code) {
@@ -58,9 +54,14 @@ export async function reconcileCurrentRsvpResponse({
             const order = compareTimestamps(response.respondedAt, currentState.respondedAt);
             if (order < 0) return result('ignored', response);
             if (order === 0) {
-                return sameLogicalResponse(response, currentState)
-                    ? result('unchanged', response)
-                    : result('conflict', response);
+                if (sameLogicalResponse(response, currentState)) return result('unchanged', response);
+                return registerSameTimestampConflict({
+                    transaction,
+                    refs,
+                    response,
+                    currentState,
+                    serverTimestampFactory
+                });
             }
         }
 
@@ -113,7 +114,8 @@ function resolveReferences(db, eventId, guestId, references) {
     return Object.freeze({
         event: eventReference,
         guest: references?.guest ?? eventReference.collection('invitados').doc(guestId),
-        state: references?.state ?? eventReference.collection('rsvpState').doc(guestId)
+        state: references?.state ?? eventReference.collection('rsvpState').doc(guestId),
+        conflicts: references?.conflicts ?? eventReference.collection('rsvpConflicts')
     });
 }
 
@@ -126,19 +128,78 @@ function validateResponse(data, expectedEventId) {
 }
 
 function validateState(data, expectedEventId, expectedGuestId) {
-    if (!hasExactKeys(data, STATE_FIELDS)) fail('rsvp-sync/invalid-state-shape');
-    if (data.schemaVersion !== RSVP_STATE_SCHEMA_VERSION) fail('rsvp-sync/unsupported-state-schema');
-    if (assertEventId(data.eventId) !== expectedEventId) fail('rsvp-sync/state-event-mismatch');
-    if (assertGuestId(data.guestId) !== expectedGuestId) fail('rsvp-sync/state-guest-mismatch');
-    if (!RSVP_RESPONSE_STATUSES.includes(data.status)) fail('rsvp-sync/invalid-state-status');
-    if (!Number.isInteger(data.passesConfirmed) || data.passesConfirmed < 0 || data.passesConfirmed > 999) {
-        fail('rsvp-sync/invalid-state-passes');
+    try {
+        return deserializeRsvpStateDocument(data, { expectedEventId, expectedGuestId });
+    } catch {
+        fail('rsvp-sync/invalid-state');
     }
-    if (data.status === 'accepted' && data.passesConfirmed < 1) fail('rsvp-sync/invalid-state-passes');
-    if (data.status === 'declined' && data.passesConfirmed !== 0) fail('rsvp-sync/invalid-state-passes');
-    assertTimestamp(data.respondedAt, 'rsvp-sync/invalid-state-time');
-    assertTimestamp(data.syncedAt, 'rsvp-sync/invalid-state-sync-time');
-    return data;
+}
+
+async function registerSameTimestampConflict({
+    transaction,
+    refs,
+    response,
+    currentState,
+    serverTimestampFactory
+}) {
+    const conflictId = createConflictId(response, currentState);
+    const conflictReference = refs.conflicts.doc(conflictId);
+    const conflictSnapshot = await transaction.get(conflictReference);
+    if (conflictSnapshot.exists) {
+        const existing = validateConflict(
+            conflictSnapshot.data(),
+            response.eventId,
+            response.guestId
+        );
+        if (!sameConflict(existing, currentState, response)) fail('rsvp-sync/conflict-record-mismatch');
+        return result('conflict', response, { conflictId, conflictCreated: false });
+    }
+
+    transaction.set(conflictReference, buildRsvpConflictDocument({
+        eventId: response.eventId,
+        guestId: response.guestId,
+        respondedAt: response.respondedAt,
+        canonical: comparable(currentState),
+        candidate: comparable(response),
+        createdAt: serverTimestampFactory()
+    }));
+    return result('conflict', response, { conflictId, conflictCreated: true });
+}
+
+function validateConflict(data, expectedEventId, expectedGuestId) {
+    try {
+        return deserializeRsvpConflictDocument(data, { expectedEventId, expectedGuestId });
+    } catch {
+        fail('rsvp-sync/invalid-conflict-record');
+    }
+}
+
+function createConflictId(response, currentState) {
+    const timestamp = assertTimestamp(response.respondedAt, 'rsvp-sync/invalid-response-time');
+    const identity = JSON.stringify([
+        response.eventId,
+        response.guestId,
+        timestamp.seconds,
+        timestamp.nanoseconds,
+        currentState.status,
+        currentState.passesConfirmed,
+        response.status,
+        response.passesConfirmed
+    ]);
+    return `RSVP-CONFLICT-${createHash('sha256').update(identity).digest('hex')}`;
+}
+
+function sameConflict(existing, currentState, response) {
+    return compareTimestamps(existing.respondedAt, response.respondedAt) === 0
+        && sameLogicalResponse(existing.canonical, currentState)
+        && sameLogicalResponse(existing.candidate, response);
+}
+
+function comparable(value) {
+    return Object.freeze({
+        status: value.status,
+        passesConfirmed: value.passesConfirmed
+    });
 }
 
 function sameLogicalResponse(response, state) {
@@ -174,14 +235,6 @@ function assertEventId(value) {
     }
 }
 
-function assertGuestId(value) {
-    try {
-        return assertRsvpAccessGuestId(value);
-    } catch {
-        fail('rsvp-sync/invalid-guest-id');
-    }
-}
-
 function assertToken(value) {
     try {
         return assertRsvpAccessToken(value);
@@ -190,18 +243,13 @@ function assertToken(value) {
     }
 }
 
-function hasExactKeys(value, expected) {
-    if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
-    const keys = Object.keys(value).sort();
-    return keys.length === expected.length && expected.every((field, index) => field === keys[index]);
-}
-
-function result(status, response) {
+function result(status, response, details = {}) {
     return Object.freeze({
         status,
         eventId: response.eventId,
         guestId: response.guestId,
-        respondedAt: response.respondedAt
+        respondedAt: response.respondedAt,
+        ...details
     });
 }
 
