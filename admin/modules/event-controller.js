@@ -546,11 +546,7 @@ function createGuestTableRow(guest) {
 
     const actionsCell = document.createElement('td');
     actionsCell.className = 'guest-actions-cell';
-    actionsCell.append(
-        createGuestActionButton('view', 'Ver', guest),
-        createGuestActionButton('edit', 'Editar', guest),
-        createGuestActionButton('delete', 'Eliminar', guest, true)
-    );
+    actionsCell.append(...guestActionButtons(guest));
 
     row.append(nameCell, contactCell, passesCell, statusCell, rsvpCell, tableCell, codeCell, arrivalCell, actionsCell);
     return row;
@@ -578,11 +574,7 @@ function createGuestCards(guests) {
 
         const actions = document.createElement('footer');
         actions.className = 'guest-card-actions';
-        actions.append(
-            createGuestActionButton('view', 'Ver', guest),
-            createGuestActionButton('edit', 'Editar', guest),
-            createGuestActionButton('delete', 'Eliminar', guest, true)
-        );
+        actions.append(...guestActionButtons(guest));
         card.append(header, details, actions);
         list.appendChild(card);
     });
@@ -638,6 +630,18 @@ function createGuestActionButton(action, label, guest, isDanger = false) {
     button.textContent = label;
     button.setAttribute('aria-label', `${label}: ${getGuestName(guest)}`);
     return button;
+}
+
+function guestActionButtons(guest) {
+    const actions = [
+        createGuestActionButton('view', 'Ver', guest),
+        createGuestActionButton('edit', 'Editar', guest)
+    ];
+    if (deps?.eventContext?.permissions?.canCopyInvitation) {
+        actions.push(createGuestActionButton('copy-invitation', 'Copiar invitación', guest));
+    }
+    actions.push(createGuestActionButton('delete', 'Eliminar', guest, true));
+    return actions;
 }
 
 function getFilteredGuests(guests) {
@@ -743,7 +747,60 @@ function handleGuestListAction(event) {
         openGuestModal('edit', guest);
     } else if (button.dataset.guestAction === 'delete') {
         deleteGuestWithConfirmation(guest, button);
+    } else if (button.dataset.guestAction === 'copy-invitation') {
+        void copyGuestInvitation(guest, button);
     }
+}
+
+async function copyGuestInvitation(guest, button) {
+    const service = deps.services.personalizedInvitation;
+    if (!guest?.id || typeof service?.createGuestInvitationUrl !== 'function') return;
+    const idleLabel = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Copiando…';
+    try {
+        const invitation = await service.createGuestInvitationUrl({
+            eventId: deps.eventContext.eventId,
+            guestId: guest.id
+        });
+        await writeClipboard(invitation.url);
+        deps.ui.showToast({
+            title: 'Invitación copiada',
+            message: `El enlace personalizado de ${getGuestName(guest)} está listo para compartir.`,
+            type: 'success'
+        });
+    } catch (error) {
+        console.error('[Event Controller] No se pudo copiar la invitación personalizada:', error);
+        const unavailable = ['personalized-invitation/access-unavailable', 'personalized-invitation/not-published']
+            .includes(String(error?.code ?? error?.message ?? ''));
+        deps.ui.showToast({
+            title: 'No se pudo copiar la invitación',
+            message: unavailable
+                ? 'Publica la invitación y verifica que el invitado tenga un RSVP Access activo.'
+                : 'Revisa el RSVP Access del invitado e inténtalo nuevamente.',
+            type: 'error'
+        });
+    } finally {
+        button.disabled = false;
+        button.textContent = idleLabel;
+    }
+}
+
+async function writeClipboard(value) {
+    if (typeof navigator.clipboard?.writeText === 'function') {
+        await navigator.clipboard.writeText(value);
+        return;
+    }
+    const control = document.createElement('textarea');
+    control.value = value;
+    control.setAttribute('readonly', '');
+    control.style.position = 'fixed';
+    control.style.opacity = '0';
+    document.body.append(control);
+    control.select();
+    const copied = document.execCommand?.('copy') === true;
+    control.remove();
+    if (!copied) throw new Error('personalized-invitation/clipboard-unavailable');
 }
 
 function openGuestModal(mode, guest = null) {

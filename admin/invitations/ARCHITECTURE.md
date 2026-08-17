@@ -1,8 +1,8 @@
-# Invitation Builder · Arquitectura de Fases 1 a 6.3
+# Invitation Builder · Arquitectura de Fases 1 a 6.4
 
 ## Alcance
 
-Las fases 1 a 6.3 implementan una aplicación administrativa dedicada para
+Las fases 1 a 6.4 implementan una aplicación administrativa dedicada para
 seleccionar un evento existente, paquete, colección y secciones; editar contenido
 canónico, logística y multimedia estructurada por rol; y comprobar el resultado
 en una preview real. El draft general, multimedia y la configuración RSVP usan
@@ -828,6 +828,21 @@ del Builder. Nunca cae al draft: ausencia, key incorrecta o shape inválido
 producen “Invitación no disponible”. Rules permite sólo GET exacto público y
 deniega LIST/query y writes públicos.
 
+### Invitación personalizada · Fase 6.4
+
+La ruta pública admite opcionalmente `token={rsvpToken}`. Primero carga la misma
+proyección publicada de Fase 6.3 y después reutiliza `PublicRsvpAccessLoader`;
+nunca consulta `invitados`. Sólo un Access del mismo evento, activo y vigente se
+reduce a `{ displayName, passLimit }` y activa una bienvenida personalizada con
+CTA a `/rsvp/?event={eventId}&token={rsvpToken}`. Un token ausente, inválido,
+revocado, expirado o cross-event conserva exactamente el render genérico.
+
+Guest Manager muestra **Copiar invitación** únicamente a roles con
+`invitations:edit`. El servicio administrativo lee el `publicKey` activo y el
+RSVP Access vigente del invitado para construir el enlace; no genera ni rota
+tokens. Las Rules no cambiaron: la validación pública estricta de `rsvpAccess`
+ya existía y sus LIST/writes continúan privados.
+
 Fase 4.6 conserva la capa de upload bajo
 `eventos/{eventId}/invitacion/media/{role}/{mediaId}-{objectVersion}.{ext}`.
 Firestore conserva el `storagePath` estable y metadata; `downloadUrl` sólo existe
@@ -1020,6 +1035,8 @@ reparación administrativa, sin borrar responses históricas.
     transacción, deduplicación semántica y Rules privadas.
 15. Fase 6.3 completada localmente: publicKey estable, proyección sanitizada,
     runtime público compartido y GET exacto sin queries.
-16. Fase 6.4 y posteriores: pendientes; no iniciadas.
+16. Fase 6.4 completada localmente: personalización opcional desde RSVP Access,
+    CTA RSVP seguro y enlace copiable desde Guest Manager.
+17. Fase 6.5 y posteriores: pendientes; no iniciadas.
 
-No se implementó ninguna fase posterior a Fase 6.3.
+No se implementó ninguna fase posterior a Fase 6.4.

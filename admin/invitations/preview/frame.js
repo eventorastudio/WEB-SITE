@@ -9,7 +9,8 @@ import {
     formatInvitationEventLine,
     prepareBuilderTemplate
 } from '../core/template-binding-registry.js?v=phase54a-rsvp-time-20260817';
-import { PublicInvitationPage } from '../../../invitacion/public-invitation-page.js?v=phase63-public-invitation-20260817';
+import { PublicInvitationPage } from '../../../invitacion/public-invitation-page.js?v=phase64-personalized-invitation-20260817';
+import { applyPublicInvitationPersonalization } from '../../../invitacion/public-invitation-personalization.js?v=phase64-personalized-invitation-20260817';
 
 const parentOrigin = window.location.origin;
 const publicRuntime = document.documentElement.dataset.invitationRuntime === 'public';
@@ -195,6 +196,9 @@ function applyPayload(payload) {
     }
     else applyTemplateContentBindings(document, payload.theme.id, payload.draft);
     applySectionVisibility(payload.sections, payload.enabledSections, payload.sectionGroups);
+    if (publicRuntime && payload.personalization) {
+        applyPublicInvitationPersonalization(document, payload.personalization, payload.rsvpUrl);
+    }
     renderCountdown(payload.draft);
     const title = resolveIdentity(payload.draft.content);
     document.title = publicRuntime

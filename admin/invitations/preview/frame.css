@@ -6,6 +6,58 @@ html, body { min-height: 100%; max-inline-size: 100%; overflow-x: clip; }
 [data-builder-demo-container="hidden"],
 [data-builder-event-specific-demo="hidden"] { display: none !important; }
 [data-builder-phase3-demo="hidden"] { display: none !important; }
+.public-invitation-personalization {
+    position: sticky !important;
+    z-index: 2147483000 !important;
+    top: 0 !important;
+    width: 100% !important;
+    min-height: 4.25rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: clamp(1rem, 4vw, 3rem) !important;
+    margin: 0 !important;
+    padding: 0.75rem clamp(1rem, 4vw, 2rem) !important;
+    border: 0 !important;
+    border-bottom: 1px solid rgba(167, 128, 72, 0.35) !important;
+    background: rgba(255, 253, 248, 0.96) !important;
+    box-shadow: 0 0.4rem 1.4rem rgba(34, 27, 18, 0.1) !important;
+    color: #211d18 !important;
+    font-family: Poppins, "Segoe UI", sans-serif !important;
+    text-align: left !important;
+    backdrop-filter: blur(14px);
+}
+.public-invitation-personalization > div { display: grid !important; gap: 0.12rem !important; }
+.public-invitation-personalization span,
+.public-invitation-personalization small {
+    color: #786b5a !important;
+    font: 600 0.62rem/1.35 Poppins, "Segoe UI", sans-serif !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+}
+.public-invitation-personalization strong {
+    color: #211d18 !important;
+    font: 600 clamp(0.95rem, 3vw, 1.2rem)/1.25 Georgia, "Times New Roman", serif !important;
+}
+.public-invitation-personalization__cta {
+    min-height: 2.5rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0.65rem 1rem !important;
+    border: 1px solid #a78048 !important;
+    border-radius: 999px !important;
+    background: #a78048 !important;
+    color: #fff !important;
+    font: 700 0.66rem/1 Poppins, "Segoe UI", sans-serif !important;
+    letter-spacing: 0.04em !important;
+    text-decoration: none !important;
+    text-transform: uppercase !important;
+}
+@media (max-width: 34rem) {
+    .public-invitation-personalization { justify-content: space-between !important; gap: 0.7rem !important; }
+    .public-invitation-personalization__cta { max-width: 8.5rem !important; text-align: center !important; }
+}
 [data-invitation-bind="identity"],
 [data-invitation-bind="identity"] * {
     max-inline-size: 100%;

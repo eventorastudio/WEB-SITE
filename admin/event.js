@@ -3,6 +3,7 @@ import { authService } from './services/auth-service.js';
 import { eventService } from './services/event-service.js';
 import { guestService } from './services/guest-service.js';
 import { rsvpOperationsService } from './services/rsvp-operations-service.js';
+import { personalizedInvitationService } from './services/personalized-invitation-service.js?v=phase64-personalized-invitation-20260817';
 import { eventStatsService } from './services/event-stats-service.js';
 import { themeService } from './services/theme-service.js';
 import { state } from './core/state.js';
@@ -23,7 +24,7 @@ import { initThemeBuilder, destroy as destroyThemeBuilder } from './modules/them
 import {
     initEventController,
     destroy as destroyEventController
-} from './modules/event-controller.js';
+} from './modules/event-controller.js?v=phase64-personalized-invitation-20260817';
 import { initQrManager, destroyQrManager } from './modules/qr/qr-manager.js';
 
 let activeModulesDestroyers = [];
@@ -228,6 +229,7 @@ function createDependencyContainer(eventId, eventData, eventStats, session) {
         stats: eventStatsService,
         guest: guestService,
         rsvpOperations: rsvpOperationsService,
+        personalizedInvitation: personalizedInvitationService,
         theme: themeService
     };
 
@@ -240,7 +242,8 @@ function createDependencyContainer(eventId, eventData, eventStats, session) {
         permissions: {
             canEdit: hasPermission(session.roleContext, PERMISSIONS.EVENTS_EDIT),
             canDelete: hasPermission(session.roleContext, PERMISSIONS.EVENTS_EDIT),
-            canExport: hasPermission(session.roleContext, PERMISSIONS.QR_EXPORT)
+            canExport: hasPermission(session.roleContext, PERMISSIONS.QR_EXPORT),
+            canCopyInvitation: hasPermission(session.roleContext, PERMISSIONS.INVITATIONS_EDIT)
         },
         settings: { currency: 'MXN', timezone: 'America/Monterrey' }
     };
