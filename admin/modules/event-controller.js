@@ -754,7 +754,14 @@ function handleGuestListAction(event) {
 
 async function copyGuestInvitation(guest, button) {
     const service = deps.services.personalizedInvitation;
-    if (!guest?.id || typeof service?.createGuestInvitationUrl !== 'function') return;
+    if (!guest?.id || typeof service?.createGuestInvitationUrl !== 'function') {
+        deps.ui.showToast({
+            title: 'No se pudo copiar la invitaciÃ³n',
+            message: 'El servicio para generar invitaciones personalizadas no estÃ¡ disponible.',
+            type: 'error'
+        });
+        return;
+    }
     const idleLabel = button.textContent;
     button.disabled = true;
     button.textContent = 'Copiando…';
@@ -771,13 +778,19 @@ async function copyGuestInvitation(guest, button) {
         });
     } catch (error) {
         console.error('[Event Controller] No se pudo copiar la invitación personalizada:', error);
-        const unavailable = ['personalized-invitation/access-unavailable', 'personalized-invitation/not-published']
-            .includes(String(error?.code ?? error?.message ?? ''));
+        const code = String(error?.code ?? error?.message ?? '');
+        const unavailable = code === 'personalized-invitation/not-published';
+        const accessCreateFailed = [
+            'personalized-invitation/access-create-unavailable',
+            'personalized-invitation/access-create-failed'
+        ].includes(code);
         deps.ui.showToast({
             title: 'No se pudo copiar la invitación',
             message: unavailable
-                ? 'Publica la invitación y verifica que el invitado tenga un RSVP Access activo.'
-                : 'Revisa el RSVP Access del invitado e inténtalo nuevamente.',
+                ? 'Publica la invitación antes de copiar el enlace personalizado.'
+                : accessCreateFailed
+                    ? 'No se pudo crear un RSVP Access activo para este invitado. Inténtalo nuevamente.'
+                    : 'Revisa el RSVP Access del invitado e inténtalo nuevamente.',
             type: 'error'
         });
     } finally {

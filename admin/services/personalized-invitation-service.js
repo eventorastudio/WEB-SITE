@@ -9,6 +9,7 @@ import {
     deserializeRsvpAccessDocument,
     isRsvpAccessExpired
 } from '../../shared/rsvp-access-contract.js?v=phase64-personalized-invitation-20260817';
+import { rsvpAccessService } from '../invitations/services/rsvp-access-service.js?v=phase71-invitation-sharing-20260817';
 import { buildPersonalizedInvitationUrl } from '../../invitacion/public-invitation-route.js?v=phase64-personalized-invitation-20260817';
 
 function serviceError(code, cause = null) {
@@ -48,12 +49,14 @@ export class PersonalizedInvitationService {
     constructor({
         gateway = null,
         gatewayFactory = createFirebasePersonalizedInvitationGateway,
+        accessService = rsvpAccessService,
         now = () => new Date(),
         publicBaseUrl
     } = {}) {
         this.gateway = gateway;
         this.gatewayFactory = gatewayFactory;
         this.gatewayPromise = null;
+        this.accessService = accessService;
         this.now = now;
         this.publicBaseUrl = publicBaseUrl;
     }
@@ -85,23 +88,20 @@ export class PersonalizedInvitationService {
         let candidates;
         try {
             publication = deserializeInvitationPublication(publicationDocument, safeEventId);
-            candidates = (accessRecords ?? []).map(({ token, document }) => ({
-                token: assertRsvpAccessToken(token),
-                access: deserializeRsvpAccessDocument(document, {
-                    expectedEventId: safeEventId,
-                    expectedGuestId: safeGuestId
-                })
-            })).filter(({ access }) => access.active && !isRsvpAccessExpired(access.expiresAt, this.now()));
+            candidates = findReusableAccessCandidates(accessRecords, {
+                eventId: safeEventId,
+                guestId: safeGuestId,
+                now: this.now()
+            });
         } catch (error) {
             throw serviceError('personalized-invitation/invalid-source', error);
         }
         if (!isInvitationPublicKey(publication.publicKey)) {
             throw serviceError('personalized-invitation/not-published');
         }
-        if (candidates.length === 0) throw serviceError('personalized-invitation/access-unavailable');
         if (candidates.length > 1) throw serviceError('personalized-invitation/ambiguous-access');
 
-        const selected = candidates[0];
+        const selected = candidates[0] ?? await this.createActiveAccess(safeEventId, safeGuestId);
         const options = {
             eventId: safeEventId,
             publicKey: publication.publicKey,
@@ -120,6 +120,47 @@ export class PersonalizedInvitationService {
             })
         });
     }
+
+    async createActiveAccess(eventId, guestId) {
+        const create = this.accessService?.create;
+        if (typeof create !== 'function') {
+            throw serviceError('personalized-invitation/access-create-unavailable');
+        }
+        try {
+            const result = await create.call(this.accessService, { eventId, guestId });
+            const token = assertRsvpAccessToken(result?.token);
+            const access = deserializeRsvpAccessDocument(result?.access, {
+                expectedEventId: eventId,
+                expectedGuestId: guestId
+            });
+            if (!access.active || isRsvpAccessExpired(access.expiresAt, this.now())) {
+                throw serviceError('personalized-invitation/access-create-verification-failed');
+            }
+            return { token, access };
+        } catch (error) {
+            if (error?.code === 'personalized-invitation/access-create-unavailable') throw error;
+            throw serviceError('personalized-invitation/access-create-failed', error);
+        }
+    }
+}
+
+function findReusableAccessCandidates(records, { eventId, guestId, now } = {}) {
+    const candidates = [];
+    for (const record of records ?? []) {
+        try {
+            const token = assertRsvpAccessToken(record?.token);
+            const access = deserializeRsvpAccessDocument(record?.document, {
+                expectedEventId: eventId,
+                expectedGuestId: guestId
+            });
+            if (access.active && !isRsvpAccessExpired(access.expiresAt, now)) {
+                candidates.push(Object.freeze({ token, access }));
+            }
+        } catch {
+            // Invalid Access records are never reused for shareable invitation links.
+        }
+    }
+    return Object.freeze(candidates);
 }
 
 export const personalizedInvitationService = new PersonalizedInvitationService({
