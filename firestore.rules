@@ -1115,9 +1115,10 @@ service cloud.firestore {
       }
 
       match /invitacionPublic/{publicKey} {
-        allow get: if validInvitationPublicKey(publicKey)
-          && resource.data.eventId == eventId
-          && resource.data.publicKey == publicKey;
+        allow get: if isThemeEditor()
+          || (validInvitationPublicKey(publicKey)
+            && resource.data.eventId == eventId
+            && resource.data.publicKey == publicKey);
         allow list: if false;
         allow create, update: if isThemeEditor()
           && validInvitationPublicProjection(eventId, publicKey);
