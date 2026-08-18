@@ -2052,3 +2052,32 @@ function setWidth(id, percentage) {
 /**
  * Formatea un contador usando la localización de la aplicación.
  * @param {number} value - Número a formatear.
+ * @returns {string} Número visible.
+ */
+function formatNumber(value) {
+    return new Intl.NumberFormat('es-MX').format(toSafeNumber(value, 0));
+}
+
+/**
+ * Renderiza solamente las zonas que dependen de estadísticas de invitados.
+ * @returns {void}
+ */
+function renderGuestsAndStatistics() {
+    const eventData = getEventData();
+    renderStatistics(eventData);
+    renderGuests(eventData);
+}
+
+
+/* ==========================================================================
+ * Cleanup
+ * ========================================================================== */
+
+/**
+ * Ejecuta de forma defensiva una colección de callbacks de limpieza.
+ * @param {Function[]} cleanups - Callbacks a ejecutar.
+ * @returns {void}
+ */
+function runCleanups(cleanups) {
+    cleanups.forEach((cleanup) => cleanup());
+}
