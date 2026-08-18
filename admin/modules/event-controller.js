@@ -55,6 +55,7 @@ let whatsAppShareIndex = 0;
 let whatsAppShareReady = 0;
 let whatsAppShareSkipped = 0;
 const whatsAppPreparedGuestIds = new Set();
+const whatsAppSkippedGuestIds = new Set();
 
 /* ========================================================================== 
  * API Pública
@@ -117,6 +118,7 @@ export function destroy() {
     whatsAppShareReady = 0;
     whatsAppShareSkipped = 0
     whatsAppPreparedGuestIds.clear();
+    whatsAppSkippedGuestIds.clear();
     hasGuestSnapshot = false;
     eventDataOverride = null;
     guestLoadState = 'idle';
@@ -792,6 +794,7 @@ function handleShareSelectedGuests(event) {
     whatsAppShareReady = 0;
     whatsAppShareSkipped = 0;
     whatsAppPreparedGuestIds.clear();
+    whatsAppSkippedGuestIds.clear();
 
     if (whatsAppShareQueue.length === 0) {
         deps.ui.showToast({
@@ -847,6 +850,12 @@ function renderWhatsAppShareCurrent() {
     if (openButton) {
         openButton.disabled = !isValidPhone;
     }
+
+    const backButton = getElement('btn-whatsapp-share-back');
+
+    if (backButton) {
+        backButton.disabled = whatsAppShareIndex === 0;
+    }
 }
 
 function handleWhatsAppShareOverlayClick(event) {
@@ -864,8 +873,10 @@ function handleWhatsAppShareNext(event) {
     const rawPhone = guest.telefono ?? guest.tel ?? guest.phone ?? '';
     const normalizedPhone = normalizeWhatsAppPhone(rawPhone);
 
-    if (!normalizedPhone) {
-        whatsAppShareSkipped += 1;
+
+    if (!normalizedPhone && !whatsAppSkippedGuestIds.has(guest.id)) {
+    whatsAppSkippedGuestIds.add(guest.id);
+    whatsAppShareSkipped += 1;
     }
 
     whatsAppShareIndex += 1;
@@ -874,6 +885,31 @@ function handleWhatsAppShareNext(event) {
         renderWhatsAppShareSummary();
         return;
     }
+
+    renderWhatsAppShareCurrent();
+}
+
+function handleWhatsAppShareBack(event) {
+    event.preventDefault();
+
+    if (whatsAppShareIndex <= 0) return;
+
+    whatsAppShareIndex -= 1;
+    renderWhatsAppShareCurrent();
+}
+
+function handleWhatsAppSummaryBack(event) {
+    event.preventDefault();
+
+    if (whatsAppShareQueue.length === 0) return;
+
+    whatsAppShareIndex = whatsAppShareQueue.length - 1;
+
+    const flow = getElement('whatsapp-share-flow');
+    const summary = getElement('whatsapp-share-summary');
+
+    if (summary) summary.hidden = true;
+    if (flow) flow.hidden = false;
 
     renderWhatsAppShareCurrent();
 }
@@ -899,6 +935,7 @@ function finishWhatsAppShare() {
     whatsAppShareReady = 0;
     whatsAppShareSkipped = 0;
     whatsAppPreparedGuestIds.clear();
+    whatsAppSkippedGuestIds.clear();
 
     updateSelectedGuestActions();
     renderGuests(getEventData());
@@ -1576,6 +1613,8 @@ function bindButtons() {
     listen(getElement('modal-whatsapp-share'), 'click', handleWhatsAppShareOverlayClick);
     listen(getElement('btn-whatsapp-share-next'), 'click', handleWhatsAppShareNext);
     listen(getElement('btn-whatsapp-share-open'), 'click', handleWhatsAppShareOpen);
+    listen(getElement('btn-whatsapp-share-back'), 'click', handleWhatsAppShareBack);
+    listen(getElement('btn-whatsapp-summary-back'), 'click', handleWhatsAppSummaryBack);
     listen(getElement('btn-whatsapp-share-finish'), 'click', finishWhatsAppShare);
     listen(getElement('guest-search'), 'input', handleGuestSearchInput);
     listen(getElement('guest-filter-status'), 'change', handleGuestFilterChange);
