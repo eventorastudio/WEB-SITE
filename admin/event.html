@@ -650,6 +650,19 @@
                     <div class="data-group"><label>Código interno (ID)</label><p id="conf-codigo" class="mono-text">--</p></div>
                     <div class="data-group"><label>Clave de acceso de seguridad</label><p id="conf-clave" class="mono-text">--</p></div>
                 </div>
+
+                <div class="config-section mt-40">
+                    <h3 class="section-title">Plantilla de Mensaje de WhatsApp</h3>
+                    <p class="section-desc">Personaliza el mensaje para compartir invitaciones. Usa <strong>{nombre}</strong>, <strong>{evento}</strong>, y <strong>{url}</strong> (obligatorio) como placeholders.</p>
+                    <div class="data-group">
+                        <label for="conf-whatsapp-template">Mensaje de WhatsApp</label>
+                        <textarea id="conf-whatsapp-template" class="form-control" rows="4"></textarea>
+                    </div>
+                    <div class="config-actions mt-20">
+                        <button type="button" class="btn-primary ripple" id="btn-save-config">Guardar cambios</button>
+                    </div>
+                </div>
+
                 <div class="danger-zone mt-40">
                     <h3 class="danger-title">Zona de peligro</h3>
                     <p class="danger-desc">Una vez que elimines un evento, no hay vuelta atrás.</p>

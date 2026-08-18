@@ -761,8 +761,8 @@ async function copyGuestInvitation(guest, button) {
     const service = deps.services.personalizedInvitation;
     if (!guest?.id || typeof service?.createGuestInvitationUrl !== 'function') {
         deps.ui.showToast({
-            title: 'No se pudo copiar la invitaciÃ³n',
-            message: 'El servicio para generar invitaciones personalizadas no estÃ¡ disponible.',
+            title: 'No se pudo copiar la invitación',
+            message: 'El servicio para generar invitaciones personalizadas no está disponible.',
             type: 'error'
         });
         return;
@@ -835,9 +835,17 @@ async function sendWhatsAppInvitation(guest, button) {
             guestId: guest.id
         });
 
-        const eventName = getEventName(getEventData());
+        const eventData = getEventData();
+        const eventName = getEventName(eventData);
         const guestName = getGuestName(guest);
-        const message = `Hola ${guestName}, te compartimos tu invitación para ${eventName}: ${invitation.url}`;
+
+        const defaultTemplate = `Hola {nombre}, te compartimos tu invitación para {evento}: {url}`;
+        const template = getDisplayValue(eventData.whatsappTemplate, defaultTemplate);
+
+        const message = template
+            .replaceAll('{nombre}', guestName)
+            .replaceAll('{evento}', eventName)
+            .replaceAll('{url}', invitation.url);
 
         const whatsAppUrl = buildWhatsAppUrl({ phone, message });
 
@@ -944,7 +952,7 @@ async function handleGuestFormSubmit(event) {
     try {
         canonicalPayload = deps.services.guest.normalizeGuestData(payload, { requireName: true, strict: true });
     } catch (error) {
-        console.error('[Event Controller] Datos de invitado no vÃ¡lidos:', error);
+        console.error('[Event Controller] Datos de invitado no válidos:', error);
         deps.ui.showToast({ title: 'Revisa el formulario', message: 'Los datos del invitado no cumplen el formato requerido.', type: 'warning' });
         return;
     }
@@ -1121,7 +1129,7 @@ function formatGuestDate(value) {
 
 /* ========================================================================== 
  * Render Configuración
- * = ========================================================================== */
+ * ========================================================================== */
 
 /**
  * Renderiza la configuración operativa existente del evento.
@@ -1135,6 +1143,10 @@ function renderConfiguration(eventData) {
     setText('conf-acceso', getDisplayValue(eventData.tipoAcceso, 'Por definir'));
     setText('conf-codigo', eventId);
     setText('conf-clave', getDisplayValue(eventData.claveAcceso, 'No configurada'));
+
+    const defaultTemplate = `Hola {nombre}, te compartimos tu invitación para {evento}: {url}`;
+    const whatsAppTemplate = getDisplayValue(eventData.whatsappTemplate, defaultTemplate);
+    setInputValue('conf-whatsapp-template', whatsAppTemplate);
 }
 
 
@@ -1288,6 +1300,7 @@ function bindButtons() {
     listen(getElement('guest-filter-status'), 'change', handleGuestFilterChange);
     listen(getElement('guest-filter-table'), 'change', handleGuestFilterChange);
     listen(getElement('guest-sort'), 'change', handleGuestFilterChange);
+    listen(getElement('btn-save-config'), 'click', handleSaveConfigSubmit);
     listen(document, 'keydown', handleModalEscape);
 }
 
@@ -1387,6 +1400,64 @@ async function handleEditEventSubmit(event) {
         setButtonBusy(saveButton, false);
     }
 }
+
+async function handleSaveConfigSubmit(event) {
+    event.preventDefault();
+    const saveButton = getElement('btn-save-config');
+    const eventId = deps.eventContext.eventId;
+    const newTemplate = getFieldValue('conf-whatsapp-template');
+
+    if (!newTemplate.includes('{url}')) {
+        deps.ui.showToast({
+            title: 'Plantilla no válida',
+            message: 'La plantilla de WhatsApp debe incluir el placeholder {url} para el enlace de la invitación.',
+            type: 'error'
+        });
+        return;
+    }
+
+    if (!eventId || typeof deps.services.event?.updateEvent !== 'function') {
+        deps.ui.showError({
+            title: 'No se puede guardar',
+            description: 'El servicio de eventos no está disponible para esta vista.',
+            code: 'ERR_EVENT_SERVICE_UNAVAILABLE'
+        });
+        return;
+    }
+
+    const payload = { whatsappTemplate: newTemplate };
+    setButtonBusy(saveButton, true);
+    deps.ui.showLoader({ text: 'Guardando plantilla de WhatsApp...' });
+
+    try {
+        await deps.services.event.updateEvent(eventId, payload);
+        eventDataOverride = { ...getEventData(), ...payload };
+        render();
+
+        deps.eventBus.emit(EVENT_TYPES.EVENT_UPDATED, {
+            eventId,
+            eventData: eventDataOverride,
+            timestamp: Date.now()
+        });
+
+        deps.ui.showToast({
+            title: 'Plantilla guardada',
+            message: 'El mensaje de WhatsApp se actualizó correctamente.',
+            type: 'success'
+        });
+    } catch (error) {
+        console.error('[Event Controller] Error al guardar la plantilla de WhatsApp:', error);
+        deps.ui.showError({
+            title: 'No se pudo guardar la plantilla',
+            description: 'Verifica tu conexión e inténtalo nuevamente.',
+            code: 'ERR_WHATSAPP_TEMPLATE_UPDATE'
+        });
+    } finally {
+        deps.ui.hideLoader();
+        setButtonBusy(saveButton, false);
+    }
+}
+
 
 /**
  * Abre la confirmación visual antes de eliminar el evento activo.
@@ -1565,7 +1636,7 @@ function activateTab(target) {
 
 /* ========================================================================== 
  * Helpers
- * = ========================================================================== */
+ * ========================================================================== */
 
 /**
  * Crea la estructura vacía de la caché de elementos del DOM.
@@ -1927,7 +1998,7 @@ function getGuestPasses(guest) {
 /**
  * Clasifica el estado de un invitado según los valores presentes en event.html.
  * @param {Object} guest - Invitado notificado.
- * @returns {'pendiente'|'confirmado'|'no_asistira'|'llego'} Estado canÃ³nico.
+ * @returns {'pendiente'|'confirmado'|'no_asistira'|'llego'} Estado canónico.
  */
 function getGuestStatus(guest) {
     if (Boolean(guest?.llegadaRegistrada || guest?.llego || guest?.checkIn || guest?.horaLlegada)) return 'llego';

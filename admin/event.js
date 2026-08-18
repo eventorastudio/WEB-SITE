@@ -24,7 +24,7 @@ import { initThemeBuilder, destroy as destroyThemeBuilder } from './modules/them
 import {
     initEventController,
     destroy as destroyEventController
-} from './modules/event-controller.js?v=phase72-whatsapp-sharing-20260817';
+} from './modules/event-controller.js?v=phase73-whatsapp-template-20260817'
 import { initQrManager, destroyQrManager } from './modules/qr/qr-manager.js';
 
 let activeModulesDestroyers = [];
