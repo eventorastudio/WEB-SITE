@@ -410,121 +410,40 @@ select.form-control { padding-right: 42px; cursor: pointer; }
 .guest-stat-pill.llegadas { background: var(--info-subtle); border-color: var(--info); }
 
 .guest-toolbar {
-    display: flex;
-    align-items: flex-end;
-    gap: 14px;
-    flex-wrap: nowrap;
-    width: 100%;
-    max-width: 100%;
+    display: grid;
+    grid-template-columns: minmax(230px, 1.2fr) minmax(380px, 1.7fr) auto;
+    gap: 12px;
+    align-items: end;
     margin-bottom: 22px;
-    padding: 18px 16px 14px;
-    overflow-x: auto;
-    overflow-y: hidden;
+    padding: 14px;
     border: 1px solid var(--event-border);
     border-radius: var(--event-radius);
     background: var(--event-surface-muted);
-    scroll-behavior: smooth;
-    overscroll-behavior-inline: contain;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(180, 140, 45, 0.55) transparent;
-}
-.guest-toolbar::-webkit-scrollbar {
-    height: 6px;
-}
-.guest-toolbar::-webkit-scrollbar-track {
-    background: transparent;
-}
-.guest-toolbar::-webkit-scrollbar-thumb {
-    background: rgba(180, 140, 45, 0.45);
-    border-radius: 999px;
-}
-.guest-toolbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(180, 140, 45, 0.7);
 }
 
 .guest-search-box,
 .filter-field { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .filter-label { color: var(--event-muted); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; line-height: 1; text-transform: uppercase; }
-
-.guest-search-box {
-    position: relative;
-    flex: 0 0 260px;
-    min-width: 260px;
-}
+.guest-search-box { position: relative; }
 .guest-search-box .search-icon { position: absolute; bottom: 14px; left: 15px; z-index: 1; color: var(--event-muted); pointer-events: none; }
 .guest-search-box input { padding-left: 43px; background: var(--event-surface); }
 
-.guest-filters {
-    display: flex;
-    align-items: flex-end;
-    gap: 10px;
-    flex: 0 0 auto;
-    flex-wrap: nowrap;
-    min-width: 0;
-}
-.guest-filters .filter-field {
-    flex: 0 0 140px;
-    min-width: 140px;
-}
-
-.guest-actions-main {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 0 0 auto;
-    flex-wrap: nowrap;
-    margin-left: auto;
-}
-.guest-actions-main button {
-    flex: 0 0 auto;
-    white-space: nowrap;
-}
+.guest-filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; min-width: 0; }
+.guest-actions-main { gap: 8px; justify-content: flex-end; }
 .guest-actions-main .btn-secondary,
 .guest-actions-main .btn-primary { min-height: 44px; padding: 0 14px; }
-#btn-share-selected-guests[hidden] {
-    display: none !important;
-}
 
 .guests-grid { min-height: 1px; }
 .guest-table-wrapper { overflow-x: auto; border: 1px solid var(--event-border); border-radius: var(--event-radius); background: var(--event-surface); box-shadow: var(--event-shadow-xs); }
-
-.guest-table { width: max-content; min-width: 100%; border-collapse: collapse; color: var(--event-text); font-size: 0.8rem; }
-.guest-table thead tr { background: var(--event-surface-muted); }
-.guest-table th { padding: 13px 14px; border-bottom: 1px solid var(--event-border); background: transparent; color: var(--event-muted); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.075em; text-align: left; text-transform: uppercase; white-space: nowrap; }
-.guest-table th:first-child { text-align: center; min-width: 88px; }
-.guest-table th:last-child,
-.guest-actions-cell {
-    min-width: max-content;
-    white-space: nowrap;
-}
-.guest-table td { padding: 14px; vertical-align: middle; }
-.guest-table tbody tr {
-    border-bottom: 1px solid rgba(180, 170, 150, 0.28);
-    transition: background 0.18s ease;
-}
-.guest-table tbody tr:hover > td { background: var(--event-surface-muted); }
-.guest-table tbody tr:last-child { border-bottom: none; }
-
+.guest-table { width: max max-content; min-width: 1080px; border-collapse: collapse; color: var(--event-text); font-size: 0.8rem; }
+.guest-table th { padding: 13px 14px; border-bottom: 1px solid var(--event-border); background: var(--event-surface-muted); color: var(--event-muted); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.075em; text-align: left; text-transform: uppercase; white-space: nowrap; }
+.guest-table td { padding: 14px; border-bottom: 1px solid var(--event-border); vertical-align: middle; }
+.guest-table tbody tr { transition: background 0.18s ease; }
+.guest-table tbody tr:hover { background: var(--event-surface-muted); }
+.guest-table tbody tr:last-child td { border-bottom: 0; }
 .guest-table td strong, .guest-table td span, .guest-table td small { display: block; }
 .guest-table td strong { color: var(--event-text); font-size: 0.84rem; }
 .guest-table td small { margin-top: 3px; color: var(--event-muted); font-size: 0.7rem; }
-
-.guest-select-cell {
-    text-align: center;
-    vertical-align: middle !important;
-    padding-left: 14px !important;
-    padding-right: 14px !important;
-}
-.guest-select-checkbox {
-    width: 20px;
-    height: 20px;
-    min-width: 20px;
-    min-height: 20px;
-    cursor: pointer;
-    accent-color: var(--color-gold);
-}
-
 .guest-code-cell { max-width: 150px; overflow: hidden; color: var(--event-muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; text-overflow: ellipsis; white-space: nowrap; }
 .guest-status { display: inline-flex; align-items: center; min-height: 25px; padding: 4px 8px; border-radius: 999px; font-size: 0.67rem; font-weight: 700; letter-spacing: 0.02em; white-space: nowrap; }
 .guest-status--confirmado { background: var(--success-subtle); color: var(--success); }
@@ -535,36 +454,7 @@ select.form-control { padding-right: 42px; cursor: pointer; }
 .guest-rsvp-passes { color: var(--event-muted); font-size: 0.68rem; white-space: nowrap; }
 .guest-rsvp-conflict { display: inline-flex !important; align-items: center; min-height: 22px; padding: 3px 7px; border: 1px solid var(--danger); border-radius: 999px; background: var(--danger-subtle); color: var(--danger); font-size: 0.63rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
 .guest-card dd .guest-rsvp-operational { justify-items: end; }
-
-.guest-card-actions { display: flex; align-items: center; gap: 6px; }
-.guest-actions-cell {
-    display: table-cell !important;
-    vertical-align: middle !important;
-    text-align: center;
-    white-space: nowrap;
-    padding-top: 16px !important;
-    padding-bottom: 16px !important;
-    padding-right: 18px !important;
-    padding-left: 12px !important;
-}
-.guest-actions-cell button[data-guest-action] {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 40px;
-    padding: 8px 12px;
-    text-align: center;
-    line-height: 1.15;
-    white-space: normal;
-    vertical-align: middle;
-}
-.guest-actions-cell button[data-guest-action] + button[data-guest-action] {
-    margin-left: 6px;
-}
-.guest-actions-cell button[data-guest-action]:last-child {
-    margin-right: 4px;
-}
-
+.guest-actions-cell, .guest-card-actions { display: flex; align-items: center; gap: 6px; }
 .guest-action { min-width: 44px; min-height: 36px; padding: 7px 9px; border: 1px solid var(--event-border); border-radius: 8px; background: var(--event-surface); color: var(--event-text); cursor: pointer; font: inherit; font-size: 0.71rem; font-weight: 700; transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease; }
 .guest-action:hover, .guest-action:focus-visible { border-color: var(--color-gold); background: var(--primary-subtle); color: var(--primary); outline: none; }
 .guest-action--danger:hover, .guest-action--danger:focus-visible { border-color: var(--danger); background: var(--danger-subtle); color: var(--danger); }
@@ -796,6 +686,8 @@ body.modal-open { overflow: hidden; }
     .event-wrapper { padding-right: 28px; padding-left: 28px; }
     .event-header { grid-template-columns: auto minmax(0, 1fr); }
     .header-right { grid-column: 1 / -1; justify-content: flex-start; }
+    .guest-toolbar { grid-template-columns: minmax(230px, 1fr) minmax(300px, 1.3fr); }
+    .guest-actions-main { grid-column: 1 / -1; justify-content: flex-start; }
     .editor-layout { grid-template-columns: 1fr; height: auto; min-height: 0; }
     .editor-sidebar { width: 100%; max-height: 420px; border-right: 0; border-bottom: 1px solid var(--event-border); }
     .editor-preview-container { min-height: 700px; }
@@ -810,6 +702,8 @@ body.modal-open { overflow: hidden; }
     .stats-overview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .stats-insight-grid { grid-template-columns: 1fr; }
     .guest-stats-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .guest-toolbar { grid-template-columns: 1fr; }
+    .guest-actions-main { grid-column: auto; justify-content: flex-start; }
     .guest-table-wrapper { display: none; }
     .guest-cards { display: grid; }
     #tab-info, #tab-invitados, #tab-estadisticas, #tab-configuracion { padding: 24px !important; }
@@ -853,7 +747,8 @@ body.modal-open { overflow: hidden; }
     .guest-stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
     .guest-stat-pill { padding: 12px; }
     .guest-stat-pill:last-child { grid-column: span 2; }
-    .guest-actions-main { width: 100%; }
+    .guest-filters { grid-template-columns: 1fr; }
+    .guest-actions-main { display: grid; grid-template-columns: 1fr; width: 100%; }
     .guest-actions-main .btn-primary, .guest-actions-main .btn-secondary { width: 100%; }
     .guest-card-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .guest-action { min-height: 44px; width: 100%; }
@@ -898,4 +793,202 @@ body.modal-open { overflow: hidden; }
     .confirmation-title-row { align-items: flex-start; flex-direction: column; }
     .attendance-visual-card { align-items: flex-start; flex-direction: column; }
     .invitation-coming-soon { min-height: 500px; padding-right: 16px; padding-left: 16px; }
+}
+
+/* ==========================================================
+   Guest Manager - Toolbar horizontal
+   ========================================================== */
+
+.guest-toolbar {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    flex-wrap: nowrap;
+
+    width: 100%;
+    max-width: 100%;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    padding: 18px 16px 14px;
+
+    scroll-behavior: smooth;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+
+    scrollbar-width: thin;
+    scrollbar-color: rgba(180, 140, 45, 0.55) transparent;
+}
+
+.guest-toolbar::-webkit-scrollbar {
+    height: 6px;
+}
+
+.guest-toolbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.guest-toolbar::-webkit-scrollbar-thumb {
+    background: rgba(180, 140, 45, 0.45);
+    border-radius: 999px;
+}
+
+.guest-toolbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(180, 140, 45, 0.7);
+}
+
+
+/* Buscar */
+.guest-search-box {
+    flex: 0 0 260px;
+    min-width: 260px;
+}
+
+
+/* Bloque de filtros */
+.guest-filters {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+}
+
+.guest-filters .filter-field {
+    flex: 0 0 140px;
+    min-width: 140px;
+}
+
+
+/* Botones de acciones */
+.guest-actions-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+
+    margin-left: auto;
+}
+
+.guest-actions-main button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+#btn-share-selected-guests[hidden] {
+    display: none !important;
+}
+
+/* ==========================================================
+   Guest Manager - Separadores de filas
+   ========================================================== */
+
+.guest-table {
+    border-collapse: collapse;
+}
+
+/* La línea pertenece a TODA la fila */
+.guest-table tbody tr {
+    border-bottom: 1px solid rgba(180, 170, 150, 0.28);
+}
+
+.guest-table tbody tr {
+    border-bottom: 1px solid rgba(180, 170, 150, 0.28);
+}
+
+/* Sin línea extra al final */
+.guest-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+
+/* ==========================================================
+   Acciones
+   ========================================================== */
+
+.guest-actions-cell {
+    display: table-cell !important;
+    vertical-align: middle !important;
+    text-align: center;
+    white-space: nowrap;
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+.guest-actions-cell button[data-guest-action] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 40px;
+    padding: 8px 12px;
+
+    text-align: center;
+    line-height: 1.15;
+    white-space: normal;
+    vertical-align: middle;
+}
+
+.guest-actions-cell button[data-guest-action] + button[data-guest-action] {
+    margin-left: 6px;
+}
+
+.guest-actions-cell {
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+.guest-actions-cell button[data-guest-action] + button[data-guest-action] {
+    margin-left: 6px;
+}
+
+/* ==========================================================
+   Guest Manager - Ajustes finales de acciones y selección
+   ========================================================== */
+
+/* Más espacio alrededor de los botones de acciones */
+.guest-actions-cell {
+    padding-top: 16px !important;
+    padding-bottom: 16px !important;
+    padding-right: 18px !important;
+    padding-left: 12px !important;
+}
+
+/* Evita que Eliminar quede pegado al borde derecho */
+.guest-actions-cell button[data-guest-action]:last-child {
+    margin-right: 4px;
+}
+
+
+/* ==========================================================
+   Checkbox de selección
+   ========================================================== */
+
+.guest-select-checkbox {
+    width: 20px;
+    height: 20px;
+
+    min-width: 20px;
+    min-height: 20px;
+
+    cursor: pointer;
+    accent-color: var(--color-gold);
+}
+
+/* Centra mejor la columna de selección */
+.guest-select-cell {
+    text-align: center;
+    vertical-align: middle !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+}
+
+/* Encabezado "Seleccionar" */
+.guest-table th:first-child {
+    text-align: center;
+    min-width: 88px;
 }
