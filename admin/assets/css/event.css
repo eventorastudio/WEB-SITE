@@ -794,3 +794,91 @@ body.modal-open { overflow: hidden; }
     .attendance-visual-card { align-items: flex-start; flex-direction: column; }
     .invitation-coming-soon { min-height: 500px; padding-right: 16px; padding-left: 16px; }
 }
+
+/* ==========================================================
+   Guest Manager - Toolbar horizontal
+   ========================================================== */
+
+.guest-toolbar {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    flex-wrap: nowrap;
+
+    width: 100%;
+    max-width: 100%;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    padding: 18px 16px 14px;
+
+    scroll-behavior: smooth;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+
+    scrollbar-width: thin;
+    scrollbar-color: rgba(180, 140, 45, 0.55) transparent;
+}
+
+.guest-toolbar::-webkit-scrollbar {
+    height: 6px;
+}
+
+.guest-toolbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.guest-toolbar::-webkit-scrollbar-thumb {
+    background: rgba(180, 140, 45, 0.45);
+    border-radius: 999px;
+}
+
+.guest-toolbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(180, 140, 45, 0.7);
+}
+
+
+/* Buscar */
+.guest-search-box {
+    flex: 0 0 260px;
+    min-width: 260px;
+}
+
+
+/* Bloque de filtros */
+.guest-filters {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+}
+
+.guest-filters .filter-field {
+    flex: 0 0 140px;
+    min-width: 140px;
+}
+
+
+/* Botones de acciones */
+.guest-actions-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+
+    margin-left: auto;
+}
+
+.guest-actions-main button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+#btn-share-selected-guests[hidden] {
+    display: none !important;
+}
