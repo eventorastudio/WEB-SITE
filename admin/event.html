@@ -240,6 +240,10 @@
                     </div>
 
                     <div class="guest-actions-main">
+                        <button type="button" class="btn-secondary ripple" id="btn-share-selected-guests" hidden>
+                            Compartir seleccionados
+                            <span id="selected-guests-count">(0)</span>
+                        </button>
                         <button class="btn-secondary ripple" id="btn-import-excel">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                             Importar Excel
@@ -803,6 +807,96 @@
             <div class="modal-footer" style="flex-direction: column; gap: 12px; padding: 20px 30px 30px;">
                 <button type="button" class="btn-primary" id="btn-download-qr" style="width: 100%; justify-content: center;">Descargar PNG</button>
                 <button type="button" class="btn-secondary" id="btn-copy-link-qr" style="width: 100%; justify-content: center;">Copiar enlace</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: COMPARTIR INVITACIONES POR WHATSAPP -->
+    <div id="modal-whatsapp-share" class="modal-overlay" aria-hidden="true">
+        <div class="modal-container" role="dialog" aria-modal="true" aria-labelledby="modal-whatsapp-share-title">
+
+            <header class="modal-header">
+                <h2 class="modal-title" id="modal-whatsapp-share-title">
+                    Compartir invitaciones
+                </h2>
+
+                <button
+                    class="btn-close-modal"
+                    id="btn-close-whatsapp-share"
+                    type="button"
+                    aria-label="Cerrar"
+                >
+                    ×
+                </button>
+            </header>
+
+            <div class="modal-body">
+
+                <div id="whatsapp-share-flow">
+                    <p id="whatsapp-share-progress">Invitado 1 de 1</p>
+
+                    <div class="data-group">
+                        <label>Invitado</label>
+                        <p id="whatsapp-share-guest-name">--</p>
+                    </div>
+
+                    <div class="data-group">
+                        <label>Teléfono</label>
+                        <p id="whatsapp-share-phone">--</p>
+                    </div>
+
+                    <p id="whatsapp-share-status"></p>
+
+                    <div class="actions-row mt-20">
+                        <button
+                            type="button"
+                            class="btn-secondary ripple"
+                            id="btn-whatsapp-share-next"
+                        >
+                            Siguiente
+                        </button>
+
+                        <button
+                            type="button"
+                            class="btn-primary ripple"
+                            id="btn-whatsapp-share-open"
+                        >
+                            Abrir WhatsApp
+                        </button>
+                    </div>
+                </div>
+
+                <div id="whatsapp-share-summary" hidden>
+                    <h3>Resumen</h3>
+
+                    <div class="data-grid">
+                        <div class="data-group">
+                            <label>Procesados</label>
+                            <p id="whatsapp-summary-total">0</p>
+                        </div>
+
+                        <div class="data-group">
+                            <label>Preparados</label>
+                            <p id="whatsapp-summary-ready">0</p>
+                        </div>
+
+                        <div class="data-group">
+                            <label>Omitidos</label>
+                            <p id="whatsapp-summary-skipped">0</p>
+                        </div>
+                    </div>
+
+                    <div class="actions-row mt-20">
+                        <button
+                            type="button"
+                            class="btn-primary ripple"
+                            id="btn-whatsapp-share-finish"
+                        >
+                            Finalizar
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>

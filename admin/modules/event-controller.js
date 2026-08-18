@@ -49,7 +49,12 @@ let guestFilters = { search: '', status: 'all', table: 'all', sort: 'name-asc' }
 let guestVisibleLimit = 50;
 let guestSearchTimer = null;
 let activeGuestMode = 'create';
-
+const selectedGuestIds = new Set();
+let whatsAppShareQueue = [];
+let whatsAppShareIndex = 0;
+let whatsAppShareReady = 0;
+let whatsAppShareSkipped = 0;
+const whatsAppPreparedGuestIds = new Set();
 
 /* ========================================================================== 
  * API Pública
@@ -93,6 +98,7 @@ export function destroy() {
     closeEventEditModal();
     closeEventDeleteModal();
     closeGuestModal();
+    closeWhatsAppShareModal();
     runCleanups(domCleanups);
     runCleanups(eventBusCleanups);
     guestSubscriptionCleanup?.();
@@ -105,6 +111,12 @@ export function destroy() {
     rsvpOperationsSubscriptionCleanup = null;
     guestSearchTimer = null;
     guestsById.clear();
+    selectedGuestIds.clear();
+    whatsAppShareQueue = [];
+    whatsAppShareIndex = 0;
+    whatsAppShareReady = 0;
+    whatsAppShareSkipped = 0
+    whatsAppPreparedGuestIds.clear();
     hasGuestSnapshot = false;
     eventDataOverride = null;
     guestLoadState = 'idle';
@@ -487,13 +499,23 @@ function renderGuestCollection(container, guests) {
     container.replaceChildren(fragment);
 }
 
+function createGuestSelectionCheckbox(guest) {
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'guest-select-checkbox';
+    checkbox.dataset.guestSelect = guest.id;
+    checkbox.checked = selectedGuestIds.has(guest.id);
+    checkbox.setAttribute('aria-label', `Seleccionar ${getGuestName(guest)}`);
+    return checkbox;
+}
+
 function createGuestTable(guests) {
     const wrapper = document.createElement('div');
     wrapper.className = 'guest-table-wrapper';
     const table = document.createElement('table');
     table.className = 'guest-table';
     table.setAttribute('aria-label', 'Lista de invitados');
-    const headers = ['Invitado', 'Contacto', 'Pases', 'Estado', 'RSVP', 'Mesa', 'Código', 'Llegada', 'Acciones'];
+    const headers = ['Seleccionar', 'Invitado', 'Contacto', 'Pases', 'Estado', 'RSVP', 'Mesa', 'Código', 'Llegada', 'Acciones'];
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
     headers.forEach((label) => {
@@ -513,6 +535,9 @@ function createGuestTable(guests) {
 
 function createGuestTableRow(guest) {
     const row = document.createElement('tr');
+    const selectCell = document.createElement('td');
+    selectCell.className = 'guest-select-cell';
+    selectCell.appendChild(createGuestSelectionCheckbox(guest));
     const nameCell = document.createElement('td');
     const name = document.createElement('strong');
     const date = document.createElement('small');
@@ -550,7 +575,7 @@ function createGuestTableRow(guest) {
     actionsCell.className = 'guest-actions-cell';
     actionsCell.append(...guestActionButtons(guest));
 
-    row.append(nameCell, contactCell, passesCell, statusCell, rsvpCell, tableCell, codeCell, arrivalCell, actionsCell);
+    row.append(selectCell, nameCell, contactCell, passesCell, statusCell, rsvpCell, tableCell, codeCell, arrivalCell, actionsCell);
     return row;
 }
 
@@ -561,9 +586,11 @@ function createGuestCards(guests) {
         const card = document.createElement('article');
         card.className = 'guest-card';
         const header = document.createElement('header');
+        const selectCheckbox = createGuestSelectionCheckbox(guest);
         const title = document.createElement('h3');
+
         title.textContent = getGuestName(guest);
-        header.append(title, createGuestStatusBadge(guest));
+        header.append(selectCheckbox, title, createGuestStatusBadge(guest));
 
         const details = document.createElement('dl');
         appendGuestCardDetail(details, 'Correo', getDisplayValue(guest.correo ?? guest.email, '—'));
@@ -736,6 +763,173 @@ function clearGuestFilters() {
     renderGuests(getEventData());
 }
 
+function updateSelectedGuestActions() {
+    const button = getElement('btn-share-selected-guests');
+    const count = getElement('selected-guests-count');
+    const total = selectedGuestIds.size;
+
+    if (count) {
+        count.textContent = `(${total})`;
+    }
+
+    if (button) {
+        button.hidden = total === 0;
+    }
+}
+
+function buildSelectedGuestQueue() {
+    const guests = Array.from(guestsById.values());
+    const orderedGuests = getFilteredGuests(guests);
+
+    return orderedGuests.filter((guest) => selectedGuestIds.has(guest.id));
+}
+
+function handleShareSelectedGuests(event) {
+    event.preventDefault();
+
+    whatsAppShareQueue = buildSelectedGuestQueue();
+    whatsAppShareIndex = 0;
+    whatsAppShareReady = 0;
+    whatsAppShareSkipped = 0;
+    whatsAppPreparedGuestIds.clear();
+
+    if (whatsAppShareQueue.length === 0) {
+        deps.ui.showToast({
+            title: 'Sin invitados seleccionados',
+            message: 'Selecciona al menos un invitado para compartir.',
+            type: 'warning'
+        });
+        return;
+    }
+
+    openWhatsAppShareModal();
+}
+
+function openWhatsAppShareModal() {
+    const flow = getElement('whatsapp-share-flow');
+    const summary = getElement('whatsapp-share-summary');
+
+    if (flow) flow.hidden = false;
+    if (summary) summary.hidden = true;
+
+    renderWhatsAppShareCurrent();
+    openModal('modal-whatsapp-share');
+}
+
+function closeWhatsAppShareModal() {
+    closeModal('modal-whatsapp-share');
+}
+
+function renderWhatsAppShareCurrent() {
+    const guest = whatsAppShareQueue[whatsAppShareIndex];
+    if (!guest) return;
+
+    const rawPhone = guest.telefono ?? guest.tel ?? guest.phone ?? '';
+    const normalizedPhone = normalizeWhatsAppPhone(rawPhone);
+    const isValidPhone = Boolean(normalizedPhone);
+
+    setText(
+        'whatsapp-share-progress',
+        `Invitado ${whatsAppShareIndex + 1} de ${whatsAppShareQueue.length}`
+    );
+
+    setText('whatsapp-share-guest-name', getGuestName(guest));
+    setText('whatsapp-share-phone', getDisplayValue(rawPhone, 'Sin teléfono'));
+
+    const status = getElement('whatsapp-share-status');
+    if (status) {
+        status.textContent = isValidPhone
+            ? 'Teléfono listo para WhatsApp.'
+            : 'Este invitado no tiene un teléfono válido y será omitido.';
+    }
+
+    const openButton = getElement('btn-whatsapp-share-open');
+    if (openButton) {
+        openButton.disabled = !isValidPhone;
+    }
+}
+
+function handleWhatsAppShareOverlayClick(event) {
+    if (event.target === getElement('modal-whatsapp-share')) {
+        closeWhatsAppShareModal();
+    }
+}
+
+function handleWhatsAppShareNext(event) {
+    event.preventDefault();
+
+    const guest = whatsAppShareQueue[whatsAppShareIndex];
+    if (!guest) return;
+
+    const rawPhone = guest.telefono ?? guest.tel ?? guest.phone ?? '';
+    const normalizedPhone = normalizeWhatsAppPhone(rawPhone);
+
+    if (!normalizedPhone) {
+        whatsAppShareSkipped += 1;
+    }
+
+    whatsAppShareIndex += 1;
+
+    if (whatsAppShareIndex >= whatsAppShareQueue.length) {
+        renderWhatsAppShareSummary();
+        return;
+    }
+
+    renderWhatsAppShareCurrent();
+}
+
+function renderWhatsAppShareSummary() {
+    const flow = getElement('whatsapp-share-flow');
+    const summary = getElement('whatsapp-share-summary');
+
+    if (flow) flow.hidden = true;
+    if (summary) summary.hidden = false;
+
+    setText('whatsapp-summary-total', formatNumber(whatsAppShareQueue.length));
+    setText('whatsapp-summary-ready', formatNumber(whatsAppShareReady));
+    setText('whatsapp-summary-skipped', formatNumber(whatsAppShareSkipped));
+}
+
+function finishWhatsAppShare() {
+    closeWhatsAppShareModal();
+
+    selectedGuestIds.clear();
+    whatsAppShareQueue = [];
+    whatsAppShareIndex = 0;
+    whatsAppShareReady = 0;
+    whatsAppShareSkipped = 0;
+    whatsAppPreparedGuestIds.clear();
+
+    updateSelectedGuestActions();
+    renderGuests(getEventData());
+}
+
+function handleGuestSelectionChange(event) {
+    const checkbox = event.target instanceof Element
+        ? event.target.closest('[data-guest-select]')
+        : null;
+
+    if (!(checkbox instanceof HTMLInputElement)) return;
+
+    const guestId = checkbox.dataset.guestSelect;
+    if (!guestId) return;
+
+    if (checkbox.checked) {
+        selectedGuestIds.add(guestId);
+    } else {
+        selectedGuestIds.delete(guestId);
+    }
+
+    const guestsList = getElement('guests-list');
+    guestsList?.querySelectorAll('[data-guest-select]').forEach((input) => {
+        if (input instanceof HTMLInputElement && input.dataset.guestSelect === guestId) {
+            input.checked = checkbox.checked;
+        }
+    });
+
+    updateSelectedGuestActions();
+}
+
 function handleGuestListAction(event) {
     const button = event.target instanceof Element ? event.target.closest('[data-guest-action]') : null;
     if (!button) return;
@@ -804,55 +998,81 @@ async function copyGuestInvitation(guest, button) {
     }
 }
 
-async function sendWhatsAppInvitation(guest, button) {
+async function createWhatsAppInvitationForGuest(guest) {
     const phone = normalizeWhatsAppPhone(guest.telefono ?? guest.tel ?? guest.phone);
+
     if (!phone) {
-        deps.ui.showToast({
-            title: 'No se puede enviar WhatsApp',
-            message: 'El invitado no tiene un número de teléfono válido.',
-            type: 'warning'
-        });
-        return;
+        return {
+            ok: false,
+            reason: 'invalid-phone'
+        };
     }
 
     const service = deps.services.personalizedInvitation;
+
     if (!guest?.id || typeof service?.createGuestInvitationUrl !== 'function') {
-        deps.ui.showToast({
-            title: 'No se pudo enviar la invitación',
-            message: 'El servicio para generar invitaciones personalizadas no está disponible.',
-            type: 'error'
-        });
-        return;
+        return {
+            ok: false,
+            reason: 'service-unavailable'
+        };
     }
 
+    const invitation = await service.createGuestInvitationUrl({
+        eventId: deps.eventContext.eventId,
+        guestId: guest.id
+    });
+
+    const eventData = getEventData();
+    const eventName = getEventName(eventData);
+    const guestName = getGuestName(guest);
+
+    const defaultTemplate = 'Hola {nombre}, te compartimos tu invitación para {evento}: {url}';
+    const template = getDisplayValue(eventData.whatsappTemplate, defaultTemplate);
+
+    const message = template
+        .replaceAll('{nombre}', guestName)
+        .replaceAll('{evento}', eventName)
+        .replaceAll('{url}', invitation.url);
+
+    return {
+        ok: true,
+        url: buildWhatsAppUrl({
+            phone,
+            message
+        })
+    };
+}
+
+async function sendWhatsAppInvitation(guest, button) {
     const idleLabel = button.textContent;
     button.disabled = true;
     button.textContent = 'Enviando…';
 
     try {
-        const invitation = await service.createGuestInvitationUrl({
-            eventId: deps.eventContext.eventId,
-            guestId: guest.id
-        });
+        const result = await createWhatsAppInvitationForGuest(guest);
 
-        const eventData = getEventData();
-        const eventName = getEventName(eventData);
-        const guestName = getGuestName(guest);
+        if (!result.ok) {
+            if (result.reason === 'invalid-phone') {
+                deps.ui.showToast({
+                    title: 'No se puede enviar WhatsApp',
+                    message: 'El invitado no tiene un número de teléfono válido.',
+                    type: 'warning'
+                });
+                return;
+            }
 
-        const defaultTemplate = `Hola {nombre}, te compartimos tu invitación para {evento}: {url}`;
-        const template = getDisplayValue(eventData.whatsappTemplate, defaultTemplate);
+            deps.ui.showToast({
+                title: 'No se pudo enviar la invitación',
+                message: 'El servicio para generar invitaciones personalizadas no está disponible.',
+                type: 'error'
+            });
+            return;
+        }
 
-        const message = template
-            .replaceAll('{nombre}', guestName)
-            .replaceAll('{evento}', eventName)
-            .replaceAll('{url}', invitation.url);
-
-        const whatsAppUrl = buildWhatsAppUrl({ phone, message });
-
-        window.open(whatsAppUrl, '_blank', 'noopener,noreferrer');
-
+        window.open(result.url, '_blank', 'noopener,noreferrer');
     } catch (error) {
         console.error('[Event Controller] No se pudo enviar la invitación por WhatsApp:', error);
+
         deps.ui.showToast({
             title: 'No se pudo enviar la invitación',
             message: 'Revisa el RSVP Access del invitado e inténtalo nuevamente.',
@@ -861,6 +1081,60 @@ async function sendWhatsAppInvitation(guest, button) {
     } finally {
         button.disabled = false;
         button.textContent = idleLabel;
+    }
+}
+
+async function handleWhatsAppShareOpen(event) {
+    event.preventDefault();
+
+    const guest = whatsAppShareQueue[whatsAppShareIndex];
+    if (!guest) return;
+
+    const button = getElement('btn-whatsapp-share-open');
+    if (!button) return;
+
+    const idleLabel = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Preparando…';
+
+    try {
+        const result = await createWhatsAppInvitationForGuest(guest);
+
+        if (!result.ok) {
+            if (result.reason === 'invalid-phone') {
+                deps.ui.showToast({
+                    title: 'Teléfono no válido',
+                    message: 'Este invitado será omitido. Continúa con el siguiente.',
+                    type: 'warning'
+                });
+                return;
+            }
+
+            deps.ui.showToast({
+                title: 'No se pudo preparar la invitación',
+                message: 'El servicio de invitaciones personalizadas no está disponible.',
+                type: 'error'
+            });
+            return;
+        }
+
+        window.open(result.url, '_blank', 'noopener,noreferrer');
+
+        if (!whatsAppPreparedGuestIds.has(guest.id)) {
+            whatsAppPreparedGuestIds.add(guest.id);
+            whatsAppShareReady += 1;
+        }
+    } catch (error) {
+        console.error('[WhatsApp Bulk] No se pudo preparar la invitación:', error);
+
+        deps.ui.showToast({
+            title: 'No se pudo abrir WhatsApp',
+            message: 'Revisa el acceso RSVP del invitado e inténtalo nuevamente.',
+            type: 'error'
+        });
+    } finally {
+        button.textContent = idleLabel;
+        renderWhatsAppShareCurrent();
     }
 }
 
@@ -1296,6 +1570,13 @@ function bindButtons() {
     listen(getElement('modal-guest'), 'click', handleGuestOverlayClick);
     listen(getElement('form-guest'), 'submit', handleGuestFormSubmit);
     listen(getElement('guests-list'), 'click', handleGuestListAction);
+    listen(getElement('guests-list'), 'change', handleGuestSelectionChange);
+    listen(getElement('btn-share-selected-guests'), 'click', handleShareSelectedGuests);
+    listen(getElement('btn-close-whatsapp-share'), 'click', closeWhatsAppShareModal);
+    listen(getElement('modal-whatsapp-share'), 'click', handleWhatsAppShareOverlayClick);
+    listen(getElement('btn-whatsapp-share-next'), 'click', handleWhatsAppShareNext);
+    listen(getElement('btn-whatsapp-share-open'), 'click', handleWhatsAppShareOpen);
+    listen(getElement('btn-whatsapp-share-finish'), 'click', finishWhatsAppShare);
     listen(getElement('guest-search'), 'input', handleGuestSearchInput);
     listen(getElement('guest-filter-status'), 'change', handleGuestFilterChange);
     listen(getElement('guest-filter-table'), 'change', handleGuestFilterChange);
@@ -1589,8 +1870,13 @@ function closeModal(modalId) {
     modal.classList.remove('active');
     modal.setAttribute('aria-hidden', 'true');
 
-    const hasOpenControllerModal = ['modal-edit-event', 'modal-delete-event', 'modal-guest']
-        .some((id) => getElement(id)?.classList.contains('active'));
+    const hasOpenControllerModal = [
+        'modal-edit-event',
+        'modal-delete-event',
+        'modal-guest',
+        'modal-whatsapp-share'
+    ].some((id) => getElement(id)?.classList.contains('active'));
+
     if (!hasOpenControllerModal) {
         document.body.classList.remove('modal-open');
     }
