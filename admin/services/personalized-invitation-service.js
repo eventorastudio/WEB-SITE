@@ -101,7 +101,31 @@ export class PersonalizedInvitationService {
         }
         if (candidates.length > 1) throw serviceError('personalized-invitation/ambiguous-access');
 
-        const selected = candidates[0] ?? await this.createActiveAccess(safeEventId, safeGuestId);
+        let selected;
+
+        if (candidates[0]) {
+            const sync = this.accessService?.sync;
+
+            if (typeof sync !== 'function') {
+                throw serviceError('personalized-invitation/access-sync-unavailable');
+            }
+
+            try {
+                const syncedAccess = await sync.call(this.accessService, {
+                    eventId: safeEventId,
+                    token: candidates[0].token
+                });
+
+                selected = {
+                    token: candidates[0].token,
+                    access: syncedAccess
+                };
+            } catch (error) {
+                throw serviceError('personalized-invitation/access-sync-failed', error);
+            }
+        } else {
+            selected = await this.createActiveAccess(safeEventId, safeGuestId);
+        }
         const options = {
             eventId: safeEventId,
             publicKey: publication.publicKey,
