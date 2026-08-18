@@ -5,6 +5,8 @@ import {
     createGuestRsvpOperationalElement,
     indexRsvpOperationalDocuments
 } from './guests/rsvp-operational-view.js';
+import { buildWhatsAppUrl, normalizeWhatsAppPhone } from '../invitations/core/safe-url.js';
+
 
 /* ========================================================================== 
  * Variables privadas
@@ -639,6 +641,7 @@ function guestActionButtons(guest) {
     ];
     if (deps?.eventContext?.permissions?.canCopyInvitation) {
         actions.push(createGuestActionButton('copy-invitation', 'Copiar invitación', guest));
+        actions.push(createGuestActionButton('send-whatsapp', 'WhatsApp', guest));
     }
     actions.push(createGuestActionButton('delete', 'Eliminar', guest, true));
     return actions;
@@ -749,6 +752,8 @@ function handleGuestListAction(event) {
         deleteGuestWithConfirmation(guest, button);
     } else if (button.dataset.guestAction === 'copy-invitation') {
         void copyGuestInvitation(guest, button);
+    } else if (button.dataset.guestAction === 'send-whatsapp') {
+        void sendWhatsAppInvitation(guest, button);
     }
 }
 
@@ -791,6 +796,58 @@ async function copyGuestInvitation(guest, button) {
                 : accessCreateFailed
                     ? 'No se pudo crear un RSVP Access activo para este invitado. Inténtalo nuevamente.'
                     : 'Revisa el RSVP Access del invitado e inténtalo nuevamente.',
+            type: 'error'
+        });
+    } finally {
+        button.disabled = false;
+        button.textContent = idleLabel;
+    }
+}
+
+async function sendWhatsAppInvitation(guest, button) {
+    const phone = normalizeWhatsAppPhone(guest.telefono ?? guest.tel ?? guest.phone);
+    if (!phone) {
+        deps.ui.showToast({
+            title: 'No se puede enviar WhatsApp',
+            message: 'El invitado no tiene un número de teléfono válido.',
+            type: 'warning'
+        });
+        return;
+    }
+
+    const service = deps.services.personalizedInvitation;
+    if (!guest?.id || typeof service?.createGuestInvitationUrl !== 'function') {
+        deps.ui.showToast({
+            title: 'No se pudo enviar la invitación',
+            message: 'El servicio para generar invitaciones personalizadas no está disponible.',
+            type: 'error'
+        });
+        return;
+    }
+
+    const idleLabel = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Enviando…';
+
+    try {
+        const invitation = await service.createGuestInvitationUrl({
+            eventId: deps.eventContext.eventId,
+            guestId: guest.id
+        });
+
+        const eventName = getEventName(getEventData());
+        const guestName = getGuestName(guest);
+        const message = `Hola ${guestName}, te compartimos tu invitación para ${eventName}: ${invitation.url}`;
+
+        const whatsAppUrl = buildWhatsAppUrl({ phone, message });
+
+        window.open(whatsAppUrl, '_blank', 'noopener,noreferrer');
+
+    } catch (error) {
+        console.error('[Event Controller] No se pudo enviar la invitación por WhatsApp:', error);
+        deps.ui.showToast({
+            title: 'No se pudo enviar la invitación',
+            message: 'Revisa el RSVP Access del invitado e inténtalo nuevamente.',
             type: 'error'
         });
     } finally {
@@ -1064,7 +1121,7 @@ function formatGuestDate(value) {
 
 /* ========================================================================== 
  * Render Configuración
- * ========================================================================== */
+ * = ========================================================================== */
 
 /**
  * Renderiza la configuración operativa existente del evento.
@@ -1508,7 +1565,7 @@ function activateTab(target) {
 
 /* ========================================================================== 
  * Helpers
- * ========================================================================== */
+ * = ========================================================================== */
 
 /**
  * Crea la estructura vacía de la caché de elementos del DOM.
@@ -1995,32 +2052,3 @@ function setWidth(id, percentage) {
 /**
  * Formatea un contador usando la localización de la aplicación.
  * @param {number} value - Número a formatear.
- * @returns {string} Número visible.
- */
-function formatNumber(value) {
-    return new Intl.NumberFormat('es-MX').format(toSafeNumber(value, 0));
-}
-
-/**
- * Renderiza solamente las zonas que dependen de estadísticas de invitados.
- * @returns {void}
- */
-function renderGuestsAndStatistics() {
-    const eventData = getEventData();
-    renderStatistics(eventData);
-    renderGuests(eventData);
-}
-
-
-/* ========================================================================== 
- * Cleanup
- * ========================================================================== */
-
-/**
- * Ejecuta de forma defensiva una colección de callbacks de limpieza.
- * @param {Function[]} cleanups - Callbacks a ejecutar.
- * @returns {void}
- */
-function runCleanups(cleanups) {
-    cleanups.forEach((cleanup) => cleanup());
-}
