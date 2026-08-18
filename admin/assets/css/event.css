@@ -882,3 +882,64 @@ body.modal-open { overflow: hidden; }
 #btn-share-selected-guests[hidden] {
     display: none !important;
 }
+
+/* ==========================================================
+   Guest Manager - Filas y acciones
+   ========================================================== */
+
+/* Línea divisoria uniforme en TODA la fila */
+.guest-table {
+    border-collapse: collapse;
+}
+
+.guest-table tbody td {
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(180, 170, 150, 0.28);
+}
+
+/* La última fila no necesita divisor inferior */
+.guest-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+
+/* ==========================================================
+   Columna Acciones
+   ========================================================== */
+
+.guest-actions-cell {
+    vertical-align: middle !important;
+    text-align: center;
+    white-space: nowrap;
+}
+
+
+/* Todos los botones de acciones */
+.guest-actions-cell button[data-guest-action] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+    vertical-align: middle;
+
+    min-height: 40px;
+    line-height: 1.15;
+
+    padding: 8px 12px;
+}
+
+
+/* Incluso si el texto ocupa dos líneas */
+.guest-actions-cell button[data-guest-action] {
+    white-space: normal;
+}
+
+.guest-actions-cell {
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+.guest-actions-cell button[data-guest-action] + button[data-guest-action] {
+    margin-left: 6px;
+}
