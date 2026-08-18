@@ -945,3 +945,50 @@ body.modal-open { overflow: hidden; }
 .guest-actions-cell button[data-guest-action] + button[data-guest-action] {
     margin-left: 6px;
 }
+
+/* ==========================================================
+   Guest Manager - Ajustes finales de acciones y selección
+   ========================================================== */
+
+/* Más espacio alrededor de los botones de acciones */
+.guest-actions-cell {
+    padding-top: 16px !important;
+    padding-bottom: 16px !important;
+    padding-right: 18px !important;
+    padding-left: 12px !important;
+}
+
+/* Evita que Eliminar quede pegado al borde derecho */
+.guest-actions-cell button[data-guest-action]:last-child {
+    margin-right: 4px;
+}
+
+
+/* ==========================================================
+   Checkbox de selección
+   ========================================================== */
+
+.guest-select-checkbox {
+    width: 20px;
+    height: 20px;
+
+    min-width: 20px;
+    min-height: 20px;
+
+    cursor: pointer;
+    accent-color: var(--color-gold);
+}
+
+/* Centra mejor la columna de selección */
+.guest-select-cell {
+    text-align: center;
+    vertical-align: middle !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+}
+
+/* Encabezado "Seleccionar" */
+.guest-table th:first-child {
+    text-align: center;
+    min-width: 88px;
+}
