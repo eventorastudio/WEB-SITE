@@ -884,55 +884,57 @@ body.modal-open { overflow: hidden; }
 }
 
 /* ==========================================================
-   Guest Manager - Filas y acciones
+   Guest Manager - Separadores de filas
    ========================================================== */
 
-/* Línea divisoria uniforme en TODA la fila */
 .guest-table {
     border-collapse: collapse;
 }
 
-.guest-table tbody td {
-    vertical-align: middle;
+/* La línea pertenece a TODA la fila */
+.guest-table tbody tr {
     border-bottom: 1px solid rgba(180, 170, 150, 0.28);
 }
 
-/* La última fila no necesita divisor inferior */
-.guest-table tbody tr:last-child td {
+.guest-table tbody tr {
+    border-bottom: 1px solid rgba(180, 170, 150, 0.28);
+}
+
+/* Sin línea extra al final */
+.guest-table tbody tr:last-child {
     border-bottom: none;
 }
 
 
 /* ==========================================================
-   Columna Acciones
+   Acciones
    ========================================================== */
 
 .guest-actions-cell {
+    display: table-cell !important;
     vertical-align: middle !important;
     text-align: center;
     white-space: nowrap;
+    padding-top: 12px;
+    padding-bottom: 12px;
 }
 
-
-/* Todos los botones de acciones */
 .guest-actions-cell button[data-guest-action] {
     display: inline-flex;
     align-items: center;
     justify-content: center;
 
-    text-align: center;
-    vertical-align: middle;
-
     min-height: 40px;
-    line-height: 1.15;
-
     padding: 8px 12px;
+
+    text-align: center;
+    line-height: 1.15;
+    white-space: normal;
+    vertical-align: middle;
 }
 
-
-/* Incluso si el texto ocupa dos líneas */
-.guest-actions-cell button[data-guest-action] {
-    white-space: normal;
+.guest-actions-cell button[data-guest-action] + button[data-guest-action] {
+    margin-left: 6px;
 }
 
 .guest-actions-cell {
