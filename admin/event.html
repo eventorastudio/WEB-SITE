@@ -240,6 +240,10 @@
                     </div>
 
                     <div class="guest-actions-main">
+                        <div class="guest-select-all-wrapper">
+                            <input type="checkbox" id="guest-select-all" class="guest-select-checkbox" aria-label="Seleccionar todos los invitados mostrados">
+                            <label for="guest-select-all">Seleccionar todos</label>
+                        </div>
                         <button type="button" class="btn-secondary ripple" id="btn-share-selected-guests" hidden>
                             Compartir seleccionados
                             <span id="selected-guests-count">(0)</span>
@@ -872,7 +876,7 @@
                             Abrir WhatsApp
                         </button>
                     </div>
-                    
+
                 </div>
 
                 <div id="whatsapp-share-summary" hidden>
@@ -954,6 +958,6 @@
 
     <script src="./vendor/qrcode-generator.js"></script>
     <script src="./vendor/jszip.min.js"></script>
-    <script type="module" src="event.js?v=phase64-personalized-invitation-20260817"></script>
+    <script type="module" src="event.js?v=phase75-select-all-20260819"></script>
 </body>
 </html>

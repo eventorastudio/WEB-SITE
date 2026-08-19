@@ -288,12 +288,14 @@ function renderGuests(eventData) {
     if (guestLoadState === 'idle' || guestLoadState === 'loading') {
         if (emptyState) emptyState.style.display = 'none';
         renderGuestSkeleton(guestsList);
+        updateSelectAllState();
         return;
     }
 
     if (guestLoadState === 'error') {
         if (emptyState) emptyState.style.display = 'none';
         renderGuestLoadError(guestsList);
+        updateSelectAllState();
         return;
     }
 
@@ -303,6 +305,7 @@ function renderGuests(eventData) {
     if (guests.length === 0) {
         guestsList.replaceChildren();
         if (emptyState) emptyState.style.display = 'block';
+        updateSelectAllState();
         return;
     }
 
@@ -311,10 +314,12 @@ function renderGuests(eventData) {
 
     if (filteredGuests.length === 0) {
         renderGuestNoResults(guestsList);
+        updateSelectAllState();
         return;
     }
 
     renderGuestCollection(guestsList, filteredGuests);
+    updateSelectAllState();
 }
 
 /** Carga la subcolección una sola vez al abrir la pestaña Invitados. */
@@ -965,6 +970,7 @@ function handleGuestSelectionChange(event) {
     });
 
     updateSelectedGuestActions();
+    updateSelectAllState();
 }
 
 function handleGuestListAction(event) {
@@ -1622,6 +1628,7 @@ function bindButtons() {
     listen(getElement('guest-sort'), 'change', handleGuestFilterChange);
     listen(getElement('btn-save-config'), 'click', handleSaveConfigSubmit);
     listen(document, 'keydown', handleModalEscape);
+    listen(getElement('guest-select-all'), 'change', handleSelectAllChange);
 }
 
 /**
@@ -2476,4 +2483,73 @@ function renderGuestsAndStatistics() {
  */
 function runCleanups(cleanups) {
     cleanups.forEach((cleanup) => cleanup());
+}
+
+function handleSelectAllChange(event) {
+    const isChecked = event.target.checked;
+    const guests = Array.from(guestsById.values());
+    
+    // Selecciona solo los que están actualmente visibles tras los filtros y paginación
+    const visibleGuests = getFilteredGuests(guests).slice(0, guestVisibleLimit);
+
+    if (visibleGuests.length === 0) return;
+
+    // Actualiza el Set global reutilizando tu lógica
+    visibleGuests.forEach((guest) => {
+        if (isChecked) {
+            selectedGuestIds.add(guest.id);
+        } else {
+            selectedGuestIds.delete(guest.id);
+        }
+    });
+
+    // Actualiza visualmente los checkboxes hijos
+    const guestsList = getElement('guests-list');
+    if (guestsList) {
+        guestsList.querySelectorAll('.guest-select-checkbox[data-guest-select]').forEach((input) => {
+            input.checked = isChecked;
+        });
+    }
+
+    updateSelectedGuestActions();
+    updateSelectAllState();
+}
+
+function updateSelectAllState() {
+    const selectAllCheckbox = getElement('guest-select-all');
+    if (!selectAllCheckbox) return;
+
+    if (guestLoadState !== 'loaded' || guestsById.size === 0) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+        selectAllCheckbox.disabled = true;
+        return;
+    }
+
+    const guests = Array.from(guestsById.values());
+    const visibleGuests = getFilteredGuests(guests).slice(0, guestVisibleLimit);
+    const visibleCount = visibleGuests.length;
+
+    if (visibleCount === 0) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+        selectAllCheckbox.disabled = true;
+        return;
+    }
+
+    selectAllCheckbox.disabled = false;
+
+    // Verificar cuántos de los elementos visualizados están actualmente seleccionados
+    const selectedVisibleCount = visibleGuests.filter(guest => selectedGuestIds.has(guest.id)).length;
+
+    if (selectedVisibleCount === 0) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+    } else if (selectedVisibleCount === visibleCount) {
+        selectAllCheckbox.checked = true;
+        selectAllCheckbox.indeterminate = false;
+    } else {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = true;
+    }
 }

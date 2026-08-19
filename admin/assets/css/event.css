@@ -476,6 +476,20 @@ select.form-control { padding-right: 42px; cursor: pointer; }
     flex-wrap: nowrap;
     margin-left: auto;
 }
+.guest-select-all-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 4px;
+    color: var(--event-text);
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+.guest-select-all-wrapper label {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
 .guest-actions-main button {
     flex: 0 0 auto;
     white-space: nowrap;
@@ -853,7 +867,13 @@ body.modal-open { overflow: hidden; }
     .guest-stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
     .guest-stat-pill { padding: 12px; }
     .guest-stat-pill:last-child { grid-column: span 2; }
-    .guest-actions-main { width: 100%; }
+    .guest-actions-main { width: 100%; flex-wrap: wrap; }
+    .guest-select-all-wrapper {
+        width: 100%;
+        margin-bottom: 8px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--event-border);
+    }
     .guest-actions-main .btn-primary, .guest-actions-main .btn-secondary { width: 100%; }
     .guest-card-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .guest-action { min-height: 44px; width: 100%; }
