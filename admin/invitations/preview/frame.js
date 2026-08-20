@@ -116,12 +116,12 @@ async function renderTemplate(payload, requestId) {
     if (requestId !== latestRequestId) return false;
 
     const parsed = new DOMParser().parseFromString(await response.text(), 'text/html');
-    parsed.querySelectorAll('script, audio, #event-music, #music-control, #opening').forEach((element) => element.remove());
+    parsed.querySelectorAll('script').forEach((element) => element.remove());
     sanitizeTemplate(parsed, templateUrl);
 
     await installThemeStyles(parsed, templateUrl);
     if (requestId !== latestRequestId) return false;
-    document.body.className = `${parsed.body.className.replace(/\blocked\b/g, '')} invitation-open builder-preview-rendered${publicRuntime ? ' public-invitation-rendered' : ''}`.trim();
+    document.body.className = `${parsed.body.className} builder-preview-rendered${publicRuntime ? ' public-invitation-rendered' : ''}`.trim();
     document.body.innerHTML = parsed.body.innerHTML;
 
     const invitation = document.getElementById('invitation');
@@ -132,6 +132,7 @@ async function renderTemplate(payload, requestId) {
     }
     prepareBuilderTemplate(document, payload.theme.id);
     document.querySelectorAll('.reveal').forEach((element) => element.classList.add('visible'));
+    setupOpening(payload);
     applyPayload(payload);
     stopMedia();
     return true;
@@ -190,6 +191,7 @@ async function renderCustom(payload, requestId) {
 }
 
 function applyPayload(payload) {
+    syncOpeningData(payload);
     applyAppearance(payload);
     if (payload.theme.id === 'custom') {
         applyCustomContent(payload.draft);
@@ -207,6 +209,63 @@ function applyPayload(payload) {
     document.title = publicRuntime
         ? `${title || PREVIEW_SEMANTIC_FALLBACKS.primaryName} · Invitación`
         : `${title || PREVIEW_SEMANTIC_FALLBACKS.primaryName} · Preview Builder`;
+}
+
+function setupOpening(payload) {
+    const opening = document.getElementById('opening');
+    const invitation = document.getElementById('invitation');
+    const openButton = document.getElementById('open-invitation');
+    const audio = document.getElementById('event-music');
+    const musicButton = document.getElementById('music-control');
+    if (!opening || !invitation || !openButton) return;
+    syncOpeningData(payload);
+    if (audio) {
+        const source = payload.draft?.media?.music?.previewUrl || payload.draft?.media?.music?.downloadUrl || '';
+        if (source) audio.src = source;
+    }
+    invitation.inert = true;
+    invitation.setAttribute('aria-hidden', 'true');
+    document.body.classList.add('locked');
+    openButton.addEventListener('click', async () => {
+        opening.classList.add('opened');
+        document.body.classList.remove('locked');
+        document.body.classList.add('invitation-open');
+        invitation.inert = false;
+        invitation.setAttribute('aria-hidden', 'false');
+        if (musicButton) musicButton.hidden = false;
+        if (audio?.src) {
+            try { await audio.play(); } catch { /* El navegador puede requerir otra interacción. */ }
+        }
+        window.setTimeout(() => opening.remove(), prefersReducedMotion() ? 0 : 950);
+    }, { once: true });
+    musicButton?.addEventListener('click', async () => {
+        if (!audio) return;
+        if (audio.paused) {
+            try { await audio.play(); } catch { /* Reproducción bloqueada. */ }
+        } else audio.pause();
+    });
+}
+
+function syncOpeningData(payload) {
+    const opening = document.getElementById('opening');
+    if (!opening) return;
+    const displayName = payload.personalization?.displayName
+        || [payload.draft?.content?.identity?.primaryName, payload.draft?.content?.identity?.secondaryName].filter(Boolean).join(' & ')
+        || 'Invitado especial';
+    opening.querySelectorAll('[data-opening-guest]').forEach((element) => { element.textContent = displayName; });
+    const date = payload.draft?.content?.schedule?.date;
+    if (date) opening.querySelector('.opening-date')?.replaceChildren(document.createTextNode(formatOpeningDate(date)));
+}
+
+function formatOpeningDate(value) {
+    const parsed = new Date(`${String(value).slice(0, 10)}T12:00:00`);
+    if (Number.isNaN(parsed.getTime())) return String(value);
+    return new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
+        .format(parsed).replace('.', '').toUpperCase().replace(/ /g, ' · ');
+}
+
+function prefersReducedMotion() {
+    return Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
 }
 
 function applyAppearance(payload) {
