@@ -367,6 +367,9 @@ function sanitizeAlohaRealContent(payload) {
     const hasIdentity = Boolean(content.identity?.primaryName || content.identity?.secondaryName);
     const hasDate = Boolean(content.schedule?.date);
     const hasLocations = meaningfulAlohaEntities(draft.locations);
+    const hasAccommodations = meaningfulAlohaEntities(draft.accommodations);
+    const hasLinks = meaningfulAlohaEntities(draft.links);
+    const hasLogistics = hasLocations || hasAccommodations || hasLinks;
     const hasItinerary = meaningfulAlohaEntities(draft.itinerary);
     const hasGifts = meaningfulAlohaEntities(draft.gifts);
     const hasGallery = Array.isArray(draft.media?.gallery) && draft.media.gallery.some((asset) => asset?.downloadUrl || asset?.previewUrl);
@@ -395,7 +398,7 @@ function sanitizeAlohaRealContent(payload) {
         document.querySelector('#opening-title span')?.replaceChildren(document.createTextNode(openingName));
     }
     if (!hasCover) document.querySelector('.hero > img.demo-photo')?.setAttribute('hidden', 'true');
-    if (!hasLocations) document.querySelector('[data-prestige-feature~="multiple-locations"]')?.setAttribute('hidden', 'true');
+    if (!hasLogistics) document.querySelector('[data-prestige-feature~="multiple-locations"]')?.setAttribute('hidden', 'true');
     if (!hasItinerary) document.querySelector('[data-prestige-feature~="itinerary"]')?.setAttribute('hidden', 'true');
     if (!hasGifts) document.querySelector('[data-prestige-feature~="gift-registry"]')?.setAttribute('hidden', 'true');
     if (!hasGallery) document.querySelector('[data-prestige-feature~="gallery"]')?.setAttribute('hidden', 'true');

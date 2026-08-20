@@ -1,5 +1,5 @@
 import { entityHasContent, getRenderableLocations } from './logistics-schema.js?v=phase3-logistics-20260813';
-import { buildGoogleCalendarUrl, safeUrlForField } from './safe-url.js?v=phase3-logistics-20260813';
+import { buildGoogleCalendarUrl, buildWhatsAppUrl, safeUrlForField } from './safe-url.js?v=phase3-logistics-20260813';
 
 const clean = (value) => String(value ?? '').replace(/\s+/g, ' ').trim();
 const source = (asset) => clean(asset?.previewUrl || asset?.downloadUrl);
@@ -24,7 +24,9 @@ function renderLocations(documentRoot, draft) {
     const root = documentRoot.querySelector('[data-prestige-feature~="multiple-locations"]');
     if (!root) return;
     const locations = getRenderableLocations(draft).filter(entityHasContent);
-    if (!locations.length) return;
+    const accommodations = (draft.accommodations ?? []).filter(entityHasContent);
+    const links = (draft.links ?? []).filter(entityHasContent);
+    if (!locations.length && !accommodations.length && !links.length) return;
     const copy = draft.content?.location ?? {};
     const content = root.querySelector('.location-copy');
     if (!content) return;
@@ -48,6 +50,34 @@ function renderLocations(documentRoot, draft) {
         if (location.wazeUrl) actions.append(action(documentRoot, 'Waze', location.wazeUrl, 'waze', 'wazeUrl'));
     });
     if (actions.children.length) content.append(actions);
+    if (!locations.length) content.querySelector(':scope > .location-stops')?.remove();
+    if (accommodations.length) {
+        content.append(node(documentRoot, 'h3', '', 'Hospedaje sugerido'));
+        const stays = node(documentRoot, 'div', 'location-stops aloha-accommodations');
+        accommodations.forEach((hotel) => {
+            const item = node(documentRoot, 'p');
+            item.append(node(documentRoot, 'strong', '', hotel.name || 'Hospedaje'));
+            const details = [hotel.address, hotel.phone, hotel.reservationCode && `Código: ${hotel.reservationCode}`, hotel.description, hotel.notes].filter(Boolean).join(' · ');
+            if (details) item.append(documentRoot.createElement('br'), documentRoot.createTextNode(details));
+            const hotelActions = node(documentRoot, 'span', 'action-row');
+            if (hotel.reservationUrl) hotelActions.append(action(documentRoot, 'Reservar', hotel.reservationUrl, 'hotel', 'reservationUrl'));
+            if (hotel.mapsUrl) hotelActions.append(action(documentRoot, 'Maps', hotel.mapsUrl, 'maps', 'mapsUrl'));
+            if (hotelActions.children.length) item.append(documentRoot.createElement('br'), hotelActions);
+            stays.append(item);
+        });
+        content.append(stays);
+    }
+    const linkActions = node(documentRoot, 'div', 'action-row aloha-logistics-links');
+    links.filter((link) => link.type !== 'instagram').forEach((link) => {
+        const location = locations[0];
+        const url = link.type === 'calendar'
+            ? (link.url || buildGoogleCalendarUrl(draft, location))
+            : link.type === 'whatsapp' ? buildWhatsAppUrl(link) : link.url;
+        const result = safeUrlForField(url, 'url', link.type);
+        if (!result.ok || !result.value) return;
+        linkActions.append(action(documentRoot, link.label || ({ calendar: 'Guardar fecha', whatsapp: 'WhatsApp' })[link.type] || 'Abrir enlace', result.value, link.type));
+    });
+    if (linkActions.children.length) content.append(linkActions);
     visual?.removeAttribute('hidden');
 }
 
@@ -122,7 +152,6 @@ function renderGifts(documentRoot, draft) {
 function renderLinks(documentRoot, draft) {
     const links = (draft.links ?? []).filter(entityHasContent);
     const instagram = links.find((link) => link.type === 'instagram' && link.url);
-    const calendar = links.find((link) => link.type === 'calendar');
     const social = documentRoot.querySelector('.social-strip');
     const instagramAnchors = [...documentRoot.querySelectorAll('a[data-demo-action="instagram"]')];
     const calendarAnchors = [...documentRoot.querySelectorAll('a[data-demo-action="calendar"]')];
@@ -140,17 +169,6 @@ function renderLinks(documentRoot, draft) {
             } else instagramAnchor.hidden = true;
         } else instagramAnchor.hidden = true;
     }
-    if (!calendar) return;
-    const location = getRenderableLocations(draft).find(entityHasContent);
-    const url = calendar.url || buildGoogleCalendarUrl(draft, location);
-    const result = safeUrlForField(url, 'url', 'calendar');
-    if (!result.ok || !result.value || !social) return;
-    const actionRow = social.querySelector('.action-row') ?? node(documentRoot, 'div', 'action-row');
-    if (!actionRow.parentElement) social.append(actionRow);
-    const anchor = node(documentRoot, 'a', 'text-action', calendar.label || 'Guardar fecha');
-    anchor.href = result.value;
-    anchor.dataset.builderAction = 'calendar';
-    actionRow.append(anchor);
 }
 
 export function applyAlohaPhase3Bindings(documentRoot, draft = {}) {
