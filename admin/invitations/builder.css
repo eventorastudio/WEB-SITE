@@ -192,6 +192,18 @@ button, a, input, select, textarea { outline-color: var(--builder-gold); }
 .future-foundations { margin-top: 30px; padding: 18px; border: 1px dashed #cfc4b3; border-radius: 14px; color: var(--builder-muted); }
 .future-foundations span { color: var(--builder-gold); font-size: 0.59rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 .future-foundations p { margin: 7px 0 0; font-size: 0.65rem; line-height: 1.6; }
+.review-status { margin-bottom: 16px; padding: 14px 16px; border-radius: 12px; font-weight: 700; font-size: .72rem; }
+.review-status.is-ready { color: var(--builder-green); background: #edf4ef; }
+.review-status.is-invalid { color: var(--builder-danger); background: #fff0ed; }
+.review-errors { display: grid; gap: 7px; margin-bottom: 18px; }
+.review-error { padding: 10px 12px; border: 1px solid #ddb1ad; border-radius: 9px; background: #fff; color: var(--builder-danger); text-align: left; font-size: .62rem; cursor: pointer; }
+.review-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.review-card { min-height: 82px; padding: 14px; border: 1px solid var(--builder-line); border-radius: 12px; background: var(--builder-paper); color: var(--builder-ink); text-align: left; }
+button.review-card { cursor: pointer; }
+.review-card strong, .review-card span { display: block; }
+.review-card strong { margin-bottom: 7px; font-size: .62rem; }
+.review-card span { color: var(--builder-muted); font-size: .65rem; line-height: 1.45; }
+.review-publish { margin-top: 18px; }
 
 .phase3-logistics-editors { display: grid; gap: 24px; }
 [data-advanced-editor] + [data-advanced-editor] { padding-top: 24px; border-top: 1px solid var(--builder-line); }

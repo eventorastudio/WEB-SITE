@@ -19,6 +19,7 @@ import { initSectionCopyEditors } from './editors/section-copy-editor.js?v=phase
 import { initLogisticsEditors } from './editors/logistics-editor.js?v=phase3-logistics-20260813';
 import { initMediaEditor } from './editors/media-editor.js?v=phase48-upload-enabled-20260816';
 import { initAppearanceEditor } from './editors/appearance-editor.js?v=phase86-appearance-20260820';
+import { initReviewEditor } from './editors/review-editor.js?v=phase86-review-20260820';
 import { invitationMediaService } from './services/invitation-media-service.js?v=phase48-upload-enabled-20260816';
 import { invitationRsvpService } from './services/invitation-rsvp-service.js?v=phase54-public-rsvp-20260817';
 import { invitationDraftService } from './services/invitation-draft-service.js?v=phase61-draft-persistence-20260817';
@@ -322,6 +323,11 @@ function mountModules() {
     moduleCleanups.push(initAppearanceEditor({
         container: document.getElementById('appearance-editor'),
         state: builderState
+    }));
+    moduleCleanups.push(initReviewEditor({
+        container: document.getElementById('review-editor'),
+        state: builderState,
+        publishButton: dom.publish
     }));
     moduleCleanups.push(initDraftPersistenceController({
         button: dom.saveDraft,
