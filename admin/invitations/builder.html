@@ -85,7 +85,7 @@
                     <button class="builder-step" type="button" data-step-target="information"><span>03</span>Información</button>
                     <button class="builder-step" type="button" data-step-target="media"><span>04</span>Multimedia</button>
                     <button class="builder-step" type="button" data-step-target="logistics"><span>05</span>Ubicaciones</button>
-                    <button class="builder-step" type="button" disabled><span>06</span>Detalles <small>Próximamente</small></button>
+                    <button class="builder-step" type="button" data-step-target="details"><span>06</span>Detalles</button>
                     <button class="builder-step" type="button" disabled><span>07</span>Apariencia <small>Próximamente</small></button>
                     <button class="builder-step" type="button" disabled><span>08</span>Revisión <small>Próximamente</small></button>
                 </nav>
@@ -162,10 +162,18 @@
 
                 <section class="builder-panel" id="builder-panel-logistics" data-builder-panel="logistics">
                     <header class="panel-heading">
-                        <div><span class="panel-number">05</span><h2>Ubicaciones y detalles</h2></div>
+                        <div><span class="panel-number">05</span><h2>Ubicaciones</h2></div>
                         <p>Configura la logística real de las secciones activas. Las colecciones controlan únicamente su presentación.</p>
                     </header>
-                    <div class="phase3-logistics-editors" id="phase3-logistics-editors"></div>
+                    <div class="phase3-logistics-editors" id="phase3-location-editors"></div>
+                </section>
+
+                <section class="builder-panel" id="builder-panel-details" data-builder-panel="details">
+                    <header class="panel-heading">
+                        <div><span class="panel-number">06</span><h2>Detalles</h2></div>
+                        <p>Configura el itinerario, dress code, regalos, hospedaje y enlaces de las secciones activas.</p>
+                    </header>
+                    <div class="phase3-logistics-editors" id="phase3-details-editors"></div>
                 </section>
 
                 <section class="future-foundations" aria-label="Módulos preparados para fases posteriores">

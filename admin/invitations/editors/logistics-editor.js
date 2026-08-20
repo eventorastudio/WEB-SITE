@@ -15,18 +15,18 @@ const MOUNTERS = Object.freeze({
     links: initLinksEditor
 });
 
-function emptyState() {
+function emptyState(message = 'Activa Ubicación, Itinerario, Dress Code o Mesa de regalos.') {
     const node = document.createElement('div');
     node.className = 'content-editor-empty';
     const title = document.createElement('strong');
-    title.textContent = 'Activa Ubicación, Itinerario, Dress Code o Mesa de regalos.';
+    title.textContent = message;
     const copy = document.createElement('p');
     copy.textContent = 'Los datos configurados permanecen intactos cuando una sección se desactiva o cambia el paquete.';
     node.append(title, copy);
     return node;
 }
 
-export function initLogisticsEditors({ container, state }) {
+export function initLogisticsEditors({ container, state, editorIds = null, emptyMessage }) {
     if (!container || !state) return () => {};
     let childCleanups = [];
 
@@ -34,16 +34,18 @@ export function initLogisticsEditors({ container, state }) {
         const scroller = document.getElementById('builder-editor');
         const scrollTop = scroller?.scrollTop ?? 0;
         childCleanups.splice(0).forEach((cleanup) => cleanup());
-        const editorIds = [...new Set((snapshot.draft.enabledSections ?? [])
+        const availableEditorIds = [...new Set((snapshot.draft.enabledSections ?? [])
             .flatMap((sectionId) => getSectionEditor(sectionId)?.advancedEditors ?? []))];
-        if (!editorIds.length) {
-            container.replaceChildren(emptyState());
+        const visibleEditorIds = (editorIds ?? availableEditorIds)
+            .filter((editorId) => availableEditorIds.includes(editorId));
+        if (!visibleEditorIds.length) {
+            container.replaceChildren(emptyState(emptyMessage));
             if (scroller) scroller.scrollTop = scrollTop;
             return;
         }
         const fragment = document.createDocumentFragment();
         const targets = [];
-        editorIds.forEach((editorId) => {
+        visibleEditorIds.forEach((editorId) => {
             const target = document.createElement('div');
             target.dataset.advancedEditor = editorId;
             fragment.append(target);

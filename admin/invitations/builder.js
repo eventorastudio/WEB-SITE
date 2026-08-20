@@ -303,8 +303,16 @@ function mountModules() {
         state: builderState
     }));
     moduleCleanups.push(initLogisticsEditors({
-        container: document.getElementById('phase3-logistics-editors'),
-        state: builderState
+        container: document.getElementById('phase3-location-editors'),
+        state: builderState,
+        editorIds: ['locations'],
+        emptyMessage: 'Activa la secci\u00f3n Ubicaci\u00f3n para configurar sus datos.'
+    }));
+    moduleCleanups.push(initLogisticsEditors({
+        container: document.getElementById('phase3-details-editors'),
+        state: builderState,
+        editorIds: ['itinerary', 'dress-code', 'gifts', 'accommodations', 'links'],
+        emptyMessage: 'Activa Itinerario, Dress Code, Mesa de regalos o Ubicaci\u00f3n para agregar detalles.'
     }));
     moduleCleanups.push(initMediaEditor({
         container: document.getElementById('phase4-media-editor'),
