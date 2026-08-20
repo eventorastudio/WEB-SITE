@@ -13,7 +13,7 @@
 - Storage Rules desplegadas: **NO**.
 - Firestore Rules desplegadas: **NO**.
 - Writes a producción durante esta fase: **0**.
-- `INVITATION_MEDIA_UPLOAD_ENABLED` permanece en `false`.
+- `INVITATION_MEDIA_UPLOAD_ENABLED` está en `true` en el cliente actual.
 
 ## Decisión de arquitectura
 
@@ -58,9 +58,9 @@ usan `exists()` o `get()` por cada referencia del índice: la integridad entre
 índice y documentos la garantiza el `WriteBatch` del servicio, evitando que el
 coste de Rules crezca con el número de assets.
 
-No se requiere migración de producción: el feature flag nunca se activó, por lo
-que el esquema monolítico de Fase 4.5 no generó documentos reales. Cualquier dato
-creado únicamente en emuladores es descartable.
+El flag de cliente está activo. No se asume migración automática: cualquier dato
+productivo y la compatibilidad con el esquema anterior deben verificarse antes de
+un despliegue operativo.
 
 ## Namespace de Storage
 
@@ -175,18 +175,19 @@ listar versiones sin referencia canónica y aplicar un período de gracia.
 
 ## UX y feature flag
 
-- Con flag `false`, los cinco editores, previews y object URLs locales siguen
-  operando, pero `canUpload` y `canDelete` son `false`.
-- Con flag `true`, el mismo editor expondría upload, retry, cancel y guardado; esta
-  fase **no activó** ese estado.
+- El flag está en `true`: el editor expone upload, retry, cancel y guardado
+  multimedia, además de preview local.
+- `canUpload` y `canDelete` dependen también de autenticación, claims y Rules
+  remotas correctamente desplegadas; esa disponibilidad requiere validación
+  operativa independiente.
 - `ui.mediaDirty` está separado de `ui.draftDirty`.
 - Downgrade, toggle y cambio de tema no eliminan media persistida.
 
 ## Validación local
 
-`firebase.json` enlaza exclusivamente `firestore.rules.proposed` y
-`storage.rules.proposed`, con emuladores Firestore en 8080 y Storage en 9199. No
-incluye Hosting ni Functions.
+`firebase.json` enlaza `firestore.rules` y `storage.rules` como reglas canónicas,
+con emuladores Firestore en 8080 y Storage en 9199. No incluye Hosting ni
+Functions dentro de este documento.
 
 ```powershell
 npm.cmd run test:rules
@@ -200,9 +201,7 @@ delete. Usa exclusivamente el proyecto demo `demo-eventorastudio-phase45`.
 
 ## Activación remota posterior
 
-La activación requiere una autorización y una fase distintas: revisar bucket,
-región, billing, CORS, retención y App Check; desplegar Rules; probar un evento no
-productivo con claims reales; y sólo entonces considerar el feature flag.
-
-En Fase 4.6 no se ejecutó login, deploy, escritura a producción ni activación de
-`canUpload`. Fase 5 no fue iniciada.
+La operación productiva requiere autorización: revisar bucket, región, billing,
+CORS, retención y App Check; desplegar Rules; y probar un evento no productivo
+con claims reales. El flag ya está activo en el cliente, pero no sustituye esa
+validación remota.

@@ -1,3 +1,5 @@
+// LEGACY / DEPRECATED: editor anterior al Invitation Builder.
+// Se conserva por compatibilidad con event.html; no usar para nuevos flujos.
 // admin/modules/editor/invitation-editor.js
 import { EVENT_TYPES } from "../../core/event-types.js";
 

@@ -59,9 +59,10 @@ añadieron `getStorage(app)`, el servicio remoto, persistencia normalizada,
 propuestas finales y configuración local de CLI/emuladores. Firestore y Storage
 Rules pasan localmente en Emulator Suite, pero ninguna Rule fue desplegada y la
 disponibilidad remota continúa **no verificada**. Por eso
-`invitation-media-service.js` conserva
-`canUpload: false` mediante feature flag y no realiza operaciones remotas en el
-frontend actual.
+`INVITATION_MEDIA_UPLOAD_ENABLED` está activo en el cliente y
+`invitation-media-service.js` puede ejecutar el flujo remoto de multimedia. El
+despliegue de Rules y la disponibilidad remota siguen requiriendo validación
+operativa autorizada.
 
 `firestore.rules` es el archivo canónico local enlazado por `firebase.json`;
 `firestore.rules.proposed` conserva la propuesta histórica anterior a Fase 6.1.
@@ -848,8 +849,9 @@ Fase 4.6 conserva la capa de upload bajo
 Firestore conserva el `storagePath` estable y metadata; `downloadUrl` sólo existe
 en runtime y se vuelve a resolver al hidratar. **Nunca se guardan imágenes, audio,
 video, Base64, Data URLs u object URLs dentro del documento Firestore.** La
-capacidad remota permanece bloqueada por feature flag hasta completar y desplegar
-los pasos de `STORAGE_SETUP.md` con autorización explícita.
+capacidad remota está habilitada en el cliente; antes de declarar producción
+operativa deben completarse y verificarse los pasos de `STORAGE_SETUP.md` con
+autorización explícita.
 
 ### Persistencia multimedia normalizada · Fase 4.6
 
@@ -879,8 +881,9 @@ en batch antes de borrar Storage; así un fallo Firestore conserva el asset
 funcional y un fallo Storage posterior deja sólo un binario huérfano, no una
 referencia rota. La galería limita los uploads a tres en paralelo.
 
-No existe migración productiva: el flag remoto nunca fue activado y el esquema
-monolítico anterior no produjo datos reales. La futura persistencia de las demás
+El flag de cliente está activo. La disponibilidad remota y cualquier migración
+de datos productivos deben verificarse explícitamente; el esquema monolítico
+anterior no forma parte del contrato vigente. La futura persistencia de las demás
 raíces deberá ampliar explícitamente el contrato de `config`; las versiones
 publicadas continuarán separadas en `invitacionVersiones`.
 
@@ -1009,11 +1012,11 @@ reparación administrativa, sin borrar responses históricas.
    un hospedaje, enlaces, URLs seguras y adapters de preview.
 3. Fase 4 completada: Media Manager local-first, optimización, adapters y
    preparación segura de Storage sin habilitar escrituras remotas.
-4. Fase 4.5 completada localmente: servicio Storage, ciclos iniciales de
-   upload/replace/delete, Rules propuestas y flag remoto deshabilitado.
-5. Fase 4.6 completada localmente: `mediaIndex`, subcolección por asset,
+4. Fase 4.5 completada: servicio Storage, ciclos iniciales de
+   upload/replace/delete y Rules propuestas; el flag de cliente está activo.
+5. Fase 4.6 completada: `mediaIndex`, subcolección por asset,
    `WriteBatch`, hidratación escalable, compensaciones y pruebas Emulator
-   1/6/20/>20. El flag remoto continúa deshabilitado.
+   1/6/20/>20.
 6. Fase 5.1 completada: contrato, editor, validación, WhatsApp seguro, policy de
    pases y preview RSVP.
 7. Fase 5.2 completada: persistencia administrativa RSVP, hidratación, save
@@ -1037,6 +1040,11 @@ reparación administrativa, sin borrar responses históricas.
     runtime público compartido y GET exacto sin queries.
 16. Fase 6.4 completada localmente: personalización opcional desde RSVP Access,
     CTA RSVP seguro y enlace copiable desde Guest Manager.
-17. Fase 6.5 y posteriores: pendientes; no iniciadas.
+17. Fases 8.1–8.6 completadas: protección contra cambios sin guardar, UX de
+    publicación, corrección de validación RSVP, ocultamiento temporal de
+    Personalizada y cierre documental del Builder v1.
 
-No se implementó ninguna fase posterior a Fase 6.4.
+El Builder v1 queda funcional con once colecciones Prestige visibles. El tema
+`custom`/Personalizada permanece registrado y compatible con drafts existentes,
+pero está oculto del selector para nuevas invitaciones hasta contar con un
+editor visual completo.

@@ -1,3 +1,5 @@
+// LEGACY / DEPRECATED: preview del editor anterior al Invitation Builder.
+// Se conserva por compatibilidad con event.html; no usar para nuevos flujos.
 // admin/modules/editor/invitation-preview.js
 /**
  * @fileoverview Módulo de Previsualización de Invitaciones para Eventora Studio (Fase 3.11).
