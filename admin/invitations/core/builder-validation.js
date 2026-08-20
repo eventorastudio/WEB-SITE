@@ -77,6 +77,8 @@ export function validateInvitationDraft(draft = {}) {
 
 export function validateRsvpConfig(rsvp = {}) {
     const errors = {};
+    if (!isRsvpEnabled(rsvp)) return Object.freeze(errors);
+
     const deadline = String(rsvp?.deadline ?? '').trim();
     const deadlineTime = String(rsvp?.deadlineTime ?? '').trim();
     const deadlineTimeZone = String(rsvp?.deadlineTimeZone ?? '').trim();
@@ -106,7 +108,6 @@ export function validateRsvpConfig(rsvp = {}) {
         }
     }
 
-    if (!isRsvpEnabled(rsvp)) return Object.freeze(errors);
     if (!RSVP_METHODS.includes(method)) {
         errors['content.rsvp.method'] = 'Selecciona un método RSVP válido.';
     } else if (method === 'whatsapp') {
