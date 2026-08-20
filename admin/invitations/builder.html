@@ -7,7 +7,7 @@
     <title>Invitation Builder | Eventora Studio</title>
     <link rel="icon" href="../assets/images/favicon.ico">
     <link rel="stylesheet" href="../assets/css/theme.css">
-    <link rel="stylesheet" href="./builder.css?v=phase52-rsvp-persistence-20260816">
+    <link rel="stylesheet" href="./builder.css?v=phase87-separate-preview-20260820">
 </head>
 <body>
     <div class="builder-auth-guard" id="builder-auth-guard" role="status" aria-live="polite">
@@ -42,6 +42,7 @@
                 <span class="builder-save-status" id="builder-save-draft-status" role="status" aria-live="polite"></span>
                 <button class="builder-save" id="builder-publish" type="button" disabled title="Crea una revisión publicada e inmutable">Publicar</button>
                 <span class="builder-save-status" id="builder-publish-status" role="status" aria-live="polite"></span>
+                <button class="builder-save" id="builder-open-preview" type="button" title="Abre el preview en una ventana separada">Abrir preview</button>
                 <button class="builder-save" id="builder-save-rsvp" type="button" disabled title="Guarda únicamente la configuración RSVP de este evento">Guardar RSVP</button>
                 <span class="builder-save-status" id="builder-save-rsvp-status" role="status" aria-live="polite"></span>
             </div>
@@ -210,13 +211,6 @@
                     <small id="preview-dimension">390 × 844</small>
                 </div>
                 <div class="preview-stage" id="preview-stage" data-device="mobile">
-                    <iframe
-                        id="invitation-preview-frame"
-                        class="preview-frame"
-                        data-src="./preview/frame.html?v=phase11-opening-cover-20260820"
-                        title="Vista previa de la invitación"
-                        sandbox="allow-scripts allow-same-origin"
-                    ></iframe>
                 </div>
                 <p class="preview-security-note">Modo Builder · navegación externa y formularios interceptados; audio/video solo manual</p>
             </aside>
@@ -224,6 +218,6 @@
     </div>
 
     <div id="toast-container" aria-live="polite"></div>
-    <script type="module" src="./builder.js?v=phase86-appearance-20260820"></script>
+    <script type="module" src="./builder.js?v=phase87-separate-preview-20260820"></script>
 </body>
 </html>

@@ -28,7 +28,7 @@ import { renderEventSelector } from './modules/event-selector.js?v=phase3-logist
 import { initPackageSelector } from './modules/package-selector.js?v=phase3-logistics-20260813';
 import { initThemeSelector } from './modules/theme-selector.js?v=phase3-logistics-20260813';
 import { initSectionSelector } from './modules/section-selector.js?v=phase3-logistics-20260813';
-import { initPreviewController } from './modules/preview-controller.js?v=phase54a-rsvp-time-20260817';
+import { initPreviewController } from './modules/preview-controller.js?v=phase87-separate-preview-20260820';
 import { initBuilderEventBridge } from './modules/state-event-bridge.js?v=phase3-logistics-20260813';
 import { initRsvpPersistenceController } from './modules/rsvp-persistence-controller.js?v=phase52-rsvp-persistence-20260816';
 import { initDraftPersistenceController } from './modules/draft-persistence-controller.js?v=phase61-draft-persistence-20260817';
@@ -354,7 +354,7 @@ function mountModules() {
         onTrace: (event, details) => debugBuilder.trace(event, details)
     }));
     moduleCleanups.push(initPreviewController({
-        frame: document.getElementById('invitation-preview-frame'),
+        openButton: document.getElementById('builder-open-preview'),
         controls: document.getElementById('preview-device-controls'),
         status: document.getElementById('preview-status'),
         dimension: document.getElementById('preview-dimension'),
@@ -428,7 +428,7 @@ function syncDraftChrome(snapshot) {
 
 function assertBuilderRootInvariant(context) {
     const currentRoot = document.getElementById('invitation-builder-root');
-    const requiredRegions = ['sidebar', 'editor', 'preview'];
+    const requiredRegions = ['sidebar', 'editor'];
     const regionsPresent = requiredRegions.every((region) => immutableBuilderRoot?.querySelector(`[data-builder-region="${region}"]`));
     if (currentRoot !== immutableBuilderRoot || !immutableBuilderRoot?.isConnected || !regionsPresent) {
         throw new Error(`builder/root-invariant-violated:${context}`);

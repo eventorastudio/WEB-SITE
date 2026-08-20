@@ -7,7 +7,7 @@ import { isRsvpEnabled } from '../core/rsvp-schema.js?v=phase54a-rsvp-time-20260
 const CONTENT_UPDATE_DEBOUNCE_MS = 80;
 
 export function initPreviewController({
-    frame,
+    openButton,
     controls,
     status,
     dimension,
@@ -19,9 +19,11 @@ export function initPreviewController({
     onTrace,
     updateDebounceMs = CONTENT_UPDATE_DEBOUNCE_MS
 }) {
-    if (!frame || !state) return () => {};
+    if (!state) return () => {};
 
     const targetOrigin = window.location.origin;
+    const previewUrl = new URL('./preview/frame.html?v=phase11-opening-cover-20260820', document.baseURI).href;
+    let previewWindow = null;
     let shellReady = false;
     let queuedRender = null;
     let queuedUpdate = null;
@@ -44,10 +46,10 @@ export function initPreviewController({
         onError?.(error, { source: 'preview-controller', reason: phase });
     };
 
-    const postToFrame = (message, phase) => {
-        if (!message || !frame.contentWindow) return false;
+    const postToPreview = (message, phase) => {
+        if (!message || !previewWindow || previewWindow.closed || !shellReady) return false;
         try {
-            frame.contentWindow.postMessage(message, targetOrigin);
+            previewWindow.postMessage(message, targetOrigin);
             return true;
         } catch (error) {
             reportPreviewFailure(error, phase);
@@ -115,7 +117,7 @@ export function initPreviewController({
             setStatus('No pudimos actualizar la vista previa.', 'error');
             onTrace?.('preview-timeout', { requestId: message.requestId });
         }, 8000);
-        if (shellReady) postToFrame(message, 'post-render-message');
+        if (shellReady) postToPreview(message, 'post-render-message');
         onTrace?.('preview-render-sent', {
             requestId: message.requestId,
             themeId: message.payload.theme.id,
@@ -128,7 +130,7 @@ export function initPreviewController({
         if (!queuedUpdate || queuedUpdate.payload.theme.id !== renderedThemeId) return;
         const message = queuedUpdate;
         queuedUpdate = null;
-        postToFrame(message, 'post-update-message');
+        postToPreview(message, 'post-update-message');
         onTrace?.('preview-update-sent', {
             requestId: message.requestId,
             themeId: message.payload.theme.id,
@@ -164,7 +166,7 @@ export function initPreviewController({
 
     const syncDevice = (snapshot) => {
         const device = PREVIEW_DEVICES[snapshot.ui.previewDevice] ?? PREVIEW_DEVICES.mobile;
-        stage.dataset.device = device.id;
+        if (stage) stage.dataset.device = device.id;
         if (dimension) dimension.textContent = `${device.width} × ${device.height}`;
         controls?.querySelectorAll('[data-preview-device]').forEach((button) => {
             const active = button.dataset.previewDevice === device.id;
@@ -178,10 +180,10 @@ export function initPreviewController({
     });
 
     const handleMessage = (event) => {
-        if (event.origin !== targetOrigin || event.source !== frame.contentWindow || !isPreviewMessage(event.data)) return;
+        if (event.origin !== targetOrigin || event.source !== previewWindow || !isPreviewMessage(event.data)) return;
         if (event.data.type === PREVIEW_MESSAGE_TYPES.SHELL_READY) {
             shellReady = true;
-            if (queuedRender) postToFrame(queuedRender, 'post-shell-ready-message');
+            sendFullRender(state.getSnapshot());
         } else if (event.data.type === PREVIEW_MESSAGE_TYPES.RENDERED) {
             const themeId = event.data.payload?.themeId ?? null;
             renderedThemeId = themeId;
@@ -204,20 +206,25 @@ export function initPreviewController({
     };
 
     window.addEventListener('message', handleMessage);
-    const handleFrameLoad = () => {
-        shellReady = true;
-        if (queuedRender) postToFrame(queuedRender, 'post-frame-load-message');
+    const openPreview = () => {
+        if (previewWindow && !previewWindow.closed) {
+            previewWindow.focus();
+            sendSnapshot(state.getSnapshot(), 'initialized');
+            return;
+        }
+        previewWindow = window.open(previewUrl, 'eventora-invitation-preview', 'popup,width=1280,height=900,resizable=yes,scrollbars=yes');
+        if (!previewWindow) {
+            setStatus('Permite ventanas emergentes para abrir el preview.', 'error');
+            return;
+        }
+        shellReady = false;
+        renderedThemeId = null;
+        pendingThemeId = null;
+        sendSnapshot(state.getSnapshot(), 'initialized');
+        previewWindow.focus();
     };
-    frame.addEventListener('load', handleFrameLoad);
-    try {
-        const deferredSource = frame.dataset.src;
-        if (!frame.getAttribute('src') && deferredSource) frame.setAttribute('src', deferredSource);
-        if (frame.contentDocument?.readyState === 'complete') shellReady = true;
-    } catch (error) {
-        reportPreviewFailure(error, 'inspect-frame-readiness');
-    }
+    openButton?.addEventListener('click', openPreview);
     syncDevice(state.getSnapshot());
-    sendSnapshot(state.getSnapshot());
 
     const unsubscribe = state.subscribe(({ snapshot, reason }) => {
         if (reason === 'preview-device-changed') syncDevice(snapshot);
@@ -231,6 +238,6 @@ export function initPreviewController({
         window.clearTimeout(responseTimeout);
         window.clearTimeout(updateTimer);
         window.removeEventListener('message', handleMessage);
-        frame.removeEventListener('load', handleFrameLoad);
+        openButton?.removeEventListener('click', openPreview);
     };
 }

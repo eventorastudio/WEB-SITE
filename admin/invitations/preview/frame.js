@@ -16,6 +16,7 @@ import { normalizeAppearance } from '../core/appearance-schema.js?v=phase86-appe
 import { entityHasContent } from '../core/logistics-schema.js?v=phase3-logistics-20260813';
 
 const parentOrigin = window.location.origin;
+const previewHost = window.parent !== window ? window.parent : window.opener;
 const publicRuntime = document.documentElement.dataset.invitationRuntime === 'public';
 let activeThemeLinks = [];
 let latestRequestId = 0;
@@ -55,7 +56,7 @@ async function renderPublicPayload(payload) {
 }
 
 async function handleParentMessage(event) {
-    if (event.origin !== parentOrigin || event.source !== window.parent) return;
+    if (event.origin !== parentOrigin || event.source !== previewHost) return;
     if (![PREVIEW_MESSAGE_TYPES.RENDER, PREVIEW_MESSAGE_TYPES.UPDATE].includes(event.data?.type)) return;
 
     const requestId = Number(event.data.requestId) || 0;
@@ -133,13 +134,9 @@ async function renderTemplate(payload, requestId) {
         invitation.setAttribute('aria-hidden', 'false');
     }
     prepareBuilderTemplate(document, payload.theme.id);
-    setupOpening(payload);
     applyPayload(payload);
-    // Register Aloha reveals only after real bindings, sanitization and section
-    // visibility have settled; observing the pre-binding DOM can leave them
-    // permanently transparent in the Builder preview.
-    if (payload.theme.id === 'aloha') setupAlohaReveal(document);
-    else document.querySelectorAll('.reveal').forEach((element) => element.classList.add('visible'));
+    setupOpening(payload);
+    if (payload.theme.id !== 'aloha') document.querySelectorAll('.reveal').forEach((element) => element.classList.add('visible'));
     stopMedia();
     return true;
 }
@@ -239,6 +236,8 @@ function setupOpening(payload) {
     const audio = document.getElementById('event-music');
     const musicButton = document.getElementById('music-control');
     if (!opening || !invitation || !openButton) return;
+    opening.hidden = false;
+    openButton.hidden = false;
     syncOpeningData(payload);
     if (audio) {
         const source = payload.draft?.media?.music?.previewUrl || payload.draft?.media?.music?.downloadUrl || '';
@@ -253,6 +252,7 @@ function setupOpening(payload) {
         document.body.classList.add('invitation-open');
         invitation.inert = false;
         invitation.setAttribute('aria-hidden', 'false');
+        if (payload.theme.id === 'aloha') setupAlohaReveal(document);
         if (musicButton) musicButton.hidden = false;
         if (audio?.src) {
             try { await audio.play(); } catch { /* El navegador puede requerir otra interacción. */ }
@@ -713,5 +713,5 @@ function showPublicUnavailable() {
 }
 
 function postToParent(message) {
-    window.parent.postMessage(message, parentOrigin);
+    previewHost?.postMessage(message, parentOrigin);
 }
