@@ -47,7 +47,14 @@ const FIELD_DEFINITIONS = [
     ['content.itinerary.intro', 'text', 400],
     ['content.access.title', 'text', 120],
     ['content.access.description', 'text', 400],
-    ['content.access.label', 'text', 80]
+    ['content.access.label', 'text', 80],
+    ['content.access.guestLabel', 'text', 80],
+    ['content.access.passesLabel', 'text', 80],
+    ['content.access.showQr', 'boolean', 0],
+    ['content.access.showPrintPass', 'boolean', 0],
+    ['content.access.printButtonLabel', 'text', 80],
+    ['content.access.printTitle', 'text', 120],
+    ['content.access.printFooter', 'text', 240]
 ];
 
 export const INVITATION_EDITABLE_FIELDS = Object.freeze(Object.fromEntries(
@@ -107,7 +114,7 @@ export function createInvitationContent(eventData = {}) {
         gifts: { title: '', description: '', ctaLabel: '' },
         passes: { title: '', instructions: '' },
         itinerary: { title: '', intro: '' },
-        access: { title: '', description: '', label: '' }
+        access: { title: '', description: '', label: '', guestLabel: '', passesLabel: '', showQr: true, showPrintPass: true, printButtonLabel: 'Imprimir pase', printTitle: 'Pase de acceso', printFooter: 'Presenta este pase al llegar.' }
     };
 }
 

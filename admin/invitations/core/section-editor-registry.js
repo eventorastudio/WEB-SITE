@@ -200,7 +200,14 @@ export const SECTION_EDITOR_REGISTRY = Object.freeze({
         fields: [
             field('content.access.title', 'Título'),
             field('content.access.description', 'Descripción', { kind: 'textarea', rows: 3 }),
-            field('content.access.label', 'Label general')
+            field('content.access.label', 'Label general'),
+            field('content.access.guestLabel', 'Label del invitado'),
+            field('content.access.passesLabel', 'Label de pases'),
+            field('content.access.showQr', 'Mostrar QR', { kind: 'toggle', wide: true }),
+            field('content.access.showPrintPass', 'Permitir imprimir pase', { kind: 'toggle', wide: true }),
+            field('content.access.printButtonLabel', 'Texto del botÃ³n de impresiÃ³n'),
+            field('content.access.printTitle', 'TÃ­tulo del pase impreso'),
+            field('content.access.printFooter', 'Pie del pase impreso', { kind: 'textarea', rows: 2 })
         ]
     }),
     'advanced-personalization': editor({

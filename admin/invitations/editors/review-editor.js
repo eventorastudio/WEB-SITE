@@ -47,6 +47,9 @@ export function initReviewEditor({ container, state, publishButton }) {
             ['Multimedia', `${media.cover ? 'Portada' : 'Sin portada'} · ${count(media.gallery)} foto(s) · ${media.video ? 'Video' : 'Sin video'}`, 'media'],
             ['Ubicaciones', `${count(draft.locations)} configurada(s)`, 'logistics'],
             ['Detalles', `${count(draft.itinerary)} itinerario · ${count(draft.gifts)} regalos · ${count(draft.accommodations)} hospedaje · ${count(draft.links)} enlace(s)`, 'details'],
+            ['Pase de acceso', draft.enabledSections?.includes('access-preview')
+                ? `${content.access?.showQr === false ? 'QR oculto' : 'QR activo'} · ${content.access?.showPrintPass === false ? 'sin impresión' : 'impresión disponible'}`
+                : 'Sección desactivada', 'details'],
             ['Apariencia', draft.appearance?.accentColor ? `Acento ${draft.appearance.accentColor}` : 'Predeterminada', 'appearance'],
             ['RSVP', isRsvpEnabled(content.rsvp) ? 'Activo' : 'Desactivado', 'information'],
             ['Estado del borrador', snapshot.ui?.isDirty ? 'Cambios sin guardar' : 'Guardado', null]

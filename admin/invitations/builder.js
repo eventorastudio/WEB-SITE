@@ -17,6 +17,7 @@ import { createBuilderDebugLogger } from './core/builder-debug.js?v=phase3-logis
 import { initIdentityEditor } from './editors/identity-editor.js?v=phase3-logistics-20260813';
 import { initSectionCopyEditors } from './editors/section-copy-editor.js?v=phase54a-rsvp-time-20260817';
 import { initLogisticsEditors } from './editors/logistics-editor.js?v=phase3-logistics-20260813';
+import { initAccessPassEditor } from './editors/access-pass-editor.js?v=phase88-qr2-20260820';
 import { initMediaEditor } from './editors/media-editor.js?v=phase48-upload-enabled-20260816';
 import { initAppearanceEditor } from './editors/appearance-editor.js?v=phase86-appearance-20260820';
 import { initReviewEditor } from './editors/review-editor.js?v=phase86-review-20260820';
@@ -309,6 +310,10 @@ function mountModules() {
         state: builderState,
         editorIds: ['locations'],
         emptyMessage: 'Activa la secci\u00f3n Ubicaci\u00f3n para configurar sus datos.'
+    }));
+    moduleCleanups.push(initAccessPassEditor({
+        container: document.getElementById('access-pass-editor'),
+        state: builderState
     }));
     moduleCleanups.push(initLogisticsEditors({
         container: document.getElementById('phase3-details-editors'),

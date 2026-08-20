@@ -10,7 +10,8 @@ import {
     prepareBuilderTemplate
 } from '../core/template-binding-registry.js?v=phase86-aloha-a2-20260820';
 import { PublicInvitationPage } from '../../../invitacion/public-invitation-page.js?v=phase64-personalized-invitation-20260817';
-import { applyPublicInvitationPersonalization } from '../../../invitacion/public-invitation-personalization.js?v=phase64-personalized-invitation-20260817';
+import { applyPublicInvitationPersonalization } from '../../../invitacion/public-invitation-personalization.js?v=phase88-qr2-20260820';
+import { generateQrCanvas } from '../../modules/qr/qr-renderer.js?v=phase88-qr2-20260820';
 import { getThemeById } from '../core/theme-registry.js?v=phase86-appearance-20260820';
 import { normalizeAppearance } from '../core/appearance-schema.js?v=phase86-appearance-20260820';
 import { entityHasContent } from '../core/logistics-schema.js?v=phase3-logistics-20260813';
@@ -219,6 +220,7 @@ function applyPayload(payload) {
     // re-expose demo content when a section is enabled without real data.
     if (payload.theme.id === 'aloha') sanitizeAlohaRealContent(payload);
     if (payload.theme.id === 'aloha') setupAlohaInteractions(payload);
+    renderAccessPass(payload);
     if (publicRuntime && payload.personalization) {
         applyPublicInvitationPersonalization(document, payload.personalization, payload.rsvpUrl);
     }
@@ -311,6 +313,95 @@ function setupAlohaReveal(documentRoot) {
 function setupAlohaInteractions(payload) {
     setupAlohaPassTabs(payload);
     setupAlohaVideo();
+}
+
+let qrLibraryPromise = null;
+function ensureQrLibrary() {
+    if (typeof window.qrcode === 'function') return Promise.resolve();
+    qrLibraryPromise ??= new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = new URL('../../vendor/qrcode-generator.js', document.baseURI).toString();
+        script.onload = resolve;
+        script.onerror = () => reject(new Error('qr/library-unavailable'));
+        document.head.append(script);
+    });
+    return qrLibraryPromise;
+}
+
+function renderAccessPass(payload) {
+    const access = document.querySelector('[data-access-preview]');
+    if (!access) return;
+    const config = payload.draft?.content?.access ?? {};
+    const personalization = payload.personalization;
+    const builderPreview = payload.renderMode === 'builder';
+    const valid = builderPreview || (personalization && personalization.displayName && Number.isInteger(personalization.passLimit));
+    const displayName = valid ? (personalization?.displayName || 'Invitado de muestra') : '';
+    const passLimit = valid ? (personalization?.passLimit || 2) : 0;
+    access.querySelectorAll('[data-access-guest]').forEach((node) => { node.textContent = displayName; });
+    access.querySelectorAll('[data-access-passes]').forEach((node) => {
+        node.textContent = valid ? `${passLimit} ${config.passesLabel || 'pase(s) asignado(s)'}` : '';
+        node.hidden = !valid;
+    });
+    access.querySelectorAll('[data-pass-selector]').forEach((node) => { node.hidden = true; });
+    const qrToken = builderPreview ? 'PREVIEW-QR-NO-OPERATIVO' : personalization?.qrToken;
+    access.querySelectorAll('[data-access-view]').forEach((view) => {
+        let qrHost = view.querySelector('[data-builder-access-qr]');
+        if (!qrHost) {
+            qrHost = document.createElement('div');
+            qrHost.dataset.builderAccessQr = 'true';
+            qrHost.className = 'builder-access-qr';
+            view.append(qrHost);
+        }
+        qrHost.hidden = !(valid && config.showQr !== false && qrToken);
+        if (!qrHost.hidden && !qrHost.dataset.renderedToken) {
+            qrHost.replaceChildren();
+            const label = document.createElement('small');
+            label.textContent = builderPreview ? 'QR de vista previa · no operativo' : 'Pase de acceso';
+            qrHost.append(label);
+            void ensureQrLibrary().then(() => {
+                if (qrHost.hidden || qrHost.dataset.renderedToken === qrToken) return;
+                const canvas = generateQrCanvas(qrToken, { size: 220 });
+                canvas.setAttribute('aria-label', 'Código QR de acceso');
+                qrHost.append(canvas);
+                qrHost.dataset.renderedToken = qrToken;
+            }).catch(() => { qrHost.textContent = 'QR no disponible'; });
+        }
+    });
+    const printButton = ensureAccessPrintButton(access, config, !builderPreview && valid && config.showPrintPass !== false);
+    printButton?.addEventListener('click', () => openPrintablePass(payload, config), { once: true });
+}
+
+function ensureAccessPrintButton(access, config, visible) {
+    let button = access.querySelector('[data-access-print]');
+    if (!button) {
+        button = document.createElement('button');
+        button.type = 'button';
+        button.dataset.accessPrint = 'true';
+        button.textContent = config.printButtonLabel || 'Imprimir pase';
+        access.append(button);
+    }
+    button.hidden = !visible;
+    button.textContent = config.printButtonLabel || 'Imprimir pase';
+    return button;
+}
+
+function openPrintablePass(payload, config) {
+    if (payload.renderMode !== 'public') return;
+    const personalization = payload.personalization;
+    if (!personalization?.qrToken) return;
+    let sheet = document.getElementById('builder-print-pass');
+    if (!sheet) { sheet = document.createElement('section'); sheet.id = 'builder-print-pass'; document.body.append(sheet); }
+    sheet.replaceChildren();
+    const title = document.createElement('h1'); title.textContent = config.printTitle || 'Pase de acceso';
+    const guest = document.createElement('h2'); guest.textContent = personalization.displayName;
+    const passes = document.createElement('p'); passes.textContent = `${personalization.passLimit} pase(s)`;
+    const qr = generateQrCanvas(personalization.qrToken, { size: 420 });
+    const footer = document.createElement('p'); footer.textContent = config.printFooter || 'Presenta este pase al llegar.';
+    const brand = document.createElement('small'); brand.textContent = 'EVENTORA STUDIO';
+    sheet.append(title, guest, passes, qr, footer, brand);
+    document.body.dataset.printPass = 'true';
+    window.addEventListener('afterprint', () => { delete document.body.dataset.printPass; sheet.replaceChildren(); }, { once: true });
+    window.print();
 }
 
 function setupAlohaPassTabs(payload) {

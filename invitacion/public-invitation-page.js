@@ -65,7 +65,8 @@ export function createPublicInvitationRenderPayload(projection, {
     if (personalization) {
         payload.personalization = Object.freeze({
             displayName: personalization.displayName,
-            passLimit: personalization.passLimit
+            passLimit: personalization.passLimit,
+            ...(personalization.qrToken ? { qrToken: personalization.qrToken } : {})
         });
         payload.rsvpUrl = rsvpUrl;
     }

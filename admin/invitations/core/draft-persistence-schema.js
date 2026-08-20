@@ -103,7 +103,10 @@ function normalizeGeneralContent(source = {}) {
     const content = createInvitationContent();
     delete content.rsvp;
     GENERAL_CONTENT_PATHS.forEach((path) => {
-        setGeneralContentValue(content, path, getDraftValue({ content: source }, path));
+        const value = getDraftValue({ content: source }, path);
+        // Preserve defaults for newly introduced optional controls (for example access.showQr)
+        // when normalizing drafts created before those fields existed.
+        if (value !== undefined) setGeneralContentValue(content, path, value);
     });
     DRESS_COLOR_GROUPS.forEach((group) => {
         const colors = Array.isArray(source?.dressCode?.[group]) ? source.dressCode[group] : [];
