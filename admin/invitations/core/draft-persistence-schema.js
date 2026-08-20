@@ -46,6 +46,7 @@ const LEGACY_DOCUMENT_FIELDS = Object.freeze(
     DOCUMENT_FIELDS.filter((field) => field !== 'accommodations')
 );
 const SETTINGS_FIELDS = Object.freeze(['renderMode', 'packageId']);
+const LEGACY_ACCESS_FIELDS = Object.freeze(['title', 'description', 'label']);
 const COLLECTION_LIMITS = Object.freeze({
     locations: 20,
     itinerary: 80,
@@ -77,6 +78,15 @@ function exactKeys(value, fields) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
     const keys = Object.keys(value);
     return keys.length === fields.length && keys.every((key) => fields.includes(key));
+}
+
+function hasLegacyAccessShape(document) {
+    const access = document?.content?.access;
+    if (!access || typeof access !== 'object' || Array.isArray(access)) return false;
+    const keys = Object.keys(access);
+    return keys.length === LEGACY_ACCESS_FIELDS.length
+        && keys.every((key) => LEGACY_ACCESS_FIELDS.includes(key))
+        && LEGACY_ACCESS_FIELDS.every((key) => typeof access[key] === 'string');
 }
 
 function assertEventId(eventId) {
@@ -238,9 +248,12 @@ export function deserializeInvitationDraft(document, expectedEventId) {
         updatedBy
     };
 
+    const legacyAccessDocument = hasLegacyAccessShape(document);
     if (isCurrentDocument && document.contentSchemaVersion === INVITATION_CONTENT_SCHEMA_VERSION) {
         const comparable = { ...normalized, updatedAt: document.updatedAt };
-        if (stableStringify(comparable) !== stableStringify(document)) fail('draft/non-canonical-document');
+        const canonicalDocument = legacyAccessDocument ? cloneInvitationValue(document) : document;
+        if (legacyAccessDocument) canonicalDocument.content.access = normalized.content.access;
+        if (stableStringify(comparable) !== stableStringify(canonicalDocument)) fail('draft/non-canonical-document');
     }
     return Object.freeze(cloneInvitationValue(normalized));
 }
