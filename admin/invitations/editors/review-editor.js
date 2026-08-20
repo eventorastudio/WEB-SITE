@@ -1,5 +1,6 @@
 import { validateInvitationDraft } from '../core/builder-validation.js?v=phase86-review-20260820';
 import { getThemeById } from '../core/theme-registry.js?v=phase86-appearance-20260820';
+import { getSectionById } from '../core/section-registry.js?v=phase86-review-20260820';
 import { isRsvpEnabled } from '../core/rsvp-schema.js?v=phase54a-rsvp-time-20260817';
 
 const ERROR_TARGETS = Object.freeze({ 'content.': 'information', rsvp: 'information', media: 'media', locations: 'logistics', itinerary: 'details', gifts: 'details', accommodations: 'details', links: 'details', appearance: 'appearance' });
@@ -18,8 +19,12 @@ export function initReviewEditor({ container, state, publishButton }) {
         const media = draft.media ?? {};
         container.replaceChildren();
         const status = document.createElement('div');
-        status.className = `review-status ${Object.keys(errors).length ? 'is-invalid' : 'is-ready'}`;
-        status.textContent = Object.keys(errors).length ? `Hay ${Object.keys(errors).length} error(es) que debes corregir antes de publicar.` : 'Listo para publicar';
+        const hasErrors = Object.keys(errors).length > 0;
+        const hasPendingChanges = snapshot.ui?.isDirty === true;
+        status.className = `review-status ${hasErrors ? 'is-invalid' : 'is-ready'}`;
+        status.textContent = hasErrors
+            ? `Hay ${Object.keys(errors).length} error(es) que debes corregir antes de publicar.`
+            : (hasPendingChanges ? 'Contenido válido · cambios sin guardar' : 'Listo para publicar');
         container.append(status);
         if (Object.keys(errors).length) {
             const list = document.createElement('div');
@@ -37,7 +42,7 @@ export function initReviewEditor({ container, state, publishButton }) {
         const sections = Array.isArray(draft.enabledSections) ? draft.enabledSections : [];
         const cards = [
             ['Tema', theme?.name ?? 'Sin seleccionar', 'theme'],
-            ['Secciones activas', sections.length ? sections.join(', ') : 'Ninguna', 'sections'],
+            ['Secciones activas', sections.length ? sections.map((id) => getSectionById(id)?.name ?? id).join(', ') : 'Ninguna', 'sections'],
             ['Información principal', text(content.identity?.primaryName), 'information'],
             ['Multimedia', `${media.cover ? 'Portada' : 'Sin portada'} · ${count(media.gallery)} foto(s) · ${media.video ? 'Video' : 'Sin video'}`, 'media'],
             ['Ubicaciones', `${count(draft.locations)} configurada(s)`, 'logistics'],
