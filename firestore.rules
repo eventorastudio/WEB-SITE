@@ -165,7 +165,7 @@ service cloud.firestore {
         && data.gifts is list && data.gifts.size() <= 50
         && data.accommodations is list && data.accommodations.size() <= 1
         && data.links is list && data.links.size() <= 50
-        && data.appearance is map && data.appearance.keys().size() == 0
+        && validInvitationAppearance(data.appearance)
         && data.settings is map
         && data.settings.keys().size() == 2
         && data.settings.keys().hasOnly(['renderMode', 'packageId'])
@@ -205,7 +205,7 @@ service cloud.firestore {
         && data.gifts is list && data.gifts.size() <= 50
         && data.accommodations is list && data.accommodations.size() <= 1
         && data.links is list && data.links.size() <= 50
-        && data.appearance is map && data.appearance.keys().size() == 0
+        && validInvitationAppearance(data.appearance)
         && data.settings is map
         && data.settings.keys().size() == 2
         && data.settings.keys().hasOnly(['renderMode', 'packageId'])
@@ -213,6 +213,19 @@ service cloud.firestore {
         && (
           data.settings.packageId == null
           || data.settings.packageId in ['esencial', 'premium', 'prestige']
+        );
+    }
+
+    function validInvitationAppearance(appearance) {
+      return appearance is map
+        && (
+          appearance.keys().size() == 0
+          || (
+            appearance.keys().size() == 1
+            && appearance.keys().hasOnly(['accentColor'])
+            && appearance.accentColor is string
+            && appearance.accentColor.matches('^#[0-9a-f]{6}$')
+          )
         );
     }
 
