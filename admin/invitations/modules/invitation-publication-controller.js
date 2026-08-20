@@ -24,9 +24,18 @@ export function initInvitationPublicationController({
 
     const render = () => {
         if (disposed) return;
+        const snapshot = state.getSnapshot();
+        const validationErrors = validateInvitationDraft(snapshot.draft);
+        const errorEntries = Object.entries(validationErrors);
+        const displayOutcome = outcome === 'unchanged' && errorEntries.length
+            ? 'validation-error'
+            : outcome;
+        if (displayOutcome === 'validation-error' && errorEntries.length) {
+            validationMessage = createValidationMessage(errorEntries);
+        }
         button.disabled = publishing;
-        button.textContent = labelForState({ publishing, outcome });
-        button.dataset.state = publishing ? 'saving' : outcome;
+        button.textContent = labelForState({ publishing, outcome: displayOutcome });
+        button.dataset.state = publishing ? 'saving' : displayOutcome;
         if (status) {
             const message = publishing
                 ? 'Creando una revisión inmutable.'
@@ -34,9 +43,9 @@ export function initInvitationPublicationController({
                     published: 'Invitación publicada.',
                     unchanged: 'El contenido ya coincide con la revisión activa.',
                     error: 'No se publicó. El draft local permanece disponible.'
-                })[outcome] ?? validationMessage;
+                })[displayOutcome] ?? validationMessage;
             status.textContent = message;
-            if (publicUrl && ['published', 'unchanged'].includes(outcome)) {
+            if (publicUrl && ['published', 'unchanged'].includes(displayOutcome)) {
                 const link = status.ownerDocument.createElement('a');
                 link.href = publicUrl;
                 link.target = '_blank';
