@@ -13,6 +13,7 @@ import { PublicInvitationPage } from '../../../invitacion/public-invitation-page
 import { applyPublicInvitationPersonalization } from '../../../invitacion/public-invitation-personalization.js?v=phase64-personalized-invitation-20260817';
 import { getThemeById } from '../core/theme-registry.js?v=phase86-appearance-20260820';
 import { normalizeAppearance } from '../core/appearance-schema.js?v=phase86-appearance-20260820';
+import { entityHasContent } from '../core/logistics-schema.js?v=phase3-logistics-20260813';
 
 const parentOrigin = window.location.origin;
 const publicRuntime = document.documentElement.dataset.invitationRuntime === 'public';
@@ -213,6 +214,7 @@ function applyPayload(payload) {
         applyPhase5ContentBindings(document, payload.theme.id, payload.draft);
     }
     else applyTemplateContentBindings(document, payload.theme.id, payload.draft);
+    if (payload.theme.id === 'aloha') sanitizeAlohaRealContent(payload);
     applySectionVisibility(payload.sections, payload.enabledSections, payload.sectionGroups);
     if (publicRuntime && payload.personalization) {
         applyPublicInvitationPersonalization(document, payload.personalization, payload.rsvpUrl);
@@ -268,6 +270,64 @@ function syncOpeningData(payload) {
     opening.querySelectorAll('[data-opening-guest]').forEach((element) => { element.textContent = displayName; });
     const date = payload.draft?.content?.schedule?.date;
     if (date) opening.querySelector('.opening-date')?.replaceChildren(document.createTextNode(formatOpeningDate(date)));
+}
+
+function sanitizeAlohaRealContent(payload) {
+    const draft = payload.draft ?? {};
+    const content = draft.content ?? {};
+    const hasIdentity = Boolean(content.identity?.primaryName || content.identity?.secondaryName);
+    const hasDate = Boolean(content.schedule?.date);
+    const hasLocations = meaningfulAlohaEntities(draft.locations);
+    const hasItinerary = meaningfulAlohaEntities(draft.itinerary);
+    const hasGifts = meaningfulAlohaEntities(draft.gifts);
+    const hasGallery = Array.isArray(draft.media?.gallery) && draft.media.gallery.some((asset) => asset?.downloadUrl || asset?.previewUrl);
+    const hasVideo = Boolean(draft.media?.video?.downloadUrl || draft.media?.video?.previewUrl);
+    const hasCover = Boolean(draft.media?.cover?.downloadUrl || draft.media?.cover?.previewUrl);
+    const hasDressCode = ['title', 'name', 'description', 'note'].some((key) => content.dressCode?.[key])
+        || Boolean(content.dressCode?.recommendedColors?.length || content.dressCode?.avoidedColors?.length);
+
+    if (!hasIdentity) {
+        const title = document.querySelector('#opening-title');
+        title?.querySelector('span')?.replaceChildren();
+        const heroIdentity = document.querySelector('.hero-copy h2');
+        if (heroIdentity) {
+            const brand = heroIdentity.querySelector('span');
+            heroIdentity.replaceChildren(brand || document.createTextNode('ALOHA'));
+            if (brand) brand.textContent = 'ALOHA';
+        }
+        document.querySelector('.social-strip strong')?.replaceChildren();
+    }
+    if (!hasDate) {
+        document.querySelector('#opening .opening-date')?.setAttribute('hidden', 'true');
+        document.querySelector('.hero-copy .hero-date')?.setAttribute('hidden', 'true');
+    }
+    if (hasIdentity) {
+        const openingName = [content.identity?.primaryName, content.identity?.secondaryName].filter(Boolean).join(' & ');
+        document.querySelector('#opening-title span')?.replaceChildren(document.createTextNode(openingName));
+    }
+    if (!hasCover) document.querySelector('.hero > img.demo-photo')?.setAttribute('hidden', 'true');
+    if (!hasLocations) document.querySelector('[data-prestige-feature~="multiple-locations"]')?.setAttribute('hidden', 'true');
+    if (!hasItinerary) document.querySelector('[data-prestige-feature~="itinerary"]')?.setAttribute('hidden', 'true');
+    if (!hasGifts) document.querySelector('[data-prestige-feature~="gift-registry"]')?.setAttribute('hidden', 'true');
+    if (!hasGallery) document.querySelector('[data-prestige-feature~="gallery"]')?.setAttribute('hidden', 'true');
+    if (!hasVideo) document.querySelector('[data-prestige-feature~="welcome-video"]')?.setAttribute('hidden', 'true');
+    if (!hasDressCode) document.querySelector('[data-prestige-feature~="dress-code"]')?.setAttribute('hidden', 'true');
+    const staticDeadline = [...document.querySelectorAll('.rsvp p')]
+        .find((element) => /confirma antes del 20 de mayo/i.test(element.textContent ?? ''));
+    if (!content.rsvp?.deadline) staticDeadline?.setAttribute('hidden', 'true');
+    const ticket = document.querySelector('.guest-ticket');
+    const personalization = payload.personalization;
+    if (ticket && personalization && Number.isInteger(personalization.passLimit) && personalization.passLimit > 0) {
+        ticket.hidden = false;
+        ticket.querySelector('[data-guest-message]')?.replaceChildren(document.createTextNode(`Para ${personalization.displayName}`));
+        ticket.querySelector('[data-pass-message]')?.replaceChildren(document.createTextNode(
+            `${personalization.passLimit} pase${personalization.passLimit === 1 ? '' : 's'} reservado${personalization.passLimit === 1 ? '' : 's'} para ti.`
+        ));
+    } else if (ticket) ticket.hidden = true;
+}
+
+function meaningfulAlohaEntities(items) {
+    return Array.isArray(items) && items.some((item) => entityHasContent(item));
 }
 
 function formatOpeningDate(value) {
