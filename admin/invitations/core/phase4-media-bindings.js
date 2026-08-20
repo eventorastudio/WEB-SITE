@@ -1,4 +1,5 @@
 import { getMediaAssetSource, isMediaRoleTouched } from './media-schema.js?v=phase4-media-20260813';
+import { applyAlohaGalleryBinding } from './aloha-template-bindings.js?v=phase86-aloha-a2-20260820';
 
 function safeQuery(root, selector) {
     if (!root || !selector) return null;
@@ -155,7 +156,8 @@ function applyMusic(documentRoot, adapter, draft) {
 export function applyPhase4MediaBindings(documentRoot, adapter, draft = {}) {
     if (!documentRoot || !adapter || !draft.media) return { applied: false };
     applyCover(documentRoot, adapter, draft);
-    applyGallery(documentRoot, adapter, draft);
+    if (adapter.media?.variant === 'aloha') applyAlohaGalleryBinding(documentRoot, draft);
+    else applyGallery(documentRoot, adapter, draft);
     applyVideo(documentRoot, adapter, draft);
     applyMusic(documentRoot, adapter, draft);
     return { applied: true };

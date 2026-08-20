@@ -8,7 +8,7 @@ import {
     applyPhase5ContentBindings,
     formatInvitationEventLine,
     prepareBuilderTemplate
-} from '../core/template-binding-registry.js?v=phase54a-rsvp-time-20260817';
+} from '../core/template-binding-registry.js?v=phase86-aloha-a2-20260820';
 import { PublicInvitationPage } from '../../../invitacion/public-invitation-page.js?v=phase64-personalized-invitation-20260817';
 import { applyPublicInvitationPersonalization } from '../../../invitacion/public-invitation-personalization.js?v=phase64-personalized-invitation-20260817';
 import { getThemeById } from '../core/theme-registry.js?v=phase86-appearance-20260820';
@@ -133,7 +133,8 @@ async function renderTemplate(payload, requestId) {
         invitation.setAttribute('aria-hidden', 'false');
     }
     prepareBuilderTemplate(document, payload.theme.id);
-    document.querySelectorAll('.reveal').forEach((element) => element.classList.add('visible'));
+    if (payload.theme.id === 'aloha') setupAlohaReveal(document);
+    else document.querySelectorAll('.reveal').forEach((element) => element.classList.add('visible'));
     setupOpening(payload);
     applyPayload(payload);
     stopMedia();
@@ -215,6 +216,7 @@ function applyPayload(payload) {
     }
     else applyTemplateContentBindings(document, payload.theme.id, payload.draft);
     if (payload.theme.id === 'aloha') sanitizeAlohaRealContent(payload);
+    if (payload.theme.id === 'aloha') setupAlohaInteractions(payload);
     applySectionVisibility(payload.sections, payload.enabledSections, payload.sectionGroups);
     if (publicRuntime && payload.personalization) {
         applyPublicInvitationPersonalization(document, payload.personalization, payload.rsvpUrl);
@@ -253,11 +255,97 @@ function setupOpening(payload) {
         }
         window.setTimeout(() => opening.remove(), prefersReducedMotion() ? 0 : 950);
     }, { once: true });
+    if (payload.theme.id !== 'aloha') {
+        musicButton?.addEventListener('click', async () => {
+            if (!audio) return;
+            if (audio.paused) {
+                try { await audio.play(); } catch { /* Reproducción bloqueada. */ }
+            } else audio.pause();
+        });
+        return;
+    }
+    const syncMusicControl = () => {
+        if (!musicButton || !audio) return;
+        const playing = !audio.paused && !audio.ended;
+        musicButton.setAttribute('aria-pressed', String(playing));
+        musicButton.setAttribute('aria-label', playing ? 'Pausar música' : 'Reproducir música');
+        const label = musicButton.querySelector('.music-label');
+        if (label) label.textContent = playing ? 'Pausar' : 'Reproducir';
+    };
+    audio?.addEventListener('play', syncMusicControl);
+    audio?.addEventListener('pause', syncMusicControl);
+    audio?.addEventListener('ended', syncMusicControl);
+    syncMusicControl();
     musicButton?.addEventListener('click', async () => {
         if (!audio) return;
         if (audio.paused) {
             try { await audio.play(); } catch { /* Reproducción bloqueada. */ }
         } else audio.pause();
+        syncMusicControl();
+    });
+}
+
+function setupAlohaReveal(documentRoot) {
+    const elements = [...documentRoot.querySelectorAll('.reveal')];
+    if (!elements.length) return;
+    if (prefersReducedMotion() || !('IntersectionObserver' in window)) {
+        elements.forEach((element) => element.classList.add('visible'));
+        return;
+    }
+    if (documentRoot.body.dataset.alohaRevealReady === 'true') return;
+    documentRoot.body.dataset.alohaRevealReady = 'true';
+    const observer = new IntersectionObserver((entries, instance) => {
+        entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            entry.target.classList.add('visible');
+            instance.unobserve(entry.target);
+        });
+    }, { threshold: 0.16 });
+    elements.forEach((element) => observer.observe(element));
+}
+
+function setupAlohaInteractions(payload) {
+    setupAlohaPassTabs(payload);
+    setupAlohaVideo();
+}
+
+function setupAlohaPassTabs(payload) {
+    const access = document.querySelector('[data-access-preview]');
+    if (!access || access.dataset.alohaTabsReady === 'true') return;
+    const buttons = [...access.querySelectorAll('[data-access-mode]')];
+    const views = [...access.querySelectorAll('[data-access-view]')];
+    if (buttons.length < 2 || views.length < 2) return;
+    access.dataset.alohaTabsReady = 'true';
+    const activate = (mode) => {
+        buttons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.accessMode === mode)));
+        views.forEach((view) => { view.hidden = view.dataset.accessView !== mode; });
+    };
+    buttons.forEach((button) => button.addEventListener('click', () => activate(button.dataset.accessMode)));
+    activate(buttons.find((button) => button.getAttribute('aria-pressed') === 'true')?.dataset.accessMode || 'digital');
+    void payload;
+}
+
+function setupAlohaVideo() {
+    const root = document.querySelector('[data-prestige-feature~="welcome-video"]');
+    const trigger = root?.querySelector('[data-demo-video]');
+    if (!root || !trigger || trigger.dataset.alohaVideoReady === 'true') return;
+    trigger.dataset.alohaVideoReady = 'true';
+    trigger.addEventListener('click', async () => {
+        const video = root.querySelector('video[data-builder-phase4], video');
+        if (!video) return;
+        if (video.paused) {
+            try { await video.play(); } catch { /* El navegador puede requerir interacción adicional. */ }
+            trigger.setAttribute('aria-pressed', 'true');
+            trigger.textContent = 'Pausar video';
+        } else {
+            video.pause();
+            trigger.setAttribute('aria-pressed', 'false');
+            trigger.textContent = 'Reproducir video';
+        }
+        video.addEventListener('ended', () => {
+            trigger.setAttribute('aria-pressed', 'false');
+            trigger.textContent = 'Reproducir video';
+        }, { once: true });
     });
 }
 

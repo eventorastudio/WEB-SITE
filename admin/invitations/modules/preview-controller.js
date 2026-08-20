@@ -1,6 +1,6 @@
 import { PREVIEW_DEVICES, PREVIEW_MESSAGE_TYPES, isPreviewMessage } from '../core/builder-events.js?v=phase3-logistics-20260813';
 import { SECTION_REGISTRY, isSectionAllowed } from '../core/section-registry.js?v=phase3-logistics-20260813';
-import { createTemplateSectionContract } from '../core/template-binding-registry.js?v=phase54a-rsvp-time-20260817';
+import { createTemplateSectionContract } from '../core/template-binding-registry.js?v=phase86-aloha-a2-20260820';
 import { getThemeById } from '../core/theme-registry.js?v=phase3-logistics-20260813';
 import { isRsvpEnabled } from '../core/rsvp-schema.js?v=phase54a-rsvp-time-20260817';
 

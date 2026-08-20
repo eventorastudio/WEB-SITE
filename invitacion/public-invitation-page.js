@@ -1,6 +1,6 @@
 import { getPersistedGeneralContentPaths } from '../admin/invitations/core/draft-persistence-schema.js?v=phase86-appearance-20260820';
 import { SECTION_REGISTRY, isSectionAllowed } from '../admin/invitations/core/section-registry.js?v=phase3-logistics-20260813';
-import { createTemplateSectionContract } from '../admin/invitations/core/template-binding-registry.js?v=phase54a-rsvp-time-20260817';
+import { createTemplateSectionContract } from '../admin/invitations/core/template-binding-registry.js?v=phase86-aloha-a2-20260820';
 import { getThemeById } from '../admin/invitations/core/theme-registry.js?v=phase3-logistics-20260813';
 import { publicInvitationLoader } from './public-invitation-loader.js?v=phase63-public-invitation-20260817';
 import { publicInvitationPersonalizationLoader } from './public-invitation-personalization.js?v=phase64-personalized-invitation-20260817';

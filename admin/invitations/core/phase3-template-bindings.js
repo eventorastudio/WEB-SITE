@@ -7,6 +7,7 @@ import {
     locationTypeLabel
 } from './logistics-schema.js?v=phase3-logistics-20260813';
 import { buildGoogleCalendarUrl, buildWhatsAppUrl, safeUrlForField } from './safe-url.js?v=phase3-logistics-20260813';
+import { applyAlohaPhase3Bindings } from './aloha-template-bindings.js?v=phase86-aloha-a2-20260820';
 
 function clean(value, maxLength = 1800) {
     return String(value ?? '').replace(/\s+/g, ' ').trim().slice(0, maxLength);
@@ -288,6 +289,7 @@ export function applyPhase3TemplateBindings(documentRoot, adapter, draft = {}) {
     if (!documentRoot || !draft.content) return { applied: false };
     const variant = adapter?.phase3Variant ?? adapter?.themeId ?? 'custom';
     documentRoot.body.dataset.builderTheme = variant;
+    if (variant === 'aloha') return applyAlohaPhase3Bindings(documentRoot, draft);
     renderLocations(documentRoot, draft, variant);
     renderItinerary(documentRoot, draft, variant);
     renderDressCode(documentRoot, draft, variant);

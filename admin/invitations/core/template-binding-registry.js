@@ -7,8 +7,8 @@ import {
     GENERAL_INFORMATION_FIELDS,
     SECTION_EDITOR_REGISTRY
 } from './section-editor-registry.js?v=phase54a-rsvp-time-20260817';
-import { applyPhase3TemplateBindings } from './phase3-template-bindings.js?v=phase3-gifts-hotfix-20260813';
-import { applyPhase4MediaBindings } from './phase4-media-bindings.js?v=phase4-media-20260813';
+import { applyPhase3TemplateBindings } from './phase3-template-bindings.js?v=phase86-aloha-a2-20260820';
+import { applyPhase4MediaBindings } from './phase4-media-bindings.js?v=phase86-aloha-a2-20260820';
 import { applyPhase5RsvpBindings } from './phase5-rsvp-bindings.js?v=phase54a-rsvp-time-20260817';
 
 const MEDIA_ADAPTERS = Object.freeze({
@@ -216,6 +216,8 @@ const SECTION_BINDINGS = Object.freeze({
         ]
     }
 });
+
+const ALOHA_NATIVE_SECTIONS = new Set(['location', 'itinerary', 'dress-code', 'gift-registry', 'gallery']);
 
 const GENERAL_BINDING_PATHS = Object.freeze([
     'content.identity.primaryName',
@@ -734,7 +736,9 @@ export function applyTemplateContentBindings(documentRoot, themeId, draft = {}) 
         allowDemoFallback: Boolean(adapter.phrase.selector) && adapter.phrase.allowDemoFallback !== false
     });
 
-    Object.entries(SECTION_BINDINGS).forEach(([sectionId, definition]) => {
+    Object.entries(SECTION_BINDINGS).filter(([sectionId]) => (
+        themeId !== 'aloha' || !ALOHA_NATIVE_SECTIONS.has(sectionId)
+    )).forEach(([sectionId, definition]) => {
         applySectionBinding(documentRoot, adapter, sectionId, definition, draft, collisions);
     });
     applyPhase3TemplateBindings(documentRoot, adapter, draft);
