@@ -34,7 +34,8 @@ import {
     RSVP_GUEST_POLICY_PATH,
     normalizeRsvpConfig
 } from './rsvp-schema.js?v=phase54a-rsvp-time-20260817';
-import { getPersistedGeneralContentPaths } from './draft-persistence-schema.js?v=phase61-draft-persistence-20260817';
+import { getPersistedGeneralContentPaths } from './draft-persistence-schema.js?v=phase86-appearance-20260820';
+import { normalizeAppearance } from './appearance-schema.js?v=phase86-appearance-20260820';
 
 const PREVIEW_DEVICES = Object.freeze(['mobile', 'tablet', 'desktop']);
 const RSVP_EDITABLE_PATHS = Object.freeze(RSVP_EDITABLE_FIELD_DEFINITIONS.map(([path]) => path));
@@ -190,6 +191,18 @@ export class InvitationBuilderState {
         this._draft.themeId = themeId;
         this._markDirty();
         this._notify('theme-changed', previous);
+        return { ok: true, changed: true };
+    }
+
+    setAppearanceAccentColor(value) {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        const next = normalizeAppearance({ accentColor: value });
+        const current = normalizeAppearance(this._draft.appearance);
+        if (JSON.stringify(current) === JSON.stringify(next)) return { ok: true, changed: false };
+        const previous = this.getSnapshot();
+        this._draft.appearance = next;
+        this._markDirty();
+        this._notify('appearance-changed', previous);
         return { ok: true, changed: true };
     }
 

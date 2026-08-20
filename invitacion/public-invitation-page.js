@@ -1,4 +1,4 @@
-import { getPersistedGeneralContentPaths } from '../admin/invitations/core/draft-persistence-schema.js?v=phase63-public-invitation-20260817';
+import { getPersistedGeneralContentPaths } from '../admin/invitations/core/draft-persistence-schema.js?v=phase86-appearance-20260820';
 import { SECTION_REGISTRY, isSectionAllowed } from '../admin/invitations/core/section-registry.js?v=phase3-logistics-20260813';
 import { createTemplateSectionContract } from '../admin/invitations/core/template-binding-registry.js?v=phase54a-rsvp-time-20260817';
 import { getThemeById } from '../admin/invitations/core/theme-registry.js?v=phase3-logistics-20260813';
@@ -45,6 +45,7 @@ export function createPublicInvitationRenderPayload(projection, {
             gifts: projection.gifts,
             accommodations: projection.accommodations,
             links: projection.links,
+            appearance: projection.appearance,
             meta: {
                 touchedPaths: getPersistedGeneralContentPaths(),
                 touchedCollections: [...AUTHORITATIVE_COLLECTIONS],

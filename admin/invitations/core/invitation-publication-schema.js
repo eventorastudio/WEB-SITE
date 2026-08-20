@@ -3,7 +3,7 @@ import {
     INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION,
     createInvitationDraftSnapshot,
     deserializeInvitationDraft
-} from './draft-persistence-schema.js?v=phase62-versioned-publication-20260817';
+} from './draft-persistence-schema.js?v=phase86-appearance-20260820';
 
 export const INVITATION_PUBLICATION_DOCUMENT_ID = 'publication';
 export const INVITATION_PUBLICATION_SCHEMA_VERSION = 2;

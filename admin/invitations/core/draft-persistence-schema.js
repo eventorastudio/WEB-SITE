@@ -9,6 +9,7 @@ import {
 import { validateInvitationDraft } from './builder-validation.js?v=phase61-draft-persistence-20260817';
 import { getPackageById, getSectionById } from './section-registry.js?v=phase3-logistics-20260813';
 import { getThemeById } from './theme-registry.js?v=phase3-logistics-20260813';
+import { normalizeAppearance } from './appearance-schema.js?v=phase86-appearance-20260820';
 import {
     DRESS_COLOR_GROUPS,
     createDressColor,
@@ -134,11 +135,6 @@ function normalizeSettings(settings = {}, packageId = undefined) {
     const renderMode = String(settings?.renderMode ?? 'builder');
     if (renderMode !== 'builder') fail('draft/invalid-render-mode');
     return { renderMode, packageId: normalizedPackage };
-}
-
-function normalizeAppearance(value = {}) {
-    if (!exactKeys(value, [])) fail('draft/invalid-appearance-shape');
-    return {};
 }
 
 function normalizeCollection(collection, value) {

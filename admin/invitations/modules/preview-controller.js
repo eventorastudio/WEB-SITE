@@ -80,6 +80,7 @@ export function initPreviewController({
                     gifts: snapshot.draft.gifts,
                     accommodations: snapshot.draft.accommodations,
                     links: snapshot.draft.links,
+                    appearance: snapshot.draft.appearance,
                     meta: {
                         touchedPaths: snapshot.draft.meta?.touchedPaths ?? [],
                         touchedCollections: snapshot.draft.meta?.touchedCollections ?? [],
@@ -220,7 +221,7 @@ export function initPreviewController({
 
     const unsubscribe = state.subscribe(({ snapshot, reason }) => {
         if (reason === 'preview-device-changed') syncDevice(snapshot);
-        if (['initialized', 'theme-changed', 'sections-changed', 'content-changed', 'entities-changed', 'media-changed', 'package-changed'].includes(reason)) {
+        if (['initialized', 'theme-changed', 'sections-changed', 'content-changed', 'entities-changed', 'media-changed', 'appearance-changed', 'package-changed'].includes(reason)) {
             sendSnapshot(snapshot, reason);
         }
     }, { source: 'preview-controller' });

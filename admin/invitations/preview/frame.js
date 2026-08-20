@@ -11,6 +11,8 @@ import {
 } from '../core/template-binding-registry.js?v=phase54a-rsvp-time-20260817';
 import { PublicInvitationPage } from '../../../invitacion/public-invitation-page.js?v=phase64-personalized-invitation-20260817';
 import { applyPublicInvitationPersonalization } from '../../../invitacion/public-invitation-personalization.js?v=phase64-personalized-invitation-20260817';
+import { getThemeById } from '../core/theme-registry.js?v=phase86-appearance-20260820';
+import { normalizeAppearance } from '../core/appearance-schema.js?v=phase86-appearance-20260820';
 
 const parentOrigin = window.location.origin;
 const publicRuntime = document.documentElement.dataset.invitationRuntime === 'public';
@@ -188,6 +190,7 @@ async function renderCustom(payload, requestId) {
 }
 
 function applyPayload(payload) {
+    applyAppearance(payload);
     if (payload.theme.id === 'custom') {
         applyCustomContent(payload.draft);
         applyPhase3ContentBindings(document, payload.theme.id, payload.draft);
@@ -204,6 +207,17 @@ function applyPayload(payload) {
     document.title = publicRuntime
         ? `${title || PREVIEW_SEMANTIC_FALLBACKS.primaryName} · Invitación`
         : `${title || PREVIEW_SEMANTIC_FALLBACKS.primaryName} · Preview Builder`;
+}
+
+function applyAppearance(payload) {
+    const root = document.documentElement;
+    root.style.removeProperty('--demo-accent');
+    root.style.removeProperty('--demo-focus');
+    const definition = getThemeById(payload.theme?.id)?.appearance?.accentColor;
+    const appearance = normalizeAppearance(payload.draft?.appearance);
+    if (!definition || !appearance.accentColor) return;
+    root.style.setProperty('--demo-accent', appearance.accentColor);
+    root.style.setProperty('--demo-focus', appearance.accentColor);
 }
 
 function applyCustomContent(draft) {

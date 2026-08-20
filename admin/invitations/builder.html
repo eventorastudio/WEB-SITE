@@ -86,7 +86,7 @@
                     <button class="builder-step" type="button" data-step-target="media"><span>04</span>Multimedia</button>
                     <button class="builder-step" type="button" data-step-target="logistics"><span>05</span>Ubicaciones</button>
                     <button class="builder-step" type="button" data-step-target="details"><span>06</span>Detalles</button>
-                    <button class="builder-step" type="button" disabled><span>07</span>Apariencia <small>Próximamente</small></button>
+                    <button class="builder-step" type="button" data-step-target="appearance"><span>07</span>Apariencia</button>
                     <button class="builder-step" type="button" disabled><span>08</span>Revisión <small>Próximamente</small></button>
                 </nav>
                 <div class="phase-card">
@@ -176,9 +176,12 @@
                     <div class="phase3-logistics-editors" id="phase3-details-editors"></div>
                 </section>
 
-                <section class="future-foundations" aria-label="Módulos preparados para fases posteriores">
-                    <span>Preparado para próximas fases</span>
-                    <p>Apariencia avanzada y el editor visual completo de Personalizada quedan fuera del cierre v1.</p>
+                <section class="builder-panel" id="builder-panel-appearance" data-builder-panel="appearance">
+                    <header class="panel-heading">
+                        <div><span class="panel-number">07</span><h2>Apariencia</h2></div>
+                        <p>Personaliza únicamente las opciones visuales seguras de la colección elegida.</p>
+                    </header>
+                    <div id="appearance-editor"></div>
                 </section>
             </section>
 
@@ -202,7 +205,7 @@
                     <iframe
                         id="invitation-preview-frame"
                         class="preview-frame"
-                        data-src="./preview/frame.html?v=phase64-personalized-invitation-20260817"
+                        data-src="./preview/frame.html?v=phase86-appearance-20260820"
                         title="Vista previa de la invitación"
                         sandbox="allow-scripts allow-same-origin"
                     ></iframe>
@@ -213,6 +216,6 @@
     </div>
 
     <div id="toast-container" aria-live="polite"></div>
-    <script type="module" src="./builder.js?v=phase63-public-invitation-20260817"></script>
+    <script type="module" src="./builder.js?v=phase86-appearance-20260820"></script>
 </body>
 </html>

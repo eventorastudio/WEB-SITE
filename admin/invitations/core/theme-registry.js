@@ -1,11 +1,25 @@
 import { PRESTIGE_DEMO_FEATURES } from '../../../principal/demos/prestige-contract.js';
 
 const ALL_DEMO_CAPABILITIES = Object.freeze([...PRESTIGE_DEMO_FEATURES]);
+const THEME_APPEARANCE = Object.freeze({
+    aloha: { accentColor: { default: '#f45b69' } },
+    luxury: { accentColor: { default: '#c8a365' } },
+    botanical: { accentColor: { default: '#788a71' } },
+    midnight: { accentColor: { default: '#70a4ff' } },
+    romance: { accentColor: { default: '#8e3049' } },
+    minimal: { accentColor: { default: '#0b0b0b' } },
+    celestial: { accentColor: { default: '#d8c08d' } },
+    vintage: { accentColor: { default: '#6f2934' } },
+    garden: { accentColor: { default: '#b66f76' } },
+    champagne: { accentColor: { default: '#aa8650' } },
+    'neon-party': { accentColor: { default: '#ff2e91' } }
+});
 
 function createTheme(definition) {
     return Object.freeze({
         capabilities: ALL_DEMO_CAPABILITIES,
         ...definition,
+        appearance: definition.appearance ?? THEME_APPEARANCE[definition.id] ?? {},
         bindingAdapterId: definition.templatePath ? definition.id : null,
         palette: Object.freeze(definition.palette ?? ['#171513', '#d2b36e'])
     });
