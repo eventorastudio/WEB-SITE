@@ -130,7 +130,7 @@ service cloud.firestore {
         && content.itinerary.title is string
         && content.itinerary.intro is string
         && content.access is map
-        && content.access.keys().size() == 11
+        && content.access.keys().size() == 10
         && content.access.keys().hasOnly([
           'title', 'description', 'label', 'guestLabel', 'passesLabel',
           'showQr', 'showPrintPass', 'printButtonLabel', 'printTitle', 'printFooter'

@@ -46,6 +46,12 @@ test('legacy access draft can be normalized, edited and serialized as current pa
 
 test('complete QR-2 access content serializes and reloads canonically', () => {
     const saved = serialize(draft());
+    assert.deepEqual(Object.keys(saved.content.access), [
+        'title', 'description', 'label', 'guestLabel', 'passesLabel',
+        'showQr', 'showPrintPass', 'printButtonLabel', 'printTitle', 'printFooter'
+    ]);
+    assert.deepEqual(saved.appearance, {});
+    assert.equal(Object.hasOwn(saved, 'mediaIndex'), false);
     const loaded = deserializeInvitationDraft(saved, EVENT_ID);
     assert.equal(loaded.content.access.printFooter, 'Presenta este pase al llegar.');
     noUndefined(saved);
