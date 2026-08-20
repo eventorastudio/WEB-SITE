@@ -1,5 +1,5 @@
 import { entityHasContent, getRenderableLocations } from './logistics-schema.js?v=phase3-logistics-20260813';
-import { safeUrlForField } from './safe-url.js?v=phase3-logistics-20260813';
+import { buildGoogleCalendarUrl, safeUrlForField } from './safe-url.js?v=phase3-logistics-20260813';
 
 const clean = (value) => String(value ?? '').replace(/\s+/g, ' ').trim();
 const source = (asset) => clean(asset?.previewUrl || asset?.downloadUrl);
@@ -119,12 +119,47 @@ function renderGifts(documentRoot, draft) {
     if (actions.children.length) copy.append(actions);
 }
 
+function renderLinks(documentRoot, draft) {
+    const links = (draft.links ?? []).filter(entityHasContent);
+    const instagram = links.find((link) => link.type === 'instagram' && link.url);
+    const calendar = links.find((link) => link.type === 'calendar');
+    const social = documentRoot.querySelector('.social-strip');
+    const instagramAnchors = [...documentRoot.querySelectorAll('a[data-demo-action="instagram"]')];
+    const calendarAnchors = [...documentRoot.querySelectorAll('a[data-demo-action="calendar"]')];
+    // Never leave the demo destinations active. They are only restored below
+    // when a validated Builder link (or a real calendar URL) is available.
+    [...instagramAnchors, ...calendarAnchors].forEach((anchor) => { anchor.hidden = true; });
+    const instagramAnchor = social?.querySelector('a[data-demo-action="instagram"]');
+    if (instagramAnchor) {
+        if (instagram) {
+            const result = safeUrlForField(instagram.url, 'url', 'instagram');
+            if (result.ok && result.value) {
+                instagramAnchor.href = result.value;
+                instagramAnchor.dataset.builderAction = 'instagram';
+                instagramAnchor.hidden = false;
+            } else instagramAnchor.hidden = true;
+        } else instagramAnchor.hidden = true;
+    }
+    if (!calendar) return;
+    const location = getRenderableLocations(draft).find(entityHasContent);
+    const url = calendar.url || buildGoogleCalendarUrl(draft, location);
+    const result = safeUrlForField(url, 'url', 'calendar');
+    if (!result.ok || !result.value || !social) return;
+    const actionRow = social.querySelector('.action-row') ?? node(documentRoot, 'div', 'action-row');
+    if (!actionRow.parentElement) social.append(actionRow);
+    const anchor = node(documentRoot, 'a', 'text-action', calendar.label || 'Guardar fecha');
+    anchor.href = result.value;
+    anchor.dataset.builderAction = 'calendar';
+    actionRow.append(anchor);
+}
+
 export function applyAlohaPhase3Bindings(documentRoot, draft = {}) {
     if (!documentRoot || !draft.content) return { applied: false };
     renderLocations(documentRoot, draft);
     renderItinerary(documentRoot, draft);
     renderDressCode(documentRoot, draft);
     renderGifts(documentRoot, draft);
+    renderLinks(documentRoot, draft);
     return { applied: true, variant: 'aloha' };
 }
 

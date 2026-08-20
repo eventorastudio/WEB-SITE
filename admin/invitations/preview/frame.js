@@ -213,11 +213,12 @@ function applyPayload(payload) {
         applyPhase3ContentBindings(document, payload.theme.id, payload.draft);
         applyPhase4ContentBindings(document, payload.theme.id, payload.draft);
         applyPhase5ContentBindings(document, payload.theme.id, payload.draft);
-    }
-    else applyTemplateContentBindings(document, payload.theme.id, payload.draft);
+    } else applyTemplateContentBindings(document, payload.theme.id, payload.draft);
+    applySectionVisibility(payload.sections, payload.enabledSections, payload.sectionGroups);
+    // Aloha sanitization is deliberately last so section visibility cannot
+    // re-expose demo content when a section is enabled without real data.
     if (payload.theme.id === 'aloha') sanitizeAlohaRealContent(payload);
     if (payload.theme.id === 'aloha') setupAlohaInteractions(payload);
-    applySectionVisibility(payload.sections, payload.enabledSections, payload.sectionGroups);
     if (publicRuntime && payload.personalization) {
         applyPublicInvitationPersonalization(document, payload.personalization, payload.rsvpUrl);
     }
@@ -405,13 +406,39 @@ function sanitizeAlohaRealContent(payload) {
     if (!content.rsvp?.deadline) staticDeadline?.setAttribute('hidden', 'true');
     const ticket = document.querySelector('.guest-ticket');
     const personalization = payload.personalization;
-    if (ticket && personalization && Number.isInteger(personalization.passLimit) && personalization.passLimit > 0) {
+    const hasValidPersonalization = personalization
+        && Number.isInteger(personalization.passLimit)
+        && personalization.passLimit > 0;
+    if (ticket && hasValidPersonalization) {
         ticket.hidden = false;
         ticket.querySelector('[data-guest-message]')?.replaceChildren(document.createTextNode(`Para ${personalization.displayName}`));
-        ticket.querySelector('[data-pass-message]')?.replaceChildren(document.createTextNode(
-            `${personalization.passLimit} pase${personalization.passLimit === 1 ? '' : 's'} reservado${personalization.passLimit === 1 ? '' : 's'} para ti.`
-        ));
+        const passMessage = `${personalization.passLimit} pase${personalization.passLimit === 1 ? '' : 's'} reservado${personalization.passLimit === 1 ? '' : 's'} para ti.`;
+        ticket.querySelector('[data-pass-message]')?.replaceChildren(document.createTextNode(passMessage));
+        document.querySelectorAll('[data-access-passes]').forEach((element) => {
+            element.textContent = passMessage;
+            element.hidden = false;
+        });
+        document.querySelectorAll('[data-access-guest]').forEach((element) => {
+            element.textContent = personalization.displayName || '';
+        });
     } else if (ticket) ticket.hidden = true;
+    if (!hasValidPersonalization) {
+        document.querySelectorAll('[data-access-passes]').forEach((element) => {
+            element.textContent = '';
+            element.hidden = true;
+        });
+        document.querySelectorAll('[data-access-guest]').forEach((element) => { element.textContent = ''; });
+    }
+
+    if (hasVideo) {
+        const videoRoot = document.querySelector('[data-prestige-feature~="welcome-video"]');
+        videoRoot?.querySelectorAll('p, [data-video-status]').forEach((element) => {
+            if (element.hasAttribute('data-builder-field-path')) return;
+            if (/demostraci[oó]n|vista previa|esta escena muestra|integrarse un video|paquete contratado|funcionalidades disponibles/i.test(element.textContent ?? '')) {
+                element.hidden = true;
+            }
+        });
+    }
 }
 
 function meaningfulAlohaEntities(items) {
