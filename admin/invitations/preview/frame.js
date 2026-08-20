@@ -133,10 +133,13 @@ async function renderTemplate(payload, requestId) {
         invitation.setAttribute('aria-hidden', 'false');
     }
     prepareBuilderTemplate(document, payload.theme.id);
-    if (payload.theme.id === 'aloha') setupAlohaReveal(document);
-    else document.querySelectorAll('.reveal').forEach((element) => element.classList.add('visible'));
     setupOpening(payload);
     applyPayload(payload);
+    // Register Aloha reveals only after real bindings, sanitization and section
+    // visibility have settled; observing the pre-binding DOM can leave them
+    // permanently transparent in the Builder preview.
+    if (payload.theme.id === 'aloha') setupAlohaReveal(document);
+    else document.querySelectorAll('.reveal').forEach((element) => element.classList.add('visible'));
     stopMedia();
     return true;
 }
