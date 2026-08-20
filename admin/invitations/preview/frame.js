@@ -123,6 +123,7 @@ async function renderTemplate(payload, requestId) {
     if (requestId !== latestRequestId) return false;
     document.body.className = `${parsed.body.className} builder-preview-rendered${publicRuntime ? ' public-invitation-rendered' : ''}`.trim();
     document.body.innerHTML = parsed.body.innerHTML;
+    sanitizeRealInvitationChrome(document);
 
     const invitation = document.getElementById('invitation');
     if (invitation) {
@@ -136,6 +137,18 @@ async function renderTemplate(payload, requestId) {
     applyPayload(payload);
     stopMedia();
     return true;
+}
+
+function sanitizeRealInvitationChrome(documentRoot) {
+    documentRoot.querySelectorAll('.demo-legend').forEach((legend) => {
+        legend.replaceChildren();
+        const brand = documentRoot.createElement('strong');
+        brand.textContent = 'EVENTORA STUDIO';
+        legend.append(brand, documentRoot.createTextNode(' Momentos especiales, diseñados para compartir.'));
+    });
+    documentRoot.querySelectorAll('.prestige-badge').forEach((badge) => {
+        badge.textContent = 'EVENTORA STUDIO';
+    });
 }
 
 async function renderCustom(payload, requestId) {
