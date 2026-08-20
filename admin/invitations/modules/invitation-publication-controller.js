@@ -1,3 +1,5 @@
+import { validateInvitationDraft } from '../core/builder-validation.js?v=phase54a-rsvp-time-20260817';
+
 function labelForState({ publishing, outcome }) {
     if (publishing) return 'Publicando…';
     if (outcome === 'published') return 'Publicado';
@@ -17,6 +19,7 @@ export function initInvitationPublicationController({
     let publishing = false;
     let outcome = 'idle';
     let publicUrl = '';
+    let validationMessage = '';
     let disposed = false;
 
     const render = () => {
@@ -31,7 +34,7 @@ export function initInvitationPublicationController({
                     published: 'Invitación publicada.',
                     unchanged: 'El contenido ya coincide con la revisión activa.',
                     error: 'No se publicó. El draft local permanece disponible.'
-                })[outcome] ?? '';
+                })[outcome] ?? validationMessage;
             status.textContent = message;
             if (publicUrl && ['published', 'unchanged'].includes(outcome)) {
                 const link = status.ownerDocument.createElement('a');
@@ -46,11 +49,23 @@ export function initInvitationPublicationController({
 
     const publish = async () => {
         if (publishing) return;
+        const snapshot = state.getSnapshot();
+        const validationErrors = validateInvitationDraft(snapshot.draft);
+        const errorEntries = Object.entries(validationErrors);
+        if (errorEntries.length) {
+            outcome = 'validation-error';
+            publicUrl = '';
+            validationMessage = createValidationMessage(errorEntries);
+            render();
+            focusFirstValidationError(errorEntries[0][0], button.ownerDocument);
+            return;
+        }
+
+        validationMessage = '';
         publishing = true;
         outcome = 'idle';
         render();
         try {
-            const snapshot = state.getSnapshot();
             const result = await service.publishState(state, snapshot.draft?.eventId);
             outcome = result.status;
             publicUrl = createPublicUrl(result.eventId, result.publicKey);
@@ -80,6 +95,7 @@ export function initInvitationPublicationController({
     const unsubscribe = state.subscribe(({ reason }) => {
         if (!['draft-persisted', 'active-step-changed', 'preview-device-changed'].includes(reason)) {
             outcome = 'idle';
+            validationMessage = '';
         }
         render();
     }, { source: 'invitation-publication-controller' });
@@ -90,6 +106,31 @@ export function initInvitationPublicationController({
         button.removeEventListener('click', onClick);
         unsubscribe?.();
     };
+}
+
+function createValidationMessage(entries) {
+    const details = entries.slice(0, 3)
+        .map(([path, message]) => `${path}: ${message}`)
+        .join(' ');
+    const remaining = entries.length > 3 ? ` Hay ${entries.length - 3} m\u00e1s.` : '';
+    return `No se puede publicar: ${entries.length} ${entries.length === 1 ? 'error requiere' : 'errores requieren'} correcci\u00f3n. ${details}${remaining}`;
+}
+
+function focusFirstValidationError(path, documentRoot = globalThis.document) {
+    if (!documentRoot) return;
+    const controls = [...documentRoot.querySelectorAll('[data-draft-path]')];
+    const control = controls.find((candidate) => candidate.dataset.draftPath === path)
+        ?? [...documentRoot.querySelectorAll('[data-entity-error]')]
+            .find((candidate) => candidate.dataset.entityError === path)
+            ?.closest('label')
+            ?.querySelector('input, select, textarea');
+    if (!control) return;
+    try {
+        control.focus({ preventScroll: true });
+    } catch {
+        control.focus();
+    }
+    control.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
 }
 
 function createPublicUrl(eventId, publicKey) {
