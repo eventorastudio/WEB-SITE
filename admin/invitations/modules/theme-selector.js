@@ -1,4 +1,4 @@
-import { THEME_REGISTRY } from '../core/theme-registry.js?v=phase3-logistics-20260813';
+import { COLLECTION_THEMES } from '../core/theme-registry.js?v=phase3-logistics-20260813';
 
 function createThemeCard(theme, state) {
     const button = document.createElement('button');
@@ -44,7 +44,7 @@ function createThemeCard(theme, state) {
 
 export function initThemeSelector({ container, state }) {
     if (!container || !state) return () => {};
-    container.replaceChildren(...THEME_REGISTRY.map((theme) => createThemeCard(theme, state)));
+    container.replaceChildren(...COLLECTION_THEMES.map((theme) => createThemeCard(theme, state)));
 
     const render = ({ draft }) => {
         container.querySelectorAll('.theme-card').forEach((card) => {
