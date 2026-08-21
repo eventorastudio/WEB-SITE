@@ -1,3 +1,5 @@
+import { buildPublicInvitationUrl } from '../invitacion/public-invitation-route.js?v=phase90-canonical-invitation-urls-20260821';
+
 // invitation-utils.js
 // Módulo 6: Motor de Generación de Invitaciones Digitales
 
@@ -34,20 +36,7 @@ export function generateToken(existingTokens = []) {
  * @returns {string} URL completa con event/key y token opcional.
  */
 export function generateInvitationURL({ eventId, publicKey, rsvpToken = '', baseUrl = 'https://eventorastudio.com/invitacion/' } = {}) {
-    const normalizedEventId = String(eventId ?? '').trim();
-    const normalizedPublicKey = String(publicKey ?? '').trim();
-    if (!normalizedEventId || !normalizedPublicKey) {
-        throw new TypeError('invitation/route-identity-required');
-    }
-    const url = new URL(baseUrl);
-    url.pathname = '/invitacion/';
-    url.hash = '';
-    url.search = '';
-    url.searchParams.set('event', normalizedEventId);
-    url.searchParams.set('key', normalizedPublicKey);
-    const normalizedToken = String(rsvpToken ?? '').trim();
-    if (normalizedToken) url.searchParams.set('token', normalizedToken);
-    return url.toString();
+    return buildPublicInvitationUrl({ eventId, publicKey, rsvpToken, baseUrl });
 }
 
 /**

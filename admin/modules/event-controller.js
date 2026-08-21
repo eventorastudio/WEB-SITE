@@ -1615,6 +1615,7 @@ function bindButtons() {
     listen(getElement('guests-list'), 'click', handleGuestListAction);
     listen(getElement('guests-list'), 'change', handleGuestSelectionChange);
     listen(getElement('btn-share-selected-guests'), 'click', handleShareSelectedGuests);
+    listen(getElement('btn-update-invitation-urls'), 'click', handleUpdateInvitationUrls);
     listen(getElement('btn-close-whatsapp-share'), 'click', closeWhatsAppShareModal);
     listen(getElement('modal-whatsapp-share'), 'click', handleWhatsAppShareOverlayClick);
     listen(getElement('btn-whatsapp-share-next'), 'click', handleWhatsAppShareNext);
@@ -1629,6 +1630,37 @@ function bindButtons() {
     listen(getElement('btn-save-config'), 'click', handleSaveConfigSubmit);
     listen(document, 'keydown', handleModalEscape);
     listen(getElement('guest-select-all'), 'change', handleSelectAllChange);
+}
+
+async function handleUpdateInvitationUrls() {
+    const button = getElement('btn-update-invitation-urls');
+    const service = deps.services.personalizedInvitation;
+    if (!button || typeof service?.refreshGuestInvitationUrls !== 'function') return;
+    const originalLabel = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Actualizando…';
+    try {
+        const result = await service.refreshGuestInvitationUrls({
+            eventId: deps.eventContext.eventId,
+            guestIds: [...guestsById.keys()]
+        });
+        const updated = result.results.filter((item) => item.updated).length;
+        deps.ui.showToast({
+            title: 'URLs actualizadas',
+            message: `${updated} invitación${updated === 1 ? '' : 'es'} personalizada${updated === 1 ? '' : 's'} sincronizada${updated === 1 ? '' : 's'}.`,
+            type: 'success'
+        });
+    } catch (error) {
+        console.error('[Event Controller] No se pudieron actualizar las URLs:', error);
+        deps.ui.showToast({
+            title: 'No se pudieron actualizar las URLs',
+            message: 'Publica la invitación y vuelve a intentarlo.',
+            type: 'error'
+        });
+    } finally {
+        button.disabled = false;
+        button.textContent = originalLabel;
+    }
 }
 
 /**

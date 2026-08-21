@@ -10,7 +10,7 @@ import {
     isRsvpAccessExpired
 } from '../../shared/rsvp-access-contract.js?v=phase64-personalized-invitation-20260817';
 import { rsvpAccessService } from '../invitations/services/rsvp-access-service.js?v=phase71-invitation-sharing-20260817';
-import { buildPersonalizedInvitationUrl } from '../../invitacion/public-invitation-route.js?v=phase64-personalized-invitation-20260817';
+import { buildPersonalizedInvitationUrl } from '../../invitacion/public-invitation-route.js?v=phase90-canonical-invitation-urls-20260821';
 
 function serviceError(code, cause = null) {
     const error = new Error(code);
@@ -143,6 +143,52 @@ export class PersonalizedInvitationService {
                 passLimit: selected.access.passLimit
             })
         });
+    }
+
+    async refreshGuestInvitationUrls({ eventId, guestIds = [] } = {}) {
+        const safeEventId = assertRsvpAccessEventId(eventId);
+        const ids = [...new Set((guestIds ?? []).map((guestId) => String(guestId ?? '').trim()).filter(Boolean))];
+        const gateway = await this.getGateway();
+        let publicationDocument;
+        try {
+            publicationDocument = await gateway.readPublication(safeEventId);
+        } catch (error) {
+            throw serviceError('personalized-invitation/read-failed', error);
+        }
+        if (!publicationDocument) throw serviceError('personalized-invitation/not-published');
+        let publication;
+        try {
+            publication = deserializeInvitationPublication(publicationDocument, safeEventId);
+        } catch (error) {
+            throw serviceError('personalized-invitation/invalid-source', error);
+        }
+        if (!isInvitationPublicKey(publication.publicKey)) throw serviceError('personalized-invitation/not-published');
+
+        const results = await Promise.all(ids.map(async (guestId) => {
+            const safeGuestId = assertRsvpAccessGuestId(guestId);
+            const records = await gateway.findAccessByGuest(safeEventId, safeGuestId);
+            const candidates = findReusableAccessCandidates(records, {
+                eventId: safeEventId,
+                guestId: safeGuestId,
+                now: this.now()
+            });
+            const selected = candidates[0];
+            if (!selected) return { guestId: safeGuestId, updated: false, reason: 'no-active-access' };
+            const access = await this.accessService.sync({ eventId: safeEventId, token: selected.token });
+            return {
+                guestId: safeGuestId,
+                updated: true,
+                token: selected.token,
+                url: buildPersonalizedInvitationUrl({
+                    eventId: safeEventId,
+                    publicKey: publication.publicKey,
+                    rsvpToken: selected.token,
+                    ...(this.publicBaseUrl ? { baseUrl: this.publicBaseUrl } : {})
+                }),
+                access
+            };
+        }));
+        return Object.freeze({ eventId: safeEventId, publicKey: publication.publicKey, results });
     }
 
     async createActiveAccess(eventId, guestId) {

@@ -35,12 +35,28 @@ export function buildPersonalizedInvitationUrl({
     rsvpToken,
     baseUrl = PUBLIC_INVITATION_DEFAULT_URL
 } = {}) {
+    return buildPublicInvitationUrl({
+        eventId,
+        publicKey,
+        rsvpToken: assertRsvpAccessToken(rsvpToken),
+        baseUrl
+    });
+}
+
+export function buildPublicInvitationUrl({
+    eventId,
+    publicKey,
+    rsvpToken = '',
+    baseUrl = PUBLIC_INVITATION_DEFAULT_URL
+} = {}) {
     const url = safeHttpUrl(baseUrl);
+    url.pathname = '/invitacion/';
     url.hash = '';
     url.search = '';
     url.searchParams.set('event', assertRsvpAccessEventId(eventId));
     url.searchParams.set('key', assertInvitationPublicKey(publicKey));
-    url.searchParams.set('token', assertRsvpAccessToken(rsvpToken));
+    const token = String(rsvpToken ?? '').trim();
+    if (token) url.searchParams.set('token', assertRsvpAccessToken(token));
     return url.toString();
 }
 

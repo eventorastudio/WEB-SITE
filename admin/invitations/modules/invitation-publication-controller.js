@@ -1,4 +1,5 @@
 import { validateInvitationDraft } from '../core/builder-validation.js?v=phase89-dress-code-media-20260820';
+import { buildPublicInvitationUrl } from '../../../invitacion/public-invitation-route.js?v=phase90-canonical-invitation-urls-20260821';
 
 function labelForState({ publishing, outcome }) {
     if (publishing) return 'Publicando…';
@@ -77,7 +78,7 @@ export function initInvitationPublicationController({
         try {
             const result = await service.publishState(state, snapshot.draft?.eventId);
             outcome = result.status;
-            publicUrl = createPublicUrl(result.eventId, result.publicKey);
+            publicUrl = buildPublicInvitationUrl({ eventId: result.eventId, publicKey: result.publicKey });
             onTrace('invitation-published', {
                 eventId: snapshot.draft?.eventId,
                 status: result.status,
@@ -140,12 +141,4 @@ function focusFirstValidationError(path, documentRoot = globalThis.document) {
         control.focus();
     }
     control.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
-}
-
-function createPublicUrl(eventId, publicKey) {
-    if (!eventId || !publicKey || !globalThis.location?.origin) return '';
-    const url = new URL('/invitacion/', globalThis.location.origin);
-    url.searchParams.set('event', eventId);
-    url.searchParams.set('key', publicKey);
-    return url.href;
 }

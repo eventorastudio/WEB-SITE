@@ -3,7 +3,7 @@ import { authService } from './services/auth-service.js';
 import { eventService } from './services/event-service.js';
 import { guestService } from './services/guest-service.js';
 import { rsvpOperationsService } from './services/rsvp-operations-service.js';
-import { personalizedInvitationService } from './services/personalized-invitation-service.js?v=phase71-invitation-sharing-20260817';
+import { personalizedInvitationService } from './services/personalized-invitation-service.js?v=phase90-canonical-invitation-urls-20260821';
 import { eventStatsService } from './services/event-stats-service.js';
 import { themeService } from './services/theme-service.js';
 import { state } from './core/state.js';
@@ -24,7 +24,7 @@ import { initThemeBuilder, destroy as destroyThemeBuilder } from './modules/them
 import {
     initEventController,
     destroy as destroyEventController
-} from './modules/event-controller.js?v=phase74-whatsapp-bulk-back-20260818';
+} from './modules/event-controller.js?v=phase90-canonical-invitation-urls-20260821';
 import { initQrManager, destroyQrManager } from './modules/qr/qr-manager.js';
 
 let activeModulesDestroyers = [];
