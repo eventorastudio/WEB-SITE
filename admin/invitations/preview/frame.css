@@ -62,7 +62,7 @@ html, body { min-height: 100%; max-inline-size: 100%; overflow-x: clip; }
 /* Aloha Sitios: runtime-only editorial layer shared by Builder preview and public invitation. */
 :is(.builder-preview-rendered, .public-invitation-rendered) .location {
     position: relative;
-    grid-template-columns: minmax(18rem, .82fr) minmax(0, 1.18fr);
+    grid-template-columns: minmax(20rem, .9fr) minmax(0, 1.1fr);
     align-items: stretch;
     background: radial-gradient(circle at 8% 12%, rgb(246 198 74 / .22), transparent 22rem), linear-gradient(135deg, #075b69 0%, #0b7f87 58%, #087a50 130%);
 }
@@ -111,15 +111,16 @@ html, body { min-height: 100%; max-inline-size: 100%; overflow-x: clip; }
 :is(.builder-preview-rendered, .public-invitation-rendered) .location-visual > .demo-photo { filter: saturate(1.08) contrast(1.02); }
 :is(.builder-preview-rendered, .public-invitation-rendered) .location-copy {
     align-self: stretch;
-    padding: clamp(5rem, 8vw, 8rem) clamp(2rem, 5vw, 5.5rem) clamp(4rem, 7vw, 6rem);
+    padding: clamp(4.25rem, 6vw, 6.5rem) clamp(2rem, 4vw, 4.5rem) clamp(4rem, 6vw, 5.5rem);
 }
 :is(.builder-preview-rendered, .public-invitation-rendered) .location-copy > .section-no { color: var(--sun); }
 :is(.builder-preview-rendered, .public-invitation-rendered) .location-copy > h2 { text-wrap: balance; }
+:is(.builder-preview-rendered, .public-invitation-rendered) .location-copy > h2 { margin: .45rem 0 clamp(2.25rem, 4vw, 3.75rem); }
 :is(.builder-preview-rendered, .public-invitation-rendered) .location-copy > p:not(.section-no) { color: rgb(255 246 229 / .78); }
-:is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-grid { gap: clamp(.9rem, 1.5vw, 1.35rem); }
+:is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-grid { gap: clamp(.85rem, 1.35vw, 1.15rem); }
 :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-card {
-    min-height: 18rem;
-    padding: 1.45rem 1.35rem 1.25rem;
+    min-height: 15.75rem;
+    padding: 1.2rem 1.15rem 1.1rem;
     border-color: rgb(255 246 229 / .62);
     border-left-width: 5px;
     border-radius: 1.4rem .5rem 1.4rem .5rem;
@@ -129,9 +130,10 @@ html, body { min-height: 100%; max-inline-size: 100%; overflow-x: clip; }
 }
 :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-card:hover { transform: translateY(-.3rem) rotate(-.2deg); box-shadow: .65rem .75rem 0 rgb(244 91 105 / .28), 0 1.8rem 3.2rem rgb(0 35 45 / .22); }
 :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-card:nth-child(2n):hover { transform: translateY(-.3rem) rotate(.2deg); }
-:is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-type { margin-bottom: 1rem; letter-spacing: .22em; }
+:is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-card:nth-child(2n) { transform: none; }
+:is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-type { margin-bottom: .7rem; letter-spacing: .22em; }
 :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-venue { font-size: .86rem; }
-:is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-details { margin-top: 1rem; padding-top: .85rem; border-top: 1px solid rgb(8 59 75 / .12); }
+:is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-details { margin-top: .7rem; padding-top: .7rem; border-top: 1px solid rgb(8 59 75 / .12); }
 :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-actions { gap: .55rem; }
 :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-actions .tropical-button { border-radius: 999px; }
 :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-accommodations { margin-top: .15rem; }
@@ -140,18 +142,18 @@ html, body { min-height: 100%; max-inline-size: 100%; overflow-x: clip; }
 :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-subtitle::after { content: ''; width: 3rem; height: 1px; background: rgb(246 198 74 / .62); }
 
 @media (max-width: 1050px) and (min-width: 731px) {
-    :is(.builder-preview-rendered, .public-invitation-rendered) .location { grid-template-columns: minmax(15rem, .72fr) minmax(0, 1.28fr); }
+    :is(.builder-preview-rendered, .public-invitation-rendered) .location { grid-template-columns: minmax(16rem, .82fr) minmax(0, 1.18fr); }
     :is(.builder-preview-rendered, .public-invitation-rendered) .location-visual { min-height: 42rem; margin-left: 1.5rem; }
     :is(.builder-preview-rendered, .public-invitation-rendered) .location-copy { padding-inline: 2.5rem 3rem; }
-    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-grid { grid-template-columns: 1fr; }
-    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-card { min-height: 14.5rem; }
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-card { min-height: 13.5rem; }
 }
 @media (max-width: 730px) {
     :is(.builder-preview-rendered, .public-invitation-rendered) .location { display: block; padding-top: 1.25rem; }
     :is(.builder-preview-rendered, .public-invitation-rendered) .location::before { top: 2rem; right: 1.25rem; font-size: .48rem; }
     :is(.builder-preview-rendered, .public-invitation-rendered) .location-visual { min-height: 52svh; margin: 0 1.25rem; border-radius: 1.5rem .45rem 1.5rem .45rem; box-shadow: .45rem .5rem 0 rgb(246 198 74 / .34), 0 1.2rem 2.3rem rgb(0 35 45 / .24); }
-    :is(.builder-preview-rendered, .public-invitation-rendered) .location-copy { padding: 4.4rem 1.25rem 4.8rem; }
-    :is(.builder-preview-rendered, .public-invitation-rendered) .location-copy > h2 { font-size: clamp(3.1rem, 15vw, 5rem); }
+    :is(.builder-preview-rendered, .public-invitation-rendered) .location-copy { padding: 3.9rem 1.25rem 4.8rem; }
+    :is(.builder-preview-rendered, .public-invitation-rendered) .location-copy > h2 { margin-bottom: 2.3rem; font-size: clamp(3.1rem, 15vw, 5rem); }
     :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-card { min-height: 0; padding: 1.3rem 1.15rem 1.15rem; }
     :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-card:hover,
     :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-card:nth-child(2n):hover { transform: none; }

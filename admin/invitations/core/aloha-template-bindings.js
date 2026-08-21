@@ -31,7 +31,7 @@ function renderAlohaLocationCards(documentRoot, content, locations, accommodatio
     };
     content.replaceChildren();
     content.append(node(documentRoot, 'p', 'section-no', '03 \u00b7 DESTINO'));
-    content.append(node(documentRoot, 'h2', '', copy.title || 'Lugares del evento'));
+    content.append(node(documentRoot, 'h2', '', copy.title || 'Sitios'));
     if (copy.intro) content.append(node(documentRoot, 'p', '', copy.intro));
 
     if (locations.length) {
