@@ -30,12 +30,24 @@ export function generateToken(existingTokens = []) {
 
 /**
  * Genera la URL personalizada de la invitación.
- * @param {string} token - El token único del invitado.
- * @returns {string} URL completa.
+ * @param {{eventId: string, publicKey: string, rsvpToken?: string, baseUrl?: string}} options
+ * @returns {string} URL completa con event/key y token opcional.
  */
-export function generateInvitationURL(token) {
-    const baseUrl = 'https://eventorastudio.com';
-    return `${baseUrl}/invitacion/?t=${token}`;
+export function generateInvitationURL({ eventId, publicKey, rsvpToken = '', baseUrl = 'https://eventorastudio.com/invitacion/' } = {}) {
+    const normalizedEventId = String(eventId ?? '').trim();
+    const normalizedPublicKey = String(publicKey ?? '').trim();
+    if (!normalizedEventId || !normalizedPublicKey) {
+        throw new TypeError('invitation/route-identity-required');
+    }
+    const url = new URL(baseUrl);
+    url.pathname = '/invitacion/';
+    url.hash = '';
+    url.search = '';
+    url.searchParams.set('event', normalizedEventId);
+    url.searchParams.set('key', normalizedPublicKey);
+    const normalizedToken = String(rsvpToken ?? '').trim();
+    if (normalizedToken) url.searchParams.set('token', normalizedToken);
+    return url.toString();
 }
 
 /**
