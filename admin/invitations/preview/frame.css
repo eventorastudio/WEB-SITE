@@ -151,13 +151,21 @@ html, body { min-height: 100%; max-inline-size: 100%; overflow-x: clip; }
 @media (max-width: 730px) {
     :is(.builder-preview-rendered, .public-invitation-rendered) .location { display: block; padding-top: 1.25rem; }
     :is(.builder-preview-rendered, .public-invitation-rendered) .location::before { top: 2rem; right: 1.25rem; font-size: .48rem; }
-    :is(.builder-preview-rendered, .public-invitation-rendered) .location-visual { min-height: 52svh; margin: 0 1.25rem; border-radius: 1.5rem .45rem 1.5rem .45rem; box-shadow: .45rem .5rem 0 rgb(246 198 74 / .34), 0 1.2rem 2.3rem rgb(0 35 45 / .24); }
+    :is(.builder-preview-rendered, .public-invitation-rendered) .location-visual { min-height: 0; aspect-ratio: 4 / 3; margin: 0 1.25rem; border-radius: 1.5rem .45rem 1.5rem .45rem; box-shadow: .45rem .5rem 0 rgb(246 198 74 / .34), 0 1.2rem 2.3rem rgb(0 35 45 / .24); }
     :is(.builder-preview-rendered, .public-invitation-rendered) .location-copy { padding: 3.9rem 1.25rem 4.8rem; }
     :is(.builder-preview-rendered, .public-invitation-rendered) .location-copy > h2 { margin-bottom: 2.3rem; font-size: clamp(3.1rem, 15vw, 5rem); }
     :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-card { min-height: 0; padding: 1.3rem 1.15rem 1.15rem; }
     :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-card:hover,
     :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-card:nth-child(2n):hover { transform: none; }
     :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-subtitle { margin-top: 3.2rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-card,
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-card:hover,
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-card:nth-child(2n):hover {
+        transition: none;
+        transform: none;
+    }
 }
 [data-invitation-bind="identity"],
 [data-invitation-bind="identity"] * {
