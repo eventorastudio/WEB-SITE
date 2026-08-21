@@ -59,8 +59,13 @@ function renderAlohaLocationCards(documentRoot, content, locations, accommodatio
             const card = node(documentRoot, 'article', 'aloha-location-card aloha-accommodation-card');
             card.append(node(documentRoot, 'p', 'aloha-location-type', 'Hospedaje'));
             card.append(node(documentRoot, 'h3', '', hotel.name || 'Hospedaje'));
-            const details = [hotel.address, hotel.phone, hotel.reservationCode && `C\u00f3digo: ${hotel.reservationCode}`, hotel.description, hotel.notes].filter(Boolean);
-            if (details.length) card.append(node(documentRoot, 'p', 'aloha-location-details', details.join(' \u00b7 ')));
+            const details = node(documentRoot, 'div', 'aloha-stay-details');
+            if (hotel.address) details.append(node(documentRoot, 'p', 'aloha-stay-address', hotel.address));
+            if (hotel.phone) details.append(node(documentRoot, 'p', 'aloha-stay-phone', hotel.phone));
+            if (hotel.description) details.append(node(documentRoot, 'p', 'aloha-stay-description', hotel.description));
+            if (hotel.notes) details.append(node(documentRoot, 'p', 'aloha-stay-notes', hotel.notes));
+            if (hotel.reservationCode) details.append(node(documentRoot, 'p', 'aloha-stay-code', `C\u00f3digo: ${hotel.reservationCode}`));
+            if (details.children.length) card.append(details);
             const actions = node(documentRoot, 'div', 'aloha-location-actions');
             if (hotel.reservationUrl) actions.append(action(documentRoot, 'Reservar', hotel.reservationUrl, 'hotel', 'reservationUrl'));
             if (hotel.mapsUrl) actions.append(action(documentRoot, 'Abrir en Maps', hotel.mapsUrl, 'maps', 'mapsUrl'));
