@@ -150,7 +150,7 @@ test('publicación crea proyección sanitizada con publicKey aleatorio estable',
     assert.equal(keyFactoryCalls, 1);
     assert.equal(projection.revisionId, 'REV-000001');
     assert.equal(projection.accommodations[0].name, 'Hotel Centro');
-    assert.equal(projection.sections.includes('rsvp'), false);
+    assert.equal(projection.sections.includes('rsvp'), true);
     assert.equal(Object.hasOwn(projection.content, 'rsvp'), false);
     assert.equal(Object.hasOwn(projection, 'publishedBy'), false);
     assert.equal(Object.hasOwn(projection, 'publishedAt'), false);
@@ -175,6 +175,8 @@ test('página carga la revisión activa y cambia tras republicar sin rotar publi
     const location = { href: `https://eventorastudio.com/invitacion/?event=${EVENT_ID}&key=${PUBLIC_KEY}` };
 
     assert.equal((await page.load(location)).status, 'rendered');
+    assert.equal(renders.at(-1).payload.enabledSections.includes('rsvp'), true);
+    assert.equal(renders.at(-1).payload.enabledSections.includes('access-preview'), false);
     assert.equal(renders.at(-1).payload.draft.content.identity.phrase, 'Versión pública uno');
     assert.equal(renders.at(-1).payload.publication.revisionId, 'REV-000001');
     assert.match(renders.at(-1).text, /Versión pública uno/);

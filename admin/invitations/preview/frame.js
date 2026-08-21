@@ -9,7 +9,7 @@ import {
     formatInvitationEventLine,
     prepareBuilderTemplate
 } from '../core/template-binding-registry.js?v=phase86-aloha-a2-20260820';
-import { PublicInvitationPage } from '../../../invitacion/public-invitation-page.js?v=phase64-personalized-invitation-20260817';
+import { PublicInvitationPage } from '../../../invitacion/public-invitation-page.js?v=phase97-public-rsvp-20260821';
 import { applyPublicInvitationPersonalization } from '../../../invitacion/public-invitation-personalization.js?v=phase88-qr2-20260820';
 import { generateQrCanvas } from '../../modules/qr/qr-renderer.js?v=phase88-qr2-20260820';
 import { getThemeById } from '../core/theme-registry.js?v=phase86-appearance-20260820';
@@ -337,6 +337,9 @@ function renderAccessPass(payload) {
     const config = payload.draft?.content?.access ?? {};
     const personalization = payload.personalization;
     const builderPreview = payload.renderMode === 'builder';
+    const hasPersonalizedAccess = builderPreview || Boolean(personalization);
+    access.hidden = !hasPersonalizedAccess;
+    if (!hasPersonalizedAccess) return;
     const valid = builderPreview || (personalization && personalization.displayName && Number.isInteger(personalization.passLimit));
     const displayName = valid ? (personalization?.displayName || 'Invitado de muestra') : '';
     const passLimit = valid ? (personalization?.passLimit || 2) : 0;
@@ -356,17 +359,18 @@ function renderAccessPass(payload) {
             view.append(qrHost);
         }
         qrHost.hidden = !(valid && config.showQr !== false && qrToken);
-        if (!qrHost.hidden && !qrHost.dataset.renderedToken) {
+        if (!qrHost.hidden && qrHost.dataset.qrRendered !== 'true') {
             qrHost.replaceChildren();
             const label = document.createElement('small');
             label.textContent = builderPreview ? 'QR de vista previa · no operativo' : 'Pase de acceso';
             qrHost.append(label);
             void ensureQrLibrary().then(() => {
-                if (qrHost.hidden || qrHost.dataset.renderedToken === qrToken) return;
+                if (qrHost.hidden || qrHost.dataset.qrRendered === 'true') return;
                 const canvas = generateQrCanvas(qrToken, { size: 220 });
                 canvas.setAttribute('aria-label', 'Código QR de acceso');
                 qrHost.append(canvas);
-                qrHost.dataset.renderedToken = qrToken;
+                // Never persist the QR token in a DOM attribute.
+                qrHost.dataset.qrRendered = 'true';
             }).catch(() => { qrHost.textContent = 'QR no disponible'; });
         }
     });

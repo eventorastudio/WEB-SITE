@@ -13,7 +13,7 @@ import {
     INVITATION_PUBLIC_COLLECTION_ID,
     createPublicInvitationProjectionFingerprint,
     serializePublicInvitationProjection
-} from '../core/invitation-public-projection.js?v=phase89-dress-code-media-20260820';
+} from '../core/invitation-public-projection.js?v=phase97-public-rsvp-20260821';
 
 function serviceError(code, cause = null, details = {}) {
     const error = new Error(code);

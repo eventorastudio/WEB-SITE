@@ -53,7 +53,10 @@ export function createPublicInvitationRenderPayload(projection, {
                 touchedMediaRoles: [...touchedRoles]
             }
         },
-        enabledSections: projection.sections.filter((sectionId) => isSectionAllowed(sectionId, packageId)),
+        enabledSections: projection.sections.filter((sectionId) => (
+            isSectionAllowed(sectionId, packageId)
+            && (sectionId !== 'access-preview' || Boolean(personalization))
+        )),
         sections: sectionContract.sections,
         sectionGroups: sectionContract.groups,
         renderMode: 'public',

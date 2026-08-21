@@ -9,9 +9,10 @@ export const INVITATION_PUBLIC_PROJECTION_SCHEMA_VERSION = 1;
 export const INVITATION_PUBLIC_COLLECTION_ID = 'invitacionPublic';
 
 export const PRIVATE_PUBLIC_SECTION_IDS = Object.freeze([
-    'rsvp',
-    'pass-selection',
-    'access-preview'
+    // Pass selection is an invite-specific control and is not part of the
+    // generic public invitation. RSVP is public-safe; access-preview is kept
+    // in the projection so the runtime can reveal it only for a valid token.
+    'pass-selection'
 ]);
 
 const PUBLIC_FIELDS = Object.freeze([
