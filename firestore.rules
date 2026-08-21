@@ -175,14 +175,7 @@ service cloud.firestore {
         && data.accommodations is list && data.accommodations.size() <= 1
         && data.links is list && data.links.size() <= 50
         && validInvitationAppearance(data.appearance)
-        && data.settings is map
-        && data.settings.keys().size() == 2
-        && data.settings.keys().hasOnly(['renderMode', 'packageId'])
-        && data.settings.renderMode == 'builder'
-        && (
-          data.settings.packageId == null
-          || data.settings.packageId in ['esencial', 'premium', 'prestige']
-        );
+        && validInvitationSettings(data.settings);
     }
 
     // Revisions are written only through the publication service, whose schema
@@ -215,13 +208,26 @@ service cloud.firestore {
         && data.accommodations is list && data.accommodations.size() <= 1
         && data.links is list && data.links.size() <= 50
         && validInvitationAppearance(data.appearance)
-        && data.settings is map
-        && data.settings.keys().size() == 2
-        && data.settings.keys().hasOnly(['renderMode', 'packageId'])
-        && data.settings.renderMode == 'builder'
+        && validInvitationSettings(data.settings);
+    }
+
+    function validInvitationSettings(settings) {
+      return settings is map
         && (
-          data.settings.packageId == null
-          || data.settings.packageId in ['esencial', 'premium', 'prestige']
+          (
+            settings.keys().size() == 2
+            && settings.keys().hasOnly(['renderMode', 'packageId'])
+          )
+          || (
+            settings.keys().size() == 3
+            && settings.keys().hasOnly(['renderMode', 'packageId', 'format'])
+            && settings.format in ['website', 'stories', 'cards']
+          )
+        )
+        && settings.renderMode == 'builder'
+        && (
+          settings.packageId == null
+          || settings.packageId in ['esencial', 'premium', 'prestige']
         );
     }
 

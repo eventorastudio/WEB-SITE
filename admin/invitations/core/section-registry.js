@@ -5,6 +5,12 @@ import {
 
 export const PACKAGE_ORDER = Object.freeze(['esencial', 'premium', 'prestige']);
 
+export const INVITATION_FORMATS = Object.freeze([
+    Object.freeze({ id: 'website', name: 'Sitio web' }),
+    Object.freeze({ id: 'stories', name: 'Historias' }),
+    Object.freeze({ id: 'cards', name: 'Tarjetas' })
+]);
+
 const PACKAGE_NAMES = Object.freeze({
     esencial: 'Esencial',
     premium: 'Premium',
@@ -21,14 +27,22 @@ function cumulativeCommercialFeatures(packageId) {
         .filter((feature) => !/^Todo lo incluido en /i.test(feature));
 }
 
-export const PACKAGE_REGISTRY = Object.freeze(PACKAGE_ORDER.map((id) => Object.freeze({
-    id,
-    name: PACKAGE_NAMES[id],
-    commercialFeatures: Object.freeze(cumulativeCommercialFeatures(id)),
-    capabilities: Object.freeze(cumulativeCommercialFeatures(id)
+export const PACKAGE_REGISTRY = Object.freeze(PACKAGE_ORDER.map((id) => {
+    const commercialFeatures = [
+        ...cumulativeCommercialFeatures(id),
+        ...(id === 'premium' ? ['Múltiples ubicaciones'] : [])
+    ];
+    const capabilities = commercialFeatures
         .map((feature) => PRESTIGE_COMMERCIAL_DEMO_MAP[feature])
-        .filter(Boolean))
-})));
+        .filter(Boolean);
+    if (id === 'premium' && !capabilities.includes('multiple-locations')) capabilities.push('multiple-locations');
+    return Object.freeze({
+        id,
+        name: PACKAGE_NAMES[id],
+        commercialFeatures: Object.freeze(commercialFeatures),
+        capabilities: Object.freeze([...new Set(capabilities)])
+    });
+}));
 
 function section(definition) {
     return Object.freeze({
@@ -74,4 +88,14 @@ export function getSectionsForPackage(packageId) {
         ...item,
         allowed: isSectionAllowed(item.id, packageId)
     }));
+}
+
+export function getEnabledSectionsForPackage(packageId) {
+    return SECTION_REGISTRY
+        .filter(({ id }) => isSectionAllowed(id, packageId))
+        .map(({ id }) => id);
+}
+
+export function getInvitationFormat(format) {
+    return INVITATION_FORMATS.find(({ id }) => id === format) ?? INVITATION_FORMATS[0];
 }

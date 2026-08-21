@@ -1,4 +1,4 @@
-import { getPackageById, getSectionById, isSectionAllowed } from './section-registry.js?v=phase3-logistics-20260813';
+import { getEnabledSectionsForPackage, getInvitationFormat, getPackageById, getSectionById, isSectionAllowed } from './section-registry.js?v=phase93-package-sections-format-20260821';
 import { getThemeById } from './theme-registry.js?v=phase3-logistics-20260813';
 import {
     INVITATION_CONTENT_SCHEMA_VERSION,
@@ -34,7 +34,7 @@ import {
     RSVP_GUEST_POLICY_PATH,
     normalizeRsvpConfig
 } from './rsvp-schema.js?v=phase54a-rsvp-time-20260817';
-import { getPersistedGeneralContentPaths } from './draft-persistence-schema.js?v=phase86-appearance-20260820';
+import { getPersistedGeneralContentPaths } from './draft-persistence-schema.js?v=phase93-package-sections-format-20260821';
 import { normalizeAppearance } from './appearance-schema.js?v=phase86-appearance-20260820';
 
 const PREVIEW_DEVICES = Object.freeze(['mobile', 'tablet', 'desktop']);
@@ -88,7 +88,7 @@ export function createInvitationDraft(eventId, eventData = {}) {
         eventId,
         packageId,
         themeId: null,
-        enabledSections: [],
+        enabledSections: packageId ? getEnabledSectionsForPackage(packageId) : [],
         content: createInvitationContent(eventData),
         media: createEmptyInvitationMedia(),
         locations: createInitialLocations(eventData),
@@ -97,7 +97,7 @@ export function createInvitationDraft(eventId, eventData = {}) {
         accommodations: [],
         links: [],
         appearance: {},
-        settings: { renderMode: 'builder', packageId },
+        settings: { renderMode: 'builder', packageId, format: 'website' },
         meta: {
             packageSource: packageId ? 'event' : 'unselected',
             touchedPaths: [],
@@ -177,9 +177,22 @@ export class InvitationBuilderState {
         const previous = this.getSnapshot();
         this._draft.packageId = packageId;
         this._draft.settings.packageId = packageId;
+        this._draft.enabledSections = getEnabledSectionsForPackage(packageId);
         this._draft.meta.packageSource = 'local-selection';
         this._markDirty();
         this._notify('package-changed', previous);
+        return { ok: true, changed: true };
+    }
+
+    setFormat(format) {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        const selected = getInvitationFormat(format);
+        if (selected.id !== format) return { ok: false, code: 'builder/unknown-format' };
+        if (this._draft.settings.format === selected.id) return { ok: true, changed: false };
+        const previous = this.getSnapshot();
+        this._draft.settings.format = selected.id;
+        this._markDirty();
+        this._notify('format-changed', previous);
         return { ok: true, changed: true };
     }
 
@@ -491,7 +504,6 @@ export class InvitationBuilderState {
             .filter((path) => RSVP_EDITABLE_PATH_SET.has(path));
 
         this._draft.themeId = persisted.theme ?? null;
-        this._draft.enabledSections = cloneInvitationValue(persisted.sections);
         this._draft.content = {
             ...cloneInvitationValue(persisted.content),
             rsvp: retainedRsvp
@@ -502,8 +514,11 @@ export class InvitationBuilderState {
         this._draft.accommodations = cloneInvitationValue(persisted.accommodations);
         this._draft.links = cloneInvitationValue(persisted.links);
         this._draft.appearance = cloneInvitationValue(persisted.appearance);
-        this._draft.settings = cloneInvitationValue(persisted.settings);
-        this._draft.packageId = persisted.settings?.packageId ?? null;
+        this._draft.settings = { format: 'website', ...cloneInvitationValue(persisted.settings) };
+        this._draft.packageId = this._draft.settings?.packageId ?? null;
+        this._draft.enabledSections = this._draft.packageId
+            ? getEnabledSectionsForPackage(this._draft.packageId)
+            : cloneInvitationValue(persisted.sections);
         this._draft.meta.packageSource = this._draft.packageId ? 'persisted-draft' : 'unselected';
         this._draft.meta.touchedPaths = [
             ...getPersistedGeneralContentPaths(),

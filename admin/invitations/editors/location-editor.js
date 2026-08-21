@@ -1,4 +1,4 @@
-import { LOCATION_TYPES, locationTypeLabel, packageAllowsMultipleLocations } from '../core/logistics-schema.js?v=phase3-logistics-20260813';
+import { LOCATION_TYPES, locationTypeLabel, packageAllowsMultipleLocations } from '../core/logistics-schema.js?v=phase93-package-sections-format-20260821';
 import { initEntityListEditor, selectField, textField, textareaField } from './entity-editor-utils.js?v=phase3-logistics-20260813';
 
 const TYPE_OPTIONS = LOCATION_TYPES.map((value) => ({ value, label: locationTypeLabel(value) }));
@@ -7,7 +7,7 @@ export function initLocationEditor({ container, state }) {
     return initEntityListEditor({
         container, state, collection: 'locations',
         title: 'Ubicaciones',
-        description: 'Configura el lugar principal y, con Prestige, sedes adicionales.',
+        description: 'Configura el lugar principal y, con Premium o Prestige, sedes adicionales.',
         addLabel: '+ Agregar ubicación',
         addMethod: 'addLocation', updateMethod: 'updateLocation', removeMethod: 'removeLocation', moveMethod: 'moveLocation',
         canAdd: (snapshot) => !snapshot.draft.locations.length || packageAllowsMultipleLocations(snapshot.draft.packageId),

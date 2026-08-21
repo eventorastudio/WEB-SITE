@@ -7,7 +7,7 @@ import {
     setDraftValue
 } from './content-schema.js?v=phase61-draft-persistence-20260817';
 import { validateInvitationDraft } from './builder-validation.js?v=phase89-dress-code-media-20260820';
-import { getPackageById, getSectionById } from './section-registry.js?v=phase3-logistics-20260813';
+import { getInvitationFormat, getPackageById, getSectionById } from './section-registry.js?v=phase93-package-sections-format-20260821';
 import { getThemeById } from './theme-registry.js?v=phase3-logistics-20260813';
 import { normalizeAppearance } from './appearance-schema.js?v=phase86-appearance-20260820';
 import {
@@ -45,7 +45,8 @@ const DOCUMENT_FIELDS = Object.freeze([
 const LEGACY_DOCUMENT_FIELDS = Object.freeze(
     DOCUMENT_FIELDS.filter((field) => field !== 'accommodations')
 );
-const SETTINGS_FIELDS = Object.freeze(['renderMode', 'packageId']);
+const SETTINGS_FIELDS = Object.freeze(['renderMode', 'packageId', 'format']);
+const LEGACY_SETTINGS_FIELDS = Object.freeze(['renderMode', 'packageId']);
 const LEGACY_ACCESS_FIELDS = Object.freeze(['title', 'description', 'label']);
 const COLLECTION_LIMITS = Object.freeze({
     locations: 20,
@@ -147,7 +148,12 @@ function normalizeSettings(settings = {}, packageId = undefined) {
     if (normalizedPackage && !getPackageById(normalizedPackage)) fail('draft/unknown-package');
     const renderMode = String(settings?.renderMode ?? 'builder');
     if (renderMode !== 'builder') fail('draft/invalid-render-mode');
-    return { renderMode, packageId: normalizedPackage };
+    const requestedFormat = settings?.format;
+    if (requestedFormat != null && requestedFormat !== '' && getInvitationFormat(requestedFormat).id !== requestedFormat) {
+        fail('draft/unknown-format');
+    }
+    const format = getInvitationFormat(requestedFormat).id;
+    return { renderMode, packageId: normalizedPackage, format };
 }
 
 function normalizeCollection(collection, value) {
@@ -228,7 +234,10 @@ export function deserializeInvitationDraft(document, expectedEventId) {
     if (!isTimestamp(document.updatedAt)) fail('draft/invalid-updated-at');
     const updatedBy = String(document.updatedBy ?? '');
     if (!updatedBy || updatedBy.length > 128) fail('draft/invalid-updated-by');
-    if (!exactKeys(document.settings, SETTINGS_FIELDS)) fail('draft/invalid-settings-shape');
+    const settingsKeys = Object.keys(document.settings ?? {});
+    const validSettingsShape = exactKeys(document.settings, SETTINGS_FIELDS)
+        || exactKeys(document.settings, LEGACY_SETTINGS_FIELDS);
+    if (!validSettingsShape) fail('draft/invalid-settings-shape');
 
     const normalized = {
         schemaVersion: INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION,
@@ -249,10 +258,12 @@ export function deserializeInvitationDraft(document, expectedEventId) {
     };
 
     const legacyAccessDocument = hasLegacyAccessShape(document);
+    const legacySettingsDocument = exactKeys(document.settings, LEGACY_SETTINGS_FIELDS);
     if (isCurrentDocument && document.contentSchemaVersion === INVITATION_CONTENT_SCHEMA_VERSION) {
         const comparable = { ...normalized, updatedAt: document.updatedAt };
-        const canonicalDocument = legacyAccessDocument ? cloneInvitationValue(document) : document;
+        const canonicalDocument = (legacyAccessDocument || legacySettingsDocument) ? cloneInvitationValue(document) : document;
         if (legacyAccessDocument) canonicalDocument.content.access = normalized.content.access;
+        if (legacySettingsDocument) canonicalDocument.settings = normalized.settings;
         if (stableStringify(comparable) !== stableStringify(canonicalDocument)) fail('draft/non-canonical-document');
     }
     return Object.freeze(cloneInvitationValue(normalized));

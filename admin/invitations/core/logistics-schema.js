@@ -1,4 +1,4 @@
-import { getPackageById } from './section-registry.js?v=phase3-logistics-20260813';
+import { getPackageById } from './section-registry.js?v=phase93-package-sections-format-20260821';
 
 export const LOCATION_TYPES = Object.freeze(['ceremony', 'reception', 'party', 'session', 'accommodation', 'other']);
 export const GIFT_TYPES = Object.freeze(['store', 'transfer', 'cash', 'other']);

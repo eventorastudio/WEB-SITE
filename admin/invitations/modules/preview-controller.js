@@ -1,5 +1,5 @@
 import { PREVIEW_DEVICES, PREVIEW_MESSAGE_TYPES, isPreviewMessage } from '../core/builder-events.js?v=phase3-logistics-20260813';
-import { SECTION_REGISTRY, isSectionAllowed } from '../core/section-registry.js?v=phase3-logistics-20260813';
+import { SECTION_REGISTRY, isSectionAllowed } from '../core/section-registry.js?v=phase93-package-sections-format-20260821';
 import { createTemplateSectionContract } from '../core/template-binding-registry.js?v=phase86-aloha-a2-20260820';
 import { getThemeById } from '../core/theme-registry.js?v=phase3-logistics-20260813';
 import { isRsvpEnabled } from '../core/rsvp-schema.js?v=phase54a-rsvp-time-20260817';
@@ -75,6 +75,7 @@ export function initPreviewController({
                     schemaVersion: snapshot.draft.schemaVersion,
                     contentSchemaVersion: snapshot.draft.contentSchemaVersion,
                     packageId: snapshot.draft.packageId,
+                    settings: snapshot.draft.settings,
                     content: snapshot.draft.content,
                     media: snapshot.draft.media,
                     locations: snapshot.draft.locations,
@@ -228,7 +229,7 @@ export function initPreviewController({
 
     const unsubscribe = state.subscribe(({ snapshot, reason }) => {
         if (reason === 'preview-device-changed') syncDevice(snapshot);
-        if (['initialized', 'theme-changed', 'sections-changed', 'content-changed', 'entities-changed', 'media-changed', 'appearance-changed', 'package-changed'].includes(reason)) {
+        if (['initialized', 'theme-changed', 'sections-changed', 'content-changed', 'entities-changed', 'media-changed', 'appearance-changed', 'package-changed', 'format-changed'].includes(reason)) {
             sendSnapshot(snapshot, reason);
         }
     }, { source: 'preview-controller' });

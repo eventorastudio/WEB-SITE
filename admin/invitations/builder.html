@@ -82,7 +82,7 @@
                 </div>
                 <nav>
                     <button class="builder-step is-active" type="button" data-step-target="theme"><span>01</span>Tema</button>
-                    <button class="builder-step" type="button" data-step-target="sections"><span>02</span>Secciones</button>
+                    <button class="builder-step" type="button" data-step-target="sections"><span>02</span>Paquete y formato</button>
                     <button class="builder-step" type="button" data-step-target="information"><span>03</span>Información</button>
                     <button class="builder-step" type="button" data-step-target="media"><span>04</span>Multimedia</button>
                     <button class="builder-step" type="button" data-step-target="logistics"><span>05</span>Ubicaciones</button>
@@ -120,11 +120,21 @@
 
                 <section class="builder-panel" id="builder-panel-sections" data-builder-panel="sections">
                     <header class="panel-heading">
-                        <div><span class="panel-number">02</span><h2>Secciones disponibles</h2></div>
-                        <p>Activa solo lo que necesita esta invitación. Los permisos provienen del paquete.</p>
+                        <div><span class="panel-number">02</span><h2>Paquete y formato</h2></div>
+                        <p>Las secciones y capacidades se habilitan automáticamente según el paquete elegido.</p>
                     </header>
-                    <p class="section-summary" id="section-summary" aria-live="polite"></p>
-                    <div class="section-list" id="section-selector"></div>
+                    <div class="package-overview">
+                        <div>
+                            <span class="builder-kicker">CAPACIDADES INCLUIDAS</span>
+                            <ul id="package-capabilities" class="package-capabilities" aria-live="polite"></ul>
+                        </div>
+                        <label class="package-format-field" for="builder-format">
+                            <span>Formato de invitaciÃ³n</span>
+                            <select id="builder-format"></select>
+                            <small id="builder-format-status" aria-live="polite"></small>
+                            <small>Sitio web, Historias y Tarjetas comparten este contrato; sus renderers se implementarÃ¡n despuÃ©s.</small>
+                        </label>
+                    </div>
                 </section>
 
                 <section class="builder-panel" id="builder-panel-information" data-builder-panel="information">
@@ -219,6 +229,6 @@
     </div>
 
     <div id="toast-container" aria-live="polite"></div>
-    <script type="module" src="./builder.js?v=phase87-separate-preview-20260820"></script>
+    <script type="module" src="./builder.js?v=phase94-format-gating-20260821"></script>
 </body>
 </html>

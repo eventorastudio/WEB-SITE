@@ -38,6 +38,7 @@ export function createPublicInvitationRenderPayload(projection, {
             schemaVersion: projection.contentSchemaVersion,
             contentSchemaVersion: projection.contentSchemaVersion,
             packageId,
+            settings: projection.settings,
             content: projection.content,
             media,
             locations: projection.locations,
