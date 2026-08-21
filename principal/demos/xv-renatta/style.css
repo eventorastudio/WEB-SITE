@@ -117,6 +117,26 @@ button { font: inherit; }
 .itinerary span { display: block; font: 400 1.5rem Georgia, serif; }
 .itinerary small { display: block; margin-top: 9px; line-height: 1.5; }
 
+/* Aloha itinerary: a grounded editorial route instead of a floating rule. */
+.itinerary { position: relative; isolation: isolate; overflow: hidden; padding-block: clamp(5rem, 9vw, 8.5rem); background: linear-gradient(145deg, #fffaf0 0%, #fff6e5 58%, #e7fbf7 100%); }
+.itinerary::before { content: ''; position: absolute; z-index: -1; top: -8rem; right: -7rem; width: clamp(16rem, 36vw, 30rem); aspect-ratio: 1; border: 1px solid rgb(28 191 210 / .28); border-radius: 58% 42% 68% 32%; box-shadow: 0 0 0 1.2rem rgb(28 191 210 / .08), 0 0 0 2.6rem rgb(244 91 105 / .06); transform: rotate(19deg); }
+.itinerary::after { content: ''; position: absolute; z-index: -1; bottom: -8rem; left: -5rem; width: 18rem; aspect-ratio: 1.35; background: rgb(246 198 74 / .18); border-radius: 50% 50% 8% 92%; transform: rotate(-18deg); }
+.itinerary .section-heading { width: min(100%, 72rem); display: grid; grid-template-columns: minmax(8rem, .55fr) minmax(0, 1.45fr); align-items: end; gap: clamp(1rem, 4vw, 4rem); margin: 0 auto clamp(2.8rem, 6vw, 5rem); }
+.itinerary .section-heading .section-no { align-self: start; margin: .45rem 0 0; color: var(--coral); letter-spacing: .22em; }
+.itinerary .section-heading h2 { max-width: 12ch; color: var(--deep); font-size: clamp(3rem, 7vw, 6.5rem); line-height: .82; letter-spacing: -.07em; }
+.itinerary .section-heading .builder-aloha-intro { grid-column: 2; max-width: 42ch; margin: 1.1rem 0 0; color: var(--demo-muted); font-size: .82rem; line-height: 1.7; }
+.itinerary ol { position: relative; width: min(100%, 72rem); grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: clamp(.8rem, 2vw, 1.25rem); margin: 0 auto; padding: 2.2rem 0 0; border: 0; }
+.itinerary ol::before { content: ''; position: absolute; z-index: -1; top: .75rem; right: 1.5rem; left: 1.5rem; height: .18rem; background: linear-gradient(90deg, var(--aqua), var(--coral), var(--sun)); border-radius: 999px; opacity: .85; }
+.itinerary li { min-width: 0; display: flex; flex-direction: column; min-height: 14.5rem; padding: 1.4rem 1.25rem 1.25rem; border: 1px solid rgb(8 59 75 / .15); border-top: 4px solid var(--aqua); border-right: 0; border-radius: 1.15rem .35rem 1.15rem .35rem; background: rgb(255 250 240 / .82); box-shadow: .45rem .55rem 0 rgb(244 91 105 / .18), 0 1.2rem 2.4rem rgb(8 59 75 / .08); }
+.itinerary li:nth-child(2n) { margin-top: .8rem; border-top-color: var(--coral); transform: rotate(.35deg); }
+.itinerary li:nth-child(3n) { border-top-color: var(--sun); transform: rotate(-.25deg); }
+.itinerary li::before { top: -2.62rem; left: 1.35rem; width: .78rem; height: .78rem; background: var(--cream); border: 3px solid var(--coral); box-shadow: 0 0 0 .28rem rgb(244 91 105 / .14); }
+.itinerary li:nth-child(2n)::before { border-color: var(--aqua); }
+.itinerary li:nth-child(3n)::before { border-color: var(--sun); }
+.itinerary time { order: 0; display: inline-flex; align-items: center; width: fit-content; min-height: 2rem; margin: 0 0 1.3rem; padding: .42rem .7rem; color: var(--deep); background: rgb(28 191 210 / .13); border-radius: 999px; font-size: .72rem; font-weight: 800; letter-spacing: .14em; }
+.itinerary span { order: 1; color: var(--deep); font: 400 clamp(1.55rem, 3vw, 2.25rem)/.96 Georgia, serif; letter-spacing: -.04em; overflow-wrap: anywhere; }
+.itinerary small { order: 2; display: block; margin: auto 0 0; padding-top: 1rem; color: var(--demo-muted); border-top: 1px solid rgb(8 59 75 / .14); font-size: .72rem; line-height: 1.55; overflow-wrap: anywhere; }
+
 .location { display: grid; grid-template-columns: 1.05fr .95fr; min-height: 720px; background: #0b7f87; color: white; }
 .location-visual { position: relative; min-height: 560px; background: linear-gradient(rgb(0 89 106 / .08), rgb(0 89 106 / .5)), url('fondo.png') center / cover; overflow: hidden; }
 .pool-ring { position: absolute; right: 13%; bottom: 15%; width: 190px; aspect-ratio: 1; border: 35px solid var(--pink); border-radius: 50%; box-shadow: inset 0 0 0 7px rgb(255 255 255 / .35), 0 18px 40px rgb(0 0 0 / .2); transform: rotate(-12deg) scaleY(.78); }
@@ -189,6 +209,21 @@ footer b, footer span { display: block; letter-spacing: .15em; } footer span { m
   .resort-card h1 { font-size: 3.3rem; }.opening-guest { max-width: 25ch; }.hero h2 { font-size: 4.1rem; }.guest-ticket { padding: 15px; }.island-nav a { font-size: .58rem; }.postcards { grid-template-columns: 1fr; }.postcard-card:nth-child(2), .postcard-card:nth-child(3) { grid-column: auto; min-height: 340px; margin: 0; transform: none; }
 }
 @media(max-width:600px){.island-pass article{grid-template-columns:80px 1fr;padding:20px}.island-code{width:72px;border-width:7px}}
+
+@media (max-width: 730px) {
+  .itinerary { padding: 5.2rem 1.25rem 5.8rem; }
+  .itinerary .section-heading { grid-template-columns: 1fr; gap: .65rem; margin-bottom: 2.8rem; }
+  .itinerary .section-heading .section-no { margin: 0; }
+  .itinerary .section-heading h2 { max-width: 10ch; font-size: clamp(3.3rem, 15vw, 5.3rem); }
+  .itinerary .section-heading .builder-aloha-intro { grid-column: auto; margin-top: .35rem; }
+  .itinerary ol { grid-template-columns: 1fr; gap: 1rem; padding: 0 0 0 1.2rem; }
+  .itinerary ol::before { top: .35rem; bottom: .35rem; left: .33rem; right: auto; width: .18rem; height: auto; background: linear-gradient(180deg, var(--aqua), var(--coral), var(--sun)); }
+  .itinerary li, .itinerary li:nth-child(2n), .itinerary li:nth-child(3n) { min-height: 0; margin: 0; padding: 1.15rem 1rem 1.15rem 1.2rem; border-top-width: 3px; transform: none; }
+  .itinerary li::before, .itinerary li:nth-child(2n)::before, .itinerary li:nth-child(3n)::before { top: 1.35rem; left: -1.28rem; width: .7rem; height: .7rem; }
+  .itinerary time { margin-bottom: .85rem; }
+  .itinerary span { font-size: clamp(1.55rem, 8vw, 2.2rem); }
+  .itinerary small { margin-top: 1.35rem; }
+}
 .reveal{opacity:0;transform:translateY(24px) scale(.98) rotate(-.25deg);transition:opacity .68s ease,transform .82s cubic-bezier(.2,.8,.2,1)}
 .reveal.visible{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
