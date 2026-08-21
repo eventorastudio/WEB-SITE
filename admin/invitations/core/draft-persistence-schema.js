@@ -119,6 +119,12 @@ function normalizeGeneralContent(source = {}) {
         // when normalizing drafts created before those fields existed.
         if (value !== undefined) setGeneralContentValue(content, path, value);
     });
+    // Legacy drafts predate welcome.opening. Derive its visual stamp from the
+    // already canonical identity/schedule values without mutating the source.
+    if (!source?.welcome?.opening) {
+        content.welcome.opening.stampLine1 = content.identity.eventType;
+        content.welcome.opening.stampLine2 = content.schedule.date.slice(0, 4);
+    }
     DRESS_COLOR_GROUPS.forEach((group) => {
         const colors = Array.isArray(source?.dressCode?.[group]) ? source.dressCode[group] : [];
         if (colors.length > 20) fail('draft/dress-colors-limit', { group });
@@ -259,11 +265,18 @@ export function deserializeInvitationDraft(document, expectedEventId) {
 
     const legacyAccessDocument = hasLegacyAccessShape(document);
     const legacySettingsDocument = exactKeys(document.settings, LEGACY_SETTINGS_FIELDS);
+    // Drafts created before the Aloha opening contract do not contain the
+    // optional welcome.opening object. Accept that legacy shape while keeping
+    // the normalized defaults in memory; it is not an automatic migration.
+    const legacyOpeningDocument = !Object.hasOwn(document.content?.welcome ?? {}, 'opening');
     if (isCurrentDocument && document.contentSchemaVersion === INVITATION_CONTENT_SCHEMA_VERSION) {
         const comparable = { ...normalized, updatedAt: document.updatedAt };
-        const canonicalDocument = (legacyAccessDocument || legacySettingsDocument) ? cloneInvitationValue(document) : document;
+        const canonicalDocument = (legacyAccessDocument || legacySettingsDocument || legacyOpeningDocument)
+            ? cloneInvitationValue(document)
+            : document;
         if (legacyAccessDocument) canonicalDocument.content.access = normalized.content.access;
         if (legacySettingsDocument) canonicalDocument.settings = normalized.settings;
+        if (legacyOpeningDocument) canonicalDocument.content.welcome = normalized.content.welcome;
         if (stableStringify(comparable) !== stableStringify(canonicalDocument)) fail('draft/non-canonical-document');
     }
     return Object.freeze(cloneInvitationValue(normalized));
