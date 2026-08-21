@@ -18,6 +18,18 @@ export function initItineraryEditor({ container, state }) {
             ]),
             textareaField('description', 'Descripción', { rows: 2, maxLength: 800 }),
             textareaField('notes', 'Notas opcionales', { rows: 2, maxLength: 600 })
-        ]
+        ],
+        onFieldChange: ({ id, field, snapshot }) => {
+            if (field !== 'locationId') return;
+            const itineraryItem = snapshot.draft.itinerary.find((item) => item.id === id);
+            const location = snapshot.draft.locations.find((item) => item.id === itineraryItem?.locationId);
+            if (!location) return;
+            state.updateItineraryItem(id, {
+                time: location.time,
+                title: location.title,
+                description: location.description,
+                notes: location.notes
+            });
+        }
     });
 }

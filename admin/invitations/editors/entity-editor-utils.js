@@ -74,7 +74,8 @@ export function initEntityListEditor({
     addUnavailableMessage = '',
     emptyMessage = 'Todavía no hay elementos configurados.',
     rerenderFields = [],
-    refreshOnCollections = []
+    refreshOnCollections = [],
+    onFieldChange = null
 }) {
     if (!container || !state) return () => {};
     let snapshot = state.getSnapshot();
@@ -173,7 +174,15 @@ export function initEntityListEditor({
         const patch = control.dataset.entityNested
             ? { [control.dataset.entityNested]: { [field]: control.value } }
             : { [field]: control.value };
-        state[updateMethod](card.dataset.entityId, patch);
+        const result = state[updateMethod](card.dataset.entityId, patch);
+        if (result?.ok && result.changed && onFieldChange) {
+            onFieldChange({
+                id: card.dataset.entityId,
+                field,
+                value: control.value,
+                snapshot: state.getSnapshot()
+            });
+        }
         if (rerenderFields.includes(field)) {
             snapshot = state.getSnapshot();
             expandedId = card.dataset.entityId;
