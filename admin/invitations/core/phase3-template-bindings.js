@@ -7,7 +7,7 @@ import {
     locationTypeLabel
 } from './logistics-schema.js?v=phase3-logistics-20260813';
 import { buildGoogleCalendarUrl, buildWhatsAppUrl, safeUrlForField } from './safe-url.js?v=phase3-logistics-20260813';
-import { applyAlohaPhase3Bindings } from './aloha-template-bindings.js?v=phase89-dress-code-media-20260820';
+import { applyAlohaPhase3Bindings } from './aloha-template-bindings.js?v=phase91-aloha-itinerary-tap-20260821';
 
 function clean(value, maxLength = 1800) {
     return String(value ?? '').replace(/\s+/g, ' ').trim().slice(0, maxLength);

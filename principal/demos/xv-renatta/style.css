@@ -330,3 +330,21 @@ footer b, footer span { display: block; letter-spacing: .15em; } footer span { m
   .itinerary li, .itinerary li:nth-child(2n), .itinerary li:nth-child(3n) { min-height: 13.5rem; }
   .itinerary li::before, .itinerary li:nth-child(2n)::before, .itinerary li:nth-child(3n)::before { top: 1.05rem; left: -1.8rem; width: 2.25rem; height: 2.25rem; font-size: .72rem; transform: none; }
 }
+
+@keyframes alohaItineraryCardTap { 0% { transform: translateY(0) rotate(0deg) scale(1); } 42% { transform: translateY(-.28rem) rotate(var(--aloha-tap-tilt, -.35deg)) scale(1.012); } 100% { transform: translateY(0) rotate(0deg) scale(1); } }
+.itinerary li { --aloha-tap-tilt: -.35deg; }
+.itinerary li:nth-child(2n) { --aloha-tap-tilt: .35deg; }
+.itinerary li:nth-child(3n) { --aloha-tap-tilt: -.25deg; }
+.itinerary li.aloha-itinerary-card-tap { animation: alohaItineraryCardTap 440ms cubic-bezier(.2,.75,.25,1); }
+
+@media (max-width: 730px) {
+  .itinerary ol { --aloha-timeline-axis: .42rem; --aloha-timeline-inset: 1.2rem; }
+  .itinerary ol::before { left: calc(var(--aloha-timeline-axis) - .09rem); right: auto; width: .18rem; }
+  .itinerary li::before,
+  .itinerary li:nth-child(2n)::before,
+  .itinerary li:nth-child(3n)::before { left: calc(var(--aloha-timeline-axis) - var(--aloha-timeline-inset) - 1.125rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .itinerary li.aloha-itinerary-card-tap { animation: none; }
+}

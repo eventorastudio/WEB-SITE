@@ -175,6 +175,22 @@ function renderItinerary(documentRoot, draft) {
         if (detail) row.append(node(documentRoot, 'small', '', detail));
         list.append(row);
     });
+    bindItineraryCardInteraction(root);
+}
+
+function bindItineraryCardInteraction(root) {
+    if (!root || root.dataset.alohaItineraryInteraction === 'bound') return;
+    const list = root.querySelector('ol');
+    if (!list) return;
+    root.dataset.alohaItineraryInteraction = 'bound';
+    list.addEventListener('click', (event) => {
+        const card = event.target.closest?.('li[data-itinerary-index]');
+        if (!card || !list.contains(card)) return;
+        card.classList.remove('aloha-itinerary-card-tap');
+        void card.offsetWidth;
+        card.classList.add('aloha-itinerary-card-tap');
+        window.setTimeout(() => card.classList.remove('aloha-itinerary-card-tap'), 520);
+    });
 }
 
 function renderDressCode(documentRoot, draft) {
