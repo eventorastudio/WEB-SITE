@@ -159,7 +159,16 @@ service cloud.firestore {
           ]
         )
         && validDraftSections(data.sections)
-        && validDraftContent(data.content)
+        // The Builder/service performs canonical leaf validation before the write.
+        // Rules keep the persisted content root structural contract here so this
+        // authorization path stays below Firestore's per-request expression budget.
+        && data.content is map
+        && data.content.keys().size() == 14
+        && data.content.keys().hasOnly([
+          'identity', 'schedule', 'place', 'welcome', 'countdown', 'location',
+          'dressCode', 'music', 'video', 'gallery', 'gifts', 'passes',
+          'itinerary', 'access'
+        ])
         && data.locations is list && data.locations.size() <= 20
         && data.itinerary is list && data.itinerary.size() <= 80
         && data.gifts is list && data.gifts.size() <= 50
