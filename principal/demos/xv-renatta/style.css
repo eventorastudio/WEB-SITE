@@ -300,3 +300,14 @@ footer b, footer span { display: block; letter-spacing: .15em; } footer span { m
   .aloha-stay-address, .aloha-stay-description, .aloha-stay-notes { grid-column: auto; }
 }
 @media(max-width:390px){.island-pass article{grid-template-columns:1fr}.island-code{width:68px}}
+
+/* Numbered Aloha itinerary markers stay centered on the timeline axis. */
+.itinerary ol { padding-top: 2.8rem; }
+.itinerary ol::before { top: 1.35rem; }
+.itinerary li::before { content: attr(data-itinerary-index); top: -1.85rem; left: 1.2rem; display: grid; place-items: center; width: 1.05rem; height: 1.05rem; color: var(--deep); background: var(--cream); border: 3px solid var(--coral); border-radius: 50%; box-shadow: 0 0 0 .28rem rgb(244 91 105 / .14); font-size: .54rem; font-weight: 800; line-height: 1; }
+.itinerary li:nth-child(2n)::before { border-color: var(--aqua); }
+.itinerary li:nth-child(3n)::before { border-color: var(--sun); }
+@media (max-width: 730px) {
+  .itinerary ol { padding-top: 0; }
+  .itinerary li::before, .itinerary li:nth-child(2n)::before, .itinerary li:nth-child(3n)::before { top: 1.35rem; left: -1.28rem; width: .82rem; height: .82rem; font-size: .5rem; }
+}

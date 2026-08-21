@@ -165,8 +165,9 @@ function renderItinerary(documentRoot, draft) {
     if (!list) return;
     list.replaceChildren();
     const locations = new Map((draft.locations ?? []).map((location) => [location.id, location]));
-    items.forEach((item) => {
+    items.forEach((item, index) => {
         const row = node(documentRoot, 'li');
+        row.dataset.itineraryIndex = String(index + 1);
         row.append(node(documentRoot, 'time', '', item.time || '—'));
         row.append(node(documentRoot, 'span', '', item.title || 'Actividad'));
         const location = locations.get(item.locationId);
