@@ -14,7 +14,7 @@ import {
     initBuilderPlatformAccess
 } from './core/builder-platform.js?v=phase3-logistics-20260813';
 import { createBuilderDebugLogger } from './core/builder-debug.js?v=phase3-logistics-20260813';
-import { initIdentityEditor } from './editors/identity-editor.js?v=phase3-logistics-20260813';
+import { initIdentityEditor } from './editors/identity-editor.js?v=phase94-opening-cover-20260821';
 import { initSectionCopyEditors } from './editors/section-copy-editor.js?v=phase54a-rsvp-time-20260817';
 import { initLogisticsEditors } from './editors/logistics-editor.js?v=phase93-package-sections-format-20260821';
 import { initAccessPassEditor } from './editors/access-pass-editor.js?v=phase88-qr2-20260820';
@@ -290,6 +290,7 @@ function mountModules() {
     }));
     moduleCleanups.push(initIdentityEditor({
         container: document.getElementById('general-information-editor'),
+        openingContainer: document.getElementById('opening-information-editor'),
         state: builderState
     }));
     moduleCleanups.push(initSectionCopyEditors({

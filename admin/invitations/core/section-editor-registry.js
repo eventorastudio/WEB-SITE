@@ -21,6 +21,23 @@ export const GENERAL_INFORMATION_FIELDS = Object.freeze([
     field('content.identity.phrase', 'Frase principal', { kind: 'textarea', rows: 2, placeholder: 'Nos encantará compartir este día contigo.' })
 ]);
 
+export const OPENING_INFORMATION_FIELDS = Object.freeze([
+    field('content.welcome.opening.label', 'Etiqueta superior', { placeholder: 'Opcional' }),
+    field('content.welcome.opening.kicker', 'Kicker / subtítulo superior', { placeholder: 'Opcional' }),
+    field('content.welcome.opening.title', 'Título principal', { placeholder: 'ALOHA' }),
+    field('content.welcome.opening.name', 'Nombres / título del evento', { placeholder: 'Usa los nombres del evento por defecto' }),
+    field('content.welcome.opening.date', 'Fecha visible', { kind: 'date', help: 'Si se deja vacía, usa la fecha canónica del evento.' }),
+    field('content.welcome.opening.stampLine1', 'Sello · línea 1', { placeholder: 'Tipo de evento' }),
+    field('content.welcome.opening.stampLine2', 'Sello · línea 2', { placeholder: 'Año' }),
+    field('content.welcome.opening.secondary', 'Texto secundario', { kind: 'textarea', rows: 2 }),
+    field('content.welcome.opening.buttonLabel', 'Texto del botón de apertura', { placeholder: 'Abrir invitación' }),
+    field('content.welcome.opening.footer', 'Texto inferior / footer', { placeholder: 'Opcional' }),
+    field('content.welcome.opening.showStamp', 'Mostrar sello', { kind: 'toggle', wide: true }),
+    field('content.welcome.opening.showKicker', 'Mostrar kicker', { kind: 'toggle', wide: true }),
+    field('content.welcome.opening.showSecondary', 'Mostrar texto secundario', { kind: 'toggle', wide: true }),
+    field('content.welcome.opening.showFooter', 'Mostrar footer', { kind: 'toggle', wide: true })
+]);
+
 export const SECTION_EDITOR_REGISTRY = Object.freeze({
     'welcome-story': editor({
         title: 'Bienvenida e historia',

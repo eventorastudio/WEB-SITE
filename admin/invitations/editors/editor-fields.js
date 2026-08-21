@@ -1,7 +1,7 @@
 import {
     INVITATION_EDITABLE_FIELDS,
     getDraftValue
-} from '../core/content-schema.js?v=phase54a-rsvp-time-20260817';
+} from '../core/content-schema.js?v=phase94-opening-cover-20260821';
 import { isSectionAllowed } from '../core/section-registry.js?v=phase3-logistics-20260813';
 import {
     getDetectedIanaTimeZone,

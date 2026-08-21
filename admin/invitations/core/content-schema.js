@@ -20,6 +20,20 @@ const FIELD_DEFINITIONS = [
     ['content.welcome.title', 'text', 140],
     ['content.welcome.message', 'text', 400],
     ['content.welcome.story', 'text', 1600],
+    ['content.welcome.opening.label', 'text', 80],
+    ['content.welcome.opening.kicker', 'text', 140],
+    ['content.welcome.opening.title', 'text', 140],
+    ['content.welcome.opening.name', 'text', 180],
+    ['content.welcome.opening.date', 'date', 10],
+    ['content.welcome.opening.stampLine1', 'text', 40],
+    ['content.welcome.opening.stampLine2', 'text', 40],
+    ['content.welcome.opening.secondary', 'text', 240],
+    ['content.welcome.opening.buttonLabel', 'text', 100],
+    ['content.welcome.opening.footer', 'text', 160],
+    ['content.welcome.opening.showStamp', 'boolean', 0],
+    ['content.welcome.opening.showKicker', 'boolean', 0],
+    ['content.welcome.opening.showSecondary', 'boolean', 0],
+    ['content.welcome.opening.showFooter', 'boolean', 0],
     ['content.countdown.title', 'text', 120],
     ['content.countdown.preMessage', 'text', 240],
     ['content.countdown.arrivedMessage', 'text', 240],
@@ -103,7 +117,16 @@ export function createInvitationContent(eventData = {}) {
             city: text(eventData.ciudad),
             state: text(eventData.estado)
         },
-        welcome: { eyebrow: '', title: '', message: '', story: '' },
+        welcome: {
+            eyebrow: '', title: '', message: '', story: '',
+            opening: {
+                label: '', kicker: '', title: 'ALOHA', name: '', date: '',
+                stampLine1: text(eventData.tipoEvento),
+                stampLine2: normalizeInvitationDate(eventData.fecha).slice(0, 4),
+                secondary: '', buttonLabel: 'Abrir invitación', footer: '',
+                showStamp: true, showKicker: true, showSecondary: true, showFooter: true
+            }
+        },
         countdown: { title: '', preMessage: '', arrivedMessage: '' },
         location: { title: '', intro: '' },
         dressCode: { title: '', name: '', description: '', note: '', recommendedColors: [], avoidedColors: [] },

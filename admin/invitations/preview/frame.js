@@ -1,5 +1,5 @@
 import { PREVIEW_MESSAGE_TYPES } from '../core/builder-events.js?v=phase3-logistics-20260813';
-import { INVITATION_CONTENT_SCHEMA_VERSION, PREVIEW_SEMANTIC_FALLBACKS } from '../core/content-schema.js?v=phase54a-rsvp-time-20260817';
+import { INVITATION_CONTENT_SCHEMA_VERSION, PREVIEW_SEMANTIC_FALLBACKS } from '../core/content-schema.js?v=phase94-opening-cover-20260821';
 import { applyPreviewSectionVisibility } from '../core/preview-sections.js?v=phase3-logistics-20260813';
 import {
     applyTemplateContentBindings,
@@ -218,7 +218,10 @@ function applyPayload(payload) {
     applySectionVisibility(payload.sections, payload.enabledSections, payload.sectionGroups);
     // Aloha sanitization is deliberately last so section visibility cannot
     // re-expose demo content when a section is enabled without real data.
-    if (payload.theme.id === 'aloha') sanitizeAlohaRealContent(payload);
+    if (payload.theme.id === 'aloha') {
+        sanitizeAlohaRealContent(payload);
+        syncOpeningData(payload);
+    }
     if (payload.theme.id === 'aloha') setupAlohaInteractions(payload);
     renderAccessPass(payload);
     if (publicRuntime && payload.personalization) {
@@ -447,12 +450,70 @@ function setupAlohaVideo() {
 function syncOpeningData(payload) {
     const opening = document.getElementById('opening');
     if (!opening) return;
-    const displayName = payload.personalization?.displayName
-        || [payload.draft?.content?.identity?.primaryName, payload.draft?.content?.identity?.secondaryName].filter(Boolean).join(' & ')
-        || 'Invitado especial';
+    const identity = payload.draft?.content?.identity ?? {};
+    const schedule = payload.draft?.content?.schedule ?? {};
+    const config = payload.draft?.content?.welcome?.opening ?? {};
+    const canonicalName = [identity.primaryName, identity.secondaryName].filter(Boolean).join(' & ');
+    const displayName = payload.personalization?.displayName || canonicalName || 'Invitado especial';
     opening.querySelectorAll('[data-opening-guest]').forEach((element) => { element.textContent = displayName; });
-    const date = payload.draft?.content?.schedule?.date;
-    if (date) opening.querySelector('.opening-date')?.replaceChildren(document.createTextNode(formatOpeningDate(date)));
+    if (payload.theme?.id !== 'aloha') {
+        const date = schedule.date;
+        if (date) opening.querySelector('.opening-date')?.replaceChildren(document.createTextNode(formatOpeningDate(date)));
+        return;
+    }
+    const title = opening.querySelector('#opening-title');
+    const openingTitle = config.title || 'ALOHA';
+    const openingName = config.name || canonicalName;
+    if (title) {
+        title.replaceChildren(document.createTextNode(openingTitle));
+        if (openingName) {
+            title.append(document.createElement('br'));
+            const name = document.createElement('span');
+            name.textContent = openingName;
+            title.append(name);
+        }
+    }
+    const label = opening.querySelector('.prestige-badge');
+    if (label) {
+        label.textContent = config.label || '';
+        label.hidden = !config.label;
+    }
+    const kicker = opening.querySelector('.opening-kicker');
+    if (kicker) {
+        kicker.textContent = config.kicker || '';
+        kicker.hidden = config.showKicker === false || !config.kicker;
+    }
+    const visibleDate = config.date || schedule.date;
+    const dateElement = opening.querySelector('.opening-date');
+    if (dateElement) {
+        dateElement.textContent = visibleDate ? formatOpeningDate(visibleDate) : '';
+        dateElement.hidden = !visibleDate;
+    }
+    const stamp = opening.querySelector('.postcard-stamp');
+    const stampLine1 = config.stampLine1 || identity.eventType || '';
+    const stampLine2 = config.stampLine2 || String(visibleDate || '').match(/^(\d{4})/)?.[1] || '';
+    if (stamp) {
+        stamp.replaceChildren();
+        if (stampLine1) stamp.append(document.createTextNode(stampLine1));
+        if (stampLine1 && stampLine2) stamp.append(document.createElement('br'));
+        if (stampLine2) stamp.append(document.createTextNode(stampLine2));
+        stamp.hidden = config.showStamp === false || !(stampLine1 || stampLine2);
+    }
+    let secondary = opening.querySelector('.opening-secondary');
+    if (!secondary) {
+        secondary = document.createElement('p');
+        secondary.className = 'opening-guest opening-secondary';
+        opening.querySelector('[data-opening-guest]')?.before(secondary);
+    }
+    secondary.textContent = config.secondary || '';
+    secondary.hidden = config.showSecondary === false || !config.secondary;
+    const button = opening.querySelector('#open-invitation');
+    if (button) button.textContent = config.buttonLabel || 'Abrir invitación';
+    const footer = opening.querySelector('.resort-card > small');
+    if (footer) {
+        footer.textContent = config.footer || '';
+        footer.hidden = config.showFooter === false || !config.footer;
+    }
 }
 
 function sanitizeAlohaRealContent(payload) {
@@ -473,8 +534,6 @@ function sanitizeAlohaRealContent(payload) {
         || Boolean(content.dressCode?.recommendedColors?.length || content.dressCode?.avoidedColors?.length);
 
     if (!hasIdentity) {
-        const title = document.querySelector('#opening-title');
-        title?.querySelector('span')?.replaceChildren();
         const heroIdentity = document.querySelector('.hero-copy h2');
         if (heroIdentity) {
             const brand = heroIdentity.querySelector('span');
@@ -484,12 +543,7 @@ function sanitizeAlohaRealContent(payload) {
         document.querySelector('.social-strip strong')?.replaceChildren();
     }
     if (!hasDate) {
-        document.querySelector('#opening .opening-date')?.setAttribute('hidden', 'true');
         document.querySelector('.hero-copy .hero-date')?.setAttribute('hidden', 'true');
-    }
-    if (hasIdentity) {
-        const openingName = [content.identity?.primaryName, content.identity?.secondaryName].filter(Boolean).join(' & ');
-        document.querySelector('#opening-title span')?.replaceChildren(document.createTextNode(openingName));
     }
     if (!hasCover) document.querySelector('.hero > img.demo-photo')?.setAttribute('hidden', 'true');
     if (!hasLogistics) document.querySelector('[data-prestige-feature~="multiple-locations"]')?.setAttribute('hidden', 'true');
