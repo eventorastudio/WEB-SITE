@@ -53,15 +53,18 @@ function renderAlohaLocationCards(documentRoot, content, locations, accommodatio
     }
 
     if (accommodations.length) {
-        content.append(node(documentRoot, 'h3', 'aloha-location-subtitle', 'Hospedaje sugerido'));
-        const stays = node(documentRoot, 'div', 'location-stops aloha-location-grid aloha-accommodations');
+        const feature = node(documentRoot, 'div', 'aloha-accommodation-feature');
+        feature.append(node(documentRoot, 'p', 'aloha-accommodation-eyebrow', 'STAY / ALOHA'));
+        feature.append(node(documentRoot, 'h3', 'aloha-location-subtitle', 'Hospedaje sugerido'));
+        feature.append(node(documentRoot, 'p', 'aloha-accommodation-intro', 'Una recomendación especial para disfrutar la celebración con mayor comodidad.'));
+        const stays = node(documentRoot, 'div', `location-stops aloha-location-grid aloha-accommodations${accommodations.length === 1 ? ' aloha-accommodations-single' : ''}`);
         accommodations.forEach((hotel) => {
             const card = node(documentRoot, 'article', 'aloha-location-card aloha-accommodation-card');
             card.append(node(documentRoot, 'p', 'aloha-location-type', 'Hospedaje'));
             card.append(node(documentRoot, 'h3', '', hotel.name || 'Hospedaje'));
             const details = node(documentRoot, 'div', 'aloha-stay-details');
-            if (hotel.address) details.append(node(documentRoot, 'p', 'aloha-stay-address', hotel.address));
             if (hotel.phone) details.append(node(documentRoot, 'p', 'aloha-stay-phone', hotel.phone));
+            if (hotel.address) details.append(node(documentRoot, 'p', 'aloha-stay-address', hotel.address));
             if (hotel.description) details.append(node(documentRoot, 'p', 'aloha-stay-description', hotel.description));
             if (hotel.notes) details.append(node(documentRoot, 'p', 'aloha-stay-notes', hotel.notes));
             if (hotel.reservationCode) details.append(node(documentRoot, 'p', 'aloha-stay-code', `C\u00f3digo: ${hotel.reservationCode}`));
@@ -72,7 +75,8 @@ function renderAlohaLocationCards(documentRoot, content, locations, accommodatio
             if (actions.children.length) card.append(actions);
             stays.append(card);
         });
-        content.append(stays);
+        feature.append(stays);
+        content.append(feature);
     }
 
     const linkActions = node(documentRoot, 'div', 'action-row aloha-logistics-links');
