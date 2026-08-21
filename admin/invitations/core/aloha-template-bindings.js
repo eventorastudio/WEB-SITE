@@ -20,6 +20,70 @@ function action(documentRoot, label, url, type, field = 'url') {
     return element;
 }
 
+function renderAlohaLocationCards(documentRoot, content, locations, accommodations, links, draft, visual, copy) {
+    const typeLabels = {
+        ceremony: 'Ceremonia',
+        reception: 'Recepci\u00f3n',
+        party: 'Fiesta',
+        session: 'After party',
+        accommodation: 'Hospedaje',
+        other: 'Otro'
+    };
+    content.replaceChildren();
+    content.append(node(documentRoot, 'p', 'section-no', '03 \u00b7 DESTINO'));
+    content.append(node(documentRoot, 'h2', '', copy.title || 'Lugares del evento'));
+    if (copy.intro) content.append(node(documentRoot, 'p', '', copy.intro));
+
+    if (locations.length) {
+        const stops = node(documentRoot, 'div', 'location-stops aloha-location-grid');
+        locations.forEach((location) => {
+            const card = node(documentRoot, 'article', 'aloha-location-card');
+            card.append(node(documentRoot, 'p', 'aloha-location-type', typeLabels[location.type] || 'Otro'));
+            card.append(node(documentRoot, 'h3', '', location.title || 'Ubicaci\u00f3n'));
+            if (location.venueName) card.append(node(documentRoot, 'p', 'aloha-location-venue', location.venueName));
+            const details = [location.time, location.address, [location.city, location.state].filter(Boolean).join(', ')].filter(Boolean);
+            if (details.length) card.append(node(documentRoot, 'p', 'aloha-location-details', details.join(' \u00b7 ')));
+            const actions = node(documentRoot, 'div', 'aloha-location-actions');
+            if (location.mapsUrl) actions.append(action(documentRoot, 'Abrir en Maps', location.mapsUrl, 'maps', 'mapsUrl'));
+            if (location.wazeUrl) actions.append(action(documentRoot, 'Abrir en Waze', location.wazeUrl, 'waze', 'wazeUrl'));
+            if (actions.children.length) card.append(actions);
+            stops.append(card);
+        });
+        content.append(stops);
+    }
+
+    if (accommodations.length) {
+        content.append(node(documentRoot, 'h3', 'aloha-location-subtitle', 'Hospedaje sugerido'));
+        const stays = node(documentRoot, 'div', 'location-stops aloha-location-grid aloha-accommodations');
+        accommodations.forEach((hotel) => {
+            const card = node(documentRoot, 'article', 'aloha-location-card aloha-accommodation-card');
+            card.append(node(documentRoot, 'p', 'aloha-location-type', 'Hospedaje'));
+            card.append(node(documentRoot, 'h3', '', hotel.name || 'Hospedaje'));
+            const details = [hotel.address, hotel.phone, hotel.reservationCode && `C\u00f3digo: ${hotel.reservationCode}`, hotel.description, hotel.notes].filter(Boolean);
+            if (details.length) card.append(node(documentRoot, 'p', 'aloha-location-details', details.join(' \u00b7 ')));
+            const actions = node(documentRoot, 'div', 'aloha-location-actions');
+            if (hotel.reservationUrl) actions.append(action(documentRoot, 'Reservar', hotel.reservationUrl, 'hotel', 'reservationUrl'));
+            if (hotel.mapsUrl) actions.append(action(documentRoot, 'Abrir en Maps', hotel.mapsUrl, 'maps', 'mapsUrl'));
+            if (actions.children.length) card.append(actions);
+            stays.append(card);
+        });
+        content.append(stays);
+    }
+
+    const linkActions = node(documentRoot, 'div', 'action-row aloha-logistics-links');
+    links.filter((link) => link.type !== 'instagram').forEach((link) => {
+        const location = locations[0];
+        const url = link.type === 'calendar'
+            ? (link.url || buildGoogleCalendarUrl(draft, location))
+            : link.type === 'whatsapp' ? buildWhatsAppUrl(link) : link.url;
+        const result = safeUrlForField(url, 'url', link.type);
+        if (!result.ok || !result.value) return;
+        linkActions.append(action(documentRoot, link.label || ({ calendar: 'Guardar fecha', whatsapp: 'WhatsApp' })[link.type] || 'Abrir enlace', result.value, link.type));
+    });
+    if (linkActions.children.length) content.append(linkActions);
+    visual?.removeAttribute('hidden');
+}
+
 function renderLocations(documentRoot, draft) {
     const root = documentRoot.querySelector('[data-prestige-feature~="multiple-locations"]');
     if (!root) return;
@@ -31,6 +95,9 @@ function renderLocations(documentRoot, draft) {
     const content = root.querySelector('.location-copy');
     if (!content) return;
     const visual = root.querySelector('.location-visual');
+    renderAlohaLocationCards(documentRoot, content, locations, accommodations, links, draft, visual, copy);
+    return;
+    /* Legacy markup retained below only as a compatibility reference.
     content.replaceChildren();
     content.append(node(documentRoot, 'p', 'section-no', '03 · DESTINO'));
     content.append(node(documentRoot, 'h2', '', copy.title || 'Lugares del evento'));
@@ -78,7 +145,7 @@ function renderLocations(documentRoot, draft) {
         linkActions.append(action(documentRoot, link.label || ({ calendar: 'Guardar fecha', whatsapp: 'WhatsApp' })[link.type] || 'Abrir enlace', result.value, link.type));
     });
     if (linkActions.children.length) content.append(linkActions);
-    visual?.removeAttribute('hidden');
+    visual?.removeAttribute('hidden'); */
 }
 
 function renderItinerary(documentRoot, draft) {
