@@ -34,6 +34,21 @@ export function initDressCodeEditor({ container, state }) {
         header.append(copy);
         section.append(header);
 
+        const mediaHint = document.createElement('aside');
+        mediaHint.className = 'dress-reference-media-hint';
+        const mediaHintCopy = document.createElement('div');
+        const mediaHintTitle = document.createElement('strong');
+        mediaHintTitle.textContent = 'Imagen de referencia de vestimenta';
+        const mediaHintText = document.createElement('p');
+        mediaHintText.textContent = 'Añade un look o inspiración visual opcional para la composición Aloha.';
+        mediaHintCopy.append(mediaHintTitle, mediaHintText);
+        const mediaHintButton = document.createElement('button');
+        mediaHintButton.type = 'button';
+        mediaHintButton.textContent = 'Gestionar imagen';
+        mediaHintButton.dataset.dressReferenceAction = 'open-media';
+        mediaHint.append(mediaHintCopy, mediaHintButton);
+        section.append(mediaHint);
+
         DRESS_COLOR_GROUPS.forEach((group) => {
             const block = document.createElement('div');
             block.className = 'dress-color-group';
@@ -97,6 +112,13 @@ export function initDressCodeEditor({ container, state }) {
     };
 
     const handleClick = (event) => {
+        const referenceAction = event.target.closest?.('[data-dress-reference-action]');
+        if (referenceAction?.dataset.dressReferenceAction === 'open-media') {
+            const target = document.querySelector('[data-media-role="dressCode"]');
+            target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            target?.querySelector('input[type="file"]')?.focus({ preventScroll: true });
+            return;
+        }
         const control = event.target.closest?.('[data-color-action]');
         if (!control || !container.contains(control)) return;
         const group = control.closest('[data-color-group]')?.dataset.colorGroup;

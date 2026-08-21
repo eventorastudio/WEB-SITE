@@ -32,6 +32,16 @@ export const MEDIA_ROLE_REGISTRY = Object.freeze({
         maxLongEdge: 1920,
         technicalMaxItems: 20
     }),
+    dressCode: Object.freeze({
+        role: 'dressCode',
+        label: 'Imagen de referencia de vestimenta',
+        kind: 'image',
+        multiple: false,
+        requiredCapability: 'dress-code',
+        sectionId: 'dress-code',
+        maxBytes: 20 * 1024 * 1024,
+        maxLongEdge: 1920
+    }),
     video: Object.freeze({
         role: 'video',
         label: 'Video de bienvenida',
@@ -86,6 +96,7 @@ export function createEmptyInvitationMedia() {
         schemaVersion: MEDIA_SCHEMA_VERSION,
         cover: null,
         gallery: [],
+        dressCode: null,
         video: null,
         videoPoster: null,
         music: null
@@ -143,6 +154,7 @@ export function getAllMediaAssets(media = {}) {
     return [
         media.cover,
         ...(Array.isArray(media.gallery) ? media.gallery : []),
+        media.dressCode,
         media.video,
         media.videoPoster,
         media.music

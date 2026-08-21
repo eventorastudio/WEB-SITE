@@ -1,5 +1,5 @@
-import { getMediaAssetSource, isMediaRoleTouched } from './media-schema.js?v=phase4-media-20260813';
-import { applyAlohaGalleryBinding } from './aloha-template-bindings.js?v=phase86-aloha-a2-20260820';
+import { getMediaAssetSource, isMediaRoleTouched } from './media-schema.js?v=phase89-dress-code-media-20260820';
+import { applyAlohaGalleryBinding } from './aloha-template-bindings.js?v=phase89-dress-code-media-20260820';
 
 function safeQuery(root, selector) {
     if (!root || !selector) return null;

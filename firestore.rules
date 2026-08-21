@@ -374,19 +374,21 @@ service cloud.firestore {
 
     function validInvitationPublicMedia(media) {
       return media is map
-        && media.keys().size() == 7
-        && media.keys().hasOnly([
-          'schemaVersion', 'touchedRoles', 'cover', 'gallery',
-          'video', 'videoPoster', 'music'
-        ])
+        && (
+          (media.keys().size() == 7
+            && media.keys().hasOnly(['schemaVersion', 'touchedRoles', 'cover', 'gallery', 'video', 'videoPoster', 'music']))
+          || (media.keys().size() == 8
+            && media.keys().hasOnly(['schemaVersion', 'touchedRoles', 'cover', 'gallery', 'dressCode', 'video', 'videoPoster', 'music']))
+        )
         && media.schemaVersion == 1
         && media.touchedRoles is list
-        && media.touchedRoles.size() <= 5
+        && media.touchedRoles.size() <= 6
         && media.touchedRoles.toSet().size() == media.touchedRoles.size()
-        && media.touchedRoles.toSet().hasOnly(['cover', 'gallery', 'video', 'videoPoster', 'music'])
+        && media.touchedRoles.toSet().hasOnly(['cover', 'gallery', 'dressCode', 'video', 'videoPoster', 'music'])
         && (media.cover == null || media.cover is map)
         && media.gallery is list
         && media.gallery.size() <= 20
+        && (!('dressCode' in media) || media.dressCode == null || media.dressCode is map)
         && (media.video == null || media.video is map)
         && (media.videoPoster == null || media.videoPoster is map)
         && (media.music == null || media.music is map);
@@ -456,7 +458,12 @@ service cloud.firestore {
     }
 
     function singularIdsAreDistinct(index) {
-      return (index.coverId == null || index.videoId == null || index.coverId != index.videoId)
+      return (!('dressCodeId' in index) || index.dressCodeId == null || index.coverId == null || index.dressCodeId != index.coverId)
+        && (!('dressCodeId' in index) || index.dressCodeId == null || index.videoId == null || index.dressCodeId != index.videoId)
+        && (!('dressCodeId' in index) || index.dressCodeId == null || index.posterId == null || index.dressCodeId != index.posterId)
+        && (!('dressCodeId' in index) || index.dressCodeId == null || index.audioId == null || index.dressCodeId != index.audioId)
+        && (!('dressCodeId' in index) || index.dressCodeId == null || !(index.dressCodeId in index.galleryIds))
+        && (index.coverId == null || index.videoId == null || index.coverId != index.videoId)
         && (index.coverId == null || index.posterId == null || index.coverId != index.posterId)
         && (index.coverId == null || index.audioId == null || index.coverId != index.audioId)
         && (index.videoId == null || index.posterId == null || index.videoId != index.posterId)
@@ -470,10 +477,15 @@ service cloud.firestore {
 
     function validMediaIndex(index) {
       return index is map
-        && index.keys().size() == 6
-        && index.keys().hasOnly(['schemaVersion', 'coverId', 'galleryIds', 'videoId', 'posterId', 'audioId'])
+        && (
+          (index.keys().size() == 6
+            && index.keys().hasOnly(['schemaVersion', 'coverId', 'galleryIds', 'videoId', 'posterId', 'audioId']))
+          || (index.keys().size() == 7
+            && index.keys().hasOnly(['schemaVersion', 'coverId', 'galleryIds', 'dressCodeId', 'videoId', 'posterId', 'audioId']))
+        )
         && index.schemaVersion == 1
         && validOptionalMediaId(index.coverId)
+        && (!('dressCodeId' in index) || validOptionalMediaId(index.dressCodeId))
         && validOptionalMediaId(index.videoId)
         && validOptionalMediaId(index.posterId)
         && validOptionalMediaId(index.audioId)
@@ -829,7 +841,7 @@ service cloud.firestore {
         ])
         && validMediaId(mediaId)
         && data.id == mediaId
-        && data.role in ['cover', 'gallery', 'video', 'videoPoster', 'music']
+        && data.role in ['cover', 'gallery', 'dressCode', 'video', 'videoPoster', 'music']
         && data.originalName is string && data.originalName.size() <= 180
         && data.size > 0
         && data.width >= 0
@@ -851,7 +863,7 @@ service cloud.firestore {
     }
 
     function validMediaDocumentType(data) {
-      return ((data.role == 'cover' || data.role == 'gallery' || data.role == 'videoPoster')
+      return ((data.role == 'cover' || data.role == 'gallery' || data.role == 'dressCode' || data.role == 'videoPoster')
           && data.kind == 'image'
           && data.size <= 20 * 1024 * 1024
           && data.width > 0

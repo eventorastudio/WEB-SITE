@@ -6,7 +6,7 @@ import {
     getDraftValue,
     setDraftValue
 } from './content-schema.js?v=phase61-draft-persistence-20260817';
-import { validateInvitationDraft } from './builder-validation.js?v=phase61-draft-persistence-20260817';
+import { validateInvitationDraft } from './builder-validation.js?v=phase89-dress-code-media-20260820';
 import { getPackageById, getSectionById } from './section-registry.js?v=phase3-logistics-20260813';
 import { getThemeById } from './theme-registry.js?v=phase3-logistics-20260813';
 import { normalizeAppearance } from './appearance-schema.js?v=phase86-appearance-20260820';

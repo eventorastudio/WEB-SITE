@@ -1,4 +1,4 @@
-import { validateInvitationDraft } from '../core/builder-validation.js?v=phase86-review-20260820';
+import { validateInvitationDraft } from '../core/builder-validation.js?v=phase89-dress-code-media-20260820';
 import { getThemeById } from '../core/theme-registry.js?v=phase86-appearance-20260820';
 import { getSectionById } from '../core/section-registry.js?v=phase86-review-20260820';
 import { isRsvpEnabled } from '../core/rsvp-schema.js?v=phase54a-rsvp-time-20260817';

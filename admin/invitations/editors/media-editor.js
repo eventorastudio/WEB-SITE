@@ -1,11 +1,12 @@
-import { getAllMediaAssets, getMediaAssetSource, getMediaRoleAvailability } from '../core/media-schema.js?v=phase4-media-persistence-20260814';
+import { getAllMediaAssets, getMediaAssetSource, getMediaRoleAvailability } from '../core/media-schema.js?v=phase89-dress-code-media-20260820';
 import { MediaObjectUrlRegistry } from '../core/media-runtime.js?v=phase4-media-20260813';
 import { friendlyMediaError, inspectAndProcessMediaFile } from '../core/media-processor.js?v=phase4-media-20260813';
-import { invitationMediaService } from '../services/invitation-media-service.js?v=phase48-upload-enabled-20260816';
+import { invitationMediaService } from '../services/invitation-media-service.js?v=phase89-dress-code-media-20260820';
 
 const ROLE_COPY = Object.freeze({
     cover: Object.freeze({ title: 'Portada / hero', copy: 'JPEG, PNG o WebP. Se optimiza localmente y conserva un punto focal por invitación.', accept: 'image/jpeg,image/png,image/webp' }),
     gallery: Object.freeze({ title: 'Galería', copy: 'Selección múltiple, orden estable, alt y caption. Límite técnico: 20 imágenes.', accept: 'image/jpeg,image/png,image/webp' }),
+    dressCode: Object.freeze({ title: 'Imagen de referencia de vestimenta', copy: 'Outfit o inspiración visual opcional para la sección Dress Code de Aloha.', accept: 'image/jpeg,image/png,image/webp' }),
     video: Object.freeze({ title: 'Video de bienvenida', copy: 'MP4 o WebM, hasta 80 MiB y 5 minutos. Nunca inicia automáticamente.', accept: 'video/mp4,video/webm' }),
     videoPoster: Object.freeze({ title: 'Poster del video', copy: 'Imagen opcional para presentar el video antes de reproducirlo.', accept: 'image/jpeg,image/png,image/webp' }),
     music: Object.freeze({ title: 'Música', copy: 'MP3, M4A/AAC u OGG, hasta 20 MiB y 15 minutos. Reproducción manual.', accept: 'audio/mpeg,audio/mp4,audio/aac,audio/ogg' })
@@ -44,7 +45,7 @@ function withoutAsset(media, assetId) {
     const next = structuredClone(media);
     next.gallery = (next.gallery ?? []).filter(({ id }) => id !== assetId)
         .map((asset, sortOrder) => ({ ...asset, sortOrder }));
-    for (const role of ['cover', 'video', 'videoPoster', 'music']) {
+    for (const role of ['cover', 'dressCode', 'video', 'videoPoster', 'music']) {
         if (next[role]?.id === assetId) next[role] = null;
     }
     return next;
@@ -376,7 +377,7 @@ export function initMediaEditor({ container, state, mediaService = invitationMed
             notice.append(controls);
         }
         fragment.append(notice);
-        ['cover', 'gallery', 'video', 'videoPoster', 'music'].forEach((role) => {
+        ['cover', 'gallery', ...(snapshot.draft.themeId === 'aloha' ? ['dressCode'] : []), 'video', 'videoPoster', 'music'].forEach((role) => {
             fragment.append(createRoleSection(role, snapshot, activity, { storageStatus, registry, savingIds }));
         });
         container.replaceChildren(fragment);

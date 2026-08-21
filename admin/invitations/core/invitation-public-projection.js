@@ -45,8 +45,9 @@ const SNAPSHOT_FIELDS = Object.freeze([
     'appearance',
     'settings'
 ]);
-const MEDIA_ROLES = Object.freeze(['cover', 'gallery', 'video', 'videoPoster', 'music']);
+const MEDIA_ROLES = Object.freeze(['cover', 'gallery', 'dressCode', 'video', 'videoPoster', 'music']);
 const MEDIA_FIELDS = Object.freeze(['schemaVersion', 'touchedRoles', ...MEDIA_ROLES]);
+const LEGACY_MEDIA_FIELDS = Object.freeze(['schemaVersion', 'touchedRoles', 'cover', 'gallery', 'video', 'videoPoster', 'music']);
 const MEDIA_ASSET_FIELDS = Object.freeze([
     'id',
     'role',
@@ -61,6 +62,7 @@ const MEDIA_ASSET_FIELDS = Object.freeze([
 const ROLE_KIND = Object.freeze({
     cover: 'image',
     gallery: 'image',
+    dressCode: 'image',
     video: 'video',
     videoPoster: 'image',
     music: 'audio'
@@ -148,6 +150,7 @@ function sanitizePublicMedia(media = {}, touchedRoles = []) {
             .slice(0, 20)
             .map((asset, sortOrder) => sanitizeMediaAsset(asset, 'gallery', sortOrder))
             .filter(Boolean),
+        dressCode: sanitizeMediaAsset(media.dressCode, 'dressCode'),
         video: sanitizeMediaAsset(media.video, 'video'),
         videoPoster: sanitizeMediaAsset(media.videoPoster, 'videoPoster'),
         music: sanitizeMediaAsset(media.music, 'music')
@@ -155,7 +158,7 @@ function sanitizePublicMedia(media = {}, touchedRoles = []) {
 }
 
 function deserializePublicMedia(media) {
-    if (!exactKeys(media, MEDIA_FIELDS) || media.schemaVersion !== 1) {
+    if ((!exactKeys(media, MEDIA_FIELDS) && !exactKeys(media, LEGACY_MEDIA_FIELDS)) || media.schemaVersion !== 1) {
         fail('publication/invalid-public-media-shape');
     }
     if (!Array.isArray(media.touchedRoles)
@@ -172,6 +175,7 @@ function deserializePublicMedia(media) {
         touchedRoles: [...media.touchedRoles],
         cover: assertCanonicalMediaAsset(media.cover, 'cover'),
         gallery: media.gallery.map((asset, sortOrder) => assertCanonicalMediaAsset(asset, 'gallery', sortOrder)),
+        dressCode: assertCanonicalMediaAsset(media.dressCode, 'dressCode'),
         video: assertCanonicalMediaAsset(media.video, 'video'),
         videoPoster: assertCanonicalMediaAsset(media.videoPoster, 'videoPoster'),
         music: assertCanonicalMediaAsset(media.music, 'music')

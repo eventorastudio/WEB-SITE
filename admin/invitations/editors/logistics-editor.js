@@ -1,6 +1,6 @@
 import { getSectionEditor } from '../core/section-editor-registry.js?v=phase54a-rsvp-time-20260817';
 import { initAccommodationEditor } from './accommodation-editor.js?v=phase3-logistics-20260813';
-import { initDressCodeEditor } from './dress-code-editor.js?v=phase3-logistics-20260813';
+import { initDressCodeEditor } from './dress-code-editor.js?v=phase89-dress-code-media-20260820';
 import { initGiftEditor } from './gift-editor.js?v=phase3-logistics-20260813';
 import { initItineraryEditor } from './itinerary-editor.js?v=phase3-logistics-20260813';
 import { initLinksEditor } from './links-editor.js?v=phase3-logistics-20260813';

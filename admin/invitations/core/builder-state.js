@@ -9,7 +9,7 @@ import {
     getDraftValue,
     setDraftValue
 } from './content-schema.js?v=phase54a-rsvp-time-20260817';
-import { validateInvitationDraft } from './builder-validation.js?v=phase54a-rsvp-time-20260817';
+import { validateInvitationDraft } from './builder-validation.js?v=phase89-dress-code-media-20260820';
 import {
     DRESS_COLOR_GROUPS,
     ENTITY_COLLECTIONS,
@@ -28,7 +28,7 @@ import {
     createMediaAsset,
     getMediaRole,
     getMediaRoleAvailability
-} from './media-schema.js?v=phase4-media-20260813';
+} from './media-schema.js?v=phase89-dress-code-media-20260820';
 import {
     RSVP_EDITABLE_FIELD_DEFINITIONS,
     RSVP_GUEST_POLICY_PATH,
@@ -548,6 +548,7 @@ export class InvitationBuilderState {
             schemaVersion: media?.schemaVersion ?? createEmptyInvitationMedia().schemaVersion,
             cover: normalize(media?.cover, 'cover'),
             gallery: (Array.isArray(media?.gallery) ? media.gallery : []).map((asset, sortOrder) => normalize(asset, 'gallery', sortOrder)),
+            dressCode: normalize(media?.dressCode, 'dressCode'),
             video: normalize(media?.video, 'video'),
             videoPoster: normalize(media?.videoPoster, 'videoPoster'),
             music: normalize(media?.music, 'music')
@@ -555,14 +556,15 @@ export class InvitationBuilderState {
         const ids = [
             this._draft.media.cover,
             ...this._draft.media.gallery,
+            this._draft.media.dressCode,
             this._draft.media.video,
             this._draft.media.videoPoster,
             this._draft.media.music
         ].filter(Boolean).map(({ id }) => Number.parseInt(String(id).replace(/^MED-LOCAL-/, ''), 10)).filter(Number.isFinite);
         this._draft.meta.entitySequences.media = Math.max(this._draft.meta.entitySequences.media, ...ids, 0);
         this._draft.meta.touchedMediaRoles = persisted
-            ? ['cover', 'gallery', 'video', 'videoPoster', 'music']
-            : ['cover', 'gallery', 'video', 'videoPoster', 'music']
+            ? ['cover', 'gallery', 'dressCode', 'video', 'videoPoster', 'music']
+            : ['cover', 'gallery', 'dressCode', 'video', 'videoPoster', 'music']
                 .filter((role) => role === 'gallery' ? this._draft.media.gallery.length : this._draft.media[role]);
         this._ui.mediaDirty = false;
         this._syncDirtyState();
@@ -688,7 +690,7 @@ export class InvitationBuilderState {
                 remove: () => { media.gallery.splice(galleryIndex, 1); }
             };
         }
-        for (const role of ['cover', 'video', 'videoPoster', 'music']) {
+        for (const role of ['cover', 'dressCode', 'video', 'videoPoster', 'music']) {
             if (media[role]?.id !== id) continue;
             const asset = media[role];
             return {

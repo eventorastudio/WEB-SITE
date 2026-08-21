@@ -189,18 +189,41 @@ function renderDressCode(documentRoot, draft) {
     );
     if (content.description) copy.append(node(documentRoot, 'p', '', content.description));
     if (content.note) copy.append(node(documentRoot, 'p', '', content.note));
-    const colors = [...(content.recommendedColors ?? []), ...(content.avoidedColors ?? [])];
-    if (colors.length) {
+    const appendPalette = (label, colors, variant) => {
+        const items = (Array.isArray(colors) ? colors : []).slice(0, 8);
+        if (!items.length) return;
+        const group = node(documentRoot, 'div', `dress-palette-group dress-palette-${variant}`);
+        group.append(node(documentRoot, 'p', 'dress-palette-label', label));
         const swatches = node(documentRoot, 'div', 'swatches');
-        colors.slice(0, 8).forEach((color) => {
+        items.forEach((color) => {
             const swatch = node(documentRoot, 'i');
             swatch.style.background = color.value;
             swatch.title = color.name || color.value;
+            swatch.setAttribute('aria-label', color.name || color.value);
             swatches.append(swatch);
         });
-        copy.append(swatches);
+        group.append(swatches);
+        copy.append(group);
+    };
+    appendPalette('Colores recomendados', content.recommendedColors, 'recommended');
+    appendPalette('Colores a evitar', content.avoidedColors, 'avoided');
+
+    const figure = root.querySelector('figure');
+    const image = figure?.querySelector('img');
+    const dressCodeAsset = draft.media?.dressCode;
+    const imageSource = source(dressCodeAsset);
+    root.dataset.dressCodeImage = imageSource ? 'configured' : 'empty';
+    if (figure && image) {
+        if (imageSource) {
+            image.src = imageSource;
+            image.alt = clean(dressCodeAsset.alt || 'Inspiración de vestimenta');
+            image.style.objectPosition = `${dressCodeAsset.focalPoint?.x ?? 50}% ${dressCodeAsset.focalPoint?.y ?? 50}%`;
+            figure.hidden = false;
+        } else {
+            figure.hidden = true;
+            image.removeAttribute('src');
+        }
     }
-    root.querySelector('figure')?.setAttribute('hidden', 'true');
 }
 
 function renderGifts(documentRoot, draft) {

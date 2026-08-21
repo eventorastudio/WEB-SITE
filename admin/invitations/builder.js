@@ -6,7 +6,7 @@ import { eventBus } from '../core/event-bus.js';
 import { EVENT_TYPES } from '../core/event-types.js';
 import { hasPermission, PERMISSIONS } from '../core/roles.js';
 import { initThemeManager } from '../core/theme-manager.js';
-import { builderState } from './core/builder-state.js?v=phase61-draft-persistence-20260817';
+import { builderState } from './core/builder-state.js?v=phase89-dress-code-media-20260820';
 import { createBuilderUrl, readBuilderRoute } from './core/builder-routing.js?v=phase3-logistics-20260813';
 import {
     BUILDER_DESKTOP_MIN_WIDTH,
@@ -18,10 +18,10 @@ import { initIdentityEditor } from './editors/identity-editor.js?v=phase3-logist
 import { initSectionCopyEditors } from './editors/section-copy-editor.js?v=phase54a-rsvp-time-20260817';
 import { initLogisticsEditors } from './editors/logistics-editor.js?v=phase3-logistics-20260813';
 import { initAccessPassEditor } from './editors/access-pass-editor.js?v=phase88-qr2-20260820';
-import { initMediaEditor } from './editors/media-editor.js?v=phase48-upload-enabled-20260816';
+import { initMediaEditor } from './editors/media-editor.js?v=phase89-dress-code-media-20260820';
 import { initAppearanceEditor } from './editors/appearance-editor.js?v=phase86-appearance-20260820';
 import { initReviewEditor } from './editors/review-editor.js?v=phase86-review-20260820';
-import { invitationMediaService } from './services/invitation-media-service.js?v=phase48-upload-enabled-20260816';
+import { invitationMediaService } from './services/invitation-media-service.js?v=phase89-dress-code-media-20260820';
 import { invitationRsvpService } from './services/invitation-rsvp-service.js?v=phase54-public-rsvp-20260817';
 import { invitationDraftService } from './services/invitation-draft-service.js?v=phase61-draft-persistence-20260817';
 import { invitationPublicationService } from './services/invitation-publication-service.js?v=phase63-public-invitation-20260817';

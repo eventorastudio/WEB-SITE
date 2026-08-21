@@ -1,4 +1,4 @@
-import { validateInvitationDraft } from '../core/builder-validation.js?v=phase54a-rsvp-time-20260817';
+import { validateInvitationDraft } from '../core/builder-validation.js?v=phase89-dress-code-media-20260820';
 
 function labelForState({ publishing, outcome }) {
     if (publishing) return 'Publicando…';

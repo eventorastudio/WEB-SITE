@@ -19,7 +19,7 @@ service firebase.storage {
     }
 
     function isAllowedRole(role) {
-      return role in ['cover', 'gallery', 'video', 'videoPoster', 'music'];
+      return role in ['cover', 'gallery', 'dressCode', 'video', 'videoPoster', 'music'];
     }
 
     function isVersionedFileName(fileName) {
@@ -27,7 +27,7 @@ service firebase.storage {
     }
 
     function typeMatchesRoleAndExtension(role, fileName) {
-      return ((role == 'cover' || role == 'gallery' || role == 'videoPoster')
+      return ((role == 'cover' || role == 'gallery' || role == 'dressCode' || role == 'videoPoster')
           && (
             (request.resource.contentType == 'image/jpeg' && fileName.matches('^.+\\.jpg$'))
             || (request.resource.contentType == 'image/png' && fileName.matches('^.+\\.png$'))
@@ -70,7 +70,7 @@ service firebase.storage {
     function isAllowedTypeAndSize(role) {
       return request.resource != null
         && (
-          ((role == 'cover' || role == 'gallery' || role == 'videoPoster')
+          ((role == 'cover' || role == 'gallery' || role == 'dressCode' || role == 'videoPoster')
             && request.resource.contentType.matches('^image/(jpeg|png|webp)$')
             && request.resource.size > 0
             && request.resource.size <= 20 * 1024 * 1024)

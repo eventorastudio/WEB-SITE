@@ -1,7 +1,7 @@
 import { getDraftValue } from './content-schema.js?v=phase54a-rsvp-time-20260817';
 import { DRESS_COLOR_GROUPS } from './logistics-schema.js?v=phase3-logistics-20260813';
 import { normalizeWhatsAppPhone, safeUrlError } from './safe-url.js?v=phase51-rsvp-20260816';
-import { getAllMediaAssets, validateMediaAsset } from './media-schema.js?v=phase4-media-20260813';
+import { getAllMediaAssets, validateMediaAsset } from './media-schema.js?v=phase89-dress-code-media-20260820';
 import {
     RSVP_GUEST_POLICIES,
     RSVP_METHODS,
@@ -157,6 +157,7 @@ function validateMedia(draft, errors) {
     const media = draft.media ?? {};
     validateMediaAsset(media.cover, 'cover', errors, 'media.cover');
     (media.gallery ?? []).forEach((asset, index) => validateMediaAsset(asset, 'gallery', errors, `media.gallery.${asset?.id || index}`));
+    validateMediaAsset(media.dressCode, 'dressCode', errors, 'media.dressCode');
     validateMediaAsset(media.video, 'video', errors, 'media.video');
     validateMediaAsset(media.videoPoster, 'videoPoster', errors, 'media.videoPoster');
     validateMediaAsset(media.music, 'music', errors, 'media.music');

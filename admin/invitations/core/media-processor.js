@@ -3,7 +3,7 @@ import {
     getMediaRole,
     sniffMediaMimeType,
     validateMediaSignature
-} from './media-schema.js?v=phase4-media-20260813';
+} from './media-schema.js?v=phase89-dress-code-media-20260820';
 
 function mediaError(code, detail = '') {
     const error = new Error(code);
