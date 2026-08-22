@@ -262,6 +262,7 @@ html[data-preview-embedded="true"], html[data-preview-embedded="true"] body { mi
         transform: none;
     }
 }
+
 [data-invitation-bind="identity"],
 [data-invitation-bind="identity"] * {
     max-inline-size: 100%;
@@ -704,4 +705,28 @@ body.builder-preview-custom {
         border-radius: 999px;
         font-size: .58rem;
     }
+}
+
+/* Final mobile spacing cascade for Aloha runtime templates. */
+@media (max-width: 730px) {
+    body[data-builder-theme="aloha"] .welcome,
+    body[data-builder-theme="aloha"] .countdown-band,
+    body[data-builder-theme="aloha"] .itinerary,
+    body[data-builder-theme="aloha"] .location {
+        min-height: 0;
+    }
+
+    body[data-builder-theme="aloha"] .welcome { padding-bottom: 3.5rem; }
+    body[data-builder-theme="aloha"] .welcome + .tropical-film { padding-top: 3.75rem; }
+    body[data-builder-theme="aloha"] .countdown-band { gap: 1.5rem; padding-block: 3.9rem 3.65rem; }
+    body[data-builder-theme="aloha"] .countdown { margin-bottom: 0; }
+    body[data-builder-theme="aloha"] .countdown-message { margin-top: .15rem; padding: .95rem .8rem; }
+    body[data-builder-theme="aloha"] .itinerary { padding-block: 4.25rem 4.4rem; }
+    body[data-builder-theme="aloha"] .itinerary .section-heading { margin-bottom: 2.15rem; }
+    body[data-builder-theme="aloha"] .itinerary ol { gap: .85rem; }
+    body[data-builder-theme="aloha"] .itinerary small { margin-top: .8rem; padding-top: .65rem; }
+    body[data-builder-theme="aloha"] .location-copy { padding-bottom: 3.75rem; }
+    body[data-builder-theme="aloha"] .aloha-accommodation-feature { margin-top: 2.25rem; padding-top: 1.45rem; }
+    body[data-builder-theme="aloha"] .aloha-accommodation-intro { margin-bottom: 1rem; }
+    body[data-builder-theme="aloha"] .aloha-accommodation-feature .aloha-location-actions { margin-top: .85rem; }
 }
