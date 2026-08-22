@@ -212,6 +212,45 @@ html[data-preview-embedded="true"], html[data-preview-embedded="true"] body { mi
     :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-accommodation-feature .aloha-accommodation-card h3 { font-size: clamp(1.9rem, 8vw, 2.8rem); }
     :is(.builder-preview-rendered, .public-invitation-rendered) .music-control { right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); }
 }
+
+/* Aloha mobile music control: compact, safe-area aware and globally non-invasive. */
+@media (max-width: 730px) {
+    body[data-builder-theme="aloha"] #invitation {
+        padding-bottom: calc(4.75rem + env(safe-area-inset-bottom));
+    }
+
+    body[data-builder-theme="aloha"] .music-control {
+        right: max(.75rem, env(safe-area-inset-right));
+        bottom: max(.75rem, env(safe-area-inset-bottom));
+        z-index: 1000;
+        max-width: calc(100vw - 1.5rem - env(safe-area-inset-left) - env(safe-area-inset-right));
+        min-height: 2.6rem;
+        padding: .5rem .72rem;
+        gap: .45rem;
+        color: var(--deep);
+        background: rgb(255 246 229 / .94);
+        border: 1px solid rgb(28 191 210 / .34);
+        border-radius: 999px;
+        box-shadow: .2rem .25rem 0 rgb(244 91 105 / .2), 0 .75rem 1.5rem rgb(0 35 45 / .18);
+        backdrop-filter: blur(10px);
+    }
+
+    body[data-builder-theme="aloha"] .music-disc {
+        flex: 0 0 auto;
+        width: .55rem;
+        height: .55rem;
+        box-shadow: 0 0 0 .2rem rgb(244 91 105 / .18);
+    }
+
+    body[data-builder-theme="aloha"] .music-label {
+        overflow: hidden;
+        max-width: 6.3rem;
+        font-size: .54rem;
+        letter-spacing: .12em;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
 @media (max-width: 22rem) {
     :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-accommodation-feature .aloha-location-actions { grid-template-columns: 1fr; }
 }
