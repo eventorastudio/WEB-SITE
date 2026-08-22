@@ -1155,3 +1155,16 @@ body[data-builder-theme="aloha"] .rsvp > [data-prestige-feature~="rsvp"] {
         text-transform: uppercase;
     }
 }
+
+/* Access tabs must honor the DOM hidden state at every viewport. */
+body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view][hidden] {
+    display: none !important;
+}
+
+@media (min-width: 731px) {
+    body[data-builder-theme="aloha"] .rsvp {
+        place-content: start;
+        padding-top: clamp(3.5rem, 5vw, 5.5rem);
+        padding-bottom: clamp(4rem, 6vw, 6.5rem);
+    }
+}

@@ -22,7 +22,7 @@ export function initPreviewController({
     if (!state) return () => {};
 
     const targetOrigin = window.location.origin;
-    const previewUrl = new URL('./preview/frame.html?v=phase111-aloha-editorial-locations-20260822', document.baseURI).href;
+    const previewUrl = new URL('./preview/frame.html?v=phase112-aloha-access-tabs-20260822', document.baseURI).href;
     let previewWindow = null;
     let shellReady = false;
     let queuedRender = null;
