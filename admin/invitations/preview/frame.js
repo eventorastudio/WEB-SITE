@@ -417,6 +417,7 @@ function renderAccessPass(payload) {
     const access = document.querySelector('[data-access-preview]');
     if (!access) return;
     const config = payload.draft?.content?.access ?? {};
+    queueMicrotask(() => normalizeAlohaRsvpCopy(document.querySelector('[data-access-options-note]'), config));
     const personalization = payload.personalization;
     const builderPreview = payload.renderMode === 'builder';
     const hasPersonalizedAccess = builderPreview || Boolean(personalization);
@@ -477,6 +478,22 @@ function renderAccessPass(payload) {
                 ? 'Presenta este cÃ³digo QR desde tu celular al llegar.'
                 : 'Imprime tu pase y llÃ©valo contigo el dÃ­a del evento.';
     }
+}
+
+function normalizeAlohaRsvpCopy(optionsNote, config = {}) {
+    if (optionsNote) {
+        optionsNote.textContent = config.showQr !== false && config.showPrintPass !== false
+            ? 'Puedes presentar este código QR desde tu celular o imprimir tu pase físico.'
+            : config.showQr !== false
+                ? 'Presenta este código QR desde tu celular al llegar.'
+                : 'Imprime tu pase y llévalo contigo el día del evento.';
+    }
+    const sectionNo = document.querySelector('body[data-builder-theme="aloha"] .rsvp .section-no');
+    if (sectionNo) sectionNo.textContent = '07 · RSVP';
+    const heading = document.querySelector('body[data-builder-theme="aloha"] .rsvp h2');
+    if (heading && /Ã|Â/.test(heading.textContent || '')) heading.innerHTML = '¿Te unes<br>a la ola?';
+    const printedLabel = document.querySelector('body[data-builder-theme="aloha"] [data-access-view="printed"] > small');
+    if (printedLabel && /Ã|Â/.test(printedLabel.textContent || '')) printedLabel.textContent = 'BOARDING POSTCARD · XV 27';
 }
 
 function ensureAccessPrintButton(access, config, visible) {
