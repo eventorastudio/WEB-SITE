@@ -307,7 +307,7 @@ function applyPayload(payload) {
         applyPublicInvitationPersonalization(document, payload.personalization, payload.rsvpUrl);
     }
     // Render access after personalization so the transient qrToken is available
-    // to the on-screen QR and the printable ticket from the same payload.
+    // to the on-screen QR from the same payload.
     renderAccessPass(payload);
     renderCountdown(payload.draft);
     const title = resolveIdentity(payload.draft.content);
@@ -396,7 +396,7 @@ function setupAlohaReveal(documentRoot) {
 }
 
 function setupAlohaInteractions(payload) {
-    setupAlohaPassTabs(payload);
+    setupAlohaPassPresentation();
     setupAlohaVideo();
 }
 
@@ -419,9 +419,10 @@ function renderAccessPass(payload) {
     const access = document.querySelector('[data-access-preview]');
     if (!access) return;
     const config = payload.draft?.content?.access ?? {};
+    const isAloha = payload.theme?.id === 'aloha';
     queueMicrotask(() => {
-        normalizeAlohaRsvpCopy(document.querySelector('[data-access-options-note]'), config);
-        normalizeAlohaRsvpVisibleCopy(config);
+        normalizeAlohaRsvpCopy(document.querySelector('[data-access-options-note]'), isAloha ? { ...config, showPrintPass: false } : config);
+        normalizeAlohaRsvpVisibleCopy(isAloha ? { ...config, showPrintPass: false } : config);
     });
     const personalization = payload.personalization;
     const builderPreview = payload.renderMode === 'builder';
@@ -462,16 +463,19 @@ function renderAccessPass(payload) {
             }).catch(() => { qrHost.textContent = 'QR no disponible'; });
         }
     });
-    const printEnabled = valid && config.showPrintPass !== false;
-    const printButton = ensureAccessPrintButton(access, config, printEnabled);
-    printButton.dataset.accessVisible = String(printEnabled);
-    printButton?.replaceWith(printButton.cloneNode(true));
-    const currentPrintButton = access.querySelector('[data-access-print]');
-    currentPrintButton?.addEventListener('click', () => openPrintablePass(payload, config));
-    syncAlohaPassPrintAction(access, access.querySelector('[data-access-mode][aria-pressed="true"]')?.dataset.accessMode || 'digital');
+    const printEnabled = !isAloha && valid && config.showPrintPass !== false;
+    if (!isAloha) {
+        const printButton = ensureAccessPrintButton(access, config, printEnabled);
+        printButton.dataset.accessVisible = String(printEnabled);
+        printButton?.replaceWith(printButton.cloneNode(true));
+        const currentPrintButton = access.querySelector('[data-access-print]');
+        currentPrintButton?.addEventListener('click', () => openPrintablePass(payload, config));
+    } else {
+        access.querySelectorAll('[data-access-print]').forEach((button) => button.remove());
+    }
 
     let optionsNote = access.querySelector('[data-access-options-note]');
-    if (!optionsNote && (config.showQr !== false || config.showPrintPass !== false)) {
+    if (!optionsNote && (config.showQr !== false || (!isAloha && config.showPrintPass !== false))) {
         optionsNote = document.createElement('p');
         optionsNote.dataset.accessOptionsNote = 'true';
         optionsNote.className = 'access-options-note';
@@ -479,7 +483,7 @@ function renderAccessPass(payload) {
     }
     if (optionsNote) {
         optionsNote.hidden = !printEnabled && !(valid && config.showQr !== false && qrToken);
-        optionsNote.textContent = config.showQr !== false && config.showPrintPass !== false
+        optionsNote.textContent = config.showQr !== false && (!isAloha && config.showPrintPass !== false)
             ? 'Puedes presentar este cÃ³digo QR desde tu celular o imprimir tu pase fÃ­sico.'
             : config.showQr !== false
                 ? 'Presenta este cÃ³digo QR desde tu celular al llegar.'
@@ -504,13 +508,6 @@ function normalizeAlohaRsvpCopy(optionsNote, config = {}) {
     if (sectionNo) sectionNo.textContent = '07 · RSVP';
     const heading = document.querySelector('body[data-builder-theme="aloha"] .rsvp h2');
     if (heading && /Ã|Â/.test(heading.textContent || '')) heading.innerHTML = '¿Te unes<br>a la ola?';
-    const printedLabel = document.querySelector('body[data-builder-theme="aloha"] [data-access-view="printed"] > small');
-    if (printedLabel && /Ã|Â/.test(printedLabel.textContent || '')) printedLabel.textContent = 'BOARDING POSTCARD · XV 27';
-}
-
-function syncAlohaPassPrintAction(access, mode) {
-    const printButton = access.querySelector('[data-access-print]');
-    if (printButton) printButton.hidden = printButton.dataset.accessVisible !== 'true' || mode !== 'printed';
 }
 
 function normalizeAlohaRsvpVisibleCopy(config = {}) {
@@ -529,9 +526,15 @@ function normalizeAlohaRsvpVisibleCopy(config = {}) {
                 ? 'Presenta este código desde tu celular al llegar.'
                 : 'Imprime tu pase y llévalo contigo el día del evento.';
     }
-    root.querySelector('[data-access-view="printed"] > small')?.replaceChildren(
-        document.createTextNode('BOARDING POSTCARD · XV 27')
-    );
+}
+
+function setupAlohaPassPresentation() {
+    const access = document.querySelector('[data-access-preview]');
+    if (!access) return;
+    access.querySelector('.island-pass-tabs')?.remove();
+    access.querySelectorAll('[data-access-mode], [data-access-print]').forEach((element) => element.remove());
+    access.querySelectorAll('[data-access-view]:not([data-access-view="digital"])').forEach((view) => view.remove());
+    access.querySelector('[data-access-view="digital"]')?.removeAttribute('hidden');
 }
 
 function ensureAccessPrintButton(access, config, visible) {
@@ -658,23 +661,6 @@ function openPrintablePass(payload, config) {
     document.body.dataset.printPass = 'true';
     window.addEventListener('afterprint', () => { delete document.body.dataset.printPass; sheet.replaceChildren(); }, { once: true });
     window.print();
-}
-
-function setupAlohaPassTabs(payload) {
-    const access = document.querySelector('[data-access-preview]');
-    if (!access || access.dataset.alohaTabsReady === 'true') return;
-    const buttons = [...access.querySelectorAll('[data-access-mode]')];
-    const views = [...access.querySelectorAll('[data-access-view]')];
-    if (buttons.length < 2 || views.length < 2) return;
-    access.dataset.alohaTabsReady = 'true';
-    const activate = (mode) => {
-        buttons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.accessMode === mode)));
-        views.forEach((view) => { view.hidden = view.dataset.accessView !== mode; });
-        syncAlohaPassPrintAction(access, mode);
-    };
-    buttons.forEach((button) => button.addEventListener('click', () => activate(button.dataset.accessMode)));
-    activate(buttons.find((button) => button.getAttribute('aria-pressed') === 'true')?.dataset.accessMode || 'digital');
-    void payload;
 }
 
 function setupAlohaVideo() {
