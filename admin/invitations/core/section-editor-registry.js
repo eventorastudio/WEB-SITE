@@ -213,7 +213,7 @@ export const SECTION_EDITOR_REGISTRY = Object.freeze({
     }),
     'access-preview': editor({
         title: 'Pase personalizado',
-        notice: 'QR, invitados, pases reales y check-in no forman parte de esta fase.',
+        notice: 'Configura la experiencia de acceso digital e impresa para tus invitados.',
         fields: [
             field('content.access.title', 'Título'),
             field('content.access.description', 'Descripción', { kind: 'textarea', rows: 3 }),

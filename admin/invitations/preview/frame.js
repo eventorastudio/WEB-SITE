@@ -323,7 +323,9 @@ function ensureQrLibrary() {
     if (typeof window.qrcode === 'function') return Promise.resolve();
     qrLibraryPromise ??= new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = new URL('../../vendor/qrcode-generator.js', document.baseURI).toString();
+        // Resolve from this module, not the document base. Public invitations
+        // live under /invitacion/ while the shared QR library lives in /admin/vendor/.
+        script.src = new URL('../../vendor/qrcode-generator.js', import.meta.url).toString();
         script.onload = resolve;
         script.onerror = () => reject(new Error('qr/library-unavailable'));
         document.head.append(script);
@@ -351,13 +353,13 @@ function renderAccessPass(payload) {
     access.querySelectorAll('[data-pass-selector]').forEach((node) => { node.hidden = true; });
     const qrToken = builderPreview ? 'PREVIEW-QR-NO-OPERATIVO' : personalization?.qrToken;
     access.querySelectorAll('[data-access-view]').forEach((view) => {
-        let qrHost = view.querySelector('[data-builder-access-qr]');
+        let qrHost = view.querySelector('[data-builder-access-qr]') || view.querySelector('.island-code');
         if (!qrHost) {
             qrHost = document.createElement('div');
-            qrHost.dataset.builderAccessQr = 'true';
-            qrHost.className = 'builder-access-qr';
             view.append(qrHost);
         }
+        qrHost.dataset.builderAccessQr = 'true';
+        qrHost.classList.add('builder-access-qr');
         qrHost.hidden = !(valid && config.showQr !== false && qrToken);
         if (!qrHost.hidden && qrHost.dataset.qrRendered !== 'true') {
             qrHost.replaceChildren();
@@ -374,8 +376,27 @@ function renderAccessPass(payload) {
             }).catch(() => { qrHost.textContent = 'QR no disponible'; });
         }
     });
-    const printButton = ensureAccessPrintButton(access, config, !builderPreview && valid && config.showPrintPass !== false);
-    printButton?.addEventListener('click', () => openPrintablePass(payload, config), { once: true });
+    const printEnabled = valid && config.showPrintPass !== false;
+    const printButton = ensureAccessPrintButton(access, config, printEnabled);
+    printButton?.replaceWith(printButton.cloneNode(true));
+    const currentPrintButton = access.querySelector('[data-access-print]');
+    currentPrintButton?.addEventListener('click', () => openPrintablePass(payload, config));
+
+    let optionsNote = access.querySelector('[data-access-options-note]');
+    if (!optionsNote && (config.showQr !== false || config.showPrintPass !== false)) {
+        optionsNote = document.createElement('p');
+        optionsNote.dataset.accessOptionsNote = 'true';
+        optionsNote.className = 'access-options-note';
+        access.append(optionsNote);
+    }
+    if (optionsNote) {
+        optionsNote.hidden = !printEnabled && !(valid && config.showQr !== false && qrToken);
+        optionsNote.textContent = config.showQr !== false && config.showPrintPass !== false
+            ? 'Puedes presentar este cÃ³digo QR desde tu celular o imprimir tu pase fÃ­sico.'
+            : config.showQr !== false
+                ? 'Presenta este cÃ³digo QR desde tu celular al llegar.'
+                : 'Imprime tu pase y llÃ©valo contigo el dÃ­a del evento.';
+    }
 }
 
 function ensureAccessPrintButton(access, config, visible) {
@@ -399,13 +420,23 @@ function openPrintablePass(payload, config) {
     let sheet = document.getElementById('builder-print-pass');
     if (!sheet) { sheet = document.createElement('section'); sheet.id = 'builder-print-pass'; document.body.append(sheet); }
     sheet.replaceChildren();
+    sheet.className = 'access-print-ticket';
+    const header = document.createElement('header');
+    const badge = document.createElement('small'); badge.textContent = config.label || 'PASE DE ACCESO';
     const title = document.createElement('h1'); title.textContent = config.printTitle || 'Pase de acceso';
+    const subtitle = document.createElement('p'); subtitle.textContent = config.description || 'Presenta este pase al llegar.';
+    header.append(badge, title, subtitle);
+    const body = document.createElement('div'); body.className = 'access-print-ticket-body';
+    const guestBlock = document.createElement('div'); guestBlock.className = 'access-print-ticket-guest';
+    const guestLabel = document.createElement('small'); guestLabel.textContent = config.guestLabel || 'INVITADO';
     const guest = document.createElement('h2'); guest.textContent = personalization.displayName;
-    const passes = document.createElement('p'); passes.textContent = `${personalization.passLimit} pase(s)`;
+    const passes = document.createElement('p'); passes.textContent = `${personalization.passLimit} ${config.passesLabel || 'pase(s) asignado(s)'}`;
     const qr = generateQrCanvas(personalization.qrToken, { size: 420 });
-    const footer = document.createElement('p'); footer.textContent = config.printFooter || 'Presenta este pase al llegar.';
-    const brand = document.createElement('small'); brand.textContent = 'EVENTORA STUDIO';
-    sheet.append(title, guest, passes, qr, footer, brand);
+    qr.className = 'access-print-ticket-qr';
+    guestBlock.append(guestLabel, guest, passes);
+    body.append(guestBlock, qr);
+    const footer = document.createElement('footer'); footer.textContent = config.printFooter || 'Presenta este pase al llegar.';
+    sheet.append(header, body, footer);
     document.body.dataset.printPass = 'true';
     window.addEventListener('afterprint', () => { delete document.body.dataset.printPass; sheet.replaceChildren(); }, { once: true });
     window.print();
