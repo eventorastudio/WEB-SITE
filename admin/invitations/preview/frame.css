@@ -1544,3 +1544,220 @@ body.builder-preview-loading.aloha-loading::after {
 @media (prefers-reduced-motion: reduce) {
     .aloha-loading-mark::before { animation: none; }
 }
+
+/* Aloha Dress Code: editorial style guide composition. */
+body[data-builder-theme="aloha"] .dress {
+    position: relative;
+    grid-template-columns: minmax(0, .9fr) minmax(18rem, .72fr);
+    gap: clamp(2.5rem, 6vw, 7rem);
+    align-items: center;
+    min-height: 0;
+    padding: clamp(4.5rem, 8vw, 8rem) clamp(1.5rem, 7vw, 7rem);
+    background:
+        radial-gradient(circle at 7% 24%, rgb(255 250 240 / .52), transparent 26%),
+        radial-gradient(circle at 92% 76%, rgb(28 191 210 / .18), transparent 30%),
+        linear-gradient(135deg, #f6c64a 0%, #f4d77d 52%, #f5b991 100%);
+}
+
+body[data-builder-theme="aloha"] .dress::after {
+    position: absolute;
+    right: 5%;
+    bottom: 8%;
+    width: clamp(7rem, 15vw, 13rem);
+    aspect-ratio: 1;
+    border: 1px solid rgb(7 91 105 / .16);
+    border-radius: 48% 52% 44% 56%;
+    content: "";
+    pointer-events: none;
+    transform: rotate(18deg);
+}
+
+body[data-builder-theme="aloha"] .dress::before {
+    top: clamp(1.5rem, 4vw, 3rem);
+    right: clamp(1.5rem, 7vw, 7rem);
+    color: rgb(7 91 105 / .72);
+    font-size: .58rem;
+    letter-spacing: .24em;
+}
+
+body[data-builder-theme="aloha"] .dress-copy {
+    position: relative;
+    z-index: 1;
+    max-width: 38rem;
+    gap: .85rem;
+    align-content: start;
+    padding: clamp(1.5rem, 3vw, 2.4rem);
+    border: 1px solid rgb(255 250 240 / .7);
+    border-radius: 1.8rem .5rem 1.8rem .5rem;
+    background: rgb(255 250 240 / .38);
+    box-shadow: .5rem .6rem 0 rgb(8 122 80 / .12), 0 1.5rem 3rem rgb(91 55 23 / .12);
+}
+
+body[data-builder-theme="aloha"] .dress-copy .section-no {
+    color: var(--teal, #075b69);
+    font-size: .58rem;
+    font-weight: 800;
+    letter-spacing: .24em;
+}
+
+body[data-builder-theme="aloha"] .dress-copy h2 {
+    max-width: 9ch;
+    margin: .1rem 0 .25rem;
+    color: var(--deep, #073b4c);
+    font: 400 clamp(3.5rem, 8vw, 7rem)/.84 Georgia, serif;
+    letter-spacing: -.055em;
+}
+
+body[data-builder-theme="aloha"] .dress-copy > p:not(.section-no) {
+    max-width: 42ch;
+    color: rgb(7 59 76 / .78);
+    font-size: clamp(.76rem, 1.2vw, .94rem);
+    line-height: 1.65;
+}
+
+body[data-builder-theme="aloha"] .dress-palette-group {
+    display: grid;
+    grid-template-columns: minmax(8rem, 10rem) 1fr;
+    align-items: center;
+    gap: .8rem;
+    margin-top: .75rem;
+    padding: .8rem .9rem;
+    border-top: 1px solid rgb(7 91 105 / .16);
+}
+
+body[data-builder-theme="aloha"] .dress-palette-label {
+    margin: 0;
+    color: var(--teal, #075b69);
+    font-size: .58rem;
+    letter-spacing: .18em;
+}
+
+body[data-builder-theme="aloha"] .dress-palette-avoided .dress-palette-label {
+    color: rgb(157 65 47 / .9);
+}
+
+body[data-builder-theme="aloha"] .dress-palette-group .swatches {
+    flex-wrap: wrap;
+    gap: .55rem;
+    margin: 0;
+}
+
+body[data-builder-theme="aloha"] .dress-palette-group .swatches i {
+    width: clamp(2.35rem, 4vw, 3.3rem);
+    height: clamp(2.35rem, 4vw, 3.3rem);
+    border: .28rem solid rgb(255 250 240 / .88);
+    box-shadow: 0 .35rem .8rem rgb(7 59 76 / .16);
+}
+
+body[data-builder-theme="aloha"] .dress-palette-avoided .swatches i {
+    box-shadow: 0 .35rem .8rem rgb(157 65 47 / .16), inset 0 0 0 1px rgb(255 250 240 / .5);
+}
+
+body[data-builder-theme="aloha"] .dress figure {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 28rem);
+    justify-self: center;
+    margin: 0;
+    padding: .85rem .85rem 1.15rem;
+    border: 1px solid rgb(255 250 240 / .9);
+    border-radius: 1.25rem .35rem 1.25rem .35rem;
+    background: rgb(255 250 240 / .9);
+    box-shadow: .7rem .8rem 0 rgb(8 122 80 / .16), 0 1.8rem 3.5rem rgb(7 59 76 / .2);
+    transform: rotate(1.5deg);
+}
+
+body[data-builder-theme="aloha"] .dress figure::before {
+    position: absolute;
+    top: .65rem;
+    right: .7rem;
+    width: 2.4rem;
+    height: 2.4rem;
+    border: 1px solid rgb(244 91 105 / .45);
+    border-radius: 50%;
+    content: "";
+}
+
+body[data-builder-theme="aloha"] .dress img {
+    width: 100%;
+    max-height: min(64vh, 34rem);
+    aspect-ratio: 4 / 5;
+    border-radius: .8rem .2rem .8rem .2rem;
+    object-fit: cover;
+}
+
+body[data-builder-theme="aloha"] .dress figcaption {
+    padding: .9rem .25rem 0;
+    color: var(--teal, #075b69);
+    font-size: .56rem;
+    letter-spacing: .2em;
+}
+
+body[data-builder-theme="aloha"] .dress[data-dress-code-image="empty"] .dress-copy {
+    max-width: 48rem;
+}
+
+@media (max-width: 900px) {
+    body[data-builder-theme="aloha"] .dress {
+        grid-template-columns: minmax(0, 1fr) minmax(15rem, .78fr);
+        gap: 2.25rem;
+        padding-inline: clamp(1.25rem, 5vw, 3.5rem);
+    }
+
+    body[data-builder-theme="aloha"] .dress-copy { padding: 1.35rem; }
+    body[data-builder-theme="aloha"] .dress-copy h2 { font-size: clamp(3rem, 8vw, 5.3rem); }
+}
+
+@media (max-width: 730px) {
+    body[data-builder-theme="aloha"] .dress {
+        grid-template-columns: 1fr;
+        gap: 1.6rem;
+        padding: 3.5rem 1.15rem 4.25rem;
+    }
+
+    body[data-builder-theme="aloha"] .dress::before {
+        top: 1.25rem;
+        right: 1.15rem;
+        font-size: .5rem;
+    }
+
+    body[data-builder-theme="aloha"] .dress-copy {
+        width: min(100%, 27rem);
+        margin-inline: auto;
+        padding: 1.25rem 1rem 1.35rem;
+        border-radius: 1.35rem .4rem 1.35rem .4rem;
+    }
+
+    body[data-builder-theme="aloha"] .dress-copy h2 {
+        max-width: 10ch;
+        font-size: clamp(3.45rem, 16vw, 5.1rem);
+    }
+
+    body[data-builder-theme="aloha"] .dress-palette-group {
+        grid-template-columns: 1fr;
+        gap: .55rem;
+        margin-top: .55rem;
+        padding: .75rem 0 0;
+    }
+
+    body[data-builder-theme="aloha"] .dress-palette-group .swatches i {
+        width: 3.25rem;
+        height: 3.25rem;
+    }
+
+    body[data-builder-theme="aloha"] .dress figure {
+        width: min(88%, 22rem);
+        padding: .7rem .7rem 1rem;
+        transform: rotate(-1deg);
+    }
+
+    body[data-builder-theme="aloha"] .dress img {
+        max-height: 26rem;
+    }
+
+    body[data-builder-theme="aloha"] .dress::after {
+        right: -2rem;
+        bottom: 1.5rem;
+        width: 8rem;
+    }
+}
