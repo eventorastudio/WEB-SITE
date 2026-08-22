@@ -201,6 +201,7 @@ async function renderTemplate(payload, requestId) {
     await installThemeStyles(parsed, templateUrl);
     if (requestId !== latestRequestId) return false;
     document.body.className = `${parsed.body.className} builder-preview-rendered${publicRuntime ? ' public-invitation-rendered' : ''}`.trim();
+    document.body.dataset.builderTheme = payload.theme.id;
     const renderRoot = embeddedPreview
         ? document.body
         : (document.getElementById('preview-device-viewport') || document.body);
