@@ -415,9 +415,7 @@ service cloud.firestore {
         && data.publicKey == publicKey
         && validInvitationPublicKey(publicKey)
         && validInvitationRevisionSnapshot(data, eventId)
-        && !('rsvp' in data.sections)
         && !('pass-selection' in data.sections)
-        && !('access-preview' in data.sections)
         && data.revisionNumber is int
         && data.revisionNumber >= 1
         && data.revisionNumber <= 999999999

@@ -197,3 +197,26 @@ test('publication 6.2 migra a publicKey/proyección sin crear otra revisión', a
     assert.equal((await assertSucceeds(getDoc(publicProjectionRef(testEnv.unauthenticatedContext().firestore(), eventId)))).data().revisionId, 'REV-000001');
     assert.equal((await assertSucceeds(getDocs(collection(db, 'eventos', eventId, 'invitacion', 'publication', 'revisions')))).size, 1);
 });
+
+test('public projection permits rsvp/access-preview but rejects pass-selection', async () => {
+    const eventId = 'EVT-PUBLIC-SECTIONS';
+    const current = actor('CEO');
+    const db = current.context.firestore();
+    const documents = publicationDocuments(eventId, current.uid);
+
+    const publicProjection = {
+        ...documents.publicProjection,
+        sections: ['welcome-story', 'rsvp', 'access-preview']
+    };
+    const validBatch = writeBatch(db);
+    validBatch.set(revisionRef(db, eventId, documents.revisionId), documents.revision);
+    validBatch.set(publicationRef(db, eventId), documents.publication);
+    validBatch.set(publicProjectionRef(db, eventId), publicProjection);
+    await assertSucceeds(validBatch.commit());
+
+    const invalidProjection = {
+        ...publicProjection,
+        sections: ['welcome-story', 'rsvp', 'access-preview', 'pass-selection']
+    };
+    await assertFails(setDoc(publicProjectionRef(db, eventId), invalidProjection));
+});
