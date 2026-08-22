@@ -770,6 +770,31 @@ body.builder-preview-custom {
     }
 }
 
+/* Aloha desktop itinerary cards: compact, naturally balanced stations. */
+@media (min-width: 1051px) {
+    body[data-builder-theme="aloha"] .itinerary ol {
+        grid-auto-rows: auto;
+        align-items: stretch;
+    }
+
+    body[data-builder-theme="aloha"] .itinerary li,
+    body[data-builder-theme="aloha"] .itinerary li:nth-child(2n),
+    body[data-builder-theme="aloha"] .itinerary li:nth-child(3n) {
+        height: auto;
+        min-height: 11.25rem;
+        padding: 1.15rem 1.1rem 1rem;
+    }
+
+    body[data-builder-theme="aloha"] .itinerary time {
+        margin-bottom: .85rem;
+    }
+
+    body[data-builder-theme="aloha"] .itinerary small {
+        margin: .85rem 0 0;
+        padding-top: .7rem;
+    }
+}
+
 /* Aloha RSVP / access: shared editorial pass composition. */
 body[data-builder-theme="aloha"] .rsvp {
     min-height: 0;
