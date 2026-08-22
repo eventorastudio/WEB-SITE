@@ -28,7 +28,7 @@ import { invitationPublicationService } from './services/invitation-publication-
 import { renderEventSelector } from './modules/event-selector.js?v=phase3-logistics-20260813';
 import { initPackageSelector } from './modules/package-selector.js?v=phase94-format-gating-20260821';
 import { initThemeSelector } from './modules/theme-selector.js?v=phase3-logistics-20260813';
-import { initPreviewController } from './modules/preview-controller.js?v=phase100-aloha-itinerary-mobile-20260822';
+import { initPreviewController } from './modules/preview-controller.js?v=phase101-aloha-mobile-locations-20260822';
 import { initBuilderEventBridge } from './modules/state-event-bridge.js?v=phase3-logistics-20260813';
 import { initRsvpPersistenceController } from './modules/rsvp-persistence-controller.js?v=phase52-rsvp-persistence-20260816';
 import { initDraftPersistenceController } from './modules/draft-persistence-controller.js?v=phase61-draft-persistence-20260817';

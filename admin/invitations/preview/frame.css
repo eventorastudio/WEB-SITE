@@ -503,3 +503,166 @@ body.builder-preview-custom {
     .builder-phase4-gallery-item { width: 100%; transform: none !important; }
     .builder-phase4-video { width: calc(100% - 2rem); }
 }
+
+/* Aloha mobile locations and stays: editorial resort treatment. */
+@media (max-width: 730px) {
+    body[data-builder-theme="aloha"] .location-copy {
+        padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+    }
+
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-grid {
+        gap: 1.15rem;
+    }
+
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-card,
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-card:nth-child(2n) {
+        min-height: 0;
+        height: auto;
+        padding: 1rem 1rem .95rem;
+        border: 0;
+        border-left: .25rem solid var(--aloha-card-accent, var(--aqua));
+        border-radius: 1.1rem .4rem 1.1rem .4rem;
+        background: linear-gradient(145deg, rgb(255 250 240 / .98), rgb(231 251 247 / .9));
+        box-shadow: .3rem .35rem 0 rgb(244 91 105 / .12), 0 .85rem 1.7rem rgb(8 59 75 / .1);
+        transform: none;
+    }
+
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-card:nth-child(3n + 2) {
+        --aloha-card-accent: var(--coral);
+    }
+
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-card:nth-child(3n) {
+        --aloha-card-accent: var(--sun);
+    }
+
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-type {
+        margin: 0 0 .45rem;
+        color: var(--aloha-card-accent, var(--deep));
+        font-size: .52rem;
+        font-weight: 800;
+        letter-spacing: .2em;
+        line-height: 1.2;
+        text-transform: uppercase;
+    }
+
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-card h3 {
+        margin: 0;
+        color: var(--deep);
+        font: 400 clamp(1.7rem, 8vw, 2.35rem)/.98 Georgia, serif;
+        letter-spacing: -.04em;
+    }
+
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-venue {
+        margin: .3rem 0 0;
+        color: var(--deep);
+        font-size: .78rem;
+        font-weight: 700;
+    }
+
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-details {
+        display: block;
+        margin: .8rem 0 0;
+        padding: .7rem 0 0;
+        border-top: 1px solid rgb(8 59 75 / .12);
+        color: rgb(8 59 75 / .72);
+        font-size: .7rem;
+        line-height: 1.55;
+    }
+
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .45rem;
+        margin-top: .85rem;
+    }
+
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-location-actions .tropical-button {
+        min-height: 2.25rem;
+        padding: .45rem .75rem;
+        border: 1px solid rgb(8 59 75 / .25);
+        border-radius: 999px;
+        font-size: .58rem;
+        letter-spacing: .08em;
+    }
+
+    /* Preserve the existing valid resort visual on mobile. */
+    body[data-builder-theme="aloha"] .location-visual {
+        display: block;
+        min-height: 0;
+        aspect-ratio: 4 / 3;
+        visibility: visible;
+        opacity: 1;
+    }
+
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-accommodation-feature {
+        margin-top: 3rem;
+        padding-top: 2rem;
+    }
+
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-accommodation-eyebrow {
+        margin-bottom: .45rem;
+        color: var(--coral);
+        font-size: .55rem;
+        font-weight: 800;
+        letter-spacing: .2em;
+        text-transform: uppercase;
+    }
+
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-accommodation-intro {
+        margin-bottom: 1.25rem;
+    }
+
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-accommodation-feature .aloha-accommodation-card {
+        height: auto;
+        min-height: 0;
+        padding: 1.2rem 1rem 1rem;
+        border: 0;
+        border-top: 3px solid var(--sun);
+        border-radius: 1.1rem .4rem 1.1rem .4rem;
+        background: linear-gradient(145deg, rgb(255 250 240 / .99), rgb(246 198 74 / .16));
+        box-shadow: .3rem .35rem 0 rgb(8 122 80 / .13), 0 .9rem 1.8rem rgb(4 63 75 / .12);
+    }
+
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-accommodation-feature .aloha-accommodation-card h3 {
+        margin: .2rem 0 0;
+        color: var(--deep);
+        font: 400 clamp(1.8rem, 8vw, 2.55rem)/.98 Georgia, serif;
+    }
+
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-accommodation-feature .aloha-stay-details {
+        display: flex;
+        flex-direction: column;
+        gap: .55rem;
+        margin-top: 1rem;
+        padding-top: .85rem;
+        border-top: 1px solid rgb(8 59 75 / .13);
+    }
+
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-accommodation-feature .aloha-stay-details > p {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        color: var(--deep);
+        font-size: .72rem;
+        line-height: 1.5;
+    }
+
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-accommodation-feature .aloha-stay-phone {
+        font-weight: 700;
+    }
+
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-accommodation-feature .aloha-location-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .45rem;
+        margin-top: 1rem;
+    }
+
+    :is(.builder-preview-rendered, .public-invitation-rendered) .aloha-accommodation-feature .aloha-location-actions .tropical-button {
+        width: auto;
+        min-height: 2.3rem;
+        padding: .5rem .8rem;
+        border-radius: 999px;
+        font-size: .58rem;
+    }
+}
