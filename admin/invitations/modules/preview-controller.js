@@ -22,7 +22,7 @@ export function initPreviewController({
     if (!state) return () => {};
 
     const targetOrigin = window.location.origin;
-    const previewUrl = new URL('./preview/frame.html?v=phase108-aloha-rsvp-access-20260822', document.baseURI).href;
+    const previewUrl = new URL('./preview/frame.html?v=phase109-aloha-desktop-rhythm-20260822', document.baseURI).href;
     let previewWindow = null;
     let shellReady = false;
     let queuedRender = null;

@@ -731,6 +731,45 @@ body.builder-preview-custom {
     body[data-builder-theme="aloha"] .aloha-accommodation-feature .aloha-location-actions { margin-top: .85rem; }
 }
 
+/* Aloha desktop rhythm polish: shorten empty tails without changing components. */
+@media (min-width: 1051px) {
+    body[data-builder-theme="aloha"] .welcome {
+        min-height: 0;
+        padding-block: clamp(5.5rem, 7vw, 7.5rem);
+    }
+
+    body[data-builder-theme="aloha"] .itinerary {
+        min-height: 0;
+        padding-block: clamp(5.75rem, 7vw, 7rem);
+    }
+
+    body[data-builder-theme="aloha"] .location-copy {
+        padding-bottom: 3.25rem;
+    }
+
+    body[data-builder-theme="aloha"] .aloha-accommodation-feature {
+        margin-top: 3rem;
+        padding-top: 1.8rem;
+    }
+
+    body[data-builder-theme="aloha"] .aloha-accommodation-intro {
+        margin-bottom: 1.75rem;
+    }
+
+    body[data-builder-theme="aloha"] .postcards {
+        padding-block: clamp(4.5rem, 6vw, 6.5rem);
+    }
+
+    body[data-builder-theme="aloha"] .envelope-section {
+        padding-block: clamp(5.5rem, 7vw, 8.5rem);
+    }
+
+    body[data-builder-theme="aloha"] .rsvp {
+        min-height: 0;
+        padding-block: clamp(5.5rem, 7vw, 7.5rem);
+    }
+}
+
 /* Aloha RSVP / access: shared editorial pass composition. */
 body[data-builder-theme="aloha"] .rsvp {
     min-height: 0;
