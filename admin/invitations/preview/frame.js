@@ -485,6 +485,11 @@ function renderAccessPass(payload) {
                 ? 'Presenta este cÃ³digo QR desde tu celular al llegar.'
                 : 'Imprime tu pase y llÃ©valo contigo el dÃ­a del evento.';
     }
+
+    const downloadButton = ensureAccessDownloadButton(access, valid && config.showQr !== false && Boolean(qrToken));
+    downloadButton?.replaceWith(downloadButton.cloneNode(true));
+    const currentDownloadButton = access.querySelector('[data-access-download]');
+    currentDownloadButton?.addEventListener('click', () => { void downloadDigitalPassImage().catch(() => {}); });
 }
 
 function normalizeAlohaRsvpCopy(optionsNote, config = {}) {
@@ -541,6 +546,89 @@ function ensureAccessPrintButton(access, config, visible) {
     button.hidden = !visible;
     button.textContent = config.printButtonLabel || 'Imprimir pase';
     return button;
+}
+
+function ensureAccessDownloadButton(access, visible) {
+    const digital = access.querySelector('[data-access-view="digital"]');
+    if (!digital) return null;
+    let button = digital.querySelector('[data-access-download]');
+    if (!button) {
+        button = document.createElement('button');
+        button.type = 'button';
+        button.dataset.accessDownload = 'true';
+        button.textContent = 'Descargar pase digital';
+        (digital.firstElementChild || digital).append(button);
+    }
+    button.hidden = !visible;
+    return button;
+}
+
+async function downloadDigitalPassImage() {
+    const access = document.querySelector('[data-access-preview]');
+    const digital = access?.querySelector('[data-access-view="digital"]');
+    const qrCanvas = digital?.querySelector('[data-builder-access-qr] canvas');
+    if (!digital || !qrCanvas) return;
+    const guest = digital.querySelector('[data-access-guest]')?.textContent?.trim() || 'Invitado';
+    const passes = digital.querySelector('[data-access-passes]')?.textContent?.trim() || '';
+    const qrImage = await imageFromCanvas(qrCanvas);
+    const canvas = document.createElement('canvas');
+    canvas.width = 1200;
+    canvas.height = 760;
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    drawDigitalPassImage(context, { guest, passes, qrImage, width: canvas.width });
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'eventora-pase-digital.png';
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function imageFromCanvas(source) {
+    return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = reject;
+        image.src = source.toDataURL('image/png');
+    });
+}
+
+function drawDigitalPassImage(context, { guest, passes, qrImage, width }) {
+    context.fillStyle = '#f56f70';
+    context.fillRect(0, 0, width, 760);
+    context.fillStyle = '#fffaf0';
+    roundedRect(context, 58, 58, width - 116, 644, 34);
+    context.fill();
+    context.fillStyle = '#075b69';
+    context.font = '800 24px Poppins, Arial, sans-serif';
+    context.fillText('PASE DIGITAL', 110, 135);
+    context.fillStyle = '#f56f70';
+    context.font = '800 22px Poppins, Arial, sans-serif';
+    context.fillText('ISLAND ACCESS', 610, 135);
+    context.fillStyle = '#075b69';
+    context.fillRect(610, 155, 420, 2);
+    context.drawImage(qrImage, 110, 190, 390, 390);
+    context.fillStyle = '#075b69';
+    context.font = '400 56px Georgia, serif';
+    context.fillText(guest.slice(0, 28), 610, 285);
+    context.font = '800 24px Poppins, Arial, sans-serif';
+    context.fillText(passes.slice(0, 36), 610, 345);
+    context.fillStyle = '#f56f70';
+    context.font = '800 18px Poppins, Arial, sans-serif';
+    context.fillText('PRESENTA ESTE CÓDIGO AL LLEGAR', 610, 470);
+}
+
+function roundedRect(context, x, y, width, height, radius) {
+    context.beginPath();
+    context.moveTo(x + radius, y);
+    context.arcTo(x + width, y, x + width, y + height, radius);
+    context.arcTo(x + width, y + height, x, y + height, radius);
+    context.arcTo(x, y + height, x, y, radius);
+    context.arcTo(x, y, x + width, y, radius);
+    context.closePath();
 }
 
 function openPrintablePass(payload, config) {
