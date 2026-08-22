@@ -5,14 +5,23 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="robots" content="noindex,nofollow">
     <title>Preview del Invitation Builder</title>
-    <link rel="stylesheet" href="./frame.css?v=phase98-access-ticket-20260822">
+    <link rel="stylesheet" href="./frame.css?v=phase99-preview-devices-20260822">
 </head>
-<body class="builder-preview-idle">
-    <main class="preview-placeholder" aria-live="polite">
-        <span>EVENTORA STUDIO</span>
-        <strong>Preview en vivo</strong>
-        <p>Selecciona una colección para cargar su plantilla real.</p>
+<body class="builder-preview-shell">
+    <header id="preview-toolbar" class="preview-toolbar" aria-label="Dispositivo del Preview">
+        <div class="preview-toolbar-brand">EVENTORA <span>STUDIO</span></div>
+        <div id="preview-device-tabs" class="preview-device-tabs" role="tablist" aria-label="Vista del dispositivo">
+            <button type="button" role="tab" data-preview-viewport="desktop" aria-selected="true">PC</button>
+            <button type="button" role="tab" data-preview-viewport="tablet" aria-selected="false">TABLET</button>
+            <button type="button" role="tab" data-preview-viewport="mobile" aria-selected="false">MOVIL</button>
+        </div>
+        <small id="preview-viewport-dimension">PC Â· 1440 px</small>
+    </header>
+    <main id="preview-stage" class="preview-stage" aria-live="polite">
+        <div id="preview-device-viewport" class="preview-device-viewport">
+            <iframe id="preview-device-frame" title="Vista previa de la invitacion" src="about:blank" loading="eager"></iframe>
+        </div>
     </main>
-    <script type="module" src="./frame.js?v=phase98-access-ticket-20260822"></script>
+    <script type="module" src="./frame.js?v=phase99-preview-devices-20260822"></script>
 </body>
 </html>

@@ -22,7 +22,7 @@ export function initPreviewController({
     if (!state) return () => {};
 
     const targetOrigin = window.location.origin;
-    const previewUrl = new URL('./preview/frame.html?v=phase11-opening-cover-20260820', document.baseURI).href;
+    const previewUrl = new URL('./preview/frame.html?v=phase99-preview-devices-20260822', document.baseURI).href;
     let previewWindow = null;
     let shellReady = false;
     let queuedRender = null;

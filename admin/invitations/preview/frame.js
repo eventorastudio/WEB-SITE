@@ -19,6 +19,11 @@ import { entityHasContent } from '../core/logistics-schema.js?v=phase3-logistics
 const parentOrigin = window.location.origin;
 const previewHost = window.parent !== window ? window.parent : window.opener;
 const publicRuntime = document.documentElement.dataset.invitationRuntime === 'public';
+const embeddedPreview = new URL(window.location.href).searchParams.get('embedded') === '1';
+const previewDeviceFrame = !publicRuntime && !embeddedPreview
+    ? document.getElementById('preview-device-frame')
+    : null;
+if (embeddedPreview) document.documentElement.dataset.previewEmbedded = 'true';
 let activeThemeLinks = [];
 let latestRequestId = 0;
 let currentThemeId = null;
@@ -26,10 +31,12 @@ let countdownTimer = null;
 
 if (publicRuntime) {
     void startPublicInvitation();
-} else {
+} else if (embeddedPreview) {
     window.addEventListener('message', handleParentMessage);
     window.addEventListener('click', interceptNavigation, true);
     postToParent({ type: PREVIEW_MESSAGE_TYPES.SHELL_READY });
+} else {
+    setupPreviewShell();
 }
 window.addEventListener('submit', (event) => event.preventDefault(), true);
 window.addEventListener('beforeunload', () => {
@@ -102,6 +109,75 @@ async function handleParentMessage(event) {
     }
 }
 
+function setupPreviewShell() {
+    if (!previewDeviceFrame) return;
+    const stage = document.getElementById('preview-stage');
+    const viewport = document.getElementById('preview-device-viewport');
+    const dimension = document.getElementById('preview-viewport-dimension');
+    const tabs = [...document.querySelectorAll('[data-preview-viewport]')];
+    const devices = {
+        desktop: { label: 'PC', width: 1440, height: 900 },
+        tablet: { label: 'TABLET', width: 820, height: 1024 },
+        mobile: { label: 'MÃ“VIL', width: 390, height: 844 }
+    };
+    let childReady = false;
+    let queuedMessage = null;
+    let currentDevice = 'desktop';
+
+    const resize = (deviceId) => {
+        const device = devices[deviceId] || devices.desktop;
+        currentDevice = deviceId;
+        viewport.dataset.device = deviceId;
+        viewport.style.width = `${device.width}px`;
+        viewport.style.minHeight = `${device.height}px`;
+        previewDeviceFrame.style.width = `${device.width}px`;
+        previewDeviceFrame.style.height = `${device.height}px`;
+        const availableWidth = Math.max(0, (stage?.clientWidth ?? device.width) - 32);
+        const scale = deviceId === 'desktop' && availableWidth < device.width
+            ? Math.max(.55, availableWidth / device.width)
+            : 1;
+        viewport.style.transform = `scale(${scale})`;
+        viewport.style.marginBottom = `${Math.max(0, device.height * scale - device.height)}px`;
+        if (dimension) dimension.textContent = `${device.label} Â· ${device.width} px`;
+        tabs.forEach((tab) => {
+            const active = tab.dataset.previewViewport === deviceId;
+            tab.setAttribute('aria-selected', String(active));
+        });
+    };
+    const sendToChild = (message) => {
+        if (!message || !childReady || !previewDeviceFrame.contentWindow) {
+            queuedMessage = message;
+            return;
+        }
+        previewDeviceFrame.contentWindow.postMessage(message, parentOrigin);
+    };
+    const bridgeMessage = (event) => {
+        if (event.origin !== parentOrigin) return;
+        if (event.source === previewDeviceFrame.contentWindow) {
+            if (event.data?.type === PREVIEW_MESSAGE_TYPES.SHELL_READY) {
+                childReady = true;
+                postToParent(event.data);
+                if (queuedMessage) {
+                    const pending = queuedMessage;
+                    queuedMessage = null;
+                    sendToChild(pending);
+                }
+            } else if ([PREVIEW_MESSAGE_TYPES.RENDERED, PREVIEW_MESSAGE_TYPES.ERROR].includes(event.data?.type)) {
+                postToParent(event.data);
+            }
+            return;
+        }
+        if (event.source === previewHost && [PREVIEW_MESSAGE_TYPES.RENDER, PREVIEW_MESSAGE_TYPES.UPDATE].includes(event.data?.type)) {
+            sendToChild(event.data);
+        }
+    };
+    tabs.forEach((tab) => tab.addEventListener('click', () => resize(tab.dataset.previewViewport)));
+    window.addEventListener('resize', () => resize(currentDevice));
+    window.addEventListener('message', bridgeMessage);
+    resize('desktop');
+    previewDeviceFrame.src = './frame.html?embedded=1';
+}
+
 function validatePayload(payload) {
     if (!payload || !['builder', 'public'].includes(payload.renderMode)) throw new Error('Modo de invitación no válido.');
     if (!payload.theme?.id || !payload.theme?.name) throw new Error('Tema no encontrado.');
@@ -125,7 +201,10 @@ async function renderTemplate(payload, requestId) {
     await installThemeStyles(parsed, templateUrl);
     if (requestId !== latestRequestId) return false;
     document.body.className = `${parsed.body.className} builder-preview-rendered${publicRuntime ? ' public-invitation-rendered' : ''}`.trim();
-    document.body.innerHTML = parsed.body.innerHTML;
+    const renderRoot = embeddedPreview
+        ? document.body
+        : (document.getElementById('preview-device-viewport') || document.body);
+    renderRoot.innerHTML = parsed.body.innerHTML;
     sanitizeRealInvitationChrome(document);
 
     const invitation = document.getElementById('invitation');
