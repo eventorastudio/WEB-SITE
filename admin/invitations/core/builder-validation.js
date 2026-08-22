@@ -36,10 +36,14 @@ export function validateInvitationDraft(draft = {}) {
 
     validateEntityIds(draft, errors);
     const locationIds = new Set((draft.locations ?? []).map(({ id }) => id));
+    const galleryIds = new Set((draft.media?.gallery ?? []).map(({ id }) => id));
     (draft.locations ?? []).forEach((location) => {
         validateTime(location.time, `locations.${location.id}.time`, errors);
         validateUrl(location.mapsUrl, `locations.${location.id}.mapsUrl`, 'mapsUrl', 'custom', errors);
         validateUrl(location.wazeUrl, `locations.${location.id}.wazeUrl`, 'wazeUrl', 'custom', errors);
+        if (location.imageId && !galleryIds.has(location.imageId)) {
+            errors[`locations.${location.id}.imageId`] = 'La foto seleccionada ya no existe en Galería.';
+        }
     });
     (draft.itinerary ?? []).forEach((item) => {
         validateTime(item.time, `itinerary.${item.id}.time`, errors);

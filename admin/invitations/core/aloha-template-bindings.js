@@ -36,10 +36,26 @@ function renderAlohaLocationCards(documentRoot, content, locations, accommodatio
 
     if (locations.length) {
         const stops = node(documentRoot, 'div', 'location-stops aloha-location-grid');
+        const gallery = new Map((draft.media?.gallery ?? []).map((asset) => [asset.id, asset]));
         locations.forEach((location) => {
             const card = node(documentRoot, 'article', 'aloha-location-card');
             card.append(node(documentRoot, 'p', 'aloha-location-type', typeLabels[location.type] || 'Otro'));
             card.append(node(documentRoot, 'h3', '', location.title || 'Ubicaci\u00f3n'));
+            const visual = node(documentRoot, 'div', 'aloha-location-image');
+            const imageSource = source(gallery.get(location.imageId));
+            if (imageSource) {
+                const image = documentRoot.createElement('img');
+                image.src = imageSource;
+                image.alt = clean(location.venueName || location.title || 'Foto del lugar');
+                image.loading = 'lazy';
+                image.style.objectPosition = `${gallery.get(location.imageId)?.focalPoint?.x ?? 50}% ${gallery.get(location.imageId)?.focalPoint?.y ?? 50}%`;
+                visual.append(image);
+                visual.dataset.imageState = 'configured';
+            } else {
+                visual.append(node(documentRoot, 'span', 'aloha-location-image-fallback', 'ALOHA DESTINATION'));
+                visual.dataset.imageState = 'fallback';
+            }
+            card.append(visual);
             if (location.venueName) card.append(node(documentRoot, 'p', 'aloha-location-venue', location.venueName));
             const details = [location.time, location.address, [location.city, location.state].filter(Boolean).join(', ')].filter(Boolean);
             if (details.length) card.append(node(documentRoot, 'p', 'aloha-location-details', details.join(' \u00b7 ')));

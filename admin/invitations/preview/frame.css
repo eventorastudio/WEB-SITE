@@ -213,6 +213,58 @@ html[data-preview-embedded="true"], html[data-preview-embedded="true"] body { mi
     :is(.builder-preview-rendered, .public-invitation-rendered) .music-control { right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); }
 }
 
+/* Aloha location destination cards: title first, then the destination image. */
+body[data-builder-theme="aloha"] .aloha-location-card .aloha-location-image {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    min-height: 7rem;
+    margin: .9rem 0 .85rem;
+    overflow: hidden;
+    border-radius: .9rem .25rem .9rem .25rem;
+    background:
+        radial-gradient(circle at 72% 22%, rgb(246 198 74 / .7) 0 5%, transparent 6%),
+        linear-gradient(135deg, rgb(7 91 105 / .96), rgb(28 191 210 / .58));
+    box-shadow: 0 .55rem 1.15rem rgb(7 59 76 / .14);
+}
+
+body[data-builder-theme="aloha"] .aloha-location-image::after {
+    position: absolute;
+    right: -1.5rem;
+    bottom: -2rem;
+    width: 6rem;
+    height: 6rem;
+    border: 1px solid rgb(255 250 240 / .5);
+    border-radius: 50%;
+    content: "";
+    transform: rotate(18deg);
+}
+
+body[data-builder-theme="aloha"] .aloha-location-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+body[data-builder-theme="aloha"] .aloha-location-image-fallback {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: rgb(255 250 240 / .9);
+    font: 800 .54rem/1 Poppins, "Segoe UI", sans-serif;
+    letter-spacing: .22em;
+}
+
+@media (max-width: 730px) {
+    body[data-builder-theme="aloha"] .aloha-location-card .aloha-location-image {
+        aspect-ratio: 16 / 10;
+        min-height: 8.5rem;
+        margin: .8rem 0 .75rem;
+    }
+}
+
 /* Aloha mobile music control: compact, safe-area aware and globally non-invasive. */
 @media (max-width: 730px) {
     body[data-builder-theme="aloha"] #invitation {

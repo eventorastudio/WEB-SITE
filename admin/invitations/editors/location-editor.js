@@ -7,20 +7,28 @@ export function initLocationEditor({ container, state }) {
     return initEntityListEditor({
         container, state, collection: 'locations',
         title: 'Ubicaciones',
-        description: 'Configura el lugar principal y, con Premium o Prestige, sedes adicionales.',
+        description: 'Configura sedes y asigna una foto desde las imágenes cargadas en Multimedia → Galería.',
         addLabel: '+ Agregar ubicación',
         addMethod: 'addLocation', updateMethod: 'updateLocation', removeMethod: 'removeLocation', moveMethod: 'moveLocation',
         canAdd: (snapshot) => !snapshot.draft.locations.length || packageAllowsMultipleLocations(snapshot.draft.packageId),
         addUnavailableMessage: 'El paquete actual permite una ubicación principal. Las ubicaciones adicionales se conservan al hacer downgrade.',
+        refreshOnCollections: ['media'],
         summary: (item, index, snapshot) => ({
             title: item.title || locationTypeLabel(item.type) || `Ubicación ${index + 1}`,
             subtitle: item.venueName || item.address || item.id,
             status: index > 0 && !packageAllowsMultipleLocations(snapshot.draft.packageId) ? 'Conservada' : locationTypeLabel(item.type)
         }),
-        fields: () => [
+        fields: (item, snapshot) => [
             selectField('type', 'Tipo', TYPE_OPTIONS),
             textField('title', 'Título visible', { placeholder: 'Ceremonia religiosa', maxLength: 140 }),
             textField('venueName', 'Nombre del lugar', { placeholder: 'Catedral de Santiago', maxLength: 160 }),
+            selectField('imageId', 'Foto del lugar', [
+                { value: '', label: 'Sin foto — usar fallback Aloha' },
+                ...(snapshot.draft.media?.gallery ?? []).map((asset) => ({
+                    value: asset.id,
+                    label: asset.originalName || `Imagen ${asset.id}`
+                }))
+            ], { wide: true }),
             textField('time', 'Hora', { type: 'time', errorPath: (item) => `locations.${item.id}.time` }),
             textareaField('address', 'Dirección', { rows: 2, placeholder: 'Calle, número y colonia', maxLength: 300 }),
             textField('city', 'Ciudad', { maxLength: 100 }),

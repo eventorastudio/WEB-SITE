@@ -26,6 +26,7 @@ const TEXT_LIMITS = Object.freeze({
     wazeUrl: 2048,
     description: 800,
     notes: 600,
+    imageId: 100,
     name: 160,
     url: 2048,
     reference: 180,
@@ -56,7 +57,7 @@ export function createEntityId(prefix, sequence) {
 }
 
 export function createLocation(id, seed = {}) {
-    return {
+    const location = {
         id,
         type: oneOf(seed.type, LOCATION_TYPES, 'other'),
         title: text(seed.title, 'title'),
@@ -70,6 +71,8 @@ export function createLocation(id, seed = {}) {
         description: text(seed.description, 'description'),
         notes: text(seed.notes, 'notes')
     };
+    if (Object.hasOwn(seed, 'imageId')) location.imageId = text(seed.imageId, 'imageId');
+    return location;
 }
 
 export function createItineraryItem(id, seed = {}) {

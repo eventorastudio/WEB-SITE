@@ -227,6 +227,11 @@ export function initEntityListEditor({
     container.addEventListener('toggle', handleToggle, true);
     render();
     const unsubscribe = state.subscribe((payload) => {
+        if (payload.reason === 'media-changed' && refreshOnCollections.includes('media')) {
+            snapshot = payload.snapshot;
+            render();
+            return;
+        }
         if (payload.reason !== 'entities-changed') return;
         if (refreshOnCollections.includes(payload.details.collection)) {
             snapshot = payload.snapshot;
