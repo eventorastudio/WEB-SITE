@@ -9,7 +9,7 @@ import {
     formatInvitationEventLine,
     prepareBuilderTemplate
 } from '../core/template-binding-registry.js?v=phase86-aloha-a2-20260820';
-import { PublicInvitationPage } from '../../../invitacion/public-invitation-page.js?v=phase97-public-rsvp-20260821';
+import { PublicInvitationPage } from '../../../invitacion/public-invitation-page.js?v=phase105-aloha-rsvp-functional-20260822';
 import { applyPublicInvitationPersonalization } from '../../../invitacion/public-invitation-personalization.js?v=phase88-qr2-20260820';
 import { generateQrCanvas } from '../../modules/qr/qr-renderer.js?v=phase88-qr2-20260820';
 import { getThemeById } from '../core/theme-registry.js?v=phase86-appearance-20260820';
@@ -303,10 +303,12 @@ function applyPayload(payload) {
         syncOpeningData(payload);
     }
     if (payload.theme.id === 'aloha') setupAlohaInteractions(payload);
-    renderAccessPass(payload);
     if (publicRuntime && payload.personalization) {
         applyPublicInvitationPersonalization(document, payload.personalization, payload.rsvpUrl);
     }
+    // Render access after personalization so the transient qrToken is available
+    // to the on-screen QR and the printable ticket from the same payload.
+    renderAccessPass(payload);
     renderCountdown(payload.draft);
     const title = resolveIdentity(payload.draft.content);
     document.title = publicRuntime
@@ -904,6 +906,7 @@ function interceptNavigation(event) {
     const anchor = event.target.closest?.('a');
     const action = event.target.closest?.('[data-builder-action],[data-demo-action]');
     if (!anchor && !action) return;
+    if (action?.dataset.publicInvitationRsvp === 'true') return;
     event.preventDefault();
     const href = anchor?.getAttribute('href') || '';
     if (!action && href.startsWith('#') && href.length > 1) {

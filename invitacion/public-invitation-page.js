@@ -7,7 +7,7 @@ import { publicInvitationPersonalizationLoader } from './public-invitation-perso
 import {
     buildInvitationRsvpUrl,
     readPublicInvitationRoute
-} from './public-invitation-route.js?v=phase64-personalized-invitation-20260817';
+} from './public-invitation-route.js?v=phase105-aloha-rsvp-functional-20260822';
 
 const AUTHORITATIVE_COLLECTIONS = Object.freeze([
     'locations',
