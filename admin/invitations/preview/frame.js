@@ -464,12 +464,11 @@ function renderAccessPass(payload) {
     });
     const printEnabled = valid && config.showPrintPass !== false;
     const printButton = ensureAccessPrintButton(access, config, printEnabled);
-    ensureAlohaWalletActions(access);
     printButton.dataset.accessVisible = String(printEnabled);
     printButton?.replaceWith(printButton.cloneNode(true));
     const currentPrintButton = access.querySelector('[data-access-print]');
     currentPrintButton?.addEventListener('click', () => openPrintablePass(payload, config));
-    syncAlohaPassActions(access, access.querySelector('[data-access-mode][aria-pressed="true"]')?.dataset.accessMode || 'digital');
+    syncAlohaPassPrintAction(access, access.querySelector('[data-access-mode][aria-pressed="true"]')?.dataset.accessMode || 'digital');
 
     let optionsNote = access.querySelector('[data-access-options-note]');
     if (!optionsNote && (config.showQr !== false || config.showPrintPass !== false)) {
@@ -488,33 +487,6 @@ function renderAccessPass(payload) {
     }
 }
 
-function ensureAlohaWalletActions(access) {
-    const digital = access.querySelector('[data-access-view="digital"]');
-    if (!digital || digital.querySelector('[data-access-wallet-actions]')) return;
-    const actions = document.createElement('div');
-    actions.className = 'access-wallet-actions';
-    actions.dataset.accessWalletActions = 'true';
-    const label = document.createElement('small');
-    label.textContent = 'BILLETERA DIGITAL';
-    actions.append(label);
-    ['Agregar a Apple Wallet', 'Agregar a Google Wallet'].forEach((text) => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.disabled = true;
-        button.title = 'Próximamente';
-        button.textContent = text;
-        actions.append(button);
-    });
-    digital.querySelector(':scope > div')?.append(actions);
-}
-
-function syncAlohaPassActions(access, mode) {
-    const printButton = access.querySelector('[data-access-print]');
-    if (printButton) printButton.hidden = printButton.dataset.accessVisible !== 'true' || mode !== 'printed';
-    const walletActions = access.querySelector('[data-access-wallet-actions]');
-    if (walletActions) walletActions.hidden = mode !== 'digital';
-}
-
 function normalizeAlohaRsvpCopy(optionsNote, config = {}) {
     if (optionsNote) {
         optionsNote.textContent = config.showQr !== false && config.showPrintPass !== false
@@ -529,6 +501,11 @@ function normalizeAlohaRsvpCopy(optionsNote, config = {}) {
     if (heading && /Ã|Â/.test(heading.textContent || '')) heading.innerHTML = '¿Te unes<br>a la ola?';
     const printedLabel = document.querySelector('body[data-builder-theme="aloha"] [data-access-view="printed"] > small');
     if (printedLabel && /Ã|Â/.test(printedLabel.textContent || '')) printedLabel.textContent = 'BOARDING POSTCARD · XV 27';
+}
+
+function syncAlohaPassPrintAction(access, mode) {
+    const printButton = access.querySelector('[data-access-print]');
+    if (printButton) printButton.hidden = printButton.dataset.accessVisible !== 'true' || mode !== 'printed';
 }
 
 function normalizeAlohaRsvpVisibleCopy(config = {}) {
@@ -605,7 +582,7 @@ function setupAlohaPassTabs(payload) {
     const activate = (mode) => {
         buttons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.accessMode === mode)));
         views.forEach((view) => { view.hidden = view.dataset.accessView !== mode; });
-        syncAlohaPassActions(access, mode);
+        syncAlohaPassPrintAction(access, mode);
     };
     buttons.forEach((button) => button.addEventListener('click', () => activate(button.dataset.accessMode)));
     activate(buttons.find((button) => button.getAttribute('aria-pressed') === 'true')?.dataset.accessMode || 'digital');
