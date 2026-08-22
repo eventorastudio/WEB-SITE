@@ -55,7 +55,7 @@ async function startPublicInvitation() {
 async function renderPublicPayload(payload) {
     const requestId = ++latestRequestId;
     const validated = validatePayload(payload);
-    showLoading(validated.theme.name);
+    showLoading(validated.theme.name, validated.personalization?.displayName, validated.theme.id === 'aloha');
     const rendered = validated.theme.id === 'custom'
         ? await renderCustom(validated, requestId)
         : await renderTemplate(validated, requestId);
@@ -80,7 +80,7 @@ async function handleParentMessage(event) {
             applyPayload(payload);
         } else {
             currentThemeId = null;
-            showLoading(payload.theme.name);
+            showLoading(payload.theme.name, payload.personalization?.displayName, payload.theme.id === 'aloha');
             const rendered = payload.theme.id === 'custom'
                 ? await renderCustom(payload, requestId)
                 : await renderTemplate(payload, requestId);
@@ -1073,8 +1073,22 @@ function cleanText(value) {
     return String(value ?? '').replace(/\s+/g, ' ').trim().slice(0, 1800);
 }
 
-function showLoading(themeName) {
+function showLoading(themeName, guestName = '', isAloha = false) {
     window.clearInterval(countdownTimer);
+    if (isAloha) {
+        document.body.className = 'builder-preview-loading aloha-loading';
+        document.body.innerHTML = '<main class="preview-placeholder aloha-loading-card" aria-live="polite"><div class="aloha-loading-mark" aria-hidden="true"><span></span><i></i><b></b></div><span class="aloha-loading-brand">EVENTORA STUDIO · ALOHA</span><strong class="aloha-loading-title"></strong><p class="aloha-loading-subtitle"></p></main>';
+        const title = document.querySelector('.aloha-loading-title');
+        const subtitle = document.querySelector('.aloha-loading-subtitle');
+        const safeName = String(guestName || '').replace(/\s+/g, ' ').trim();
+        title.textContent = safeName
+            ? `${safeName}, tu experiencia está por comenzar`
+            : 'Tu experiencia está por comenzar';
+        subtitle.textContent = publicRuntime
+            ? 'Estamos preparando una bienvenida pensada para ti.'
+            : 'Preparando una vista previa cálida y especial.';
+        return;
+    }
     document.body.className = 'builder-preview-loading';
     document.body.innerHTML = '<main class="preview-placeholder"><i class="preview-loader" aria-hidden="true"></i><span>EVENTORA STUDIO</span><strong>Cargando colección</strong><p></p></main>';
     document.querySelector('.preview-placeholder p').textContent = publicRuntime

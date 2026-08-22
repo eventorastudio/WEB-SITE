@@ -1408,3 +1408,139 @@ body[data-builder-theme="aloha"] .rsvp [data-access-download]:hover {
         transition: none;
     }
 }
+
+/* Aloha welcome loading: a warm, lightweight entrance before the invitation. */
+body.public-invitation-loading,
+body.builder-preview-loading.aloha-loading {
+    min-height: 100dvh;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 12% 18%, rgb(246 198 74 / .24), transparent 28%),
+        radial-gradient(circle at 88% 82%, rgb(28 191 210 / .2), transparent 30%),
+        linear-gradient(135deg, #fff7e8 0%, #ffd8bd 46%, #f7a7a0 100%);
+}
+
+body.public-invitation-loading::before,
+body.public-invitation-loading::after,
+body.builder-preview-loading.aloha-loading::before,
+body.builder-preview-loading.aloha-loading::after {
+    position: fixed;
+    width: min(42vw, 24rem);
+    aspect-ratio: 1;
+    border: 1px solid rgb(7 91 105 / .16);
+    border-radius: 48% 52% 58% 42%;
+    content: "";
+    pointer-events: none;
+}
+
+body.public-invitation-loading::before,
+body.builder-preview-loading.aloha-loading::before {
+    top: -12rem;
+    right: -8rem;
+    transform: rotate(24deg);
+}
+
+body.public-invitation-loading::after,
+body.builder-preview-loading.aloha-loading::after {
+    bottom: -14rem;
+    left: -9rem;
+    border-color: rgb(255 250 240 / .7);
+    transform: rotate(-18deg);
+}
+
+.preview-placeholder.aloha-loading-card {
+    position: relative;
+    z-index: 1;
+    width: min(88%, 31rem);
+    min-height: 22rem;
+    align-content: center;
+    gap: .9rem;
+    padding: clamp(2.2rem, 7vw, 4.4rem) clamp(1.6rem, 6vw, 3.6rem);
+    border: 1px solid rgb(255 250 240 / .78);
+    border-radius: 2.2rem .65rem 2.2rem .65rem;
+    background: linear-gradient(145deg, rgb(255 250 240 / .7), rgb(255 239 207 / .34));
+    box-shadow: .7rem .8rem 0 rgb(8 122 80 / .13), 0 1.8rem 4rem rgb(80 47 33 / .18);
+    backdrop-filter: blur(14px);
+}
+
+.aloha-loading-mark {
+    position: relative;
+    width: 4.2rem;
+    height: 4.2rem;
+    margin: 0 auto .35rem;
+    border: 1px solid rgb(7 91 105 / .2);
+    border-radius: 50%;
+}
+
+.aloha-loading-mark::before,
+.aloha-loading-mark::after,
+.aloha-loading-mark span,
+.aloha-loading-mark i,
+.aloha-loading-mark b {
+    position: absolute;
+    display: block;
+    border-radius: 50%;
+    content: "";
+}
+
+.aloha-loading-mark::before {
+    inset: .55rem;
+    border: 1px solid rgb(244 91 105 / .5);
+    border-top-color: transparent;
+    animation: aloha-loading-spin 2.8s linear infinite;
+}
+
+.aloha-loading-mark::after {
+    inset: 1.55rem;
+    background: var(--sun, #f6c64a);
+    box-shadow: 0 0 .8rem rgb(246 198 74 / .55);
+}
+
+.aloha-loading-mark span,
+.aloha-loading-mark i,
+.aloha-loading-mark b {
+    width: .36rem;
+    height: .36rem;
+    background: var(--teal, #075b69);
+}
+
+.aloha-loading-mark span { top: .35rem; left: 1.9rem; }
+.aloha-loading-mark i { right: .35rem; bottom: 1.05rem; background: var(--coral, #f45b69); }
+.aloha-loading-mark b { bottom: .45rem; left: 1.05rem; background: var(--sun, #f6c64a); }
+
+.aloha-loading-brand {
+    color: var(--teal, #075b69);
+    font: 800 .55rem/1 Poppins, "Segoe UI", sans-serif;
+    letter-spacing: .24em;
+}
+
+.aloha-loading-title {
+    max-width: 17ch;
+    color: var(--deep, #073b4c);
+    font: 400 clamp(2.25rem, 8vw, 4rem)/.95 Georgia, serif;
+    letter-spacing: -.035em;
+}
+
+.aloha-loading-subtitle {
+    max-width: 30ch;
+    margin: .1rem auto 0;
+    color: rgb(7 59 76 / .68);
+    font: 500 .72rem/1.65 Poppins, "Segoe UI", sans-serif;
+}
+
+@keyframes aloha-loading-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 600px) {
+    .preview-placeholder.aloha-loading-card {
+        width: min(88%, 22rem);
+        min-height: 19rem;
+        padding: 2.25rem 1.35rem;
+        border-radius: 1.7rem .55rem 1.7rem .55rem;
+    }
+
+    .aloha-loading-title { font-size: clamp(2.1rem, 11vw, 3.1rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aloha-loading-mark::before { animation: none; }
+}
