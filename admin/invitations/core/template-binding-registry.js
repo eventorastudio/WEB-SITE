@@ -595,6 +595,10 @@ function belongsToSectionRoot(node, root) {
 
 function hideDemoSectionCopy(root, definition) {
     if (definition.replaceDemoChildren) {
+        // Access contains live digital/printed pass surfaces rendered later by
+        // renderAccessPass(). Keep those nodes mounted; only the semantic copy
+        // wrapper should be added for editable access text.
+        if (root.matches('[data-access-preview]')) return;
         [...root.children].forEach((child) => {
             child.hidden = true;
             child.dataset.builderDemoContainer = 'hidden';

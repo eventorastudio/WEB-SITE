@@ -8,8 +8,8 @@ import {
     applyPhase5ContentBindings,
     formatInvitationEventLine,
     prepareBuilderTemplate
-} from '../core/template-binding-registry.js?v=phase86-aloha-a2-20260820';
-import { PublicInvitationPage } from '../../../invitacion/public-invitation-page.js?v=phase105-aloha-rsvp-functional-20260822';
+} from '../core/template-binding-registry.js?v=phase106-aloha-rsvp-access-20260822';
+import { PublicInvitationPage } from '../../../invitacion/public-invitation-page.js?v=phase108-aloha-rsvp-access-20260822';
 import { applyPublicInvitationPersonalization } from '../../../invitacion/public-invitation-personalization.js?v=phase88-qr2-20260820';
 import { generateQrCanvas } from '../../modules/qr/qr-renderer.js?v=phase88-qr2-20260820';
 import { getThemeById } from '../core/theme-registry.js?v=phase86-appearance-20260820';
@@ -419,7 +419,10 @@ function renderAccessPass(payload) {
     const access = document.querySelector('[data-access-preview]');
     if (!access) return;
     const config = payload.draft?.content?.access ?? {};
-    queueMicrotask(() => normalizeAlohaRsvpCopy(document.querySelector('[data-access-options-note]'), config));
+    queueMicrotask(() => {
+        normalizeAlohaRsvpCopy(document.querySelector('[data-access-options-note]'), config);
+        normalizeAlohaRsvpVisibleCopy(config);
+    });
     const personalization = payload.personalization;
     const builderPreview = payload.renderMode === 'builder';
     const hasPersonalizedAccess = builderPreview || Boolean(personalization);
@@ -496,6 +499,27 @@ function normalizeAlohaRsvpCopy(optionsNote, config = {}) {
     if (heading && /Ã|Â/.test(heading.textContent || '')) heading.innerHTML = '¿Te unes<br>a la ola?';
     const printedLabel = document.querySelector('body[data-builder-theme="aloha"] [data-access-view="printed"] > small');
     if (printedLabel && /Ã|Â/.test(printedLabel.textContent || '')) printedLabel.textContent = 'BOARDING POSTCARD · XV 27';
+}
+
+function normalizeAlohaRsvpVisibleCopy(config = {}) {
+    const root = document.querySelector('body[data-builder-theme="aloha"] .rsvp');
+    if (!root) return;
+    root.querySelector('.section-no')?.replaceChildren(document.createTextNode('07 · RSVP'));
+    const heading = root.querySelector('h2');
+    if (heading) {
+        heading.replaceChildren(document.createTextNode('¿Te unes'), document.createElement('br'), document.createTextNode('a la ola?'));
+    }
+    const note = root.querySelector('[data-access-options-note]');
+    if (note) {
+        note.textContent = config.showQr !== false && config.showPrintPass !== false
+            ? 'Puedes presentar este código desde tu celular o imprimir tu pase físico.'
+            : config.showQr !== false
+                ? 'Presenta este código desde tu celular al llegar.'
+                : 'Imprime tu pase y llévalo contigo el día del evento.';
+    }
+    root.querySelector('[data-access-view="printed"] > small')?.replaceChildren(
+        document.createTextNode('BOARDING POSTCARD · XV 27')
+    );
 }
 
 function ensureAccessPrintButton(access, config, visible) {
