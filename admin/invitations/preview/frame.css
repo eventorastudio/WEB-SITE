@@ -1497,3 +1497,79 @@ body[data-builder-theme="aloha"] .rsvp .rsvp-flower {
         padding-top: clamp(2rem, 8vw, 3.5rem) !important;
     }
 }
+
+/* Aloha access labels and wallet actions. These styles do not alter tab state. */
+body[data-builder-theme="aloha"] .rsvp .section-no {
+    font-size: clamp(.78rem, 1.2vw, 1rem);
+    font-weight: 800;
+    letter-spacing: .22em;
+    line-height: 1.2;
+}
+
+body[data-builder-theme="aloha"] .rsvp h2 {
+    font-size: clamp(4.25rem, 10vw, 9.5rem);
+    line-height: .88;
+}
+
+body[data-builder-theme="aloha"] .access-wallet-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .55rem;
+    width: 100%;
+    margin-top: .85rem;
+    padding-top: .8rem;
+    border-top: 1px solid rgb(7 91 105 / .16);
+}
+
+body[data-builder-theme="aloha"] .access-wallet-actions small {
+    grid-column: 1 / -1;
+    color: var(--coral);
+    font: 800 .5rem/1 Poppins, "Segoe UI", sans-serif;
+    letter-spacing: .16em;
+    text-align: left;
+}
+
+body[data-builder-theme="aloha"] .access-wallet-actions button {
+    min-height: 2.45rem;
+    padding: .55rem .65rem;
+    border: 1px solid rgb(7 91 105 / .2);
+    border-radius: 999px;
+    color: rgb(7 91 105 / .68);
+    background: rgb(255 255 255 / .42);
+    font: 800 .52rem/1.25 Poppins, "Segoe UI", sans-serif;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    cursor: not-allowed;
+    opacity: .78;
+}
+
+body[data-builder-theme="aloha"] .access-wallet-actions button::after {
+    display: block;
+    margin-top: .18rem;
+    color: var(--coral);
+    content: "Próximamente";
+    font-size: .45rem;
+    letter-spacing: .08em;
+}
+
+body[data-builder-theme="aloha"] .rsvp [data-access-print][hidden],
+body[data-builder-theme="aloha"] .access-wallet-actions[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 730px) {
+    body[data-builder-theme="aloha"] .rsvp .section-no {
+        font-size: .82rem;
+        letter-spacing: .2em;
+    }
+
+    body[data-builder-theme="aloha"] .rsvp h2 {
+        font-size: clamp(3.8rem, 18vw, 5.8rem);
+    }
+
+    body[data-builder-theme="aloha"] .access-wallet-actions button {
+        min-height: 2.7rem;
+        padding-inline: .45rem;
+        font-size: .48rem;
+    }
+}
