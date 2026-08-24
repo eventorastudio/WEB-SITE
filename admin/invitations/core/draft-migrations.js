@@ -22,8 +22,19 @@ function migrateLocationMediaRefs(document) {
         if (hasCurrent && hasLegacy && location.imageMediaId !== location.imageId) {
             migrationError('draft/conflicting-location-image-media-ids');
         }
+        if (hasCurrent && location.imageMediaId === '') {
+            const migrated = { ...location };
+            delete migrated.imageMediaId;
+            if (hasLegacy) delete migrated.imageId;
+            return migrated;
+        }
         if (!hasLegacy) return location;
         const migrated = { ...location };
+        if (migrated.imageId === '') {
+            delete migrated.imageId;
+            if (hasCurrent) delete migrated.imageMediaId;
+            return migrated;
+        }
         if (!hasCurrent) migrated.imageMediaId = migrated.imageId;
         delete migrated.imageId;
         return migrated;
@@ -109,6 +120,7 @@ export function migrateInvitationDraftToCurrentSchema(rawDraft) {
         migration(migrated);
     }
     migrateCurrentOptionalContentDefaults(migrated);
+    if (migrated.theme === '') migrated.theme = null;
     if (migrated.settings && !Object.hasOwn(migrated.settings, 'format')) {
         migrated.settings.format = getInvitationFormat().id;
     }

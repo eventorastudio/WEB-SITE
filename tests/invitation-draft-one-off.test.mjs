@@ -34,7 +34,8 @@ test('one-off report migrates legacy fixture without exposing values and preserv
     assert.equal(report.current.locations.length, 3);
     assert.ok(report.current.content.welcome.opening);
     assert.equal(report.migrated.accommodations.length, 0);
-    assert.ok(report.differences.some(({ path }) => path === 'locations[1].imageId'));
+    assert.ok(report.rawDifferences.some(({ path }) => path === 'locations[1].imageId'));
+    assert.deepEqual(report.canonicalDifferences, []);
 });
 
 test('one-off tool requires explicit dry-run and rejects unsafe flags', () => {

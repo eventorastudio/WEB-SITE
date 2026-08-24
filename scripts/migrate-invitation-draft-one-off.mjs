@@ -52,14 +52,32 @@ export function parseArguments(args) {
 export function buildMigrationReport(rawDraft, eventId) {
     const migrated = migrateInvitationDraftToCurrentSchema(rawDraft);
     const runtime = deserializeInvitationDraft(migrated, eventId);
-    const current = serializeInvitationDraft(runtime, {
+    const current = serializeInvitationDraft(toBuilderDraft(runtime), {
         eventId,
         updatedAt: migrated.updatedAt,
         updatedBy: migrated.updatedBy
     });
-    const differences = findCanonicalDifferences(rawDraft, current, { limit: 1000 });
+    const rawDifferences = findCanonicalDifferences(rawDraft, current, { limit: 1000 });
+    const canonicalDifferences = findCanonicalDifferences(migrated, current, { limit: 1000 });
     assertIntegrity(migrated, current);
-    return { migrated, runtime, current, differences };
+    return { rawDraft, migrated, runtime, current, rawDifferences, canonicalDifferences };
+}
+
+function toBuilderDraft(runtime) {
+    return {
+        eventId: runtime.eventId,
+        themeId: runtime.theme,
+        enabledSections: runtime.sections,
+        content: runtime.content,
+        locations: runtime.locations,
+        itinerary: runtime.itinerary,
+        gifts: runtime.gifts,
+        accommodations: runtime.accommodations,
+        links: runtime.links,
+        appearance: runtime.appearance,
+        settings: runtime.settings,
+        packageId: runtime.settings?.packageId
+    };
 }
 
 export async function createLocalBackup(eventId, rawDraft, directory = path.resolve('backups', 'invitation-drafts')) {
@@ -133,16 +151,24 @@ export async function run({ eventId, dryRun, apply }) {
     return { ...report, applied: false };
 }
 
-function printReport(eventId, { migrated, current, differences }, dryRun, apply) {
+function printReport(eventId, { rawDraft, migrated, current, rawDifferences, canonicalDifferences }, dryRun, apply) {
     console.log(`EVENTO: ${eventId}`);
     console.log(`MODO: ${apply ? 'APPLY (bloqueado)' : dryRun ? 'DRY RUN' : 'no-escritura'}`);
     console.log(`schemaVersion: ${migrated.schemaVersion}`);
     console.log(`contentSchemaVersion: ${migrated.contentSchemaVersion}`);
     console.log(`locations: ${migrated.locations.length} → ${current.locations.length}`);
-    console.log(`locations[1].imageMediaId: ${structuralStatus(migrated.locations?.[1]?.imageMediaId, current.locations?.[1]?.imageMediaId)}`);
+    console.log(`locations[1].raw imageMediaId: ${presenceType(rawDraft.locations?.[1]?.imageMediaId)}`);
+    console.log(`locations[1].raw imageId: ${presenceType(rawDraft.locations?.[1]?.imageId)}`);
+    const rawLegacyImageId = rawDraft.locations?.[1]?.imageId;
+    const currentMediaStatus = rawLegacyImageId === '' && current.locations?.[1]?.imageMediaId === undefined
+        ? 'absent (legacy empty reference normalized as optional absence)'
+        : structuralStatus(migrated.locations?.[1]?.imageMediaId, current.locations?.[1]?.imageMediaId);
+    console.log(`locations[1].current imageMediaId: ${currentMediaStatus}`);
     console.log(`accommodations: ${migrated.accommodations.length} → ${current.accommodations.length}`);
-    console.log(`diferencias estructurales: ${differences.length}`);
-    for (const difference of differences) console.log(JSON.stringify(difference));
+    console.log(`cambios raw → current: ${rawDifferences.length}`);
+    for (const difference of rawDifferences) console.log(JSON.stringify(difference));
+    console.log(`canonical differences migrated → current: ${canonicalDifferences.length}`);
+    for (const difference of canonicalDifferences) console.log(JSON.stringify(difference));
 }
 
 function structuralStatus(before, after) {
