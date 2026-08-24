@@ -3,7 +3,7 @@ import {
     createInvitationDraftFingerprint,
     deserializeInvitationDraft,
     serializeInvitationDraft
-} from '../core/draft-persistence-schema.js?v=phase117-draft-canonical-diffs-20260824';
+} from '../core/draft-persistence-schema.js?v=phase118-legacy-location-image-id-20260824';
 
 function serviceError(code, cause = null, details = {}) {
     const error = new Error(code);

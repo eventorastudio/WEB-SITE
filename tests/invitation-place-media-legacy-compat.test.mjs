@@ -21,15 +21,34 @@ function persistedDraft() {
     return serializeInvitationDraft(draft, OPTIONS);
 }
 
-test('legacy location imageId loads without rewriting its persisted shape', () => {
+test('legacy location imageId is normalized to imageMediaId without a write', () => {
     const document = persistedDraft();
     document.locations[0].imageId = 'MED-LOCAL-001';
 
     const loaded = deserializeInvitationDraft(document, EVENT_ID);
 
     assert.equal(document.locations[0].imageId, 'MED-LOCAL-001');
-    assert.equal(loaded.locations[0].imageId, 'MED-LOCAL-001');
-    assert.equal(loaded.locations[0].imageMediaId, undefined);
+    assert.equal(loaded.locations[0].imageMediaId, 'MED-LOCAL-001');
+    assert.equal(loaded.locations[0].imageId, undefined);
+    const saved = serializeInvitationDraft(loaded, OPTIONS);
+    assert.equal(saved.locations[0].imageMediaId, 'MED-LOCAL-001');
+    assert.equal(saved.locations[0].imageId, undefined);
+});
+
+test('production-shaped second location imageId is accepted and serialized canonically', () => {
+    const document = persistedDraft();
+    document.locations = [
+        { ...document.locations[0], id: 'LOC-LOCAL-001' },
+        { ...document.locations[0], id: 'LOC-LOCAL-002', imageId: 'MED-LOCAL-001' },
+        { ...document.locations[0], id: 'LOC-LOCAL-003' }
+    ];
+
+    const loaded = deserializeInvitationDraft(document, EVENT_ID);
+    assert.equal(loaded.locations[1].imageMediaId, 'MED-LOCAL-001');
+    assert.equal(loaded.locations[1].imageId, undefined);
+    const saved = serializeInvitationDraft(loaded, OPTIONS);
+    assert.equal(saved.locations[1].imageMediaId, 'MED-LOCAL-001');
+    assert.equal(saved.locations[1].imageId, undefined);
 });
 
 test('current location and accommodation place references load when valid', () => {
@@ -77,6 +96,15 @@ test('invalid imageMediaId and unknown entity fields remain rejected', () => {
     const invalidId = persistedDraft();
     invalidId.locations[0].imageMediaId = 'not-a-media-id';
     assert.throws(() => deserializeInvitationDraft(invalidId, EVENT_ID), { code: 'draft/invalid-image-media-id' });
+
+    const invalidLegacyId = persistedDraft();
+    invalidLegacyId.locations[0].imageId = 123;
+    assert.throws(() => deserializeInvitationDraft(invalidLegacyId, EVENT_ID), { code: 'draft/invalid-image-media-id' });
+
+    const conflictingAliases = persistedDraft();
+    conflictingAliases.locations[0].imageId = 'MED-LOCAL-001';
+    conflictingAliases.locations[0].imageMediaId = 'MED-LOCAL-002';
+    assert.throws(() => deserializeInvitationDraft(conflictingAliases, EVENT_ID), { code: 'draft/non-canonical-document' });
 
     const unknownField = persistedDraft();
     unknownField.locations[0].unexpected = true;

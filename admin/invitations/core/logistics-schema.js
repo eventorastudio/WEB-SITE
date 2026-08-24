@@ -88,9 +88,7 @@ export function createLocation(id, seed = {}) {
     const imageMediaId = optionalImageMediaId(seed.imageMediaId);
     const legacyImageId = optionalImageMediaId(seed.imageId);
     if (imageMediaId !== undefined) location.imageMediaId = imageMediaId;
-    // `imageId` predates the dedicated place library. Keep its persisted shape
-    // while reading legacy drafts; it is never rewritten merely by opening.
-    else if (legacyImageId !== undefined) location.imageId = legacyImageId;
+    else if (legacyImageId !== undefined) location.imageMediaId = legacyImageId;
     if (Object.hasOwn(seed, 'categoryIcon')) location.categoryIcon = normalizeLocationIconKey(seed.categoryIcon);
     if (Object.hasOwn(seed, 'venueIcon')) location.venueIcon = normalizeLocationIconKey(seed.venueIcon);
     return location;

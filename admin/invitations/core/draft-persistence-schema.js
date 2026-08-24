@@ -14,7 +14,7 @@ import {
     DRESS_COLOR_GROUPS,
     createDressColor,
     normalizeEntity
-} from './logistics-schema.js?v=phase115-place-draft-legacy-20260824';
+} from './logistics-schema.js?v=phase118-legacy-location-image-id-20260824';
 
 export const INVITATION_DRAFT_DOCUMENT_ID = 'draft';
 export const INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION = 2;
@@ -235,6 +235,24 @@ function normalizeCollection(collection, value) {
     return normalized;
 }
 
+// Legacy compatibility is limited to the documented location alias. This
+// prepares a comparison copy only; it never mutates or writes the stored draft.
+export function canonicalizeSupportedLegacyDraftForComparison(storedDraft) {
+    if (!Array.isArray(storedDraft?.locations)) return storedDraft;
+    const hasLegacyAlias = storedDraft.locations.some((location) => (
+        location && Object.hasOwn(location, 'imageId') && !Object.hasOwn(location, 'imageMediaId')
+    ));
+    if (!hasLegacyAlias) return storedDraft;
+    const comparison = { ...storedDraft };
+    comparison.locations = storedDraft.locations.map((location) => {
+        if (!location || !Object.hasOwn(location, 'imageId') || Object.hasOwn(location, 'imageMediaId')) return location;
+        const next = { ...location, imageMediaId: location.imageId };
+        delete next.imageId;
+        return next;
+    });
+    return comparison;
+}
+
 function assertGeneralValidation(draft) {
     const errors = validateInvitationDraft(draft);
     const relevant = Object.fromEntries(Object.entries(errors).filter(([path]) => (
@@ -334,18 +352,14 @@ export function deserializeInvitationDraft(document, expectedEventId) {
     const legacyOpeningDocument = !Object.hasOwn(document.content?.welcome ?? {}, 'opening');
     if (isCurrentDocument && document.contentSchemaVersion === INVITATION_CONTENT_SCHEMA_VERSION) {
         const comparable = { ...normalized, updatedAt: document.updatedAt };
-        const canonicalDocument = (legacyAccessDocument || legacySettingsDocument || legacyOpeningDocument)
-            ? cloneInvitationValue(document)
-            : document;
+        let canonicalDocument = canonicalizeSupportedLegacyDraftForComparison(document);
+        if (legacyAccessDocument || legacySettingsDocument || legacyOpeningDocument) {
+            canonicalDocument = cloneInvitationValue(canonicalDocument);
+        }
         if (legacyAccessDocument) canonicalDocument.content.access = normalized.content.access;
         if (legacySettingsDocument) canonicalDocument.settings = normalized.settings;
         if (legacyOpeningDocument) canonicalDocument.content.welcome = normalized.content.welcome;
         if (stableStringify(comparable) !== stableStringify(canonicalDocument)) {
-            console.error('[Draft canonical mismatch]', JSON.stringify(
-                findCanonicalDifferences(canonicalDocument, comparable),
-                null,
-                2
-            ));
             fail('draft/non-canonical-document');
         }
     }
