@@ -37,7 +37,7 @@ export function validateInvitationDraft(draft = {}) {
 
     validateEntityIds(draft, errors);
     const locationIds = new Set((draft.locations ?? []).map(({ id }) => id));
-    const galleryIds = new Set((draft.media?.gallery ?? []).map(({ id }) => id));
+    const galleryIds = new Set((draft.media?.place ?? []).map(({ id }) => id));
     (draft.locations ?? []).forEach((location) => {
         validateTime(location.time, `locations.${location.id}.time`, errors);
         validateUrl(location.mapsUrl, `locations.${location.id}.mapsUrl`, 'mapsUrl', 'custom', errors);
@@ -167,6 +167,7 @@ function validateMedia(draft, errors) {
     const media = draft.media ?? {};
     validateMediaAsset(media.cover, 'cover', errors, 'media.cover');
     (media.gallery ?? []).forEach((asset, index) => validateMediaAsset(asset, 'gallery', errors, `media.gallery.${asset?.id || index}`));
+    (media.place ?? []).forEach((asset, index) => validateMediaAsset(asset, 'place', errors, `media.place.${asset?.id || index}`));
     validateMediaAsset(media.dressCode, 'dressCode', errors, 'media.dressCode');
     validateMediaAsset(media.video, 'video', errors, 'media.video');
     validateMediaAsset(media.videoPoster, 'videoPoster', errors, 'media.videoPoster');

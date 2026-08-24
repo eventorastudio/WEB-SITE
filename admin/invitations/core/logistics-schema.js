@@ -27,7 +27,7 @@ const TEXT_LIMITS = Object.freeze({
     wazeUrl: 2048,
     description: 800,
     notes: 600,
-    imageId: 100,
+    imageMediaId: 100,
     categoryIcon: 32,
     venueIcon: 32,
     name: 160,
@@ -74,7 +74,7 @@ export function createLocation(id, seed = {}) {
         description: text(seed.description, 'description'),
         notes: text(seed.notes, 'notes')
     };
-    if (Object.hasOwn(seed, 'imageId')) location.imageId = text(seed.imageId, 'imageId');
+    if (Object.hasOwn(seed, 'imageMediaId') || Object.hasOwn(seed, 'imageId')) location.imageMediaId = text(seed.imageMediaId ?? seed.imageId, 'imageMediaId');
     if (Object.hasOwn(seed, 'categoryIcon')) location.categoryIcon = normalizeLocationIconKey(seed.categoryIcon);
     if (Object.hasOwn(seed, 'venueIcon')) location.venueIcon = normalizeLocationIconKey(seed.venueIcon);
     return location;
@@ -112,7 +112,7 @@ export function createGift(id, seed = {}) {
 }
 
 export function createAccommodation(id, seed = {}) {
-    return {
+    const accommodation = {
         id,
         name: text(seed.name, 'name'),
         address: text(seed.address, 'address'),
@@ -123,6 +123,8 @@ export function createAccommodation(id, seed = {}) {
         reservationCode: text(seed.reservationCode, 'reservationCode'),
         notes: text(seed.notes, 'notes')
     };
+    if (Object.hasOwn(seed, 'imageMediaId')) accommodation.imageMediaId = text(seed.imageMediaId, 'imageMediaId');
+    return accommodation;
 }
 
 export function createLink(id, seed = {}) {

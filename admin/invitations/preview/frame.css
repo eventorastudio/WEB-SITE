@@ -888,6 +888,24 @@ body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-
 }
 
 /* Aloha desktop locations/stays: editorial cards instead of form-like blocks. */
+/* Shared premium place-card language: sites and suggested stays intentionally use the same base card. */
+body[data-builder-theme="aloha"] .aloha-place-card--hotel {
+    --aloha-card-accent: var(--sun);
+    min-height: 0;
+    padding: 1.2rem 1.25rem 1.05rem;
+    border: 1px solid rgb(255 255 255 / .62);
+    border-left: 4px solid var(--aloha-card-accent);
+    border-radius: 1.5rem .45rem 1.5rem .45rem;
+    background: linear-gradient(145deg, rgb(255 251 242 / .99), rgb(255 246 227 / .94));
+    box-shadow: .32rem .42rem 0 rgb(244 91 105 / .16), 0 1.1rem 2.1rem rgb(4 63 75 / .13);
+}
+body[data-builder-theme="aloha"] .aloha-place-card--hotel .aloha-location-image { width: 100%; aspect-ratio: 16 / 9; margin: 1rem 0 .82rem; border-radius: 1rem .25rem 1rem .25rem; }
+body[data-builder-theme="aloha"] .aloha-place-card--hotel .aloha-location-details { display: grid; gap: .38rem; margin: .8rem 0 0; padding-top: .72rem; }
+body[data-builder-theme="aloha"] .aloha-place-card--hotel .aloha-location-actions { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: 1rem; }
+@media (max-width: 680px) {
+    body[data-builder-theme="aloha"] .aloha-place-card--hotel .aloha-location-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    body[data-builder-theme="aloha"] .aloha-place-card--hotel .aloha-location-actions .tropical-button { width: 100%; }
+}
 @media (min-width: 1051px) {
     body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card:nth-child(3):last-child {
         grid-column: 1 / -1;

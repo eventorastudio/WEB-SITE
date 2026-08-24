@@ -32,6 +32,11 @@ export const MEDIA_ROLE_REGISTRY = Object.freeze({
         maxLongEdge: 1920,
         technicalMaxItems: 20
     }),
+    place: Object.freeze({
+        role: 'place', label: 'Imágenes de lugares', kind: 'image', multiple: true,
+        requiredCapability: 'maps', sectionId: 'location', maxBytes: 20 * 1024 * 1024,
+        maxLongEdge: 1920, technicalMaxItems: 20
+    }),
     dressCode: Object.freeze({
         role: 'dressCode',
         label: 'Imagen de referencia de vestimenta',
@@ -96,6 +101,7 @@ export function createEmptyInvitationMedia() {
         schemaVersion: MEDIA_SCHEMA_VERSION,
         cover: null,
         gallery: [],
+        place: [],
         dressCode: null,
         video: null,
         videoPoster: null,
@@ -154,6 +160,7 @@ export function getAllMediaAssets(media = {}) {
     return [
         media.cover,
         ...(Array.isArray(media.gallery) ? media.gallery : []),
+        ...(Array.isArray(media.place) ? media.place : []),
         media.dressCode,
         media.video,
         media.videoPoster,

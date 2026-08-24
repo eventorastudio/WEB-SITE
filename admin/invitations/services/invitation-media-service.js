@@ -10,7 +10,7 @@ import {
 const SAFE_EVENT_ID = /^[A-Za-z0-9_-]{1,150}$/;
 const SAFE_MEDIA_ID = /^MED-LOCAL-\d{3,}$/;
 const SAFE_OBJECT_VERSION = /^[a-f0-9]{12}$/;
-const SAFE_ROLE = /^(?:cover|gallery|dressCode|video|videoPoster|music)$/;
+const SAFE_ROLE = /^(?:cover|gallery|place|dressCode|video|videoPoster|music)$/;
 const INVITATION_CONFIG_SCHEMA_VERSION = 5;
 const MEDIA_INDEX_SCHEMA_VERSION = 1;
 const DEFAULT_UPLOAD_CONCURRENCY = 3;
@@ -29,7 +29,7 @@ const MIME_EXTENSIONS = Object.freeze({
 });
 
 const MEDIA_INDEX_FIELDS = Object.freeze([
-    'schemaVersion', 'coverId', 'galleryIds', 'dressCodeId', 'videoId', 'posterId', 'audioId'
+    'schemaVersion', 'coverId', 'galleryIds', 'placeIds', 'dressCodeId', 'videoId', 'posterId', 'audioId'
 ]);
 const LEGACY_MEDIA_INDEX_FIELDS = Object.freeze([
     'schemaVersion', 'coverId', 'galleryIds', 'videoId', 'posterId', 'audioId'
@@ -120,6 +120,7 @@ export function createEmptyInvitationMediaIndex() {
         schemaVersion: MEDIA_INDEX_SCHEMA_VERSION,
         coverId: null,
         galleryIds: [],
+        placeIds: [],
         dressCodeId: null,
         videoId: null,
         posterId: null,
@@ -131,6 +132,7 @@ export function createInvitationMediaIndex(media) {
     const index = createEmptyInvitationMediaIndex();
     index.coverId = media?.cover?.id ?? null;
     index.galleryIds = (Array.isArray(media?.gallery) ? media.gallery : []).map(({ id }) => id);
+    index.placeIds = (Array.isArray(media?.place) ? media.place : []).map(({ id }) => id);
     index.dressCodeId = media?.dressCode?.id ?? null;
     index.videoId = media?.video?.id ?? null;
     index.posterId = media?.videoPoster?.id ?? null;
@@ -145,17 +147,18 @@ export function assertInvitationMediaIndex(index) {
     if ((!isLegacy && !isCurrent) || index.schemaVersion !== MEDIA_INDEX_SCHEMA_VERSION) {
         throw new TypeError('firestore/invalid-media-index');
     }
-    if (!Array.isArray(index.galleryIds) || index.galleryIds.length > MEDIA_ROLE_REGISTRY.gallery.technicalMaxItems) {
+    if (!Array.isArray(index.galleryIds) || index.galleryIds.length > MEDIA_ROLE_REGISTRY.gallery.technicalMaxItems
+        || !Array.isArray(index.placeIds ?? []) || (index.placeIds ?? []).length > MEDIA_ROLE_REGISTRY.place.technicalMaxItems) {
         throw new TypeError('firestore/invalid-media-index');
     }
     const singularIds = [index.coverId, isLegacy ? null : index.dressCodeId, index.videoId, index.posterId, index.audioId];
     if (singularIds.some((id) => id !== null && !SAFE_MEDIA_ID.test(String(id)))) {
         throw new TypeError('firestore/invalid-media-index');
     }
-    if (index.galleryIds.some((id) => !SAFE_MEDIA_ID.test(String(id)))) {
+    if (index.galleryIds.some((id) => !SAFE_MEDIA_ID.test(String(id))) || (index.placeIds ?? []).some((id) => !SAFE_MEDIA_ID.test(String(id)))) {
         throw new TypeError('firestore/invalid-media-index');
     }
-    const ids = [...singularIds.filter(Boolean), ...index.galleryIds];
+    const ids = [...singularIds.filter(Boolean), ...index.galleryIds, ...(index.placeIds ?? [])];
     if (new Set(ids).size !== ids.length) throw new TypeError('firestore/duplicate-media-id');
     return index;
 }
@@ -228,6 +231,7 @@ export function hydrateInvitationMedia({ mediaIndex, mediaDocuments }, eventId) 
     };
     media.cover = hydrate(index.coverId, 'cover');
     media.gallery = index.galleryIds.map((mediaId, sortOrder) => hydrate(mediaId, 'gallery', sortOrder)).filter(Boolean);
+    media.place = (index.placeIds ?? []).map((mediaId, sortOrder) => hydrate(mediaId, 'place', sortOrder)).filter(Boolean);
     media.dressCode = hydrate(index.dressCodeId, 'dressCode');
     media.video = hydrate(index.videoId, 'video');
     media.videoPoster = hydrate(index.posterId, 'videoPoster');
@@ -258,6 +262,7 @@ function mergeMediaForPersistence(currentMedia, persistedMedia, uploadedAssets =
     };
     next.cover = choose(currentMedia?.cover);
     next.gallery = (currentMedia?.gallery ?? []).map(choose).filter(Boolean).map((asset, sortOrder) => ({ ...asset, sortOrder }));
+    next.place = (currentMedia?.place ?? []).map(choose).filter(Boolean).map((asset, sortOrder) => ({ ...asset, sortOrder }));
     next.dressCode = choose(currentMedia?.dressCode);
     next.video = choose(currentMedia?.video);
     next.videoPoster = choose(currentMedia?.videoPoster);
@@ -266,8 +271,9 @@ function mergeMediaForPersistence(currentMedia, persistedMedia, uploadedAssets =
 }
 
 function removeAssetFromMedia(media, assetId) {
-    const next = { ...media, gallery: [...(media?.gallery ?? [])] };
+    const next = { ...media, gallery: [...(media?.gallery ?? [])], place: [...(media?.place ?? [])] };
     next.gallery = next.gallery.filter(({ id }) => id !== assetId).map((asset, sortOrder) => ({ ...asset, sortOrder }));
+    next.place = next.place.filter(({ id }) => id !== assetId).map((asset, sortOrder) => ({ ...asset, sortOrder }));
     for (const role of ['cover', 'dressCode', 'video', 'videoPoster', 'music']) {
         if (next[role]?.id === assetId) next[role] = null;
     }
@@ -408,7 +414,7 @@ export class InvitationMediaService {
             };
         }
         const index = assertInvitationMediaIndex(config.mediaIndex);
-        const ids = [index.coverId, ...index.galleryIds, index.dressCodeId, index.videoId, index.posterId, index.audioId].filter(Boolean);
+        const ids = [index.coverId, ...index.galleryIds, ...(index.placeIds ?? []), index.dressCodeId, index.videoId, index.posterId, index.audioId].filter(Boolean);
         const documents = await this.loadMediaDocuments(eventId, ids);
         const hydrated = hydrateInvitationMedia({ mediaIndex: index, mediaDocuments: documents }, eventId);
         await mapWithConcurrency(getAllMediaAssets(hydrated.media), RESOLVE_URL_CONCURRENCY, async (asset) => {

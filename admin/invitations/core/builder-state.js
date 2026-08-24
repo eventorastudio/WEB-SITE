@@ -392,14 +392,14 @@ export class InvitationBuilderState {
         if (!definition) return { ok: false, code: 'builder/unknown-media-role' };
         const availability = getMediaRoleAvailability(role, this._draft.packageId, this._draft.enabledSections);
         if (!availability.editable) return { ok: false, code: availability.packageAllowed ? 'builder/media-section-disabled' : 'builder/media-not-allowed' };
-        if (definition.multiple && this._draft.media.gallery.length >= definition.technicalMaxItems) {
-            return { ok: false, code: 'builder/media-gallery-limit' };
+        if (definition.multiple && (this._draft.media[role] ?? []).length >= definition.technicalMaxItems) {
+            return { ok: false, code: 'builder/media-library-limit' };
         }
         if (!definition.multiple && this._draft.media[role]) return { ok: false, code: 'builder/media-role-occupied' };
 
         const previous = this.getSnapshot();
         const id = this._nextMediaId();
-        const target = definition.multiple ? this._draft.media.gallery : null;
+        const target = definition.multiple ? this._draft.media[role] : null;
         const asset = createMediaAsset(id, {
             ...seed,
             role,
@@ -466,8 +466,8 @@ export class InvitationBuilderState {
         const availability = getMediaRoleAvailability(role, this._draft.packageId, this._draft.enabledSections);
         if (!availability.editable) return { ok: false, code: availability.packageAllowed ? 'builder/media-section-disabled' : 'builder/media-not-allowed' };
         const previous = this.getSnapshot();
-        const removed = definition.multiple ? [...this._draft.media.gallery] : [this._draft.media[role]].filter(Boolean);
-        if (definition.multiple) this._draft.media.gallery = [];
+        const removed = definition.multiple ? [...this._draft.media[role]] : [this._draft.media[role]].filter(Boolean);
+        if (definition.multiple) this._draft.media[role] = [];
         else this._draft.media[role] = null;
         this._markMediaRoleTouched(role);
         this._commitMediaChange(previous, role, 'clear', null, { removedIds: removed.map(({ id }) => id) });
@@ -563,6 +563,7 @@ export class InvitationBuilderState {
             schemaVersion: media?.schemaVersion ?? createEmptyInvitationMedia().schemaVersion,
             cover: normalize(media?.cover, 'cover'),
             gallery: (Array.isArray(media?.gallery) ? media.gallery : []).map((asset, sortOrder) => normalize(asset, 'gallery', sortOrder)),
+            place: (Array.isArray(media?.place) ? media.place : []).map((asset, sortOrder) => normalize(asset, 'place', sortOrder)),
             dressCode: normalize(media?.dressCode, 'dressCode'),
             video: normalize(media?.video, 'video'),
             videoPoster: normalize(media?.videoPoster, 'videoPoster'),
@@ -571,6 +572,7 @@ export class InvitationBuilderState {
         const ids = [
             this._draft.media.cover,
             ...this._draft.media.gallery,
+            ...this._draft.media.place,
             this._draft.media.dressCode,
             this._draft.media.video,
             this._draft.media.videoPoster,
@@ -578,9 +580,9 @@ export class InvitationBuilderState {
         ].filter(Boolean).map(({ id }) => Number.parseInt(String(id).replace(/^MED-LOCAL-/, ''), 10)).filter(Number.isFinite);
         this._draft.meta.entitySequences.media = Math.max(this._draft.meta.entitySequences.media, ...ids, 0);
         this._draft.meta.touchedMediaRoles = persisted
-            ? ['cover', 'gallery', 'dressCode', 'video', 'videoPoster', 'music']
-            : ['cover', 'gallery', 'dressCode', 'video', 'videoPoster', 'music']
-                .filter((role) => role === 'gallery' ? this._draft.media.gallery.length : this._draft.media[role]);
+            ? ['cover', 'gallery', 'place', 'dressCode', 'video', 'videoPoster', 'music']
+            : ['cover', 'gallery', 'place', 'dressCode', 'video', 'videoPoster', 'music']
+                .filter((role) => ['gallery', 'place'].includes(role) ? this._draft.media[role].length : this._draft.media[role]);
         this._ui.mediaDirty = false;
         this._syncDirtyState();
         this._ui.validationErrors = validateInvitationDraft(this._draft);
@@ -696,13 +698,14 @@ export class InvitationBuilderState {
     _findMediaAsset(id) {
         const media = this._draft?.media;
         if (!media) return null;
-        const galleryIndex = media.gallery.findIndex((asset) => asset.id === id);
-        if (galleryIndex >= 0) {
-            const asset = media.gallery[galleryIndex];
+        for (const collection of ['gallery', 'place']) {
+            const index = (media[collection] ?? []).findIndex((asset) => asset.id === id);
+            if (index < 0) continue;
+            const asset = media[collection][index];
             return {
                 asset,
-                assign: (next) => { media.gallery[galleryIndex] = next; },
-                remove: () => { media.gallery.splice(galleryIndex, 1); }
+                assign: (next) => { media[collection][index] = next; },
+                remove: () => { media[collection].splice(index, 1); }
             };
         }
         for (const role of ['cover', 'dressCode', 'video', 'videoPoster', 'music']) {

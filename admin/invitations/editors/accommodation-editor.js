@@ -1,4 +1,4 @@
-import { initEntityListEditor, textField, textareaField } from './entity-editor-utils.js?v=phase3-logistics-20260813';
+import { initEntityListEditor, selectField, textField, textareaField } from './entity-editor-utils.js?v=phase3-logistics-20260813';
 
 export function initAccommodationEditor({ container, state }) {
     return initEntityListEditor({
@@ -8,11 +8,16 @@ export function initAccommodationEditor({ container, state }) {
         addLabel: '+ Agregar hotel',
         addMethod: 'addAccommodation', updateMethod: 'updateAccommodation', removeMethod: 'removeAccommodation', moveMethod: null,
         canAdd: (snapshot) => snapshot.draft.accommodations.length === 0,
+        refreshOnCollections: ['media'],
         addUnavailableMessage: 'Ya existe el hospedaje permitido por el contrato actual.',
         summary: (item) => ({ title: item.name || 'Hospedaje', subtitle: item.address || item.id, status: 'Hotel' }),
         fields: () => [
             textField('name', 'Nombre', { placeholder: 'Hotel Eventora', maxLength: 160 }),
             textField('phone', 'Teléfono', { maxLength: 32 }),
+            selectField('imageMediaId', 'Imagen del hospedaje', [
+                { value: '', label: 'Sin foto — usar fallback Aloha' },
+                ...(state.getSnapshot().draft.media?.place ?? []).map((asset) => ({ value: asset.id, label: asset.originalName || `Imagen ${asset.id}` }))
+            ], { wide: true }),
             textareaField('address', 'Dirección', { rows: 2, maxLength: 300 }),
             textareaField('description', 'Descripción', { rows: 2, maxLength: 800 }),
             textField('reservationUrl', 'URL de reservación', { wide: true, placeholder: 'https://…', maxLength: 2048 }),

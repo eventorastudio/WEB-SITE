@@ -383,19 +383,20 @@ service cloud.firestore {
         && (
           (media.keys().size() == 7
             && media.keys().hasOnly(['schemaVersion', 'touchedRoles', 'cover', 'gallery', 'video', 'videoPoster', 'music']))
-          || (media.keys().size() == 8
-            && media.keys().hasOnly(['schemaVersion', 'touchedRoles', 'cover', 'gallery', 'dressCode', 'video', 'videoPoster', 'music']))
+          || (media.keys().size() == 9
+            && media.keys().hasOnly(['schemaVersion', 'touchedRoles', 'cover', 'gallery', 'place', 'dressCode', 'video', 'videoPoster', 'music']))
         )
         && media.schemaVersion == 1
         && media.touchedRoles is list
-        && media.touchedRoles.size() <= 6
+        && media.touchedRoles.size() <= 7
         && media.touchedRoles.toSet().size() == media.touchedRoles.size()
-        && media.touchedRoles.toSet().hasOnly(['cover', 'gallery', 'dressCode', 'video', 'videoPoster', 'music'])
+        && media.touchedRoles.toSet().hasOnly(['cover', 'gallery', 'place', 'dressCode', 'video', 'videoPoster', 'music'])
         && (media.cover == null || media.cover is map)
         && media.gallery is list
         && media.gallery.size() <= 20
         && (!('dressCode' in media) || media.dressCode == null || media.dressCode is map)
         && (media.video == null || media.video is map)
+        && (!('place' in media) || (media.place is list && media.place.size() <= 20))
         && (media.videoPoster == null || media.videoPoster is map)
         && (media.music == null || media.music is map);
     }
@@ -486,9 +487,12 @@ service cloud.firestore {
             && index.keys().hasOnly(['schemaVersion', 'coverId', 'galleryIds', 'videoId', 'posterId', 'audioId']))
           || (index.keys().size() == 7
             && index.keys().hasOnly(['schemaVersion', 'coverId', 'galleryIds', 'dressCodeId', 'videoId', 'posterId', 'audioId']))
+          || (index.keys().size() == 8
+            && index.keys().hasOnly(['schemaVersion', 'coverId', 'galleryIds', 'placeIds', 'dressCodeId', 'videoId', 'posterId', 'audioId']))
         )
         && index.schemaVersion == 1
         && validOptionalMediaId(index.coverId)
+        && (!('placeIds' in index) || validGalleryIds(index.placeIds))
         && (!('dressCodeId' in index) || validOptionalMediaId(index.dressCodeId))
         && validOptionalMediaId(index.videoId)
         && validOptionalMediaId(index.posterId)
@@ -845,7 +849,7 @@ service cloud.firestore {
         ])
         && validMediaId(mediaId)
         && data.id == mediaId
-        && data.role in ['cover', 'gallery', 'dressCode', 'video', 'videoPoster', 'music']
+        && data.role in ['cover', 'gallery', 'place', 'dressCode', 'video', 'videoPoster', 'music']
         && data.originalName is string && data.originalName.size() <= 180
         && data.size > 0
         && data.width >= 0
@@ -867,7 +871,7 @@ service cloud.firestore {
     }
 
     function validMediaDocumentType(data) {
-      return ((data.role == 'cover' || data.role == 'gallery' || data.role == 'dressCode' || data.role == 'videoPoster')
+      return ((data.role == 'cover' || data.role == 'gallery' || data.role == 'place' || data.role == 'dressCode' || data.role == 'videoPoster')
           && data.kind == 'image'
           && data.size <= 20 * 1024 * 1024
           && data.width > 0

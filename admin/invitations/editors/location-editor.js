@@ -7,7 +7,7 @@ export function initLocationEditor({ container, state }) {
     return initEntityListEditor({
         container, state, collection: 'locations',
         title: 'Ubicaciones',
-        description: 'Configura sedes y asigna una foto desde las imágenes cargadas en Multimedia → Galería.',
+        description: 'Configura sedes y asigna una foto reutilizable desde Imágenes de lugares.',
         addLabel: '+ Agregar ubicación',
         addMethod: 'addLocation', updateMethod: 'updateLocation', removeMethod: 'removeLocation', moveMethod: 'moveLocation',
         canAdd: (snapshot) => !snapshot.draft.locations.length || packageAllowsMultipleLocations(snapshot.draft.packageId),
@@ -24,9 +24,9 @@ export function initLocationEditor({ container, state }) {
             iconPickerField('venueIcon', 'Icono del lugar'),
             textField('title', 'Título visible', { placeholder: 'Ceremonia religiosa', maxLength: 140 }),
             textField('venueName', 'Nombre del lugar', { placeholder: 'Catedral de Santiago', maxLength: 160 }),
-            selectField('imageId', 'Foto del lugar', [
+            selectField('imageMediaId', 'Imagen del lugar', [
                 { value: '', label: 'Sin foto — usar fallback Aloha' },
-                ...(snapshot.draft.media?.gallery ?? []).map((asset) => ({
+                ...(snapshot.draft.media?.place ?? []).map((asset) => ({
                     value: asset.id,
                     label: asset.originalName || `Imagen ${asset.id}`
                 }))

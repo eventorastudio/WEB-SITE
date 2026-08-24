@@ -4,6 +4,7 @@ import { friendlyMediaError, inspectAndProcessMediaFile } from '../core/media-pr
 import { invitationMediaService } from '../services/invitation-media-service.js?v=phase89-dress-code-media-20260820';
 
 const ROLE_COPY = Object.freeze({
+    place: Object.freeze({ title: 'Imágenes de lugares', copy: 'Biblioteca reutilizable para sitios y hospedaje. JPEG, PNG o WebP.', accept: 'image/jpeg,image/png,image/webp' }),
     cover: Object.freeze({ title: 'Portada / hero', copy: 'JPEG, PNG o WebP. Se optimiza localmente y conserva un punto focal por invitación.', accept: 'image/jpeg,image/png,image/webp' }),
     gallery: Object.freeze({ title: 'Galería', copy: 'Selección múltiple, orden estable, alt y caption. Límite técnico: 20 imágenes.', accept: 'image/jpeg,image/png,image/webp' }),
     dressCode: Object.freeze({ title: 'Imagen de referencia de vestimenta', copy: 'Outfit o inspiración visual opcional para la sección Dress Code de Aloha.', accept: 'image/jpeg,image/png,image/webp' }),
@@ -22,7 +23,7 @@ const STATUS_LABELS = Object.freeze({
 });
 
 function roleAssets(media, role) {
-    return role === 'gallery' ? (media.gallery ?? []) : [media[role]].filter(Boolean);
+    return ['gallery', 'place'].includes(role) ? (media[role] ?? []) : [media[role]].filter(Boolean);
 }
 
 function findAsset(media, assetId) {
@@ -31,10 +32,10 @@ function findAsset(media, assetId) {
 
 function replaceAsset(media, replacement) {
     const next = structuredClone(media);
-    if (replacement.role === 'gallery') {
-        const index = next.gallery.findIndex(({ id }) => id === replacement.id);
-        if (index >= 0) next.gallery[index] = replacement;
-        else next.gallery.push(replacement);
+    if (['gallery', 'place'].includes(replacement.role)) {
+        const index = next[replacement.role].findIndex(({ id }) => id === replacement.id);
+        if (index >= 0) next[replacement.role][index] = replacement;
+        else next[replacement.role].push(replacement);
     } else {
         next[replacement.role] = replacement;
     }
@@ -44,6 +45,8 @@ function replaceAsset(media, replacement) {
 function withoutAsset(media, assetId) {
     const next = structuredClone(media);
     next.gallery = (next.gallery ?? []).filter(({ id }) => id !== assetId)
+        .map((asset, sortOrder) => ({ ...asset, sortOrder }));
+    next.place = (next.place ?? []).filter(({ id }) => id !== assetId)
         .map((asset, sortOrder) => ({ ...asset, sortOrder }));
     for (const role of ['cover', 'dressCode', 'video', 'videoPoster', 'music']) {
         if (next[role]?.id === assetId) next[role] = null;
@@ -119,7 +122,7 @@ function createAssetCard(asset, role, index, total, { storageStatus, registry, s
     const header = document.createElement('header');
     const copy = document.createElement('div');
     const title = document.createElement('strong');
-    title.textContent = role === 'gallery' ? `Imagen ${index + 1}` : ROLE_COPY[role].title;
+    title.textContent = ['gallery', 'place'].includes(role) ? `Imagen ${index + 1}` : ROLE_COPY[role].title;
     const meta = document.createElement('small');
     meta.textContent = fileLabel(asset);
     copy.append(title, meta);
@@ -156,7 +159,7 @@ function createAssetCard(asset, role, index, total, { storageStatus, registry, s
     const fields = document.createElement('div');
     fields.className = 'media-asset-fields';
     if (asset.kind === 'image') fields.append(field('Texto alternativo', 'alt', asset));
-    if (role === 'gallery') fields.append(field('Caption opcional', 'caption', asset, { multiline: true }));
+    if (['gallery', 'place'].includes(role)) fields.append(field('Caption opcional', 'caption', asset, { multiline: true }));
     if (role === 'cover') {
         const focal = document.createElement('div');
         focal.className = 'media-focal-fields';
@@ -179,7 +182,7 @@ function createAssetCard(asset, role, index, total, { storageStatus, registry, s
     body.append(fields);
 
     const actions = document.createElement('footer');
-    if (role === 'gallery') {
+    if (['gallery', 'place'].includes(role)) {
         const up = button('↑', 'up', asset.id, 'media-icon-action');
         const down = button('↓', 'down', asset.id, 'media-icon-action');
         up.disabled = index === 0 || isUploading;
@@ -244,17 +247,17 @@ function createRoleSection(role, snapshot, activity, context) {
     controls.className = 'media-role-controls';
     const chooser = document.createElement('label');
     chooser.className = 'media-file-button is-primary';
-    chooser.textContent = role === 'gallery' ? 'Agregar imágenes' : (assets.length ? 'Reemplazar archivo' : 'Seleccionar archivo');
+    chooser.textContent = ['gallery', 'place'].includes(role) ? 'Agregar imágenes' : (assets.length ? 'Reemplazar archivo' : 'Seleccionar archivo');
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = ROLE_COPY[role].accept;
-    input.multiple = role === 'gallery';
-    input.disabled = !availability.editable || (role === 'gallery' && assets.length >= 20) || context.savingIds.size > 0;
+    input.multiple = ['gallery', 'place'].includes(role);
+    input.disabled = !availability.editable || (['gallery', 'place'].includes(role) && assets.length >= 20) || context.savingIds.size > 0;
     input.dataset.mediaFile = role;
-    if (assets.length && role !== 'gallery') input.dataset.replaceId = assets[0].id;
+    if (assets.length && !['gallery', 'place'].includes(role)) input.dataset.replaceId = assets[0].id;
     chooser.append(input);
     controls.append(chooser);
-    if (role === 'gallery' && assets.length) {
+    if (['gallery', 'place'].includes(role) && assets.length) {
         const count = document.createElement('small');
         count.textContent = `${assets.length}/20 imágenes`;
         controls.append(count);
@@ -274,7 +277,7 @@ function createRoleSection(role, snapshot, activity, context) {
     dropZone.setAttribute('aria-label', `Soltar archivo para ${ROLE_COPY[role].title}`);
     dropZone.setAttribute('aria-disabled', String(!availability.editable || context.savingIds.size > 0));
     dropZone.textContent = availability.editable
-        ? (role === 'gallery' ? 'Arrastra aquí una o varias imágenes' : 'Arrastra aquí un archivo compatible')
+        ? (['gallery', 'place'].includes(role) ? 'Arrastra aquí una o varias imágenes' : 'Arrastra aquí un archivo compatible')
         : 'Carga bloqueada por paquete o sección';
     section.append(dropZone);
 
@@ -284,7 +287,7 @@ function createRoleSection(role, snapshot, activity, context) {
     message.hidden = true;
     section.append(message);
     const list = document.createElement('div');
-    list.className = role === 'gallery' ? 'media-gallery-list' : 'media-single-list';
+    list.className = ['gallery', 'place'].includes(role) ? 'media-gallery-list' : 'media-single-list';
     assets.forEach((asset, index) => list.append(createAssetCard(asset, role, index, assets.length, context)));
     if (!assets.length) {
         const empty = document.createElement('p');
@@ -377,7 +380,7 @@ export function initMediaEditor({ container, state, mediaService = invitationMed
             notice.append(controls);
         }
         fragment.append(notice);
-        ['cover', 'gallery', ...(snapshot.draft.themeId === 'aloha' ? ['dressCode'] : []), 'video', 'videoPoster', 'music'].forEach((role) => {
+        ['cover', 'gallery', 'place', ...(snapshot.draft.themeId === 'aloha' ? ['dressCode'] : []), 'video', 'videoPoster', 'music'].forEach((role) => {
             fragment.append(createRoleSection(role, snapshot, activity, { storageStatus, registry, savingIds }));
         });
         container.replaceChildren(fragment);
@@ -431,12 +434,12 @@ export function initMediaEditor({ container, state, mediaService = invitationMed
     const handleFiles = async (role, sourceFiles, replaceId = '') => {
         const files = [...sourceFiles];
         if (!files.length) return;
-        if (role === 'gallery') {
+        if (['gallery', 'place'].includes(role)) {
             if (replaceId) return processFile(files[0], role, replaceId);
-            const availableSlots = 20 - (state.getSnapshot().draft.media.gallery?.length ?? 0);
+            const availableSlots = 20 - (state.getSnapshot().draft.media[role]?.length ?? 0);
             if (files.length > availableSlots) showMessage(role, `Solo se procesarán ${availableSlots} archivos para respetar el límite técnico.`);
             for (const [index, file] of files.slice(0, availableSlots).entries()) {
-                activity.gallery = `Procesando ${index + 1} de ${Math.min(files.length, availableSlots)}…`;
+                activity[role] = `Procesando ${index + 1} de ${Math.min(files.length, availableSlots)}…`;
                 render();
                 await processFile(file, role);
             }

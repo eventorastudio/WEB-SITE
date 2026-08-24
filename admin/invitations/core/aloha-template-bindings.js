@@ -30,6 +30,7 @@ function renderAlohaLocationCards(documentRoot, content, locations, accommodatio
         accommodation: 'Hospedaje',
         other: 'Otro'
     };
+    const placeMedia = new Map((draft.media?.place ?? []).map((asset) => [asset.id, asset]));
     content.replaceChildren();
     content.append(node(documentRoot, 'p', 'section-no', '03 \u00b7 DESTINO'));
     content.append(node(documentRoot, 'h2', '', copy.title || 'Sitios'));
@@ -37,7 +38,6 @@ function renderAlohaLocationCards(documentRoot, content, locations, accommodatio
 
     if (locations.length) {
         const stops = node(documentRoot, 'div', 'location-stops aloha-location-grid');
-        const gallery = new Map((draft.media?.gallery ?? []).map((asset) => [asset.id, asset]));
         locations.forEach((location) => {
             const card = node(documentRoot, 'article', 'aloha-location-card');
             card.dataset.locationType = location.type || 'other';
@@ -50,13 +50,14 @@ function renderAlohaLocationCards(documentRoot, content, locations, accommodatio
             card.append(category);
             card.append(node(documentRoot, 'h3', '', location.title || 'Ubicaci\u00f3n'));
             const visual = node(documentRoot, 'div', 'aloha-location-image');
-            const imageSource = source(gallery.get(location.imageId));
+            const imageSource = source(placeMedia.get(location.imageMediaId ?? location.imageId));
             if (imageSource) {
                 const image = documentRoot.createElement('img');
                 image.src = imageSource;
                 image.alt = clean(location.venueName || location.title || 'Foto del lugar');
                 image.loading = 'lazy';
-                image.style.objectPosition = `${gallery.get(location.imageId)?.focalPoint?.x ?? 50}% ${gallery.get(location.imageId)?.focalPoint?.y ?? 50}%`;
+                const asset = placeMedia.get(location.imageMediaId ?? location.imageId);
+                image.style.objectPosition = `${asset?.focalPoint?.x ?? 50}% ${asset?.focalPoint?.y ?? 50}%`;
                 visual.append(image);
                 visual.dataset.imageState = 'configured';
             } else {
@@ -106,12 +107,28 @@ function renderAlohaLocationCards(documentRoot, content, locations, accommodatio
         feature.append(node(documentRoot, 'p', 'aloha-accommodation-intro', 'Una recomendación especial para disfrutar la celebración con mayor comodidad.'));
         const stays = node(documentRoot, 'div', `location-stops aloha-location-grid aloha-accommodations${accommodations.length === 1 ? ' aloha-accommodations-single' : ''}`);
         accommodations.forEach((hotel) => {
-            const card = node(documentRoot, 'article', 'aloha-location-card aloha-accommodation-card');
-            card.append(node(documentRoot, 'p', 'aloha-location-type', 'Hospedaje'));
+            const card = node(documentRoot, 'article', 'aloha-location-card aloha-place-card aloha-place-card--hotel');
+            const badge = node(documentRoot, 'p', 'aloha-location-type', 'Hospedaje');
+            const hotelBadgeIcon = createLocationIcon(documentRoot, 'hotel', { className: 'aloha-location-icon' });
+            if (hotelBadgeIcon) badge.prepend(hotelBadgeIcon);
+            card.append(badge);
             card.append(node(documentRoot, 'h3', '', hotel.name || 'Hospedaje'));
-            const details = node(documentRoot, 'div', 'aloha-stay-details');
-            if (hotel.phone) details.append(node(documentRoot, 'p', 'aloha-stay-phone', hotel.phone));
-            if (hotel.address) details.append(node(documentRoot, 'p', 'aloha-stay-address', hotel.address));
+            const hotelAsset = placeMedia.get(hotel.imageMediaId);
+            const media = node(documentRoot, 'div', 'aloha-location-image');
+            if (source(hotelAsset)) {
+                const image = documentRoot.createElement('img');
+                image.src = source(hotelAsset); image.alt = clean(hotel.name || 'Foto del hospedaje'); image.loading = 'lazy';
+                image.style.objectPosition = `${hotelAsset.focalPoint?.x ?? 50}% ${hotelAsset.focalPoint?.y ?? 50}%`;
+                media.append(image); media.dataset.imageState = 'configured';
+            } else { media.append(node(documentRoot, 'span', 'aloha-location-image-fallback', 'ALOHA STAY')); media.dataset.imageState = 'fallback'; }
+            card.append(media);
+            const venue = node(documentRoot, 'p', 'aloha-location-venue', hotel.name || 'Hospedaje');
+            const venueIcon = createLocationIcon(documentRoot, 'hotel', { className: 'aloha-location-icon' });
+            if (venueIcon) venue.prepend(venueIcon);
+            card.append(venue);
+            const details = node(documentRoot, 'div', 'aloha-location-details aloha-stay-details');
+            if (hotel.phone) { const phone = node(documentRoot, 'p', 'aloha-location-meta aloha-stay-phone', hotel.phone); const icon = createLocationIcon(documentRoot, 'phone', { className: 'aloha-location-icon' }); if (icon) phone.prepend(icon); details.append(phone); }
+            if (hotel.address) { const address = node(documentRoot, 'p', 'aloha-location-meta aloha-stay-address', hotel.address); const icon = createLocationIcon(documentRoot, 'location', { className: 'aloha-location-icon' }); if (icon) address.prepend(icon); details.append(address); }
             if (hotel.description) details.append(node(documentRoot, 'p', 'aloha-stay-description', hotel.description));
             if (hotel.notes) details.append(node(documentRoot, 'p', 'aloha-stay-notes', hotel.notes));
             if (hotel.reservationCode) details.append(node(documentRoot, 'p', 'aloha-stay-code', `C\u00f3digo: ${hotel.reservationCode}`));
