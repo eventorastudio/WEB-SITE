@@ -165,3 +165,37 @@ test('canonical diagnostic reports only the first structural difference', () => 
         }
     ]);
 });
+
+test('canonical diagnostic walks complete arrays and distinguishes structural mismatch types', () => {
+    const differences = findCanonicalDifferences(
+        { locations: [{ title: 'A' }, { title: 'B' }], settings: { format: 'square' } },
+        { locations: [{ title: 1 }], settings: { format: 'square', extra: true } }
+    );
+
+    assert.deepEqual(differences, [
+        {
+            path: 'locations',
+            type: 'array-length-mismatch',
+            storedPresence: 'present',
+            normalizedPresence: 'present',
+            storedType: 'array',
+            normalizedType: 'array'
+        },
+        {
+            path: 'locations[0].title',
+            type: 'type-mismatch',
+            storedPresence: 'present',
+            normalizedPresence: 'present',
+            storedType: 'string',
+            normalizedType: 'number'
+        },
+        {
+            path: 'settings.extra',
+            type: 'key-presence-mismatch',
+            storedPresence: 'missing',
+            normalizedPresence: 'present',
+            storedType: 'missing',
+            normalizedType: 'boolean'
+        }
+    ]);
+});

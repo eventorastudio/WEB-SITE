@@ -14,7 +14,7 @@ import {
     DRESS_COLOR_GROUPS,
     createDressColor,
     normalizeEntity
-} from './logistics-schema.js?v=phase120-preserve-location-image-media-id-20260824';
+} from './logistics-schema.js?v=phase121-draft-canonical-full-diagnostics-20260824';
 
 export const INVITATION_DRAFT_DOCUMENT_ID = 'draft';
 export const INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION = 2;
@@ -114,7 +114,7 @@ function canonicalValueType(value) {
 
 // This intentionally reports structure only. It is safe to leave enabled in
 // production because it never includes values, URLs, IDs, or personal data.
-export function findCanonicalDifferences(stored, normalized, { limit = 20 } = {}) {
+export function findCanonicalDifferences(stored, normalized, { limit = 30 } = {}) {
     const differences = [];
     const visit = (storedValue, normalizedValue, path = '') => {
         if (differences.length >= limit) return;
@@ -122,7 +122,7 @@ export function findCanonicalDifferences(stored, normalized, { limit = 20 } = {}
         const normalizedType = canonicalValueType(normalizedValue);
         const currentPath = path || '(root)';
         if (storedType !== normalizedType) {
-            differences.push({ path: currentPath, type: 'value-type-mismatch', storedPresence: 'present', normalizedPresence: 'present', storedType, normalizedType });
+            differences.push({ path: currentPath, type: 'type-mismatch', storedPresence: 'present', normalizedPresence: 'present', storedType, normalizedType });
             return;
         }
         if (storedType === 'array') {
@@ -360,6 +360,11 @@ export function deserializeInvitationDraft(document, expectedEventId) {
         if (legacySettingsDocument) canonicalDocument.settings = normalized.settings;
         if (legacyOpeningDocument) canonicalDocument.content.welcome = normalized.content.welcome;
         if (stableStringify(comparable) !== stableStringify(canonicalDocument)) {
+            const differences = findCanonicalDifferences(canonicalDocument, comparable, { limit: 30 });
+            console.error(
+                '[Draft canonical mismatch phase121]',
+                JSON.stringify({ reason: 'normalized-diff', differences }, null, 2)
+            );
             fail('draft/non-canonical-document');
         }
     }
