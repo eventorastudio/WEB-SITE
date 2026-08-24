@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createInvitationDraft } from '../admin/invitations/core/builder-state.js';
 import {
     deserializeInvitationDraft,
+    findFirstCanonicalDifference,
     serializeInvitationDraft
 } from '../admin/invitations/core/draft-persistence-schema.js';
 
@@ -79,4 +80,20 @@ test('invalid imageMediaId and unknown entity fields remain rejected', () => {
     const unknownField = persistedDraft();
     unknownField.locations[0].unexpected = true;
     assert.throws(() => deserializeInvitationDraft(unknownField, EVENT_ID), { code: 'draft/non-canonical-document' });
+});
+
+test('canonical diagnostic reports only the first structural difference', () => {
+    const difference = findFirstCanonicalDifference(
+        { locations: [{ id: 'LOC-LOCAL-001', unexpected: true }] },
+        { locations: [{ id: 'LOC-LOCAL-001' }] }
+    );
+
+    assert.deepEqual(difference, {
+        path: 'locations[0].unexpected',
+        type: 'key-presence-mismatch',
+        stored: 'present',
+        normalized: 'missing',
+        storedType: 'boolean',
+        normalizedType: 'missing'
+    });
 });

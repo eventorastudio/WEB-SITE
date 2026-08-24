@@ -106,6 +106,58 @@ function stableStringify(value) {
     return JSON.stringify(stableValue(value));
 }
 
+function canonicalValueType(value) {
+    if (value === null) return 'null';
+    if (Array.isArray(value)) return 'array';
+    return typeof value;
+}
+
+// This intentionally reports structure only. It is safe to leave enabled in
+// production because it never includes values, URLs, IDs, or personal data.
+export function findFirstCanonicalDifference(stored, normalized, path = '') {
+    const storedType = canonicalValueType(stored);
+    const normalizedType = canonicalValueType(normalized);
+    const currentPath = path || '(root)';
+    if (storedType !== normalizedType) {
+        return { path: currentPath, type: 'value-type-mismatch', stored: 'present', normalized: 'present', storedType, normalizedType };
+    }
+    if (storedType === 'array') {
+        if (stored.length !== normalized.length) {
+            return { path: currentPath, type: 'array-length-mismatch', stored: 'present', normalized: 'present', storedType, normalizedType };
+        }
+        for (let index = 0; index < stored.length; index += 1) {
+            const difference = findFirstCanonicalDifference(stored[index], normalized[index], `${path}[${index}]`);
+            if (difference) return difference;
+        }
+        return null;
+    }
+    if (storedType === 'object' && stored && normalized) {
+        const keys = [...new Set([...Object.keys(stored), ...Object.keys(normalized)])].sort();
+        for (const key of keys) {
+            const childPath = path ? `${path}.${key}` : key;
+            const storedPresent = Object.hasOwn(stored, key);
+            const normalizedPresent = Object.hasOwn(normalized, key);
+            if (!storedPresent || !normalizedPresent) {
+                return {
+                    path: childPath,
+                    type: 'key-presence-mismatch',
+                    stored: storedPresent ? 'present' : 'missing',
+                    normalized: normalizedPresent ? 'present' : 'missing',
+                    storedType: storedPresent ? canonicalValueType(stored[key]) : 'missing',
+                    normalizedType: normalizedPresent ? canonicalValueType(normalized[key]) : 'missing'
+                };
+            }
+            const difference = findFirstCanonicalDifference(stored[key], normalized[key], childPath);
+            if (difference) return difference;
+        }
+        return null;
+    }
+    if (!Object.is(stored, normalized)) {
+        return { path: currentPath, type: 'value-mismatch', stored: 'present', normalized: 'present', storedType, normalizedType };
+    }
+    return null;
+}
+
 function setGeneralContentValue(content, path, value) {
     setDraftValue({ content }, path, value);
 }
@@ -277,7 +329,10 @@ export function deserializeInvitationDraft(document, expectedEventId) {
         if (legacyAccessDocument) canonicalDocument.content.access = normalized.content.access;
         if (legacySettingsDocument) canonicalDocument.settings = normalized.settings;
         if (legacyOpeningDocument) canonicalDocument.content.welcome = normalized.content.welcome;
-        if (stableStringify(comparable) !== stableStringify(canonicalDocument)) fail('draft/non-canonical-document');
+        if (stableStringify(comparable) !== stableStringify(canonicalDocument)) {
+            console.error('[Draft canonical mismatch]', findFirstCanonicalDifference(canonicalDocument, comparable));
+            fail('draft/non-canonical-document');
+        }
     }
     return Object.freeze(cloneInvitationValue(normalized));
 }
