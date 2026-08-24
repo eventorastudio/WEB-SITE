@@ -3,12 +3,12 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { migrateInvitationDraftToCurrentSchema } from '../admin/invitations/core/draft-migrations.js?v=phase123-draft-migration-architecture-20260824';
+import { migrateInvitationDraftToCurrentSchema } from '../admin/invitations/core/draft-migrations.js?v=phase124-legacy-empty-location-image-ref-20260824';
 import {
     deserializeInvitationDraft,
     findCanonicalDifferences,
     serializeInvitationDraft
-} from '../admin/invitations/core/draft-persistence-schema.js?v=phase123-draft-migration-architecture-20260824';
+} from '../admin/invitations/core/draft-persistence-schema.js?v=phase124-legacy-empty-location-image-ref-20260824';
 
 const DEFAULT_PROJECT_ID = 'eventorastudio-d6d95';
 const APPLY_CONFIRMATION = 'APPLY INVITATION DRAFT';

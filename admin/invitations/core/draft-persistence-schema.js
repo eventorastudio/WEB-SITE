@@ -5,7 +5,7 @@ import {
     createInvitationContent,
     getDraftValue,
     setDraftValue
-} from './content-schema.js?v=phase123-draft-migration-architecture-20260824';
+} from './content-schema.js?v=phase124-legacy-empty-location-image-ref-20260824';
 import { validateInvitationDraft } from './builder-validation.js?v=phase89-dress-code-media-20260820';
 import { getInvitationFormat, getPackageById, getSectionById } from './section-registry.js?v=phase93-package-sections-format-20260821';
 import { getThemeById } from './theme-registry.js?v=phase3-logistics-20260813';
@@ -14,11 +14,11 @@ import {
     DRESS_COLOR_GROUPS,
     createDressColor,
     normalizeEntity
-} from './logistics-schema.js?v=phase123-draft-migration-architecture-20260824';
+} from './logistics-schema.js?v=phase124-legacy-empty-location-image-ref-20260824';
 import {
     CURRENT_DRAFT_SCHEMA_VERSION,
     migrateInvitationDraftToCurrentSchema
-} from './draft-migrations.js?v=phase123-draft-migration-architecture-20260824';
+} from './draft-migrations.js?v=phase124-legacy-empty-location-image-ref-20260824';
 
 export const INVITATION_DRAFT_DOCUMENT_ID = 'draft';
 export const INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION = CURRENT_DRAFT_SCHEMA_VERSION;

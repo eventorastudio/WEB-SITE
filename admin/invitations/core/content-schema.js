@@ -1,4 +1,4 @@
-import { createLocation } from './logistics-schema.js?v=phase123-draft-migration-architecture-20260824';
+import { createLocation } from './logistics-schema.js?v=phase124-legacy-empty-location-image-ref-20260824';
 import {
     RSVP_EDITABLE_FIELD_DEFINITIONS,
     normalizeRsvpConfig
