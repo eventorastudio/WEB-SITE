@@ -14,7 +14,7 @@ import {
     DRESS_COLOR_GROUPS,
     createDressColor,
     normalizeEntity
-} from './logistics-schema.js?v=phase118-legacy-location-image-id-20260824';
+} from './logistics-schema.js?v=phase119-draft-noncanonical-reason-20260824';
 
 export const INVITATION_DRAFT_DOCUMENT_ID = 'draft';
 export const INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION = 2;
@@ -360,6 +360,10 @@ export function deserializeInvitationDraft(document, expectedEventId) {
         if (legacySettingsDocument) canonicalDocument.settings = normalized.settings;
         if (legacyOpeningDocument) canonicalDocument.content.welcome = normalized.content.welcome;
         if (stableStringify(comparable) !== stableStringify(canonicalDocument)) {
+            console.error('[Draft non-canonical reason]', JSON.stringify({
+                reason: 'normalized-diff',
+                differences: findCanonicalDifferences(canonicalDocument, comparable)
+            }, null, 2));
             fail('draft/non-canonical-document');
         }
     }
