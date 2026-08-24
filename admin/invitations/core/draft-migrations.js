@@ -2,8 +2,8 @@ import {
     INVITATION_CONTENT_SCHEMA_VERSION,
     cloneInvitationValue,
     createInvitationContent
-} from './content-schema.js?v=phase124-legacy-empty-location-image-ref-20260824';
-import { getInvitationFormat } from './section-registry.js?v=phase124-legacy-empty-location-image-ref-20260824';
+} from './content-schema.js?v=phase125-remove-draft-canonical-diagnostics-20260824';
+import { getInvitationFormat } from './section-registry.js?v=phase125-remove-draft-canonical-diagnostics-20260824';
 
 export const CURRENT_DRAFT_SCHEMA_VERSION = 2;
 

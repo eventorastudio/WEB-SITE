@@ -22,7 +22,7 @@ import {
     normalizeLocationWithMediaRef,
     normalizeEntity,
     packageAllowsMultipleLocations
-} from './logistics-schema.js?v=phase124-legacy-empty-location-image-ref-20260824';
+} from './logistics-schema.js?v=phase125-remove-draft-canonical-diagnostics-20260824';
 import {
     createEmptyInvitationMedia,
     createMediaAsset,

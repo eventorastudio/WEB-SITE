@@ -5,7 +5,7 @@ import {
     createInvitationContent,
     getDraftValue,
     setDraftValue
-} from './content-schema.js?v=phase124-legacy-empty-location-image-ref-20260824';
+} from './content-schema.js?v=phase125-remove-draft-canonical-diagnostics-20260824';
 import { validateInvitationDraft } from './builder-validation.js?v=phase89-dress-code-media-20260820';
 import { getInvitationFormat, getPackageById, getSectionById } from './section-registry.js?v=phase93-package-sections-format-20260821';
 import { getThemeById } from './theme-registry.js?v=phase3-logistics-20260813';
@@ -14,11 +14,11 @@ import {
     DRESS_COLOR_GROUPS,
     createDressColor,
     normalizeEntity
-} from './logistics-schema.js?v=phase124-legacy-empty-location-image-ref-20260824';
+} from './logistics-schema.js?v=phase125-remove-draft-canonical-diagnostics-20260824';
 import {
     CURRENT_DRAFT_SCHEMA_VERSION,
     migrateInvitationDraftToCurrentSchema
-} from './draft-migrations.js?v=phase124-legacy-empty-location-image-ref-20260824';
+} from './draft-migrations.js?v=phase125-remove-draft-canonical-diagnostics-20260824';
 
 export const INVITATION_DRAFT_DOCUMENT_ID = 'draft';
 export const INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION = CURRENT_DRAFT_SCHEMA_VERSION;
@@ -319,11 +319,6 @@ export function deserializeInvitationDraft(document, expectedEventId) {
         const comparable = { ...normalized, updatedAt: migratedDocument.updatedAt };
         const canonicalDocument = migratedDocument;
         if (stableStringify(comparable) !== stableStringify(canonicalDocument)) {
-            const differences = findCanonicalDifferences(canonicalDocument, comparable, { limit: 30 });
-            console.error(
-                '[Draft canonical mismatch phase121]',
-                JSON.stringify({ reason: 'normalized-diff', differences }, null, 2)
-            );
             fail('draft/non-canonical-document');
         }
     }
