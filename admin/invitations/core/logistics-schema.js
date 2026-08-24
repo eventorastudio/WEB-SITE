@@ -55,6 +55,17 @@ function oneOf(value, options, fallback) {
     return options.includes(value) ? value : fallback;
 }
 
+function optionalImageMediaId(value) {
+    if (value === undefined || value === '') return undefined;
+    if (value === null) return null;
+    if (typeof value !== 'string' || !/^MED-LOCAL-\d{3,}$/.test(value)) {
+        const error = new TypeError('draft/invalid-image-media-id');
+        error.code = 'draft/invalid-image-media-id';
+        throw error;
+    }
+    return text(value, 'imageMediaId');
+}
+
 export function createEntityId(prefix, sequence) {
     return `${prefix}-LOCAL-${String(sequence).padStart(3, '0')}`;
 }
@@ -74,7 +85,12 @@ export function createLocation(id, seed = {}) {
         description: text(seed.description, 'description'),
         notes: text(seed.notes, 'notes')
     };
-    if (Object.hasOwn(seed, 'imageMediaId') || Object.hasOwn(seed, 'imageId')) location.imageMediaId = text(seed.imageMediaId ?? seed.imageId, 'imageMediaId');
+    const imageMediaId = optionalImageMediaId(seed.imageMediaId);
+    const legacyImageId = optionalImageMediaId(seed.imageId);
+    if (imageMediaId !== undefined) location.imageMediaId = imageMediaId;
+    // `imageId` predates the dedicated place library. Keep its persisted shape
+    // while reading legacy drafts; it is never rewritten merely by opening.
+    else if (legacyImageId !== undefined) location.imageId = legacyImageId;
     if (Object.hasOwn(seed, 'categoryIcon')) location.categoryIcon = normalizeLocationIconKey(seed.categoryIcon);
     if (Object.hasOwn(seed, 'venueIcon')) location.venueIcon = normalizeLocationIconKey(seed.venueIcon);
     return location;
@@ -123,7 +139,8 @@ export function createAccommodation(id, seed = {}) {
         reservationCode: text(seed.reservationCode, 'reservationCode'),
         notes: text(seed.notes, 'notes')
     };
-    if (Object.hasOwn(seed, 'imageMediaId')) accommodation.imageMediaId = text(seed.imageMediaId, 'imageMediaId');
+    const imageMediaId = optionalImageMediaId(seed.imageMediaId);
+    if (imageMediaId !== undefined) accommodation.imageMediaId = imageMediaId;
     return accommodation;
 }
 
