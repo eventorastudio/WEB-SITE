@@ -822,6 +822,46 @@ body.builder-preview-custom {
     }
 }
 
+/* Aloha location cards: destination-led editorial treatment. */
+body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card {
+    --aloha-card-accent: var(--aqua);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: auto;
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / .62);
+    border-left: 4px solid var(--aloha-card-accent);
+    border-radius: 1.5rem .45rem 1.5rem .45rem;
+    background: linear-gradient(145deg, rgb(255 251 242 / .99), rgb(255 246 227 / .94));
+    box-shadow: .32rem .42rem 0 rgb(244 91 105 / .16), 0 1.1rem 2.1rem rgb(4 63 75 / .13);
+}
+body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card:nth-child(2n) { --aloha-card-accent: var(--coral); }
+body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card:nth-child(3n) { --aloha-card-accent: var(--sun); }
+body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card .aloha-location-type,
+body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card .aloha-location-venue,
+body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card .aloha-location-meta { display: inline-flex; align-items: center; gap: .38rem; }
+body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card .aloha-location-type { width: fit-content; margin: 0 0 .5rem; color: var(--aloha-card-accent); font-size: .56rem; font-weight: 800; letter-spacing: .2em; }
+body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card h3 { margin: 0; max-width: 21ch; color: var(--deep); font-size: clamp(1.65rem, 2.1vw, 2.35rem); line-height: .98; }
+body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card .aloha-location-icon { flex: 0 0 auto; width: 1em; height: 1em; }
+body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card .aloha-location-image { order: 0; width: 100%; aspect-ratio: 16 / 9; min-height: 0; margin: 1rem 0 .82rem; border-radius: 1rem .25rem 1rem .25rem; }
+body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card .aloha-location-venue { margin: 0; color: var(--deep); font-size: .86rem; font-weight: 750; }
+body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card .aloha-location-details { display: grid; gap: .38rem; margin: .8rem 0 0; padding-top: .72rem; border-top: 1px solid rgb(8 59 75 / .15); color: rgb(8 59 75 / .82); font-size: .7rem; line-height: 1.45; }
+body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card .aloha-location-meta .aloha-location-icon { color: var(--aloha-card-accent); }
+body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card .aloha-location-actions { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: 1rem; padding-top: 0; }
+body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card .aloha-location-actions .tropical-button { display: inline-flex; align-items: center; gap: .35rem; min-height: 2.15rem; padding: .45rem .7rem; border: 1px solid rgb(7 91 105 / .28); border-radius: 999px; font-size: .56rem; letter-spacing: .08em; }
+
+@media (max-width: 1050px) {
+    body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card { padding: 1.05rem 1rem .95rem; }
+    body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card .aloha-location-image { margin-top: .85rem; }
+}
+
+@media (max-width: 680px) {
+    body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card { border-radius: 1.2rem .35rem 1.2rem .35rem; }
+    body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card h3 { font-size: clamp(1.72rem, 8vw, 2.35rem); }
+    body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card .aloha-location-image { aspect-ratio: 16 / 10; }
+}
+
 /* Aloha desktop itinerary cards: compact, naturally balanced stations. */
 @media (min-width: 1051px) {
     body[data-builder-theme="aloha"] .itinerary ol {
@@ -1813,3 +1853,11 @@ body[data-builder-theme="aloha"] .dress[data-dress-code-image="empty"] .dress-co
         width: 8rem;
     }
 }
+
+/* Keep semantic destination accents authoritative after responsive overrides. */
+body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card[data-location-type="ceremony"],
+body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card[data-location-type="other"] { --aloha-card-accent: var(--aqua); }
+body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card[data-location-type="reception"],
+body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card[data-location-type="accommodation"] { --aloha-card-accent: var(--sun); }
+body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card[data-location-type="party"] { --aloha-card-accent: var(--coral); }
+body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card[data-location-type="session"] { --aloha-card-accent: var(--coral); }

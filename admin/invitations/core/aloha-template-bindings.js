@@ -1,5 +1,6 @@
 import { entityHasContent, getRenderableLocations } from './logistics-schema.js?v=phase3-logistics-20260813';
 import { buildGoogleCalendarUrl, buildWhatsAppUrl, safeUrlForField } from './safe-url.js?v=phase3-logistics-20260813';
+import { createLocationIcon, defaultLocationIconKeys, normalizeLocationIconKey } from './location-icon-registry.js?v=phase113-aloha-location-cards-20260823';
 
 const clean = (value) => String(value ?? '').replace(/\s+/g, ' ').trim();
 const source = (asset) => clean(asset?.previewUrl || asset?.downloadUrl);
@@ -39,7 +40,14 @@ function renderAlohaLocationCards(documentRoot, content, locations, accommodatio
         const gallery = new Map((draft.media?.gallery ?? []).map((asset) => [asset.id, asset]));
         locations.forEach((location) => {
             const card = node(documentRoot, 'article', 'aloha-location-card');
-            card.append(node(documentRoot, 'p', 'aloha-location-type', typeLabels[location.type] || 'Otro'));
+            card.dataset.locationType = location.type || 'other';
+            const defaults = defaultLocationIconKeys(location.type);
+            const categoryIconKey = Object.hasOwn(location, 'categoryIcon') ? normalizeLocationIconKey(location.categoryIcon) : defaults.categoryIcon;
+            const venueIconKey = Object.hasOwn(location, 'venueIcon') ? normalizeLocationIconKey(location.venueIcon) : defaults.venueIcon;
+            const category = node(documentRoot, 'p', 'aloha-location-type', typeLabels[location.type] || 'Otro');
+            const categoryIcon = createLocationIcon(documentRoot, categoryIconKey, { className: 'aloha-location-icon' });
+            if (categoryIcon) category.prepend(categoryIcon);
+            card.append(category);
             card.append(node(documentRoot, 'h3', '', location.title || 'Ubicaci\u00f3n'));
             const visual = node(documentRoot, 'div', 'aloha-location-image');
             const imageSource = source(gallery.get(location.imageId));
@@ -56,11 +64,34 @@ function renderAlohaLocationCards(documentRoot, content, locations, accommodatio
                 visual.dataset.imageState = 'fallback';
             }
             card.append(visual);
-            if (location.venueName) card.append(node(documentRoot, 'p', 'aloha-location-venue', location.venueName));
-            const details = [location.time, location.address, [location.city, location.state].filter(Boolean).join(', ')].filter(Boolean);
-            if (details.length) card.append(node(documentRoot, 'p', 'aloha-location-details', details.join(' \u00b7 ')));
+            if (location.venueName) {
+                const venue = node(documentRoot, 'p', 'aloha-location-venue', location.venueName);
+                const venueIcon = createLocationIcon(documentRoot, venueIconKey, { className: 'aloha-location-icon' });
+                if (venueIcon) venue.prepend(venueIcon);
+                card.append(venue);
+            }
+            const details = node(documentRoot, 'div', 'aloha-location-details');
+            if (location.time) {
+                const time = node(documentRoot, 'span', 'aloha-location-meta', location.time);
+                const icon = createLocationIcon(documentRoot, 'clock', { className: 'aloha-location-icon' });
+                if (icon) time.prepend(icon);
+                details.append(time);
+            }
+            const address = [location.address, [location.city, location.state].filter(Boolean).join(', ')].filter(Boolean).join(', ');
+            if (address) {
+                const addressNode = node(documentRoot, 'span', 'aloha-location-meta', address);
+                const icon = createLocationIcon(documentRoot, 'location', { className: 'aloha-location-icon' });
+                if (icon) addressNode.prepend(icon);
+                details.append(addressNode);
+            }
+            if (details.children.length) card.append(details);
             const actions = node(documentRoot, 'div', 'aloha-location-actions');
-            if (location.mapsUrl) actions.append(action(documentRoot, 'Abrir en Maps', location.mapsUrl, 'maps', 'mapsUrl'));
+            if (location.mapsUrl) {
+                const maps = action(documentRoot, 'Abrir en Maps', location.mapsUrl, 'maps', 'mapsUrl');
+                const icon = createLocationIcon(documentRoot, 'location', { className: 'aloha-location-icon' });
+                if (icon) maps.prepend(icon);
+                actions.append(maps);
+            }
             if (location.wazeUrl) actions.append(action(documentRoot, 'Abrir en Waze', location.wazeUrl, 'waze', 'wazeUrl'));
             if (actions.children.length) card.append(actions);
             stops.append(card);

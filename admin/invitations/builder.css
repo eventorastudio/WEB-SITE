@@ -240,6 +240,12 @@ button.review-card { cursor: pointer; }
 .entity-field input:focus, .entity-field select:focus, .entity-field textarea:focus { border-color: var(--builder-gold); box-shadow: 0 0 0 3px var(--builder-gold-soft); }
 .entity-field [aria-invalid="true"] { border-color: var(--builder-danger); }
 .entity-field-error { min-height: 12px; color: var(--builder-danger); font-size: 0.52rem; }
+.location-icon-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(4.25rem, 1fr)); gap: 6px; }
+.location-icon-option { display: grid; place-items: center; gap: 3px; min-height: 54px; padding: 6px 3px; border: 1px solid var(--builder-line); border-radius: 9px; background: #fff; color: var(--builder-muted); cursor: pointer; font: inherit; }
+.location-icon-option:hover, .location-icon-option[aria-pressed="true"] { border-color: var(--builder-gold); background: var(--builder-gold-soft); color: var(--builder-ink); }
+.location-icon-option[aria-pressed="true"] { box-shadow: 0 0 0 2px rgb(183 138 61 / .18); }
+.location-icon-option svg { width: 20px; height: 20px; }
+.location-icon-option span { overflow: hidden; max-width: 100%; font-size: .48rem; text-overflow: ellipsis; white-space: nowrap; }
 .entity-delete-confirmation { grid-column: 1 / -1; align-items: center; gap: 8px; margin-top: 12px; padding: 10px; border: 1px solid #e8c4c0; border-radius: 9px; background: #fff7f6; color: var(--builder-danger); font-size: 0.58rem; }
 .entity-delete-confirmation:not([hidden]) { display: flex; }
 .entity-delete-confirmation span { margin-right: auto; }

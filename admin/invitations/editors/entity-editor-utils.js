@@ -1,4 +1,5 @@
 import { entityHasContent } from '../core/logistics-schema.js?v=phase3-logistics-20260813';
+import { createLocationIcon, LOCATION_ICON_OPTIONS } from '../core/location-icon-registry.js?v=phase113-aloha-location-cards-20260823';
 
 function element(tag, className, text = '') {
     const node = document.createElement(tag);
@@ -11,7 +12,23 @@ function createControl(definition, item, snapshot, collection) {
     const label = element('label', `entity-field${definition.wide ? ' entity-field-wide' : ''}`);
     label.append(element('span', '', definition.label));
     let control;
-    if (definition.type === 'select') {
+    if (definition.type === 'iconPicker') {
+        control = element('div', 'location-icon-picker');
+        const source = definition.nested ? item[definition.nested]?.[definition.field] : item[definition.field];
+        const selected = String(source ?? '');
+        (definition.options ?? LOCATION_ICON_OPTIONS).forEach(({ value, label: optionLabel }) => {
+            const option = element('button', 'location-icon-option');
+            option.type = 'button';
+            option.dataset.entityIconField = definition.field;
+            option.dataset.entityIconValue = value;
+            option.setAttribute('aria-pressed', String(selected === value));
+            option.title = optionLabel;
+            const icon = createLocationIcon(document, value);
+            if (icon) option.append(icon);
+            option.append(element('span', '', optionLabel));
+            control.append(option);
+        });
+    } else if (definition.type === 'select') {
         control = document.createElement('select');
         (definition.options ?? []).forEach(({ value, label: optionLabel }) => {
             const option = document.createElement('option');
@@ -26,13 +43,15 @@ function createControl(definition, item, snapshot, collection) {
         control = document.createElement('input');
         control.type = definition.type ?? 'text';
     }
-    control.autocomplete = 'off';
-    control.dataset.entityField = definition.field;
-    if (definition.nested) control.dataset.entityNested = definition.nested;
-    if (definition.placeholder) control.placeholder = definition.placeholder;
-    if (definition.maxLength) control.maxLength = definition.maxLength;
-    const source = definition.nested ? item[definition.nested]?.[definition.field] : item[definition.field];
-    control.value = String(source ?? '');
+    if (definition.type !== 'iconPicker') {
+        control.autocomplete = 'off';
+        control.dataset.entityField = definition.field;
+        if (definition.nested) control.dataset.entityNested = definition.nested;
+        if (definition.placeholder) control.placeholder = definition.placeholder;
+        if (definition.maxLength) control.maxLength = definition.maxLength;
+        const source = definition.nested ? item[definition.nested]?.[definition.field] : item[definition.field];
+        control.value = String(source ?? '');
+    }
 
     const error = element('small', 'entity-field-error');
     const errorPath = definition.errorPath?.(item) ?? `${collection}.${item.id}.${definition.field}`;
@@ -157,6 +176,10 @@ export function initEntityListEditor({
                 if (errorNode) { errorNode.textContent = error; errorNode.hidden = !error; }
                 control.setAttribute('aria-invalid', String(Boolean(error)));
             });
+            card.querySelectorAll('[data-entity-icon-field]').forEach((control) => {
+                const value = item[control.dataset.entityIconField] ?? '';
+                control.setAttribute('aria-pressed', String(value === control.dataset.entityIconValue));
+            });
             const index = items.indexOf(item);
             const summaryCopy = summary(item, index, snapshot);
             const strong = card.querySelector('.entity-card-copy strong');
@@ -191,6 +214,23 @@ export function initEntityListEditor({
     };
 
     const handleClick = (event) => {
+        const iconButton = event.target.closest?.('[data-entity-icon-field]');
+        if (iconButton && container.contains(iconButton)) {
+            event.preventDefault();
+            event.stopPropagation();
+            const card = iconButton.closest('[data-entity-id]');
+            if (!card) return;
+            const field = iconButton.dataset.entityIconField;
+            const value = iconButton.dataset.entityIconValue ?? '';
+            const result = state[updateMethod](card.dataset.entityId, { [field]: value });
+            if (result?.ok && result.changed && onFieldChange) {
+                onFieldChange({ id: card.dataset.entityId, field, value, snapshot: state.getSnapshot() });
+            }
+            snapshot = state.getSnapshot();
+            expandedId = card.dataset.entityId;
+            render();
+            return;
+        }
         const button = event.target.closest?.('[data-entity-action]');
         if (!button || !container.contains(button)) return;
         event.preventDefault();
@@ -254,4 +294,5 @@ export function initEntityListEditor({
 
 export function textField(field, label, options = {}) { return { field, label, ...options }; }
 export function selectField(field, label, options, extra = {}) { return { field, label, type: 'select', options, ...extra }; }
+export function iconPickerField(field, label, extra = {}) { return { field, label, type: 'iconPicker', options: LOCATION_ICON_OPTIONS, ...extra }; }
 export function textareaField(field, label, options = {}) { return { field, label, type: 'textarea', wide: true, ...options }; }

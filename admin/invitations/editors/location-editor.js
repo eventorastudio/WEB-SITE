@@ -1,5 +1,5 @@
 import { LOCATION_TYPES, locationTypeLabel, packageAllowsMultipleLocations } from '../core/logistics-schema.js?v=phase93-package-sections-format-20260821';
-import { initEntityListEditor, selectField, textField, textareaField } from './entity-editor-utils.js?v=phase3-logistics-20260813';
+import { initEntityListEditor, iconPickerField, selectField, textField, textareaField } from './entity-editor-utils.js?v=phase113-aloha-location-cards-20260823';
 
 const TYPE_OPTIONS = LOCATION_TYPES.map((value) => ({ value, label: locationTypeLabel(value) }));
 
@@ -20,6 +20,8 @@ export function initLocationEditor({ container, state }) {
         }),
         fields: (item, snapshot) => [
             selectField('type', 'Tipo', TYPE_OPTIONS),
+            iconPickerField('categoryIcon', 'Icono de categoría'),
+            iconPickerField('venueIcon', 'Icono del lugar'),
             textField('title', 'Título visible', { placeholder: 'Ceremonia religiosa', maxLength: 140 }),
             textField('venueName', 'Nombre del lugar', { placeholder: 'Catedral de Santiago', maxLength: 160 }),
             selectField('imageId', 'Foto del lugar', [

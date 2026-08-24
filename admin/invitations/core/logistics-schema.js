@@ -1,4 +1,5 @@
 import { getPackageById } from './section-registry.js?v=phase93-package-sections-format-20260821';
+import { normalizeLocationIconKey } from './location-icon-registry.js?v=phase113-aloha-location-cards-20260823';
 
 export const LOCATION_TYPES = Object.freeze(['ceremony', 'reception', 'party', 'session', 'accommodation', 'other']);
 export const GIFT_TYPES = Object.freeze(['store', 'transfer', 'cash', 'other']);
@@ -27,6 +28,8 @@ const TEXT_LIMITS = Object.freeze({
     description: 800,
     notes: 600,
     imageId: 100,
+    categoryIcon: 32,
+    venueIcon: 32,
     name: 160,
     url: 2048,
     reference: 180,
@@ -72,6 +75,8 @@ export function createLocation(id, seed = {}) {
         notes: text(seed.notes, 'notes')
     };
     if (Object.hasOwn(seed, 'imageId')) location.imageId = text(seed.imageId, 'imageId');
+    if (Object.hasOwn(seed, 'categoryIcon')) location.categoryIcon = normalizeLocationIconKey(seed.categoryIcon);
+    if (Object.hasOwn(seed, 'venueIcon')) location.venueIcon = normalizeLocationIconKey(seed.venueIcon);
     return location;
 }
 

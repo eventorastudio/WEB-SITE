@@ -1,5 +1,6 @@
 import { getDraftValue } from './content-schema.js?v=phase54a-rsvp-time-20260817';
 import { DRESS_COLOR_GROUPS } from './logistics-schema.js?v=phase3-logistics-20260813';
+import { normalizeLocationIconKey } from './location-icon-registry.js?v=phase113-aloha-location-cards-20260823';
 import { normalizeWhatsAppPhone, safeUrlError } from './safe-url.js?v=phase51-rsvp-20260816';
 import { getAllMediaAssets, validateMediaAsset } from './media-schema.js?v=phase89-dress-code-media-20260820';
 import {
@@ -44,6 +45,11 @@ export function validateInvitationDraft(draft = {}) {
         if (location.imageId && !galleryIds.has(location.imageId)) {
             errors[`locations.${location.id}.imageId`] = 'La foto seleccionada ya no existe en Galería.';
         }
+        ['categoryIcon', 'venueIcon'].forEach((field) => {
+            if (location[field] && !normalizeLocationIconKey(location[field])) {
+                errors[`locations.${location.id}.${field}`] = 'Selecciona un icono válido.';
+            }
+        });
     });
     (draft.itinerary ?? []).forEach((item) => {
         validateTime(item.time, `itinerary.${item.id}.time`, errors);
