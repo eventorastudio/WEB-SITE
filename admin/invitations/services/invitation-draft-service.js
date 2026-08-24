@@ -3,7 +3,7 @@ import {
     createInvitationDraftFingerprint,
     deserializeInvitationDraft,
     serializeInvitationDraft
-} from '../core/draft-persistence-schema.js?v=phase119-draft-noncanonical-reason-20260824';
+} from '../core/draft-persistence-schema.js?v=phase120-preserve-location-image-media-id-20260824';
 
 function serviceError(code, cause = null, details = {}) {
     const error = new Error(code);

@@ -51,6 +51,28 @@ test('production-shaped second location imageId is accepted and serialized canon
     assert.equal(saved.locations[1].imageId, undefined);
 });
 
+test('production-shaped current imageMediaId survives all three locations', () => {
+    const document = persistedDraft();
+    document.locations = [
+        { ...document.locations[0], id: 'LOC-LOCAL-001', imageMediaId: 'MED-LOCAL-001' },
+        { ...document.locations[0], id: 'LOC-LOCAL-002', imageMediaId: 'MED-LOCAL-002' },
+        { ...document.locations[0], id: 'LOC-LOCAL-003', imageMediaId: 'MED-LOCAL-003' }
+    ];
+
+    const loaded = deserializeInvitationDraft(document, EVENT_ID);
+    assert.deepEqual(loaded.locations.map(({ imageMediaId, imageId }) => ({ imageMediaId, imageId })), [
+        { imageMediaId: 'MED-LOCAL-001', imageId: undefined },
+        { imageMediaId: 'MED-LOCAL-002', imageId: undefined },
+        { imageMediaId: 'MED-LOCAL-003', imageId: undefined }
+    ]);
+    const saved = serializeInvitationDraft(loaded, OPTIONS);
+    assert.deepEqual(saved.locations.map(({ imageMediaId, imageId }) => ({ imageMediaId, imageId })), [
+        { imageMediaId: 'MED-LOCAL-001', imageId: undefined },
+        { imageMediaId: 'MED-LOCAL-002', imageId: undefined },
+        { imageMediaId: 'MED-LOCAL-003', imageId: undefined }
+    ]);
+});
+
 test('current location and accommodation place references load when valid', () => {
     const document = persistedDraft();
     document.locations[0].imageMediaId = 'MED-LOCAL-001';
@@ -63,6 +85,9 @@ test('current location and accommodation place references load when valid', () =
 
     assert.equal(loaded.locations[0].imageMediaId, 'MED-LOCAL-001');
     assert.equal(loaded.accommodations[0].imageMediaId, 'MED-LOCAL-001');
+    const saved = serializeInvitationDraft(loaded, OPTIONS);
+    assert.equal(saved.accommodations[0].imageMediaId, 'MED-LOCAL-001');
+    assert.equal(saved.accommodations[0].imageId, undefined);
 });
 
 test('legacy locations and accommodations without place references continue loading', () => {
