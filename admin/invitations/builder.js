@@ -6,7 +6,7 @@ import { eventBus } from '../core/event-bus.js';
 import { EVENT_TYPES } from '../core/event-types.js';
 import { hasPermission, PERMISSIONS } from '../core/roles.js';
 import { initThemeManager } from '../core/theme-manager.js';
-import { builderState } from './core/builder-state.js?v=phase116-draft-canonical-diagnostic-20260824';
+import { builderState } from './core/builder-state.js?v=phase117-draft-canonical-diffs-20260824';
 import { createBuilderUrl, readBuilderRoute } from './core/builder-routing.js?v=phase3-logistics-20260813';
 import {
     BUILDER_DESKTOP_MIN_WIDTH,
@@ -23,7 +23,7 @@ import { initAppearanceEditor } from './editors/appearance-editor.js?v=phase86-a
 import { initReviewEditor } from './editors/review-editor.js?v=phase86-review-20260820';
 import { invitationMediaService } from './services/invitation-media-service.js?v=phase89-dress-code-media-20260820';
 import { invitationRsvpService } from './services/invitation-rsvp-service.js?v=phase54-public-rsvp-20260817';
-import { invitationDraftService } from './services/invitation-draft-service.js?v=phase116-draft-canonical-diagnostic-20260824';
+import { invitationDraftService } from './services/invitation-draft-service.js?v=phase117-draft-canonical-diffs-20260824';
 import { invitationPublicationService } from './services/invitation-publication-service.js?v=phase63-public-invitation-20260817';
 import { renderEventSelector } from './modules/event-selector.js?v=phase3-logistics-20260813';
 import { initPackageSelector } from './modules/package-selector.js?v=phase94-format-gating-20260821';

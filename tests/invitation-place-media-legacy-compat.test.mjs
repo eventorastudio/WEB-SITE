@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createInvitationDraft } from '../admin/invitations/core/builder-state.js';
 import {
     deserializeInvitationDraft,
+    findCanonicalDifferences,
     findFirstCanonicalDifference,
     serializeInvitationDraft
 } from '../admin/invitations/core/draft-persistence-schema.js';
@@ -91,9 +92,23 @@ test('canonical diagnostic reports only the first structural difference', () => 
     assert.deepEqual(difference, {
         path: 'locations[0].unexpected',
         type: 'key-presence-mismatch',
-        stored: 'present',
-        normalized: 'missing',
+        storedPresence: 'present',
+        normalizedPresence: 'missing',
         storedType: 'boolean',
         normalizedType: 'missing'
     });
+    assert.deepEqual(findCanonicalDifferences(
+        { locations: [{ id: 'LOC-LOCAL-001', unexpected: true }], settings: { extra: true } },
+        { locations: [{ id: 'LOC-LOCAL-001' }], settings: {} }
+    ), [
+        difference,
+        {
+            path: 'settings.extra',
+            type: 'key-presence-mismatch',
+            storedPresence: 'present',
+            normalizedPresence: 'missing',
+            storedType: 'boolean',
+            normalizedType: 'missing'
+        }
+    ]);
 });

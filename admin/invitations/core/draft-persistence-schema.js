@@ -114,48 +114,59 @@ function canonicalValueType(value) {
 
 // This intentionally reports structure only. It is safe to leave enabled in
 // production because it never includes values, URLs, IDs, or personal data.
-export function findFirstCanonicalDifference(stored, normalized, path = '') {
-    const storedType = canonicalValueType(stored);
-    const normalizedType = canonicalValueType(normalized);
-    const currentPath = path || '(root)';
-    if (storedType !== normalizedType) {
-        return { path: currentPath, type: 'value-type-mismatch', stored: 'present', normalized: 'present', storedType, normalizedType };
-    }
-    if (storedType === 'array') {
-        if (stored.length !== normalized.length) {
-            return { path: currentPath, type: 'array-length-mismatch', stored: 'present', normalized: 'present', storedType, normalizedType };
+export function findCanonicalDifferences(stored, normalized, { limit = 20 } = {}) {
+    const differences = [];
+    const visit = (storedValue, normalizedValue, path = '') => {
+        if (differences.length >= limit) return;
+        const storedType = canonicalValueType(storedValue);
+        const normalizedType = canonicalValueType(normalizedValue);
+        const currentPath = path || '(root)';
+        if (storedType !== normalizedType) {
+            differences.push({ path: currentPath, type: 'value-type-mismatch', storedPresence: 'present', normalizedPresence: 'present', storedType, normalizedType });
+            return;
         }
-        for (let index = 0; index < stored.length; index += 1) {
-            const difference = findFirstCanonicalDifference(stored[index], normalized[index], `${path}[${index}]`);
-            if (difference) return difference;
-        }
-        return null;
-    }
-    if (storedType === 'object' && stored && normalized) {
-        const keys = [...new Set([...Object.keys(stored), ...Object.keys(normalized)])].sort();
-        for (const key of keys) {
-            const childPath = path ? `${path}.${key}` : key;
-            const storedPresent = Object.hasOwn(stored, key);
-            const normalizedPresent = Object.hasOwn(normalized, key);
-            if (!storedPresent || !normalizedPresent) {
-                return {
-                    path: childPath,
-                    type: 'key-presence-mismatch',
-                    stored: storedPresent ? 'present' : 'missing',
-                    normalized: normalizedPresent ? 'present' : 'missing',
-                    storedType: storedPresent ? canonicalValueType(stored[key]) : 'missing',
-                    normalizedType: normalizedPresent ? canonicalValueType(normalized[key]) : 'missing'
-                };
+        if (storedType === 'array') {
+            if (storedValue.length !== normalizedValue.length) {
+                differences.push({ path: currentPath, type: 'array-length-mismatch', storedPresence: 'present', normalizedPresence: 'present', storedType, normalizedType });
             }
-            const difference = findFirstCanonicalDifference(stored[key], normalized[key], childPath);
-            if (difference) return difference;
+            const count = Math.min(storedValue.length, normalizedValue.length);
+            for (let index = 0; index < count && differences.length < limit; index += 1) {
+                visit(storedValue[index], normalizedValue[index], `${path}[${index}]`);
+            }
+            return;
         }
-        return null;
-    }
-    if (!Object.is(stored, normalized)) {
-        return { path: currentPath, type: 'value-mismatch', stored: 'present', normalized: 'present', storedType, normalizedType };
-    }
-    return null;
+        if (storedType === 'object' && storedValue && normalizedValue) {
+            const keys = [...new Set([...Object.keys(storedValue), ...Object.keys(normalizedValue)])].sort();
+            for (const key of keys) {
+                if (differences.length >= limit) return;
+                const childPath = path ? `${path}.${key}` : key;
+                const storedPresent = Object.hasOwn(storedValue, key);
+                const normalizedPresent = Object.hasOwn(normalizedValue, key);
+                if (!storedPresent || !normalizedPresent) {
+                    differences.push({
+                        path: childPath,
+                        type: 'key-presence-mismatch',
+                        storedPresence: storedPresent ? 'present' : 'missing',
+                        normalizedPresence: normalizedPresent ? 'present' : 'missing',
+                        storedType: storedPresent ? canonicalValueType(storedValue[key]) : 'missing',
+                        normalizedType: normalizedPresent ? canonicalValueType(normalizedValue[key]) : 'missing'
+                    });
+                    continue;
+                }
+                visit(storedValue[key], normalizedValue[key], childPath);
+            }
+            return;
+        }
+        if (!Object.is(storedValue, normalizedValue)) {
+            differences.push({ path: currentPath, type: 'value-mismatch', storedPresence: 'present', normalizedPresence: 'present', storedType, normalizedType });
+        }
+    };
+    visit(stored, normalized);
+    return differences;
+}
+
+export function findFirstCanonicalDifference(stored, normalized) {
+    return findCanonicalDifferences(stored, normalized, { limit: 1 })[0] ?? null;
 }
 
 function setGeneralContentValue(content, path, value) {
@@ -330,7 +341,11 @@ export function deserializeInvitationDraft(document, expectedEventId) {
         if (legacySettingsDocument) canonicalDocument.settings = normalized.settings;
         if (legacyOpeningDocument) canonicalDocument.content.welcome = normalized.content.welcome;
         if (stableStringify(comparable) !== stableStringify(canonicalDocument)) {
-            console.error('[Draft canonical mismatch]', findFirstCanonicalDifference(canonicalDocument, comparable));
+            console.error('[Draft canonical mismatch]', JSON.stringify(
+                findCanonicalDifferences(canonicalDocument, comparable),
+                null,
+                2
+            ));
             fail('draft/non-canonical-document');
         }
     }
