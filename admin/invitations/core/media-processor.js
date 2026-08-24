@@ -77,6 +77,14 @@ function renameExtension(name, mimeType) {
     return `${String(name || 'imagen').replace(/\.[^.]+$/, '')}.${extension}`;
 }
 
+function declaredMimeForFile(file, role) {
+    const declared = String(file?.type ?? '').toLowerCase();
+    if (role === 'videoPoster' && (!declared || declared === 'image/jpg') && /\.(?:jpe?g)$/i.test(file?.name ?? '')) {
+        return 'image/jpeg';
+    }
+    return declared;
+}
+
 async function processImage(file, definition, { documentRef, temporaryUrl, onProgress }) {
     onProgress?.(30);
     const decoded = await decodeImage(file, temporaryUrl, documentRef);
@@ -122,7 +130,7 @@ export async function inspectAndProcessMediaFile(file, role, {
 
     onProgress?.(10);
     const detectedMime = sniffMediaMimeType(await readHeader(file));
-    const signature = validateMediaSignature({ declaredMime: file.type, detectedMime, kind: definition.kind });
+    const signature = validateMediaSignature({ declaredMime: declaredMimeForFile(file, role), detectedMime, kind: definition.kind });
     if (!signature.ok) throw mediaError(signature.code);
 
     const temporaryUrl = urlApi.createObjectURL(file);

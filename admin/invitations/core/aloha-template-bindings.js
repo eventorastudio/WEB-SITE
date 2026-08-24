@@ -348,18 +348,31 @@ export function applyAlohaGalleryBinding(documentRoot, draft = {}) {
     const root = documentRoot?.querySelector('[data-prestige-feature~="gallery"]');
     const assets = (draft.media?.gallery ?? []).filter((asset) => source(asset));
     if (!root || !assets.length) return { applied: false };
-    const cards = [...root.querySelectorAll('.postcard-card')];
-    assets.forEach((asset, index) => {
-        const card = cards[index] ?? node(documentRoot, 'div', 'postcard-card photo-frame');
-        if (!card.parentElement) root.append(card);
-        card.replaceChildren();
-        const image = node(documentRoot, 'img');
-        image.src = source(asset); image.alt = asset.alt || ''; image.loading = 'lazy';
+    const grid = documentRoot.createElement('div');
+    grid.className = 'builder-phase4-gallery builder-phase4-gallery-aloha';
+    grid.dataset.builderPhase4 = 'gallery';
+    [...assets].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)).forEach((asset, index) => {
+        const figure = documentRoot.createElement('figure');
+        figure.className = 'builder-phase4-gallery-item';
+        figure.dataset.mediaId = asset.id;
+        const frame = documentRoot.createElement('div');
+        frame.className = 'builder-phase4-gallery-image-frame';
+        const width = Number(asset.width) || 0;
+        const height = Number(asset.height) || 0;
+        frame.dataset.galleryOrientation = width && height
+            ? (width / height > 1.15 ? 'landscape' : height / width > 1.15 ? 'portrait' : 'square')
+            : 'square';
+        const image = documentRoot.createElement('img');
+        image.src = source(asset);
+        image.alt = asset.alt || '';
+        image.loading = 'lazy';
+        image.decoding = 'async';
         image.style.objectPosition = `${asset.focalPoint?.x ?? 50}% ${asset.focalPoint?.y ?? 50}%`;
-        card.append(image, node(documentRoot, 'span', '', String(index + 1).padStart(2, '0')));
-        if (asset.caption) card.append(node(documentRoot, 'p', '', asset.caption));
-        card.hidden = false;
+        frame.append(image);
+        figure.append(frame);
+        if (asset.caption) figure.append(node(documentRoot, 'figcaption', '', asset.caption));
+        grid.append(figure);
     });
-    cards.slice(assets.length).forEach((card) => { card.hidden = true; });
+    root.replaceChildren(grid);
     return { applied: true, count: assets.length };
 }

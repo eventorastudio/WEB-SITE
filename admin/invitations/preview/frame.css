@@ -1861,3 +1861,43 @@ body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-
 body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card[data-location-type="accommodation"] { --aloha-card-accent: var(--sun); }
 body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card[data-location-type="party"] { --aloha-card-accent: var(--coral); }
 body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card[data-location-type="session"] { --aloha-card-accent: var(--coral); }
+
+/* Aloha gallery: each photo owns a real frame, so mixed orientations fill it cleanly. */
+body[data-builder-theme="aloha"] .builder-phase4-gallery-aloha {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)) !important;
+    align-items: stretch !important;
+    gap: clamp(.9rem, 2vw, 1.5rem) !important;
+}
+body[data-builder-theme="aloha"] .builder-phase4-gallery-aloha > .builder-phase4-gallery-item {
+    display: grid !important;
+    grid-template-rows: auto auto !important;
+    align-content: start !important;
+    min-width: 0 !important;
+    height: auto !important;
+}
+body[data-builder-theme="aloha"] .builder-phase4-gallery-aloha .builder-phase4-gallery-image-frame {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    min-height: 0;
+    overflow: hidden;
+    background: var(--deep, #075b69);
+}
+body[data-builder-theme="aloha"] .builder-phase4-gallery-aloha .builder-phase4-gallery-image-frame[data-gallery-orientation="portrait"] { aspect-ratio: 4 / 5; }
+body[data-builder-theme="aloha"] .builder-phase4-gallery-aloha .builder-phase4-gallery-image-frame[data-gallery-orientation="landscape"] { aspect-ratio: 16 / 10; }
+body[data-builder-theme="aloha"] .builder-phase4-gallery-aloha .builder-phase4-gallery-image-frame[data-gallery-orientation="square"] { aspect-ratio: 1 / 1; }
+body[data-builder-theme="aloha"] .builder-phase4-gallery-aloha .builder-phase4-gallery-image-frame img {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    object-fit: cover !important;
+    object-position: center !important;
+}
+@media (max-width: 1050px) and (min-width: 731px) {
+    body[data-builder-theme="aloha"] .builder-phase4-gallery-aloha { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 730px) {
+    body[data-builder-theme="aloha"] .builder-phase4-gallery-aloha { grid-template-columns: minmax(0, 1fr) !important; padding-inline: 0 !important; gap: 1rem !important; }
+    body[data-builder-theme="aloha"] .builder-phase4-gallery-aloha > .builder-phase4-gallery-item { width: 100% !important; transform: none !important; }
+    body[data-builder-theme="aloha"] .builder-phase4-gallery-aloha .builder-phase4-gallery-image-frame[data-gallery-orientation="landscape"] { aspect-ratio: 16 / 10; }
+}
