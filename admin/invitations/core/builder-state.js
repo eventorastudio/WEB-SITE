@@ -19,10 +19,10 @@ import {
     createGift,
     createItineraryItem,
     createLink,
-    createLocation,
+    normalizeLocationWithMediaRef,
     normalizeEntity,
     packageAllowsMultipleLocations
-} from './logistics-schema.js?v=phase3-logistics-20260813';
+} from './logistics-schema.js?v=phase122-location-media-ref-wrapper-20260824';
 import {
     createEmptyInvitationMedia,
     createMediaAsset,
@@ -296,7 +296,7 @@ export class InvitationBuilderState {
         if (this._draft.locations.length >= 1 && !packageAllowsMultipleLocations(this._draft.packageId)) {
             return { ok: false, code: 'builder/multiple-locations-not-allowed' };
         }
-        return this._addEntity('locations', (id) => createLocation(id, seed));
+        return this._addEntity('locations', (id) => normalizeLocationWithMediaRef(id, seed));
     }
 
     updateLocation(id, patch) { return this._updateEntity('locations', id, patch); }

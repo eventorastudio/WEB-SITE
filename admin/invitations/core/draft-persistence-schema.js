@@ -14,7 +14,7 @@ import {
     DRESS_COLOR_GROUPS,
     createDressColor,
     normalizeEntity
-} from './logistics-schema.js?v=phase121-draft-canonical-full-diagnostics-20260824';
+} from './logistics-schema.js?v=phase122-location-media-ref-wrapper-20260824';
 
 export const INVITATION_DRAFT_DOCUMENT_ID = 'draft';
 export const INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION = 2;

@@ -53,6 +53,7 @@ test('production-shaped second location imageId is accepted and serialized canon
 
 test('production-shaped current imageMediaId survives all three locations', () => {
     const document = persistedDraft();
+    document.theme = null;
     document.locations = [
         { ...document.locations[0], id: 'LOC-LOCAL-001', imageMediaId: 'MED-LOCAL-001' },
         { ...document.locations[0], id: 'LOC-LOCAL-002', imageMediaId: 'MED-LOCAL-002' },
@@ -71,6 +72,7 @@ test('production-shaped current imageMediaId survives all three locations', () =
         { imageMediaId: 'MED-LOCAL-002', imageId: undefined },
         { imageMediaId: 'MED-LOCAL-003', imageId: undefined }
     ]);
+    assert.deepEqual(findCanonicalDifferences(document, saved), []);
 });
 
 test('current location and accommodation place references load when valid', () => {

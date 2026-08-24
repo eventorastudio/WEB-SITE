@@ -85,13 +85,21 @@ export function createLocation(id, seed = {}) {
         description: text(seed.description, 'description'),
         notes: text(seed.notes, 'notes')
     };
-    const imageMediaId = optionalImageMediaId(seed.imageMediaId);
-    const legacyImageId = optionalImageMediaId(seed.imageId);
-    if (imageMediaId !== undefined) location.imageMediaId = imageMediaId;
-    else if (legacyImageId !== undefined) location.imageMediaId = legacyImageId;
     if (Object.hasOwn(seed, 'categoryIcon')) location.categoryIcon = normalizeLocationIconKey(seed.categoryIcon);
     if (Object.hasOwn(seed, 'venueIcon')) location.venueIcon = normalizeLocationIconKey(seed.venueIcon);
     return location;
+}
+
+// Media references are optional location metadata. Keep them at the boundary
+// around the entity constructor so every collection normalization route uses
+// the same current/legacy contract.
+export function normalizeLocationWithMediaRef(id, seed = {}) {
+    const imageMediaId = optionalImageMediaId(seed.imageMediaId);
+    const legacyImageId = optionalImageMediaId(seed.imageId);
+    const mediaRef = imageMediaId !== undefined ? imageMediaId : legacyImageId;
+    const normalized = createLocation(id, seed);
+    if (mediaRef !== undefined) normalized.imageMediaId = mediaRef;
+    return normalized;
 }
 
 export function createItineraryItem(id, seed = {}) {
@@ -189,7 +197,7 @@ export function getRenderableLocations(draft = {}) {
 export function normalizeEntity(collection, entity) {
     const id = text(entity?.id, 'reference');
     if (!id) throw new TypeError(`builder/${collection}-entity-id-required`);
-    if (collection === 'locations') return createLocation(id, entity);
+    if (collection === 'locations') return normalizeLocationWithMediaRef(id, entity);
     if (collection === 'itinerary') return createItineraryItem(id, entity);
     if (collection === 'gifts') return createGift(id, entity);
     if (collection === 'accommodations') return createAccommodation(id, entity);
