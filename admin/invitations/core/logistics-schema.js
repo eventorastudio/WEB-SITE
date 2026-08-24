@@ -95,10 +95,8 @@ export function createLocation(id, seed = {}) {
 // the same current/legacy contract.
 export function normalizeLocationWithMediaRef(id, seed = {}) {
     const imageMediaId = optionalImageMediaId(seed.imageMediaId);
-    const legacyImageId = optionalImageMediaId(seed.imageId);
-    const mediaRef = imageMediaId !== undefined ? imageMediaId : legacyImageId;
     const normalized = createLocation(id, seed);
-    if (mediaRef !== undefined) normalized.imageMediaId = mediaRef;
+    if (imageMediaId !== undefined) normalized.imageMediaId = imageMediaId;
     return normalized;
 }
 

@@ -131,7 +131,7 @@ test('invalid imageMediaId and unknown entity fields remain rejected', () => {
     const conflictingAliases = persistedDraft();
     conflictingAliases.locations[0].imageId = 'MED-LOCAL-001';
     conflictingAliases.locations[0].imageMediaId = 'MED-LOCAL-002';
-    assert.throws(() => deserializeInvitationDraft(conflictingAliases, EVENT_ID), { code: 'draft/non-canonical-document' });
+    assert.throws(() => deserializeInvitationDraft(conflictingAliases, EVENT_ID), { code: 'draft/conflicting-location-image-media-ids' });
 
     const unknownField = persistedDraft();
     unknownField.locations[0].unexpected = true;

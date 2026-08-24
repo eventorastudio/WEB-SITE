@@ -5,7 +5,7 @@ import {
     createInvitationContent,
     getDraftValue,
     setDraftValue
-} from './content-schema.js?v=phase94-opening-cover-20260821';
+} from './content-schema.js?v=phase123-draft-migration-architecture-20260824';
 import { validateInvitationDraft } from './builder-validation.js?v=phase89-dress-code-media-20260820';
 import { getInvitationFormat, getPackageById, getSectionById } from './section-registry.js?v=phase93-package-sections-format-20260821';
 import { getThemeById } from './theme-registry.js?v=phase3-logistics-20260813';
@@ -14,12 +14,14 @@ import {
     DRESS_COLOR_GROUPS,
     createDressColor,
     normalizeEntity
-} from './logistics-schema.js?v=phase122-location-media-ref-wrapper-20260824';
+} from './logistics-schema.js?v=phase123-draft-migration-architecture-20260824';
+import {
+    CURRENT_DRAFT_SCHEMA_VERSION,
+    migrateInvitationDraftToCurrentSchema
+} from './draft-migrations.js?v=phase123-draft-migration-architecture-20260824';
 
 export const INVITATION_DRAFT_DOCUMENT_ID = 'draft';
-export const INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION = 2;
-
-const LEGACY_INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION = 1;
+export const INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION = CURRENT_DRAFT_SCHEMA_VERSION;
 
 const SAFE_EVENT_ID = /^[A-Za-z0-9_-]{1,150}$/;
 const GENERAL_CONTENT_PATHS = Object.freeze(
@@ -46,8 +48,6 @@ const LEGACY_DOCUMENT_FIELDS = Object.freeze(
     DOCUMENT_FIELDS.filter((field) => field !== 'accommodations')
 );
 const SETTINGS_FIELDS = Object.freeze(['renderMode', 'packageId', 'format']);
-const LEGACY_SETTINGS_FIELDS = Object.freeze(['renderMode', 'packageId']);
-const LEGACY_ACCESS_FIELDS = Object.freeze(['title', 'description', 'label']);
 const COLLECTION_LIMITS = Object.freeze({
     locations: 20,
     itinerary: 80,
@@ -79,15 +79,6 @@ function exactKeys(value, fields) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
     const keys = Object.keys(value);
     return keys.length === fields.length && keys.every((key) => fields.includes(key));
-}
-
-function hasLegacyAccessShape(document) {
-    const access = document?.content?.access;
-    if (!access || typeof access !== 'object' || Array.isArray(access)) return false;
-    const keys = Object.keys(access);
-    return keys.length === LEGACY_ACCESS_FIELDS.length
-        && keys.every((key) => LEGACY_ACCESS_FIELDS.includes(key))
-        && LEGACY_ACCESS_FIELDS.every((key) => typeof access[key] === 'string');
 }
 
 function assertEventId(eventId) {
@@ -235,24 +226,6 @@ function normalizeCollection(collection, value) {
     return normalized;
 }
 
-// Legacy compatibility is limited to the documented location alias. This
-// prepares a comparison copy only; it never mutates or writes the stored draft.
-export function canonicalizeSupportedLegacyDraftForComparison(storedDraft) {
-    if (!Array.isArray(storedDraft?.locations)) return storedDraft;
-    const hasLegacyAlias = storedDraft.locations.some((location) => (
-        location && Object.hasOwn(location, 'imageId') && !Object.hasOwn(location, 'imageMediaId')
-    ));
-    if (!hasLegacyAlias) return storedDraft;
-    const comparison = { ...storedDraft };
-    comparison.locations = storedDraft.locations.map((location) => {
-        if (!location || !Object.hasOwn(location, 'imageId') || Object.hasOwn(location, 'imageMediaId')) return location;
-        const next = { ...location, imageMediaId: location.imageId };
-        delete next.imageId;
-        return next;
-    });
-    return comparison;
-}
-
 function assertGeneralValidation(draft) {
     const errors = validateInvitationDraft(draft);
     const relevant = Object.fromEntries(Object.entries(errors).filter(([path]) => (
@@ -306,59 +279,45 @@ export function serializeInvitationDraft(draft, {
 
 export function deserializeInvitationDraft(document, expectedEventId) {
     const safeEventId = assertEventId(expectedEventId);
-    const isLegacyDocument = document?.schemaVersion === LEGACY_INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION;
-    const isCurrentDocument = document?.schemaVersion === INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION;
-    if (!isLegacyDocument && !isCurrentDocument) fail('draft/unsupported-schema');
-    if (!exactKeys(document, isLegacyDocument ? LEGACY_DOCUMENT_FIELDS : DOCUMENT_FIELDS)) {
+    const isLegacyEnvelope = document?.schemaVersion === 1;
+    const isCurrentEnvelope = document?.schemaVersion === INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION;
+    if (!isLegacyEnvelope && !isCurrentEnvelope) {
+        fail(document?.schemaVersion > INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION
+            ? 'draft/unsupported-future-schema'
+            : 'draft/unsupported-schema');
+    }
+    if (!exactKeys(document, isLegacyEnvelope ? LEGACY_DOCUMENT_FIELDS : DOCUMENT_FIELDS)) {
         fail('draft/invalid-document-shape');
     }
-    if (!Number.isInteger(document.contentSchemaVersion)
-        || document.contentSchemaVersion < 1
-        || document.contentSchemaVersion > INVITATION_CONTENT_SCHEMA_VERSION) {
-        fail('draft/unsupported-content-schema');
-    }
-    if (document.eventId !== safeEventId) fail('draft/event-ownership-mismatch');
-    if (!isTimestamp(document.updatedAt)) fail('draft/invalid-updated-at');
-    const updatedBy = String(document.updatedBy ?? '');
+    const migratedDocument = migrateInvitationDraftToCurrentSchema(document);
+    if (migratedDocument.eventId !== safeEventId) fail('draft/event-ownership-mismatch');
+    if (!isTimestamp(migratedDocument.updatedAt)) fail('draft/invalid-updated-at');
+    const updatedBy = String(migratedDocument.updatedBy ?? '');
     if (!updatedBy || updatedBy.length > 128) fail('draft/invalid-updated-by');
-    const settingsKeys = Object.keys(document.settings ?? {});
-    const validSettingsShape = exactKeys(document.settings, SETTINGS_FIELDS)
-        || exactKeys(document.settings, LEGACY_SETTINGS_FIELDS);
-    if (!validSettingsShape) fail('draft/invalid-settings-shape');
+    if (!exactKeys(migratedDocument, DOCUMENT_FIELDS)) fail('draft/invalid-document-shape');
+    if (!exactKeys(migratedDocument.settings, SETTINGS_FIELDS)) fail('draft/invalid-settings-shape');
 
     const normalized = {
         schemaVersion: INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION,
         contentSchemaVersion: INVITATION_CONTENT_SCHEMA_VERSION,
         eventId: safeEventId,
-        theme: normalizeTheme(document.theme),
-        sections: normalizeSections(document.sections),
-        content: normalizeGeneralContent(document.content),
-        locations: normalizeCollection('locations', document.locations),
-        itinerary: normalizeCollection('itinerary', document.itinerary),
-        gifts: normalizeCollection('gifts', document.gifts),
-        accommodations: normalizeCollection('accommodations', document.accommodations ?? []),
-        links: normalizeCollection('links', document.links),
-        appearance: normalizeAppearance(document.appearance),
-        settings: normalizeSettings(document.settings),
-        updatedAt: document.updatedAt,
+        theme: normalizeTheme(migratedDocument.theme),
+        sections: normalizeSections(migratedDocument.sections),
+        content: normalizeGeneralContent(migratedDocument.content),
+        locations: normalizeCollection('locations', migratedDocument.locations),
+        itinerary: normalizeCollection('itinerary', migratedDocument.itinerary),
+        gifts: normalizeCollection('gifts', migratedDocument.gifts),
+        accommodations: normalizeCollection('accommodations', migratedDocument.accommodations),
+        links: normalizeCollection('links', migratedDocument.links),
+        appearance: normalizeAppearance(migratedDocument.appearance),
+        settings: normalizeSettings(migratedDocument.settings),
+        updatedAt: migratedDocument.updatedAt,
         updatedBy
     };
 
-    const legacyAccessDocument = hasLegacyAccessShape(document);
-    const legacySettingsDocument = exactKeys(document.settings, LEGACY_SETTINGS_FIELDS);
-    // Drafts created before the Aloha opening contract do not contain the
-    // optional welcome.opening object. Accept that legacy shape while keeping
-    // the normalized defaults in memory; it is not an automatic migration.
-    const legacyOpeningDocument = !Object.hasOwn(document.content?.welcome ?? {}, 'opening');
-    if (isCurrentDocument && document.contentSchemaVersion === INVITATION_CONTENT_SCHEMA_VERSION) {
-        const comparable = { ...normalized, updatedAt: document.updatedAt };
-        let canonicalDocument = canonicalizeSupportedLegacyDraftForComparison(document);
-        if (legacyAccessDocument || legacySettingsDocument || legacyOpeningDocument) {
-            canonicalDocument = cloneInvitationValue(canonicalDocument);
-        }
-        if (legacyAccessDocument) canonicalDocument.content.access = normalized.content.access;
-        if (legacySettingsDocument) canonicalDocument.settings = normalized.settings;
-        if (legacyOpeningDocument) canonicalDocument.content.welcome = normalized.content.welcome;
+    if (migratedDocument.contentSchemaVersion === INVITATION_CONTENT_SCHEMA_VERSION) {
+        const comparable = { ...normalized, updatedAt: migratedDocument.updatedAt };
+        const canonicalDocument = migratedDocument;
         if (stableStringify(comparable) !== stableStringify(canonicalDocument)) {
             const differences = findCanonicalDifferences(canonicalDocument, comparable, { limit: 30 });
             console.error(

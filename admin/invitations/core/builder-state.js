@@ -22,7 +22,7 @@ import {
     normalizeLocationWithMediaRef,
     normalizeEntity,
     packageAllowsMultipleLocations
-} from './logistics-schema.js?v=phase122-location-media-ref-wrapper-20260824';
+} from './logistics-schema.js?v=phase123-draft-migration-architecture-20260824';
 import {
     createEmptyInvitationMedia,
     createMediaAsset,
