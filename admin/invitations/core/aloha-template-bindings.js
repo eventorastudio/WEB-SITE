@@ -1,6 +1,6 @@
-import { entityHasContent, getRenderableLocations } from './logistics-schema.js?v=phase3-logistics-20260813';
+import { entityHasContent, getRenderableLocations } from './logistics-schema.js?v=phase126-accommodation-icons-place-library-20260824';
 import { buildGoogleCalendarUrl, buildWhatsAppUrl, safeUrlForField } from './safe-url.js?v=phase3-logistics-20260813';
-import { createLocationIcon, defaultLocationIconKeys, normalizeLocationIconKey } from './location-icon-registry.js?v=phase113-aloha-location-cards-20260823';
+import { createLocationIcon, defaultLocationIconKeys, normalizeLocationIconKey } from './location-icon-registry.js?v=phase126-accommodation-icons-place-library-20260824';
 
 const clean = (value) => String(value ?? '').replace(/\s+/g, ' ').trim();
 const source = (asset) => clean(asset?.previewUrl || asset?.downloadUrl);
@@ -108,8 +108,11 @@ function renderAlohaLocationCards(documentRoot, content, locations, accommodatio
         const stays = node(documentRoot, 'div', `location-stops aloha-location-grid aloha-accommodations${accommodations.length === 1 ? ' aloha-accommodations-single' : ''}`);
         accommodations.forEach((hotel) => {
             const card = node(documentRoot, 'article', 'aloha-location-card aloha-place-card aloha-place-card--hotel');
+            const defaults = defaultLocationIconKeys('accommodation');
+            const categoryIconKey = Object.hasOwn(hotel, 'categoryIcon') ? normalizeLocationIconKey(hotel.categoryIcon) : defaults.categoryIcon;
+            const venueIconKey = Object.hasOwn(hotel, 'venueIcon') ? normalizeLocationIconKey(hotel.venueIcon) : defaults.venueIcon;
             const badge = node(documentRoot, 'p', 'aloha-location-type', 'Hospedaje');
-            const hotelBadgeIcon = createLocationIcon(documentRoot, 'hotel', { className: 'aloha-location-icon' });
+            const hotelBadgeIcon = createLocationIcon(documentRoot, categoryIconKey, { className: 'aloha-location-icon' });
             if (hotelBadgeIcon) badge.prepend(hotelBadgeIcon);
             card.append(badge);
             card.append(node(documentRoot, 'h3', '', hotel.name || 'Hospedaje'));
@@ -123,7 +126,7 @@ function renderAlohaLocationCards(documentRoot, content, locations, accommodatio
             } else { media.append(node(documentRoot, 'span', 'aloha-location-image-fallback', 'ALOHA STAY')); media.dataset.imageState = 'fallback'; }
             card.append(media);
             const venue = node(documentRoot, 'p', 'aloha-location-venue', hotel.name || 'Hospedaje');
-            const venueIcon = createLocationIcon(documentRoot, 'hotel', { className: 'aloha-location-icon' });
+            const venueIcon = createLocationIcon(documentRoot, venueIconKey, { className: 'aloha-location-icon' });
             if (venueIcon) venue.prepend(venueIcon);
             card.append(venue);
             const details = node(documentRoot, 'div', 'aloha-location-details aloha-stay-details');

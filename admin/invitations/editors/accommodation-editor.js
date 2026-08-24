@@ -1,4 +1,4 @@
-import { initEntityListEditor, selectField, textField, textareaField } from './entity-editor-utils.js?v=phase3-logistics-20260813';
+import { initEntityListEditor, iconPickerField, selectField, textField, textareaField } from './entity-editor-utils.js?v=phase126-accommodation-icons-place-library-20260824';
 
 export function initAccommodationEditor({ container, state }) {
     return initEntityListEditor({
@@ -13,6 +13,8 @@ export function initAccommodationEditor({ container, state }) {
         summary: (item) => ({ title: item.name || 'Hospedaje', subtitle: item.address || item.id, status: 'Hotel' }),
         fields: () => [
             textField('name', 'Nombre', { placeholder: 'Hotel Eventora', maxLength: 160 }),
+            iconPickerField('categoryIcon', 'Icono de categoría'),
+            iconPickerField('venueIcon', 'Icono del hospedaje'),
             textField('phone', 'Teléfono', { maxLength: 32 }),
             selectField('imageMediaId', 'Imagen del hospedaje', [
                 { value: '', label: 'Sin foto — usar fallback Aloha' },

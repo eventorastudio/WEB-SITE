@@ -900,6 +900,10 @@ body[data-builder-theme="aloha"] .aloha-place-card--hotel {
     box-shadow: .32rem .42rem 0 rgb(244 91 105 / .16), 0 1.1rem 2.1rem rgb(4 63 75 / .13);
 }
 body[data-builder-theme="aloha"] .aloha-place-card--hotel .aloha-location-image { width: 100%; aspect-ratio: 16 / 9; margin: 1rem 0 .82rem; border-radius: 1rem .25rem 1rem .25rem; }
+body[data-builder-theme="aloha"] .aloha-place-card--hotel .aloha-location-icon { display: inline-block; flex: 0 0 auto; width: clamp(1.125rem, 1.7vw, 1.75rem); height: clamp(1.125rem, 1.7vw, 1.75rem); max-width: 3rem; max-height: 3rem; }
+body[data-builder-theme="aloha"] .aloha-place-card--hotel .aloha-location-type .aloha-location-icon { width: clamp(1.125rem, 1.7vw, 1.75rem); height: clamp(1.125rem, 1.7vw, 1.75rem); }
+body[data-builder-theme="aloha"] .aloha-place-card--hotel .aloha-location-venue .aloha-location-icon { width: clamp(1.75rem, 2.7vw, 3rem); height: clamp(1.75rem, 2.7vw, 3rem); }
+body[data-builder-theme="aloha"] .aloha-place-card--hotel .aloha-location-meta .aloha-location-icon { width: clamp(1.125rem, 1.7vw, 1.5rem); height: clamp(1.125rem, 1.7vw, 1.5rem); }
 body[data-builder-theme="aloha"] .aloha-place-card--hotel .aloha-location-details { display: grid; gap: .38rem; margin: .8rem 0 0; padding-top: .72rem; }
 body[data-builder-theme="aloha"] .aloha-place-card--hotel .aloha-location-actions { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: 1rem; }
 @media (max-width: 680px) {

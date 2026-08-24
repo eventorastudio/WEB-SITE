@@ -143,6 +143,8 @@ export function createAccommodation(id, seed = {}) {
         reservationCode: text(seed.reservationCode, 'reservationCode'),
         notes: text(seed.notes, 'notes')
     };
+    if (Object.hasOwn(seed, 'categoryIcon')) accommodation.categoryIcon = normalizeLocationIconKey(seed.categoryIcon);
+    if (Object.hasOwn(seed, 'venueIcon')) accommodation.venueIcon = normalizeLocationIconKey(seed.venueIcon);
     const imageMediaId = optionalImageMediaId(seed.imageMediaId);
     if (imageMediaId !== undefined) accommodation.imageMediaId = imageMediaId;
     return accommodation;

@@ -1,4 +1,4 @@
-import { createLocation } from './logistics-schema.js?v=phase125-remove-draft-canonical-diagnostics-20260824';
+import { createLocation } from './logistics-schema.js?v=phase126-accommodation-icons-place-library-20260824';
 import {
     RSVP_EDITABLE_FIELD_DEFINITIONS,
     normalizeRsvpConfig
