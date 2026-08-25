@@ -45,6 +45,7 @@ test('Aloha renderiza acciones dinámicas con iconos y none sin hueco', () => {
     assert.equal(social.querySelectorAll('.aloha-action-svg').length, 2);
     assert.equal(social.querySelectorAll('.aloha-action-label')[1].textContent, 'Fotos');
     assert.ok(social.querySelector('.aloha-action-card.is-no-icon'));
+    assert.equal(social.querySelector('.aloha-actions-copy strong'), null);
     assert.deepEqual([...social.children].map((child) => child.className), [
         'aloha-actions-heading',
         'aloha-actions-grid',

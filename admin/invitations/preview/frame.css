@@ -862,6 +862,71 @@ body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-
     body[data-builder-theme="aloha"] .location-copy > .aloha-location-grid > .aloha-location-card .aloha-location-image { aspect-ratio: 16 / 10; }
 }
 
+/* Aloha actions runtime presentation: full-bleed section, scoped to the real Builder/Public render. */
+body[data-builder-theme="aloha"] .social-strip {
+    width: 100vw;
+    max-width: none;
+    margin-inline: calc(50% - 50vw);
+    padding: clamp(4rem, 5.5vw, 5.5rem) max(1.25rem, 8vw);
+    background:
+        radial-gradient(circle at 10% 18%, rgb(28 191 210 / .16), transparent 18rem),
+        radial-gradient(circle at 88% 84%, rgb(244 91 105 / .15), transparent 20rem),
+        linear-gradient(130deg, var(--deep) 0%, var(--leaf) 58%, #0a6a60 100%);
+}
+body[data-builder-theme="aloha"] .social-strip::before {
+    top: -7rem;
+    right: -3rem;
+    width: 25rem;
+    height: 18rem;
+    border-color: rgb(255 246 229 / .2);
+    background:
+        radial-gradient(circle at 35% 42%, transparent 0 3.4rem, rgb(246 198 74 / .18) 3.45rem 3.55rem, transparent 3.6rem),
+        radial-gradient(circle at 35% 42%, rgb(255 246 229 / .08), transparent 9rem);
+}
+body[data-builder-theme="aloha"] .social-strip::after {
+    bottom: -6rem;
+    left: -3rem;
+    width: 24rem;
+    height: 15rem;
+    background:
+        radial-gradient(ellipse at 45% 50%, rgb(244 91 105 / .2), transparent 62%),
+        radial-gradient(ellipse at 34% 42%, transparent 0 2.6rem, rgb(255 246 229 / .12) 2.7rem 2.78rem, transparent 2.85rem);
+}
+body[data-builder-theme="aloha"] .social-strip .aloha-actions-heading,
+body[data-builder-theme="aloha"] .social-strip .aloha-actions-copy {
+    width: min(100%, 760px);
+    margin-inline: auto;
+}
+body[data-builder-theme="aloha"] .social-strip .aloha-actions-heading {
+    margin-bottom: clamp(2.25rem, 3.5vw, 3rem);
+}
+body[data-builder-theme="aloha"] .social-strip .aloha-actions-grid {
+    width: min(100%, 900px);
+    margin-inline: auto;
+}
+body[data-builder-theme="aloha"] .social-strip .aloha-actions-copy {
+    margin-top: clamp(2.5rem, 4vw, 3.5rem);
+    margin-bottom: 0;
+}
+body[data-builder-theme="aloha"] .social-strip .aloha-actions-copy strong {
+    display: none;
+}
+@media (max-width: 680px) {
+    body[data-builder-theme="aloha"] .social-strip {
+        width: 100vw;
+        margin-inline: calc(50% - 50vw);
+        padding: 4.25rem 1.25rem 4.5rem;
+    }
+    body[data-builder-theme="aloha"] .social-strip .aloha-actions-grid,
+    body[data-builder-theme="aloha"] .social-strip .aloha-actions-heading,
+    body[data-builder-theme="aloha"] .social-strip .aloha-actions-copy {
+        width: 100%;
+    }
+    body[data-builder-theme="aloha"] .social-strip .aloha-actions-copy {
+        margin-top: 2.25rem;
+    }
+}
+
 /* Aloha desktop itinerary cards: compact, naturally balanced stations. */
 @media (min-width: 1051px) {
     body[data-builder-theme="aloha"] .itinerary ol {

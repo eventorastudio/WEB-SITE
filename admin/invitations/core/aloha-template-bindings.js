@@ -426,6 +426,7 @@ function renderLegacyLinks(documentRoot, draft) {
 function renderLinks(documentRoot, draft) {
     const social = documentRoot.querySelector('.social-strip');
     if (!social) return;
+    social.querySelector('.aloha-actions-copy strong')?.remove();
     const links = (draft.links ?? []).filter(entityHasContent);
     const actions = [];
     links.forEach((link) => {

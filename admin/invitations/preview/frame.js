@@ -8,7 +8,7 @@ import {
     applyPhase5ContentBindings,
     formatInvitationEventLine,
     prepareBuilderTemplate
-} from '../core/template-binding-registry.js?v=phase106-aloha-rsvp-access-20260822';
+} from '../core/template-binding-registry.js?v=phase162-aloha-actions-runtime-20260825';
 import { PublicInvitationPage } from '../../../invitacion/public-invitation-page.js?v=phase108-aloha-rsvp-access-20260822';
 import { applyPublicInvitationPersonalization } from '../../../invitacion/public-invitation-personalization.js?v=phase88-qr2-20260820';
 import { generateQrCanvas } from '../../modules/qr/qr-renderer.js?v=phase88-qr2-20260820';
