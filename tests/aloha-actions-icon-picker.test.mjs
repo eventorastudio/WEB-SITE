@@ -39,9 +39,11 @@ test('Aloha renderiza acciones dinámicas con iconos y none sin hueco', () => {
         { id: 'LNK-LOCAL-003', type: 'custom', label: 'Sitio', url: 'https://example.com', iconKey: 'website' }
     ], locations: [] });
     const social = dom.window.document.querySelector('.social-strip');
-    assert.equal(social.querySelectorAll('.aloha-action-card').length, 2);
-    assert.equal(social.querySelectorAll('.aloha-action-svg').length, 1);
-    assert.equal(social.querySelector('.aloha-action-label').textContent, 'Fotos');
+    assert.equal(social.querySelectorAll('.aloha-action-card').length, 3);
+    assert.equal(social.querySelector('[data-builder-action="calendar"]')?.tagName, 'BUTTON');
+    assert.equal(social.querySelector('[data-builder-action="calendar"]')?.hasAttribute('href'), false);
+    assert.equal(social.querySelectorAll('.aloha-action-svg').length, 2);
+    assert.equal(social.querySelectorAll('.aloha-action-label')[1].textContent, 'Fotos');
     assert.ok(social.querySelector('.aloha-action-card.is-no-icon'));
     dom.window.close();
 });

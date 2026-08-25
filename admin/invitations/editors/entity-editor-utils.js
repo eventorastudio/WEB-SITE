@@ -1,4 +1,4 @@
-import { entityHasContent } from '../core/logistics-schema.js?v=phase142-aloha-prestige-actions-icon-picker-20260825';
+import { entityHasContent } from '../core/logistics-schema.js?v=phase145-native-ics-calendar-handoff-20260825';
 import { createLocationIcon, LOCATION_ICON_OPTIONS } from '../core/location-icon-registry.js?v=phase113-aloha-location-cards-20260823';
 import { GIFT_LETTER_OPTIONS, inferGiftLetterKey } from '../core/gift-letter-registry.js?v=phase141-aloha-gift-letter-picker-20260825';
 import { LINK_ICON_OPTIONS, createLinkIcon, inferLinkIconKey } from '../core/link-icon-registry.js?v=phase144-builder-link-icon-picker-sizing-20260825';

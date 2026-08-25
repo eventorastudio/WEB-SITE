@@ -1,5 +1,5 @@
-import { LINK_TYPES, linkTypeLabel } from '../core/logistics-schema.js?v=phase143-universal-ics-calendar-action-20260825';
-import { infoField, initEntityListEditor, linkIconPickerField, selectField, textField, textareaField } from './entity-editor-utils.js?v=phase143-universal-ics-calendar-action-20260825';
+import { LINK_TYPES, linkTypeLabel } from '../core/logistics-schema.js?v=phase145-native-ics-calendar-handoff-20260825';
+import { infoField, initEntityListEditor, linkIconPickerField, selectField, textField, textareaField } from './entity-editor-utils.js?v=phase145-native-ics-calendar-handoff-20260825';
 
 const TYPE_OPTIONS = LINK_TYPES.map((value) => ({ value, label: linkTypeLabel(value) }));
 

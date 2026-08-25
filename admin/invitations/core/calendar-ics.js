@@ -56,6 +56,14 @@ export function downloadIcsEvent(result, documentRoot = document, urlApi = URL) 
     if (!result?.ok) return false;
     const blob = new Blob([result.content], { type: 'text/calendar;charset=utf-8' });
     const objectUrl = urlApi.createObjectURL(blob);
+    const navigatorRoot = documentRoot.defaultView?.navigator ?? globalThis.navigator;
+    const isAppleMobile = /iPad|iPhone|iPod/.test(navigatorRoot?.userAgent ?? '')
+        || (navigatorRoot?.platform === 'MacIntel' && Number(navigatorRoot?.maxTouchPoints) > 1);
+    if (isAppleMobile && documentRoot.defaultView?.location) {
+        documentRoot.defaultView.location.assign(objectUrl);
+        documentRoot.defaultView.setTimeout(() => urlApi.revokeObjectURL(objectUrl), 10000);
+        return true;
+    }
     const anchor = documentRoot.createElement('a');
     anchor.href = objectUrl; anchor.download = result.filename; anchor.rel = 'noopener'; anchor.style.display = 'none';
     documentRoot.body.append(anchor); anchor.click();

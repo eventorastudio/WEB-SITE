@@ -1,4 +1,4 @@
-import { createLocation } from './logistics-schema.js?v=phase142-aloha-prestige-actions-icon-picker-20260825';
+import { createLocation } from './logistics-schema.js?v=phase145-native-ics-calendar-handoff-20260825';
 import {
     RSVP_EDITABLE_FIELD_DEFINITIONS,
     normalizeRsvpConfig

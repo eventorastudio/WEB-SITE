@@ -5,9 +5,9 @@ import {
     giftTypeLabel,
     linkTypeLabel,
     locationTypeLabel
-} from './logistics-schema.js?v=phase142-aloha-prestige-actions-icon-picker-20260825';
-import { buildGoogleCalendarUrl, buildWhatsAppUrl, safeUrlForField } from './safe-url.js?v=phase3-logistics-20260813';
-import { applyAlohaPhase3Bindings } from './aloha-template-bindings.js?v=phase141-aloha-gift-letter-picker-20260825';
+} from './logistics-schema.js?v=phase145-native-ics-calendar-handoff-20260825';
+import { buildWhatsAppUrl, safeUrlForField } from './safe-url.js?v=phase3-logistics-20260813';
+import { applyAlohaPhase3Bindings } from './aloha-template-bindings.js?v=phase145-native-ics-calendar-handoff-20260825';
 
 function clean(value, maxLength = 1800) {
     return String(value ?? '').replace(/\s+/g, ' ').trim().slice(0, maxLength);
@@ -103,6 +103,12 @@ function detail(documentRoot, label, value) {
 }
 
 function action(documentRoot, label, rawUrl, actionType, field = 'url', linkType = 'custom') {
+    if (actionType === 'calendar') {
+        const control = node(documentRoot, 'button', 'builder-phase3-action', label);
+        control.type = 'button';
+        control.dataset.builderAction = 'calendar';
+        return control;
+    }
     const parsed = safeUrlForField(rawUrl, field, linkType);
     const control = node(documentRoot, parsed.ok && parsed.value ? 'a' : 'button', 'builder-phase3-action', label);
     control.dataset.builderAction = actionType;
@@ -190,7 +196,6 @@ function renderLocations(documentRoot, draft, variant) {
         links.forEach((link) => {
             const label = link.label || linkTypeLabel(link.type);
             let url = link.url;
-            if (link.type === 'calendar') url = buildGoogleCalendarUrl(draft, sourceLocations[0]);
             if (link.type === 'whatsapp') url = buildWhatsAppUrl(link);
             const control = action(documentRoot, label, url, link.type, 'url', link.type);
             if (link.description) control.setAttribute('aria-description', clean(link.description, 800));

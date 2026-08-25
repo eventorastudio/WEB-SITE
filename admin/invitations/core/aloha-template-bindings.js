@@ -1,5 +1,5 @@
-import { entityHasContent, getRenderableLocations } from './logistics-schema.js?v=phase142-aloha-prestige-actions-icon-picker-20260825';
-import { buildGoogleCalendarUrl, buildWhatsAppUrl, safeUrlForField } from './safe-url.js?v=phase3-logistics-20260813';
+import { entityHasContent, getRenderableLocations } from './logistics-schema.js?v=phase145-native-ics-calendar-handoff-20260825';
+import { buildWhatsAppUrl, safeUrlForField } from './safe-url.js?v=phase3-logistics-20260813';
 import { createLocationIcon, defaultLocationIconKeys, normalizeLocationIconKey } from './location-icon-registry.js?v=phase126-accommodation-icons-place-library-20260824';
 import { inferGiftLetterKey, normalizeGiftLetterKey } from './gift-letter-registry.js?v=phase141-aloha-gift-letter-picker-20260825';
 import { createLinkIcon, inferLinkIconKey } from './link-icon-registry.js?v=phase143-universal-ics-calendar-action-20260825';
@@ -151,9 +151,7 @@ function renderAlohaLocationCards(documentRoot, content, locations, accommodatio
     const linkActions = node(documentRoot, 'div', 'action-row aloha-logistics-links');
     links.filter((link) => link.type !== 'instagram').forEach((link) => {
         const location = locations[0];
-        const url = link.type === 'calendar'
-            ? (link.url || buildGoogleCalendarUrl(draft, location))
-            : link.type === 'whatsapp' ? buildWhatsAppUrl(link) : link.url;
+        const url = link.type === 'calendar' ? '' : link.type === 'whatsapp' ? buildWhatsAppUrl(link) : link.url;
         const result = safeUrlForField(url, 'url', link.type);
         if (!result.ok || !result.value) return;
         linkActions.append(action(documentRoot, link.label || ({ calendar: 'Guardar fecha', whatsapp: 'WhatsApp' })[link.type] || 'Abrir enlace', result.value, link.type));
@@ -215,9 +213,7 @@ function renderLocations(documentRoot, draft) {
     const linkActions = node(documentRoot, 'div', 'action-row aloha-logistics-links');
     links.filter((link) => link.type !== 'instagram').forEach((link) => {
         const location = locations[0];
-        const url = link.type === 'calendar'
-            ? (link.url || buildGoogleCalendarUrl(draft, location))
-            : link.type === 'whatsapp' ? buildWhatsAppUrl(link) : link.url;
+        const url = link.type === 'calendar' ? '' : link.type === 'whatsapp' ? buildWhatsAppUrl(link) : link.url;
         const result = safeUrlForField(url, 'url', link.type);
         if (!result.ok || !result.value) return;
         linkActions.append(action(documentRoot, link.label || ({ calendar: 'Guardar fecha', whatsapp: 'WhatsApp' })[link.type] || 'Abrir enlace', result.value, link.type));
@@ -434,12 +430,12 @@ function renderLinks(documentRoot, draft) {
     const actions = [];
     links.forEach((link) => {
         const location = draft.locations?.[0];
-        const url = link.type === 'calendar'
-            ? (link.url || buildGoogleCalendarUrl(draft, location))
-            : link.type === 'whatsapp' ? buildWhatsAppUrl(link) : link.url;
-        const result = safeUrlForField(url, 'url', link.type);
-        if (!result.ok || !result.value) return;
-        const anchor = action(documentRoot, '', result.value, link.type);
+        const isCalendar = link.type === 'calendar';
+        const url = isCalendar ? '' : link.type === 'whatsapp' ? buildWhatsAppUrl(link) : link.url;
+        const result = isCalendar ? { ok: true, value: '' } : safeUrlForField(url, 'url', link.type);
+        if (!result.ok || (!isCalendar && !result.value)) return;
+        const anchor = isCalendar ? node(documentRoot, 'button', 'aloha-action-card') : action(documentRoot, '', result.value, link.type);
+        if (isCalendar) { anchor.type = 'button'; anchor.dataset.builderAction = 'calendar'; }
         anchor.className = 'aloha-action-card';
         anchor.setAttribute('aria-label', clean(link.label || linkTypeLabelFallback(link.type)));
         const iconKey = inferLinkIconKey(link);
