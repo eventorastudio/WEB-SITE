@@ -5,7 +5,7 @@ import {
     createEmptyInvitationMedia,
     createMediaAsset,
     getAllMediaAssets
-} from '../core/media-schema.js?v=phase136-media-create-swap-persistence-20260824';
+} from '../core/media-schema.js?v=phase138-full-firebase-permissions-audit-20260824';
 
 const SAFE_EVENT_ID = /^[A-Za-z0-9_-]{1,150}$/;
 const SAFE_MEDIA_ID = /^MED-LOCAL-\d{3,}$/;
@@ -316,6 +316,26 @@ async function createFirebaseMediaGateway() {
     const mediaRef = (eventId, mediaId) => firestoreApi.doc(db, 'eventos', eventId, 'invitacion', 'config', 'media', mediaId);
     return {
         getCurrentUid: () => auth.currentUser?.uid ?? '',
+        async refreshAuthClaims() {
+            if (!auth.currentUser) return null;
+            await auth.currentUser.getIdTokenResult(true);
+            return auth.currentUser;
+        },
+        async getAuthDiagnostic() {
+            const user = auth.currentUser;
+            if (!user) return { authenticated: false, uidPresent: false, providerIds: [], claims: {} };
+            const token = await user.getIdTokenResult(false);
+            const claims = {};
+            for (const key of ['role', 'userRole']) {
+                if (Object.hasOwn(token.claims, key)) claims[key] = token.claims[key];
+            }
+            return {
+                authenticated: true,
+                uidPresent: Boolean(user.uid),
+                providerIds: (user.providerData ?? []).map(({ providerId }) => providerId).filter(Boolean),
+                claims
+            };
+        },
         serverTimestamp: () => firestoreApi.serverTimestamp(),
         async readMediaIndex(eventId) {
             const snapshot = await firestoreApi.getDoc(configRef(eventId));
@@ -363,6 +383,7 @@ export class InvitationMediaService {
         this.gatewayPromise = null;
         this.activeUploads = new Map();
         this.retryRequests = new Map();
+        this.authRefreshAttempted = false;
     }
 
     setEnabled(enabled) { this.enabled = Boolean(enabled); }
@@ -382,6 +403,17 @@ export class InvitationMediaService {
         if (!this.gatewayPromise) this.gatewayPromise = this.gatewayFactory();
         this.gateway = await this.gatewayPromise;
         return this.gateway;
+    }
+
+    async preparePrivilegedWrite() {
+        const gateway = await this.getGateway();
+        if (!this.authRefreshAttempted && typeof gateway.refreshAuthClaims === 'function') {
+            this.authRefreshAttempted = true;
+            await gateway.refreshAuthClaims();
+        }
+        const uid = gateway.getCurrentUid?.();
+        if (!uid) throw serviceError('storage/unauthenticated', null, { retryable: false, stage: 'auth' });
+        return gateway;
     }
 
     assertEnabled() {
@@ -551,6 +583,7 @@ export class InvitationMediaService {
 
     async saveMedia({ eventId, media, persistedMedia = null, files = [], schemaVersion = INVITATION_CONFIG_SCHEMA_VERSION, concurrency = DEFAULT_UPLOAD_CONCURRENCY, onProgress = null }) {
         this.assertEnabled();
+        const gateway = await this.preparePrivilegedWrite();
         const fileEntries = files instanceof Map ? [...files].map(([assetId, file]) => ({ assetId, file })) : [...files];
         const uploadedAssets = new Map();
         const uploadErrors = [];
@@ -602,6 +635,28 @@ export class InvitationMediaService {
         const removedAssets = getAllMediaAssets(persistedMedia ?? {}).filter(({ id }) => !nextIds.has(id));
         let persisted;
         try {
+            if (globalThis.__INVITATION_DEBUG__) {
+                const auth = await gateway.getAuthDiagnostic?.();
+                console.debug('[Invitation media batch]', {
+                    auth,
+                    mediaDocuments: persistedMedia ? getAllMediaAssets(nextMedia).map(({ id, role, mimeType, storagePath }) => ({
+                        path: `config/media/${id}`,
+                        operation: uploadedAssets.has(id) ? 'create-or-replace' : 'unchanged',
+                        keys: Object.keys(serializeInvitationMediaDocument(findAsset(nextMedia, id), eventId)),
+                        role, mimeType, storagePathPresent: Boolean(storagePath)
+                    })) : [],
+                    config: {
+                        path: `eventos/${eventId}/invitacion/config`,
+                        operation: 'batch.set',
+                        topLevelKeys: ['schemaVersion', 'mediaIndex', 'updatedAt', 'updatedBy'],
+                        schemaVersion,
+                        mediaIndexKeys: Object.keys(createInvitationMediaIndex(nextMedia)),
+                        coverId: nextMedia.cover?.id ?? null,
+                        galleryIdsCount: nextMedia.gallery?.length ?? 0,
+                        placeIdsCount: nextMedia.place?.length ?? 0
+                    }
+                });
+            }
             persisted = await this.persistMedia({
                 eventId,
                 media: nextMedia,

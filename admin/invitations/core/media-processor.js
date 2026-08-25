@@ -3,7 +3,7 @@ import {
     getMediaRole,
     sniffMediaMimeType,
     validateMediaSignature
-} from './media-schema.js?v=phase89-dress-code-media-20260820';
+} from './media-schema.js?v=phase138-full-firebase-permissions-audit-20260824';
 
 function mediaError(code, detail = '') {
     const error = new Error(code);

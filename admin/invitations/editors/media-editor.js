@@ -1,7 +1,7 @@
-import { getAllMediaAssets, getMediaAssetSource, getMediaRoleAvailability } from '../core/media-schema.js?v=phase136-media-create-swap-persistence-20260824';
+import { getAllMediaAssets, getMediaAssetSource, getMediaRoleAvailability } from '../core/media-schema.js?v=phase138-full-firebase-permissions-audit-20260824';
 import { MediaObjectUrlRegistry } from '../core/media-runtime.js?v=phase4-media-20260813';
-import { friendlyMediaError, inspectAndProcessMediaFile } from '../core/media-processor.js?v=phase136-media-create-swap-persistence-20260824';
-import { invitationMediaService } from '../services/invitation-media-service.js?v=phase136-media-create-swap-persistence-20260824';
+import { friendlyMediaError, inspectAndProcessMediaFile } from '../core/media-processor.js?v=phase138-full-firebase-permissions-audit-20260824';
+import { invitationMediaService } from '../services/invitation-media-service.js?v=phase138-full-firebase-permissions-audit-20260824';
 
 const ROLE_COPY = Object.freeze({
     place: Object.freeze({ title: 'Imágenes de lugares', copy: 'Biblioteca reutilizable para sitios y hospedaje. JPEG, PNG o WebP.', accept: '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp' }),

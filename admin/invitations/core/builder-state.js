@@ -28,7 +28,7 @@ import {
     createMediaAsset,
     getMediaRole,
     getMediaRoleAvailability
-} from './media-schema.js?v=phase136-media-create-swap-persistence-20260824';
+} from './media-schema.js?v=phase138-full-firebase-permissions-audit-20260824';
 import {
     RSVP_EDITABLE_FIELD_DEFINITIONS,
     RSVP_GUEST_POLICY_PATH,
