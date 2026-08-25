@@ -1,6 +1,7 @@
 import { getPackageById } from './section-registry.js?v=phase93-package-sections-format-20260821';
 import { normalizeLocationIconKey } from './location-icon-registry.js?v=phase113-aloha-location-cards-20260823';
 import { normalizeGiftLetterKey } from './gift-letter-registry.js?v=phase141-aloha-gift-letter-picker-20260825';
+import { normalizeLinkIconKey } from './link-icon-registry.js?v=phase142-aloha-prestige-actions-icon-picker-20260825';
 
 export const LOCATION_TYPES = Object.freeze(['ceremony', 'reception', 'party', 'session', 'accommodation', 'other']);
 export const GIFT_TYPES = Object.freeze(['store', 'transfer', 'cash', 'other']);
@@ -164,7 +165,7 @@ export function createAccommodation(id, seed = {}) {
 }
 
 export function createLink(id, seed = {}) {
-    return {
+    const link = {
         id,
         type: oneOf(seed.type, LINK_TYPES, 'custom'),
         label: text(seed.label, 'label'),
@@ -173,6 +174,16 @@ export function createLink(id, seed = {}) {
         phone: text(seed.phone, 'phone'),
         message: text(seed.message, 'message')
     };
+    if (Object.hasOwn(seed, 'iconKey')) {
+        const iconKey = normalizeLinkIconKey(seed.iconKey);
+        if (!iconKey && seed.iconKey !== 'none') {
+            const error = new TypeError('builder/invalid-link-icon-key');
+            error.code = 'builder/invalid-link-icon-key';
+            throw error;
+        }
+        link.iconKey = iconKey || 'none';
+    }
+    return link;
 }
 
 export function createDressColor(id, seed = {}) {

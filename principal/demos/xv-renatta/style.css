@@ -404,6 +404,25 @@ footer b, footer span { display: block; letter-spacing: .15em; } footer span { m
 .gift-registry-card { animation: giftRegistryReveal .65s cubic-bezier(.2,.7,.2,1) both; }
 .gift-registry-card:nth-child(2) { animation-delay: .08s; }
 .gift-registry-card:nth-child(3) { animation-delay: .16s; }
+.social-strip { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 1.4rem 2rem; }
+.aloha-actions-heading { grid-column: 1 / -1; display: flex; align-items: baseline; gap: .8rem; }
+.aloha-actions-eyebrow { color: #f6c64a; font-size: .58rem; font-weight: 800; letter-spacing: .24em; }
+.aloha-actions-heading h2 { margin: 0; color: #fff6e1; font: 500 clamp(1.35rem, 3vw, 2rem)/1 Georgia, serif; }
+.aloha-actions-grid { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: .75rem; width: min(100%, 54rem); margin-inline: auto; }
+.aloha-action-card { display: grid; grid-template-columns: 2.1rem minmax(0, 1fr) auto; align-items: center; gap: .7rem; min-height: 3.5rem; padding: .6rem .85rem; border: 1px solid rgb(255 246 225 / .42); border-radius: 1rem; background: rgb(255 246 225 / .1); color: #fff6e1; text-decoration: none; box-shadow: 0 .45rem 1rem rgb(8 59 75 / .12), inset 0 1px 0 rgb(255 255 255 / .16); transition: transform .22s ease, border-color .22s ease, background-color .22s ease, box-shadow .22s ease; }
+.aloha-action-card.is-no-icon { grid-template-columns: minmax(0, 1fr) auto; }
+.aloha-action-card:hover { transform: translateY(-2px); border-color: #f6c64a; background: rgb(255 246 225 / .17); box-shadow: 0 .7rem 1.2rem rgb(8 59 75 / .18); }
+.aloha-action-card:active { transform: scale(.98); box-shadow: 0 .25rem .6rem rgb(8 59 75 / .16); }
+.aloha-action-card:focus-visible { outline: 2px solid #f6c64a; outline-offset: 3px; }
+.aloha-action-icon { display: grid; place-items: center; width: 2rem; height: 2rem; border: 1px solid rgb(255 246 225 / .5); border-radius: .7rem; color: #fff6e1; }
+.aloha-action-svg { width: 1.35rem; height: 1.35rem; }
+.aloha-action-label { min-width: 0; overflow: hidden; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.aloha-action-arrow { font-size: 1.25rem; transition: transform .22s ease; }
+.aloha-action-card:hover .aloha-action-arrow { transform: translateX(4px); }
+.social-strip > p { grid-column: 1; margin: 0; }
+.social-strip > strong { grid-column: 2; margin: 0; }
+@media (max-width: 650px) { .social-strip { grid-template-columns: 1fr; gap: 1rem; padding-inline: 20px; } .aloha-actions-heading, .aloha-actions-grid, .social-strip > p, .social-strip > strong { grid-column: 1; } .aloha-actions-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .aloha-action-card { min-height: 3.5rem; padding-inline: .65rem; } .aloha-action-label { font-size: .64rem; } }
+@media (prefers-reduced-motion: reduce) { .aloha-action-card, .aloha-action-arrow { transition: none; } }
 @media (max-width: 730px) {
   .envelope-section { grid-template-columns: 1fr; gap: 1.8rem; min-height: 0; padding: 4.8rem 1.35rem 6.5rem; }
   .gift-registry-hero { min-height: 18rem; }

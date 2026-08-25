@@ -1,7 +1,8 @@
-import { entityHasContent, getRenderableLocations } from './logistics-schema.js?v=phase141-aloha-gift-letter-picker-20260825';
+import { entityHasContent, getRenderableLocations } from './logistics-schema.js?v=phase142-aloha-prestige-actions-icon-picker-20260825';
 import { buildGoogleCalendarUrl, buildWhatsAppUrl, safeUrlForField } from './safe-url.js?v=phase3-logistics-20260813';
 import { createLocationIcon, defaultLocationIconKeys, normalizeLocationIconKey } from './location-icon-registry.js?v=phase126-accommodation-icons-place-library-20260824';
 import { inferGiftLetterKey, normalizeGiftLetterKey } from './gift-letter-registry.js?v=phase141-aloha-gift-letter-picker-20260825';
+import { createLinkIcon, inferLinkIconKey } from './link-icon-registry.js?v=phase142-aloha-prestige-actions-icon-picker-20260825';
 
 const clean = (value) => String(value ?? '').replace(/\s+/g, ' ').trim();
 const source = (asset) => clean(asset?.previewUrl || asset?.downloadUrl);
@@ -404,7 +405,7 @@ function renderGifts(documentRoot, draft) {
     if (actions.children.length) copy.append(actions);
 }
 
-function renderLinks(documentRoot, draft) {
+function renderLegacyLinks(documentRoot, draft) {
     const links = (draft.links ?? []).filter(entityHasContent);
     const instagram = links.find((link) => link.type === 'instagram' && link.url);
     const social = documentRoot.querySelector('.social-strip');
@@ -424,6 +425,43 @@ function renderLinks(documentRoot, draft) {
             } else instagramAnchor.hidden = true;
         } else instagramAnchor.hidden = true;
     }
+}
+
+function renderLinks(documentRoot, draft) {
+    const social = documentRoot.querySelector('.social-strip');
+    if (!social) return;
+    const links = (draft.links ?? []).filter(entityHasContent);
+    const actions = [];
+    links.forEach((link) => {
+        const location = draft.locations?.[0];
+        const url = link.type === 'calendar'
+            ? (link.url || buildGoogleCalendarUrl(draft, location))
+            : link.type === 'whatsapp' ? buildWhatsAppUrl(link) : link.url;
+        const result = safeUrlForField(url, 'url', link.type);
+        if (!result.ok || !result.value) return;
+        const anchor = action(documentRoot, '', result.value, link.type);
+        anchor.className = 'aloha-action-card';
+        anchor.setAttribute('aria-label', clean(link.label || linkTypeLabelFallback(link.type)));
+        const iconKey = inferLinkIconKey(link);
+        const icon = node(documentRoot, 'span', 'aloha-action-icon');
+        const svg = createLinkIcon(documentRoot, iconKey, { className: 'aloha-action-svg' });
+        if (svg) icon.append(svg);
+        if (iconKey !== 'none') anchor.append(icon);
+        else anchor.classList.add('is-no-icon');
+        anchor.append(node(documentRoot, 'span', 'aloha-action-label', link.label || linkTypeLabelFallback(link.type)), node(documentRoot, 'span', 'aloha-action-arrow', '\u2192'));
+        actions.push(anchor);
+    });
+    social.querySelectorAll('[data-demo-action="instagram"], .aloha-actions-heading, .aloha-actions-grid').forEach((nodeToRemove) => nodeToRemove.remove());
+    if (!actions.length) return;
+    const heading = node(documentRoot, 'div', 'aloha-actions-heading');
+    heading.append(node(documentRoot, 'span', 'aloha-actions-eyebrow', 'ALOHA LINKS'), node(documentRoot, 'h2', '', 'Enlaces y acciones'));
+    const grid = node(documentRoot, 'div', 'aloha-actions-grid');
+    actions.forEach((actionNode) => grid.append(actionNode));
+    social.prepend(grid, heading);
+}
+
+function linkTypeLabelFallback(type) {
+    return ({ calendar: 'Calendario', whatsapp: 'WhatsApp', instagram: 'Instagram', contact: 'Contacto', transport: 'Transporte' })[type] || 'Abrir enlace';
 }
 
 export function applyAlohaPhase3Bindings(documentRoot, draft = {}) {

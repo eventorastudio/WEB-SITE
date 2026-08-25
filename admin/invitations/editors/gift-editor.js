@@ -1,4 +1,4 @@
-import { GIFT_TYPES, giftTypeLabel } from '../core/logistics-schema.js?v=phase141-aloha-gift-letter-picker-20260825';
+import { GIFT_TYPES, giftTypeLabel } from '../core/logistics-schema.js?v=phase142-aloha-prestige-actions-icon-picker-20260825';
 import { giftLetterPickerField, initEntityListEditor, selectField, textField, textareaField } from './entity-editor-utils.js?v=phase141-aloha-gift-letter-picker-20260825';
 
 const TYPE_OPTIONS = GIFT_TYPES.map((value) => ({ value, label: giftTypeLabel(value) }));

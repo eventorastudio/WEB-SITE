@@ -5,7 +5,7 @@ import {
     giftTypeLabel,
     linkTypeLabel,
     locationTypeLabel
-} from './logistics-schema.js?v=phase141-aloha-gift-letter-picker-20260825';
+} from './logistics-schema.js?v=phase142-aloha-prestige-actions-icon-picker-20260825';
 import { buildGoogleCalendarUrl, buildWhatsAppUrl, safeUrlForField } from './safe-url.js?v=phase3-logistics-20260813';
 import { applyAlohaPhase3Bindings } from './aloha-template-bindings.js?v=phase141-aloha-gift-letter-picker-20260825';
 

@@ -1,6 +1,7 @@
-import { entityHasContent } from '../core/logistics-schema.js?v=phase141-aloha-gift-letter-picker-20260825';
+import { entityHasContent } from '../core/logistics-schema.js?v=phase142-aloha-prestige-actions-icon-picker-20260825';
 import { createLocationIcon, LOCATION_ICON_OPTIONS } from '../core/location-icon-registry.js?v=phase113-aloha-location-cards-20260823';
 import { GIFT_LETTER_OPTIONS, inferGiftLetterKey } from '../core/gift-letter-registry.js?v=phase141-aloha-gift-letter-picker-20260825';
+import { LINK_ICON_OPTIONS, createLinkIcon, inferLinkIconKey } from '../core/link-icon-registry.js?v=phase142-aloha-prestige-actions-icon-picker-20260825';
 
 function element(tag, className, text = '') {
     const node = document.createElement(tag);
@@ -13,33 +14,36 @@ function createControl(definition, item, snapshot, collection) {
     const label = element('label', `entity-field${definition.wide ? ' entity-field-wide' : ''}`);
     label.append(element('span', '', definition.label));
     let control;
-    if (definition.type === 'iconPicker' || definition.type === 'giftLetterPicker') {
+    if (definition.type === 'iconPicker' || definition.type === 'giftLetterPicker' || definition.type === 'linkIconPicker') {
         const isGift = definition.type === 'giftLetterPicker';
-        control = element(isGift ? 'details' : 'div', isGift ? 'gift-letter-picker' : 'location-icon-picker');
+        const isLink = definition.type === 'linkIconPicker';
+        control = element(isGift || isLink ? 'details' : 'div', isGift ? 'gift-letter-picker' : isLink ? 'link-icon-picker' : 'location-icon-picker');
         const source = definition.nested ? item[definition.nested]?.[definition.field] : item[definition.field];
-        const selected = isGift ? inferGiftLetterKey(item) : String(source ?? '');
-        const options = definition.options ?? (isGift ? GIFT_LETTER_OPTIONS : LOCATION_ICON_OPTIONS);
-        if (isGift) {
-            const summary = element('summary', 'gift-letter-picker-trigger');
+        const selected = isGift ? inferGiftLetterKey(item) : isLink ? inferLinkIconKey(item) : String(source ?? '');
+        const options = definition.options ?? (isGift ? GIFT_LETTER_OPTIONS : isLink ? LINK_ICON_OPTIONS : LOCATION_ICON_OPTIONS);
+        if (isGift || isLink) {
+            const summary = element('summary', isGift ? 'gift-letter-picker-trigger' : 'link-icon-picker-trigger');
             const selectedOption = options.find(({ value }) => value === selected) ?? options[0];
-            summary.append(element('span', 'gift-letter-picker-current', selectedOption.value));
+            if (isGift) summary.append(element('span', 'gift-letter-picker-current', selectedOption.value));
+            else { const icon = createLinkIcon(document, selectedOption.value, { className: 'link-icon-picker-current' }); if (icon) summary.append(icon); }
             summary.append(element('span', '', selectedOption.label));
             control.append(summary);
         }
-        const optionsRoot = isGift ? element('div', 'gift-letter-picker-menu') : control;
+        const optionsRoot = isGift ? element('div', 'gift-letter-picker-menu') : isLink ? element('div', 'link-icon-picker-menu') : control;
         options.forEach(({ value, label: optionLabel }) => {
-            const option = element('button', isGift ? 'gift-letter-option' : 'location-icon-option');
+            const option = element('button', isGift ? 'gift-letter-option' : isLink ? 'link-icon-option' : 'location-icon-option');
             option.type = 'button';
             option.dataset.entityIconField = definition.field;
             option.dataset.entityIconValue = value;
             option.setAttribute('aria-pressed', String(selected === value));
             option.title = optionLabel;
             if (isGift) option.append(element('span', 'gift-letter-option-medallion', value));
+            else if (isLink) { const icon = createLinkIcon(document, value); if (icon) option.append(icon); else option.append(element('span', 'link-icon-option-none', '—')); }
             else { const icon = createLocationIcon(document, value); if (icon) option.append(icon); }
             option.append(element('span', '', optionLabel));
             optionsRoot.append(option);
         });
-        if (isGift) control.append(optionsRoot);
+        if (isGift || isLink) control.append(optionsRoot);
     } else if (definition.type === 'select') {
         control = document.createElement('select');
         (definition.options ?? []).forEach(({ value, label: optionLabel }) => {
@@ -55,7 +59,7 @@ function createControl(definition, item, snapshot, collection) {
         control = document.createElement('input');
         control.type = definition.type ?? 'text';
     }
-    if (definition.type !== 'iconPicker' && definition.type !== 'giftLetterPicker') {
+    if (definition.type !== 'iconPicker' && definition.type !== 'giftLetterPicker' && definition.type !== 'linkIconPicker') {
         control.autocomplete = 'off';
         control.dataset.entityField = definition.field;
         if (definition.nested) control.dataset.entityNested = definition.nested;
@@ -308,4 +312,5 @@ export function textField(field, label, options = {}) { return { field, label, .
 export function selectField(field, label, options, extra = {}) { return { field, label, type: 'select', options, ...extra }; }
 export function iconPickerField(field, label, extra = {}) { return { field, label, type: 'iconPicker', options: LOCATION_ICON_OPTIONS, ...extra }; }
 export function giftLetterPickerField(field, label, extra = {}) { return { field, label, type: 'giftLetterPicker', options: GIFT_LETTER_OPTIONS, ...extra }; }
+export function linkIconPickerField(field, label, extra = {}) { return { field, label, type: 'linkIconPicker', options: LINK_ICON_OPTIONS, ...extra }; }
 export function textareaField(field, label, options = {}) { return { field, label, type: 'textarea', wide: true, ...options }; }
