@@ -5,7 +5,7 @@ import {
     createEmptyInvitationMedia,
     createMediaAsset,
     getAllMediaAssets
-} from '../core/media-schema.js';
+} from '../core/media-schema.js?v=phase134-firestore-media-permission-root-cause-20260824';
 
 const SAFE_EVENT_ID = /^[A-Za-z0-9_-]{1,150}$/;
 const SAFE_MEDIA_ID = /^MED-LOCAL-\d{3,}$/;
@@ -172,7 +172,7 @@ export function serializeInvitationMediaDocument(asset, eventId) {
     if (!parsed.objectVersion) throw new TypeError('storage/object-version-required');
     if (parsed.role !== asset.role) throw new TypeError('storage/path-role-mismatch');
     if (MIME_EXTENSIONS[asset.mimeType] !== parsed.extension) throw new TypeError('storage/path-mime-mismatch');
-    return {
+    const document = {
         id: asset.id,
         role: asset.role,
         kind: asset.kind,
@@ -191,6 +191,8 @@ export function serializeInvitationMediaDocument(asset, eventId) {
         },
         objectVersion: parsed.objectVersion
     };
+    if (asset.createdAt !== undefined) document.createdAt = asset.createdAt;
+    return document;
 }
 
 function deserializeInvitationMediaDocument(document, eventId, expectedRole) {
@@ -249,10 +251,14 @@ function mergeMediaForPersistence(currentMedia, persistedMedia, uploadedAssets =
     const next = createEmptyInvitationMedia();
     const choose = (asset) => {
         if (!asset) return null;
-        const uploaded = uploadedAssets.get(asset.id);
-        if (uploaded) return uploaded;
-        if (asset.storagePath) return asset;
         const previous = findAsset(baseline, asset.id);
+        const uploaded = uploadedAssets.get(asset.id);
+        if (uploaded) {
+            return previous?.createdAt !== undefined
+                ? { ...uploaded, createdAt: previous.createdAt }
+                : uploaded;
+        }
+        if (asset.storagePath) return asset;
         return previous ? {
             ...previous,
             alt: asset.alt,

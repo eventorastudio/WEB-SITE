@@ -238,6 +238,8 @@ test('saveMedia persiste sólo después de terminar Storage y usa server timesta
         schemaVersion: 1,
         coverId: 'MED-LOCAL-001',
         galleryIds: [],
+        placeIds: [],
+        dressCodeId: null,
         videoId: null,
         posterId: null,
         audioId: null
@@ -329,6 +331,25 @@ test('reemplazo exitoso publica metadata nueva antes de limpiar el objeto anteri
     assert.equal(gateway.calls.commits[0].upserts.length, 1);
     assert.equal(gateway.calls.commits[0].upserts[0].isCreate, false);
     assert.equal(gateway.calls.deletes[0], persisted.cover.storagePath);
+});
+
+test('reemplazo de media document conserva createdAt exigido por Rules', async () => {
+    const gateway = createGateway();
+    const service = new InvitationMediaService({ enabled: true, gateway });
+    const createdAt = { seconds: 1700000000 };
+    const persisted = createEmptyInvitationMedia();
+    persisted.cover = asset('cover', 'MED-LOCAL-001', { createdAt });
+    const current = createEmptyInvitationMedia();
+    current.cover = asset('cover', 'MED-LOCAL-001', { storagePath: '', status: 'ready' });
+    await service.saveMedia({
+        eventId: EVENT_ID,
+        media: current,
+        persistedMedia: persisted,
+        files: [{ assetId: current.cover.id, file: { type: current.cover.mimeType, size: current.cover.size } }]
+    });
+    const operation = gateway.calls.commits[0].upserts[0];
+    assert.equal(operation.isCreate, false);
+    assert.deepEqual(operation.data.createdAt, createdAt);
 });
 
 test('delete retira mediaIndex y media document atómicamente antes de limpiar Storage', async () => {

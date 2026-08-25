@@ -1,7 +1,7 @@
 import { getAllMediaAssets, getMediaAssetSource, getMediaRoleAvailability } from '../core/media-schema.js?v=phase89-dress-code-media-20260820';
 import { MediaObjectUrlRegistry } from '../core/media-runtime.js?v=phase4-media-20260813';
 import { friendlyMediaError, inspectAndProcessMediaFile } from '../core/media-processor.js?v=phase132-firebase-media-persistence-fix-20260824';
-import { invitationMediaService } from '../services/invitation-media-service.js?v=phase132-firebase-media-persistence-fix-20260824';
+import { invitationMediaService } from '../services/invitation-media-service.js?v=phase134-firestore-media-permission-root-cause-20260824';
 
 const ROLE_COPY = Object.freeze({
     place: Object.freeze({ title: 'Imágenes de lugares', copy: 'Biblioteca reutilizable para sitios y hospedaje. JPEG, PNG o WebP.', accept: '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp' }),

@@ -459,6 +459,11 @@ test('mediaIndex acepta galería vacía, 1, 6 y 20; rechaza >20, duplicados y ca
         const galleryIds = Array.from({ length: count }, (_, index) => mediaId(index + 1));
         await assertSucceeds(setDoc(reference, configData(uidFor(context), { ...emptyIndex(), galleryIds })));
     }
+    await assertSucceeds(setDoc(reference, configData(uidFor(context), {
+        ...emptyIndex(),
+        placeIds: [mediaId(1)],
+        dressCodeId: null
+    })));
     await assertFails(setDoc(reference, configData(uidFor(context), {
         ...emptyIndex(),
         galleryIds: Array.from({ length: 21 }, (_, index) => mediaId(index + 1))

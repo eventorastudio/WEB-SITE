@@ -152,7 +152,10 @@ export function createMediaAsset(id, seed = {}) {
         uploadProgress: Math.min(100, Math.max(0, finiteNumber(seed.uploadProgress))),
         error: boundedText(seed.error, 300),
         focalPoint: { x: focalX, y: focalY },
-        sortOrder: Math.max(0, Math.trunc(finiteNumber(seed.sortOrder)))
+        sortOrder: Math.max(0, Math.trunc(finiteNumber(seed.sortOrder))),
+        ...(seed.createdAt !== undefined ? { createdAt: seed.createdAt } : {}),
+        ...(seed.updatedAt !== undefined ? { updatedAt: seed.updatedAt } : {}),
+        ...(seed.updatedBy !== undefined ? { updatedBy: seed.updatedBy } : {})
     };
 }
 
