@@ -1930,6 +1930,8 @@ body[data-builder-theme="aloha"] .postcards {
     min-block-size: 0 !important;
     height: auto !important;
     block-size: auto !important;
+    grid-template-rows: auto !important;
+    grid-auto-rows: auto;
     margin-bottom: 0 !important;
     padding-bottom: clamp(56px, 6vw, 80px) !important;
     padding-block-end: clamp(56px, 6vw, 80px) !important;
