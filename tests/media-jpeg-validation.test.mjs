@@ -38,3 +38,13 @@ test('los inputs de roles de imagen incluyen .jpg y .jpeg', async () => {
     const source = await readFile(new URL('../admin/invitations/editors/media-editor.js', import.meta.url), 'utf8');
     assert.equal((source.match(/\.jpg,\.jpeg,\.png,\.webp,image\/jpeg/g) ?? []).length, 4);
 });
+
+test('diagnóstico de media sólo se activa con la bandera explícita', async () => {
+    const builder = await readFile(new URL('../admin/invitations/builder.js', import.meta.url), 'utf8');
+    const processor = await readFile(new URL('../admin/invitations/core/media-processor.js', import.meta.url), 'utf8');
+    assert.match(builder, /mediaDebug.*=== '1'/);
+    assert.match(processor, /__INVITATION_DEBUG__/);
+    assert.match(processor, /rawMime/);
+    assert.match(processor, /normalizedMime/);
+    assert.match(processor, /normalizedSignature/);
+});

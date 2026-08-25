@@ -1,7 +1,7 @@
 import { getAllMediaAssets, getMediaAssetSource, getMediaRoleAvailability } from '../core/media-schema.js?v=phase89-dress-code-media-20260820';
 import { MediaObjectUrlRegistry } from '../core/media-runtime.js?v=phase4-media-20260813';
-import { friendlyMediaError, inspectAndProcessMediaFile } from '../core/media-processor.js?v=phase128-jpeg-validation-20260824';
-import { invitationMediaService } from '../services/invitation-media-service.js?v=phase129-jpg-upload-firebase-persistence-20260824';
+import { friendlyMediaError, inspectAndProcessMediaFile } from '../core/media-processor.js?v=phase130-media-runtime-diagnostics-jpg-fix-20260824';
+import { invitationMediaService } from '../services/invitation-media-service.js?v=phase130-media-runtime-diagnostics-jpg-fix-20260824';
 
 const ROLE_COPY = Object.freeze({
     place: Object.freeze({ title: 'Imágenes de lugares', copy: 'Biblioteca reutilizable para sitios y hospedaje. JPEG, PNG o WebP.', accept: '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp' }),
@@ -509,6 +509,7 @@ export function initMediaEditor({ container, state, mediaService = invitationMed
             }
             for (const { assetId, code } of result.uploadErrors) {
                 const local = findAsset(before, assetId);
+                reportPersistenceDiagnostic({ code, stage: 'storage-upload' }, local);
                 if (local) runtimeMedia = replaceAsset(runtimeMedia, { ...local, status: 'error', error: friendlyPersistenceError({ code }) });
             }
             for (const asset of getAllMediaAssets(before)) {

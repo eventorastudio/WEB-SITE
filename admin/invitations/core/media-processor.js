@@ -101,6 +101,14 @@ function extensionMatchesMime(extension, mime) {
         || (mime === 'audio/ogg' && extension === 'ogg');
 }
 
+function canonicalMime(value) {
+    return String(value ?? '').toLowerCase() === 'image/jpg' ? 'image/jpeg' : String(value ?? '').toLowerCase();
+}
+
+function canonicalSignature(value) {
+    return value === 'image/jpeg' ? 'jpeg' : value ? value.replace(/^image\//, '') : '';
+}
+
 export async function validateMediaFileConsistency(file, role, { stage = 'original' } = {}) {
     const definition = getMediaRole(role);
     const extension = extensionForFile(file);
@@ -108,6 +116,11 @@ export async function validateMediaFileConsistency(file, role, { stage = 'origin
     const mime = declaredMimeForFile(file, role);
     const result = validateMediaSignature({ declaredMime: mime, detectedMime: signature, kind: definition?.kind });
     if (!result.ok || !extensionMatchesMime(extension, signature)) {
+        if (globalThis.__INVITATION_DEBUG__) console.debug('Media validation mismatch:', {
+            stage, role, extension, rawMime: String(file?.type ?? '').toLowerCase(), normalizedMime: canonicalMime(mime),
+            signature: canonicalSignature(signature), normalizedSignature: canonicalSignature(signature),
+            condition: !result.ok ? result.code : 'extension-signature-compatibility'
+        });
         const error = mediaError(!result.ok ? result.code : 'media/mime-signature-mismatch', `${stage}: extension=${extension} mime=${mime} signature=${signature}`);
         error.diagnostic = { stage, extension, mime, signature };
         throw error;
