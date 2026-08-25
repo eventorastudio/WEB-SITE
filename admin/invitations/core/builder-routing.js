@@ -12,12 +12,16 @@ export function readBuilderRoute(search = '') {
     return Object.freeze({
         eventId: normalizeEventId(rawEventId),
         hasEventParameter: rawEventId !== null,
-        invalidEventParameter: rawEventId !== null && normalizeEventId(rawEventId) === null
+        invalidEventParameter: rawEventId !== null && normalizeEventId(rawEventId) === null,
+        mediaDebug: params.get('mediaDebug') === '1'
     });
 }
 
-export function createBuilderUrl(eventId, basePath = 'builder.html') {
+export function createBuilderUrl(eventId, basePath = 'builder.html', { mediaDebug = false, debugBuilder = false } = {}) {
     const normalized = normalizeEventId(eventId);
     if (!normalized) return basePath;
-    return `${basePath}?${new URLSearchParams({ event: normalized }).toString()}`;
+    const params = new URLSearchParams({ event: normalized });
+    if (mediaDebug) params.set('mediaDebug', '1');
+    if (debugBuilder) params.set('debugBuilder', '1');
+    return `${basePath}?${params.toString()}`;
 }

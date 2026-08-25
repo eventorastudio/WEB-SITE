@@ -7,7 +7,7 @@ import { EVENT_TYPES } from '../core/event-types.js';
 import { hasPermission, PERMISSIONS } from '../core/roles.js';
 import { initThemeManager } from '../core/theme-manager.js';
 import { builderState } from './core/builder-state.js?v=phase126-accommodation-icons-place-library-20260824';
-import { createBuilderUrl, readBuilderRoute } from './core/builder-routing.js?v=phase3-logistics-20260813';
+import { createBuilderUrl, readBuilderRoute } from './core/builder-routing.js?v=phase131-preserve-media-debug-query-20260824';
 import {
     BUILDER_DESKTOP_MIN_WIDTH,
     BUILDER_PLATFORM_STATUS,
@@ -263,8 +263,12 @@ async function loadEvent(eventId) {
         eventBus.emit(EVENT_TYPES.BUILDER_EVENT_SELECTED, { eventId, timestamp: Date.now() });
         updateEventChrome(eventData);
         mountModules();
-        const builderUrl = createBuilderUrl(eventId);
-        history.replaceState(null, '', debugBuilder.enabled ? `${builderUrl}&debugBuilder=1` : builderUrl);
+        const route = readBuilderRoute(window.location.search);
+        const builderUrl = createBuilderUrl(eventId, 'builder.html', {
+            mediaDebug: route.mediaDebug,
+            debugBuilder: debugBuilder.enabled
+        });
+        history.replaceState(null, '', builderUrl);
         dom.gate.hidden = true;
         dom.workspace.hidden = false;
         assertBuilderRootInvariant('event-loaded');

@@ -152,11 +152,15 @@ test('routing interpreta ?event= y rechaza IDs inseguros', () => {
     assert.deepEqual(readBuilderRoute('?event=EVT-0001'), {
         eventId: 'EVT-0001',
         hasEventParameter: true,
-        invalidEventParameter: false
+        invalidEventParameter: false,
+        mediaDebug: false
     });
     assert.equal(readBuilderRoute('?event=../usuarios').invalidEventParameter, true);
     assert.equal(readBuilderRoute('').eventId, null);
     assert.equal(createBuilderUrl('EVT-0001'), 'builder.html?event=EVT-0001');
+    assert.equal(createBuilderUrl('EVT-0001', 'builder.html', { mediaDebug: true }), 'builder.html?event=EVT-0001&mediaDebug=1');
+    assert.deepEqual(readBuilderRoute('?event=EVT-0001&mediaDebug=1').mediaDebug, true);
+    assert.equal(readBuilderRoute('?event=EVT-0001&unknown=1').mediaDebug, false);
 });
 
 test('la validación básica detecta nombre vacío y fechas calendáricas inválidas', () => {
