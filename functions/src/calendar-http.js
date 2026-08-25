@@ -27,7 +27,8 @@ export function createCalendarHttpHandler({ db, now = () => new Date() } = {}) {
             });
             if (!result.ok) { response.status(422).send('Calendar data unavailable.'); return; }
             response.set('Content-Type', 'text/calendar; charset=utf-8');
-            response.set('Content-Disposition', `inline; filename="${result.filename}"`);
+            const download = String(request.query?.download ?? '') === '1';
+            response.set('Content-Disposition', `${download ? 'attachment' : 'inline'}; filename="${result.filename}"`);
             response.set('Cache-Control', 'public, max-age=300');
             response.status(200).send(result.content);
         } catch {

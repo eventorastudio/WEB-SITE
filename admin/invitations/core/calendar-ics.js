@@ -1,11 +1,33 @@
-export { DEFAULT_EVENT_DURATION_MINUTES, buildIcsEvent, escapeIcsText, safeIcsFilename } from '../../../shared/calendar-ics.js';
+export { DEFAULT_EVENT_DURATION_MINUTES, buildIcsEvent, calendarLocalTimestamp, escapeIcsText, safeIcsFilename } from '../../../shared/calendar-ics.js';
 
 const CALENDAR_FUNCTION_ORIGIN = 'https://us-central1-eventorastudio-d6d95.cloudfunctions.net';
-export function getPublicCalendarUrl({ eventId, publicKey } = {}) {
+export function getPublicCalendarUrl({ eventId, publicKey, download = false } = {}) {
     const url = new URL(`${CALENDAR_FUNCTION_ORIGIN}/calendar`);
     url.searchParams.set('event', String(eventId ?? ''));
     url.searchParams.set('key', String(publicKey ?? ''));
+    if (download) url.searchParams.set('download', '1');
     return url.href;
+}
+
+export function isAndroidPlatform(navigatorRoot = globalThis.navigator) {
+    return /Android/i.test(String(navigatorRoot?.userAgent ?? ''));
+}
+
+function encodeIntentValue(value) {
+    return encodeURIComponent(String(value ?? '')).replace(/[!'()*]/g, (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`);
+}
+
+export function buildAndroidCalendarIntent({ title, location, description, beginTime, endTime, fallbackUrl } = {}) {
+    const extras = [
+        ['S.title', title],
+        ['S.eventLocation', location],
+        ['S.description', description],
+        ['l.beginTime', beginTime],
+        ['l.endTime', endTime],
+        ['S.browser_fallback_url', fallbackUrl]
+    ].filter(([, value]) => value !== undefined && value !== null && String(value) !== '')
+        .map(([key, value]) => `${key}=${typeof value === 'number' ? String(value) : encodeIntentValue(value)}`);
+    return `intent://calendar/events#Intent;action=android.intent.action.INSERT;type=vnd.android.cursor.dir/event;${extras.join(';')};end`;
 }
 
 export async function handoffIcsEvent(result, {

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildIcsEvent, escapeIcsText, getPublicCalendarUrl, handoffIcsEvent, safeIcsFilename } from '../admin/invitations/core/calendar-ics.js';
+import { buildAndroidCalendarIntent, buildIcsEvent, calendarLocalTimestamp, escapeIcsText, getPublicCalendarUrl, handoffIcsEvent, isAndroidPlatform, safeIcsFilename } from '../admin/invitations/core/calendar-ics.js';
 import { JSDOM } from 'jsdom';
 
 test('genera DTSTART/DTEND local con duración y cruce de medianoche', () => {
@@ -47,4 +47,23 @@ test('la acciÃ³n pÃºblica usa el endpoint HTTPS y no Google ni blob', () => 
     assert.match(url, /event=EVT-0001/);
     assert.match(url, /key=a{48}/);
     assert.doesNotMatch(url, /google|blob:/i);
+});
+
+test('Android usa intent nativo provider-neutral con fallback HTTPS descargable', () => {
+    assert.equal(isAndroidPlatform({ userAgent: 'Mozilla/5.0 Android 14 Chrome/140' }), true);
+    assert.equal(isAndroidPlatform({ userAgent: 'Mozilla/5.0 iPhone' }), false);
+    const fallbackUrl = getPublicCalendarUrl({ eventId: 'EVT-0001', publicKey: 'a'.repeat(48), download: true });
+    const intent = buildAndroidCalendarIntent({
+        title: 'Andrea; Pablo', location: 'SalÃ³n, Centro', description: 'Hola; mundo',
+        beginTime: calendarLocalTimestamp('2027-11-15', '19:00'),
+        endTime: calendarLocalTimestamp('2027-11-15', '23:00'), fallbackUrl
+    });
+    assert.match(intent, /^intent:\/\/calendar\/events#Intent;/);
+    assert.match(intent, /action=android\.intent\.action\.INSERT/);
+    assert.match(intent, /type=vnd\.android\.cursor\.dir\/event/);
+    assert.match(intent, /S\.browser_fallback_url=.*download%3D1/);
+    assert.match(intent, /l\.beginTime=\d+/);
+    assert.match(intent, /l\.endTime=\d+/);
+    assert.doesNotMatch(intent, /google\.com|workspace|package=com\.google|rsvpToken|qrToken|;end.*;end/);
+    assert.doesNotMatch(intent, /Andrea; Pablo|Hola; mundo/);
 });

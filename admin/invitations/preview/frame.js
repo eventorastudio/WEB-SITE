@@ -15,7 +15,7 @@ import { generateQrCanvas } from '../../modules/qr/qr-renderer.js?v=phase88-qr2-
 import { getThemeById } from '../core/theme-registry.js?v=phase86-appearance-20260820';
 import { normalizeAppearance } from '../core/appearance-schema.js?v=phase86-appearance-20260820';
 import { entityHasContent } from '../core/logistics-schema.js?v=phase3-logistics-20260813';
-import { buildIcsEvent, getPublicCalendarUrl, handoffIcsEvent } from '../core/calendar-ics.js?v=phase147-ios-https-ics-calendar-20260825';
+import { buildAndroidCalendarIntent, buildIcsEvent, calendarLocalTimestamp, getPublicCalendarUrl, handoffIcsEvent, isAndroidPlatform } from '../core/calendar-ics.js?v=phase148-android-native-calendar-fallback-20260825';
 
 const parentOrigin = window.location.origin;
 const previewHost = window.parent !== window ? window.parent : window.opener;
@@ -1035,10 +1035,32 @@ function hydratePublicCalendarEndpoints(payload) {
         if (button.tagName === 'A') return;
         const anchor = document.createElement('a');
         [...button.attributes].forEach((attribute) => { if (attribute.name !== 'type') anchor.setAttribute(attribute.name, attribute.value); });
-        anchor.href = getPublicCalendarUrl({ eventId: payload.publication?.eventId || payload.draft?.eventId, publicKey });
+        const eventId = payload.publication?.eventId || payload.draft?.eventId;
+        const endpoint = getPublicCalendarUrl({ eventId, publicKey });
+        anchor.href = isAndroidPlatform()
+            ? buildPublicAndroidCalendarIntent(payload, endpoint, eventId, publicKey)
+            : endpoint;
         anchor.removeAttribute('disabled');
         anchor.append(...button.childNodes);
         button.replaceWith(anchor);
+    });
+}
+
+function buildPublicAndroidCalendarIntent(payload, endpoint, eventId, publicKey) {
+    const content = payload.draft?.content ?? {};
+    const location = payload.draft?.locations?.[0] ?? {};
+    const title = [content.identity?.primaryName, content.identity?.secondaryName].filter(Boolean).join(' & ') || 'Evento';
+    const description = content.welcome?.message || content.identity?.eventType || '';
+    const eventLocation = [location.venueName, location.address, location.city, location.state].filter(Boolean).join(', ');
+    const beginTime = calendarLocalTimestamp(content.schedule?.date, content.schedule?.time);
+    if (!Number.isFinite(beginTime)) return endpoint;
+    return buildAndroidCalendarIntent({
+        title,
+        location: eventLocation,
+        description,
+        beginTime,
+        endTime: beginTime + (4 * 60 * 60 * 1000),
+        fallbackUrl: getPublicCalendarUrl({ eventId, publicKey, download: true })
     });
 }
 

@@ -53,3 +53,18 @@ test('Function rechaza key/evento invÃ¡lido y fecha ausente sin filtrar detall
     assert.equal(missingDate.statusCode, 422);
     assert.equal(missingDate.body, 'Calendar data unavailable.');
 });
+
+test('Function conserva el ICS y cambia solo inline/attachment con download=1', async () => {
+    const projection = { content: { identity: { primaryName: 'Evento' }, schedule: { date: '2027-01-02', time: '18:00' } } };
+    const inline = responseDouble();
+    const download = responseDouble();
+    const handler = handlerFor(projection);
+    await handler({ method: 'GET', query: { event: 'EVT-0001', key: PUBLIC_KEY } }, inline);
+    await handler({ method: 'GET', query: { event: 'EVT-0001', key: PUBLIC_KEY, download: '1' } }, download);
+    assert.equal(inline.statusCode, 200);
+    assert.equal(download.statusCode, 200);
+    assert.equal(inline.body, download.body);
+    assert.equal(inline.headers['Content-Type'], download.headers['Content-Type']);
+    assert.match(inline.headers['Content-Disposition'], /^inline;/);
+    assert.match(download.headers['Content-Disposition'], /^attachment;/);
+});
