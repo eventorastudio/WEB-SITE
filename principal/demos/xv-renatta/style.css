@@ -540,6 +540,113 @@ footer b, footer span { display: block; letter-spacing: .15em; } footer span { m
   }
 }
 
+/* Aloha video: tratamiento editorial Prestige, aislado exclusivamente en .tropical-film. */
+@media (min-width: 1024px) {
+  .tropical-film {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    grid-template-columns: minmax(18rem, .78fr) minmax(0, 1.22fr);
+    gap: clamp(3rem, 7vw, 8rem);
+    min-height: 42rem;
+    padding-inline: max(clamp(24px, 7vw, 110px), calc((100vw - 1240px) / 2));
+    background:
+      radial-gradient(circle at 82% 24%, rgb(246 198 74 / .16) 0 8rem, transparent 8.1rem),
+      linear-gradient(132deg, #075b69 0%, #087a80 52%, #064a5d 100%);
+  }
+  .tropical-film::before {
+    position: absolute;
+    z-index: -2;
+    top: -14rem;
+    right: 19%;
+    width: 33rem;
+    height: 33rem;
+    content: '';
+    border: 1px solid rgb(255 246 229 / .24);
+    border-radius: 48% 52% 58% 42%;
+    box-shadow: 0 0 0 1.2rem rgb(246 198 74 / .08), 0 0 0 3rem rgb(255 137 173 / .05);
+    transform: rotate(22deg);
+    pointer-events: none;
+  }
+  .tropical-film::after {
+    position: absolute;
+    z-index: -1;
+    right: -7rem;
+    bottom: -9rem;
+    width: 34rem;
+    height: 18rem;
+    content: '';
+    border-top: 1px solid rgb(255 246 229 / .22);
+    border-radius: 50%;
+    box-shadow: 0 -2rem 0 -1rem rgb(28 191 210 / .14), 0 -4rem 0 -2rem rgb(244 91 105 / .1);
+    transform: rotate(-9deg);
+    pointer-events: none;
+  }
+  .tropical-film > div:last-child {
+    position: relative;
+    z-index: 2;
+    order: 1;
+    max-width: 31rem;
+  }
+  .tropical-film > div:last-child::before {
+    display: block;
+    width: 3.8rem;
+    height: 1px;
+    margin-bottom: 1.5rem;
+    content: '';
+    background: var(--sun);
+    box-shadow: 1.2rem 0 0 rgb(244 91 105 / .72);
+  }
+  .tropical-film h2 {
+    max-width: 8ch;
+    margin-bottom: 1.5rem;
+    font-size: clamp(3.8rem, 6vw, 6.4rem);
+    line-height: .86;
+    letter-spacing: -.06em;
+  }
+  .tropical-film > div:last-child > p:not(.section-no) {
+    max-width: 34ch;
+    color: rgb(255 246 229 / .78);
+    line-height: 1.8;
+  }
+  .tropical-film .film-poster {
+    position: relative;
+    z-index: 1;
+    order: 2;
+    min-height: 34rem;
+    border: 1px solid rgb(255 246 229 / .55);
+    border-radius: 46% 54% .8rem .8rem;
+    box-shadow: 1rem 1.1rem 0 rgb(244 91 105 / .28), 0 2rem 3.8rem rgb(3 38 54 / .28), inset 0 1px 0 rgb(255 255 255 / .3);
+  }
+  .tropical-film .film-poster::before {
+    position: absolute;
+    z-index: 2;
+    inset: .9rem;
+    content: '';
+    border: 1px solid rgb(255 246 229 / .34);
+    border-radius: 42% 48% .45rem .45rem;
+    pointer-events: none;
+  }
+  .tropical-film .film-poster::after {
+    opacity: .72;
+    animation: alohaFilmLeaf 12s ease-in-out infinite;
+  }
+  .tropical-film .film-poster i {
+    z-index: 3;
+    color: var(--cream);
+    text-shadow: 0 2px 10px rgb(4 63 75 / .25);
+  }
+  .tropical-film .prestige-video-button { position: relative; z-index: 3; }
+  @keyframes alohaFilmLeaf {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 0 -5px; }
+  }
+}
+
+@media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
+  .tropical-film .film-poster::after { animation: none; }
+}
+
 @media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
   .welcome::after { animation: none; }
 }
