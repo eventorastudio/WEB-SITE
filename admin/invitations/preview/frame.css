@@ -2307,3 +2307,143 @@ body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"]
         left: 1rem;
     }
 }
+
+/* Aloha RSVP visual refinement: calmer scale, cleaner pass and soft florals. */
+body[data-builder-theme="aloha"] .rsvp {
+    min-height: 0 !important;
+    padding-block: clamp(3.75rem, 6vw, 5.75rem) !important;
+    background:
+        radial-gradient(circle at 50% 24%, rgb(255 246 229 / .13), transparent 22rem),
+        radial-gradient(ellipse at 8% 92%, rgb(8 122 80 / .16), transparent 18rem),
+        linear-gradient(145deg, #e95767 0%, var(--coral) 52%, #ee7180 100%);
+}
+
+body[data-builder-theme="aloha"] .rsvp > .section-no {
+    margin-bottom: .55rem;
+    padding: 0;
+    color: #161616 !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    font-size: clamp(.78rem, 1.15vw, 1rem) !important;
+    letter-spacing: .23em;
+}
+
+body[data-builder-theme="aloha"] .rsvp > h2 {
+    width: min(100%, 66rem);
+    font-size: clamp(2.7rem, 4.6vw, 5.1rem) !important;
+    line-height: .9;
+}
+
+/* Remove only the visible copy; data, bindings and QR remain untouched. */
+body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"] > div::before,
+body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"] > div small,
+body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"] > div strong,
+body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"] > div p {
+    display: none !important;
+}
+
+body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"]::before {
+    top: .85rem;
+    right: 1rem;
+    left: 1rem;
+    color: var(--deep);
+    font: 700 .62rem/1 Georgia, "Times New Roman", serif;
+    letter-spacing: .15em;
+    text-align: center;
+}
+
+body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"] {
+    grid-template-columns: 1fr;
+    min-height: 210px;
+    gap: clamp(1rem, 3vw, 2rem);
+    padding: clamp(1.35rem, 3vw, 2rem);
+}
+
+body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"] .builder-access-qr {
+    align-self: center;
+    width: min(100%, 150px);
+    margin: auto;
+}
+
+body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"] .builder-access-qr small {
+    display: block;
+    color: var(--deep);
+    font: 700 .58rem/1 Georgia, "Times New Roman", serif;
+    letter-spacing: .12em;
+    text-align: center;
+}
+
+/* Keep the pass card visually balanced after the copy is hidden. */
+body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"] > div {
+    display: block;
+    min-height: 1px;
+    padding: 0;
+}
+
+body[data-builder-theme="aloha"] .rsvp .island-pass {
+    width: min(100%, 52rem);
+    margin-top: 1.15rem;
+    padding-bottom: 0;
+}
+
+body[data-builder-theme="aloha"] .rsvp .island-pass::after,
+body[data-builder-theme="aloha"] .rsvp .access-options-note,
+body[data-builder-theme="aloha"] .rsvp .vertical-title,
+body[data-builder-theme="aloha"] .rsvp .vertical-note {
+    display: none !important;
+}
+
+/* Subtle non-interactive Aloha ornaments, kept outside the pass content. */
+body[data-builder-theme="aloha"] .rsvp::before {
+    top: -11rem;
+    width: min(58vw, 42rem);
+    opacity: .7;
+    box-shadow: 0 0 0 1rem rgb(255 246 229 / .05), 0 0 0 2.6rem rgb(246 198 74 / .06);
+    pointer-events: none;
+}
+
+body[data-builder-theme="aloha"] .rsvp::after {
+    right: -2rem;
+    bottom: -3rem;
+    width: 16rem;
+    height: 9rem;
+    border-top-color: rgb(255 246 229 / .28);
+    box-shadow: 0 -1.8rem 0 -1rem rgb(255 246 229 / .1), 0 -3.6rem 0 -2rem rgb(246 198 74 / .1);
+    pointer-events: none;
+}
+
+body[data-builder-theme="aloha"] .rsvp .rsvp-flower {
+    display: block;
+    right: -4.5rem;
+    bottom: -5rem;
+    width: 17rem;
+    opacity: .22;
+    pointer-events: none;
+}
+
+body[data-builder-theme="aloha"] .rsvp .rsvp-flower::before,
+body[data-builder-theme="aloha"] .rsvp .rsvp-flower::after {
+    pointer-events: none;
+}
+
+@media (max-width: 730px) {
+    body[data-builder-theme="aloha"] .rsvp { padding-block: 3.25rem 4rem !important; }
+    body[data-builder-theme="aloha"] .rsvp > .section-no { font-size: .76rem !important; }
+    body[data-builder-theme="aloha"] .rsvp > h2 { font-size: clamp(2.55rem, 11vw, 4.2rem) !important; }
+    body[data-builder-theme="aloha"] .rsvp .island-pass { width: min(100%, 30rem); margin-top: .9rem; }
+    body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"] {
+        grid-template-columns: 1fr;
+        min-height: 0;
+        gap: .8rem;
+        padding: 1.35rem 1rem 1.15rem;
+    }
+    body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"]::before { top: .75rem; }
+    body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"] .builder-access-qr { width: min(100%, 128px); }
+    body[data-builder-theme="aloha"] .rsvp .rsvp-flower { right: -5rem; bottom: -4rem; width: 13rem; opacity: .14; }
+}
+
+@media (max-width: 390px) {
+    body[data-builder-theme="aloha"] .rsvp > h2 { font-size: 2.35rem !important; }
+    body[data-builder-theme="aloha"] .rsvp .rsvp-flower { display: none; }
+}
