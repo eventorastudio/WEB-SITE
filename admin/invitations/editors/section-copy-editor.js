@@ -1,5 +1,5 @@
 import { getSectionById, isSectionAllowed } from '../core/section-registry.js?v=phase3-logistics-20260813';
-import { getSectionEditor } from '../core/section-editor-registry.js?v=phase54a-rsvp-time-20260817';
+import { getSectionEditor } from '../core/section-editor-registry.js?v=phase164-aloha-rsvp-builder-cleanup-20260825';
 import { createEditorFieldsGrid, syncEditorFields } from './editor-fields.js?v=phase54a-rsvp-time-20260817';
 
 function createEmptyState() {

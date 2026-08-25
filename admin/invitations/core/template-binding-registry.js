@@ -6,7 +6,7 @@ import {
 import {
     GENERAL_INFORMATION_FIELDS,
     SECTION_EDITOR_REGISTRY
-} from './section-editor-registry.js?v=phase54a-rsvp-time-20260817';
+} from './section-editor-registry.js?v=phase164-aloha-rsvp-builder-cleanup-20260825';
 import { applyPhase3TemplateBindings } from './phase3-template-bindings.js?v=phase162-aloha-actions-runtime-20260825';
 import { applyPhase4MediaBindings } from './phase4-media-bindings.js?v=phase86-aloha-a2-20260820';
 import { applyPhase5RsvpBindings } from './phase5-rsvp-bindings.js?v=phase54a-rsvp-time-20260817';

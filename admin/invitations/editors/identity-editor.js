@@ -1,4 +1,4 @@
-import { GENERAL_INFORMATION_FIELDS, OPENING_INFORMATION_FIELDS } from '../core/section-editor-registry.js?v=phase94-opening-cover-20260821';
+import { GENERAL_INFORMATION_FIELDS, OPENING_INFORMATION_FIELDS } from '../core/section-editor-registry.js?v=phase164-aloha-rsvp-builder-cleanup-20260825';
 import { createEditorFieldsGrid, syncEditorFields } from './editor-fields.js?v=phase94-opening-cover-20260821';
 
 export function initIdentityEditor({ container, openingContainer, state }) {

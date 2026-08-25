@@ -215,10 +215,6 @@ export const SECTION_EDITOR_REGISTRY = Object.freeze({
         title: 'Pase personalizado',
         notice: 'Configura la experiencia de acceso digital e impresa para tus invitados.',
         fields: [
-            field('content.access.title', 'Título'),
-            field('content.access.description', 'Descripción', { kind: 'textarea', rows: 3 }),
-            field('content.access.label', 'Label general'),
-            field('content.access.guestLabel', 'Label del invitado'),
             field('content.access.passesLabel', 'Label de pases'),
             field('content.access.showQr', 'Mostrar QR', { kind: 'toggle', wide: true }),
             field('content.access.showPrintPass', 'Permitir imprimir pase', { kind: 'toggle', wide: true }),

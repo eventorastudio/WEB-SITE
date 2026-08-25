@@ -1,4 +1,4 @@
-import { getSectionEditor } from '../core/section-editor-registry.js?v=phase98-access-ticket-20260822';
+import { getSectionEditor } from '../core/section-editor-registry.js?v=phase164-aloha-rsvp-builder-cleanup-20260825';
 import { createEditorFieldsGrid, syncEditorFields } from './editor-fields.js?v=phase54-rsvp-time-20260817';
 
 export function initAccessPassEditor({ container, state }) {
