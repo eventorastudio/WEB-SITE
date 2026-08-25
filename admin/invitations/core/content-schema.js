@@ -1,4 +1,4 @@
-import { createLocation } from './logistics-schema.js?v=phase141-aloha-gift-icon-picker-interaction-20260825';
+import { createLocation } from './logistics-schema.js?v=phase141-aloha-gift-letter-picker-20260825';
 import {
     RSVP_EDITABLE_FIELD_DEFINITIONS,
     normalizeRsvpConfig

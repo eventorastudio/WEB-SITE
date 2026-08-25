@@ -22,7 +22,7 @@ import {
     normalizeLocationWithMediaRef,
     normalizeEntity,
     packageAllowsMultipleLocations
-} from './logistics-schema.js?v=phase141-aloha-gift-icon-picker-interaction-20260825';
+} from './logistics-schema.js?v=phase141-aloha-gift-letter-picker-20260825';
 import {
     createEmptyInvitationMedia,
     createMediaAsset,

@@ -1,5 +1,5 @@
-import { GIFT_TYPES, giftTypeLabel } from '../core/logistics-schema.js?v=phase141-aloha-gift-icon-picker-interaction-20260825';
-import { giftIconPickerField, initEntityListEditor, selectField, textField, textareaField } from './entity-editor-utils.js?v=phase141-aloha-gift-icon-picker-interaction-20260825';
+import { GIFT_TYPES, giftTypeLabel } from '../core/logistics-schema.js?v=phase141-aloha-gift-letter-picker-20260825';
+import { giftLetterPickerField, initEntityListEditor, selectField, textField, textareaField } from './entity-editor-utils.js?v=phase141-aloha-gift-letter-picker-20260825';
 
 const TYPE_OPTIONS = GIFT_TYPES.map((value) => ({ value, label: giftTypeLabel(value) }));
 
@@ -15,7 +15,7 @@ export function initGiftEditor({ container, state }) {
         fields: (item) => [
             selectField('type', 'Tipo', TYPE_OPTIONS),
             textField('name', 'Nombre', { placeholder: 'Mesa de regalos ejemplo', maxLength: 160 }),
-            giftIconPickerField('iconKey', 'Logo / icono'),
+            giftLetterPickerField('letterKey', 'Letra decorativa'),
             textField('url', 'Link HTTPS', { wide: true, placeholder: 'https://…', maxLength: 2048, when: (gift) => gift.type === 'store' || gift.type === 'other' }),
             textField('reference', 'Número / referencia opcional', { wide: true, maxLength: 180 }),
             textareaField('description', 'Descripción', { rows: 2, maxLength: 800 }),

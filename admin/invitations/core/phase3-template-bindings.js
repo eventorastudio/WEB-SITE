@@ -5,9 +5,9 @@ import {
     giftTypeLabel,
     linkTypeLabel,
     locationTypeLabel
-} from './logistics-schema.js?v=phase141-aloha-gift-icon-picker-interaction-20260825';
+} from './logistics-schema.js?v=phase141-aloha-gift-letter-picker-20260825';
 import { buildGoogleCalendarUrl, buildWhatsAppUrl, safeUrlForField } from './safe-url.js?v=phase3-logistics-20260813';
-import { applyAlohaPhase3Bindings } from './aloha-template-bindings.js?v=phase141-aloha-gift-icon-picker-interaction-20260825';
+import { applyAlohaPhase3Bindings } from './aloha-template-bindings.js?v=phase141-aloha-gift-letter-picker-20260825';
 
 function clean(value, maxLength = 1800) {
     return String(value ?? '').replace(/\s+/g, ' ').trim().slice(0, maxLength);

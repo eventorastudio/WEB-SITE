@@ -1,7 +1,7 @@
-import { entityHasContent, getRenderableLocations } from './logistics-schema.js?v=phase141-aloha-gift-icon-picker-interaction-20260825';
+import { entityHasContent, getRenderableLocations } from './logistics-schema.js?v=phase141-aloha-gift-letter-picker-20260825';
 import { buildGoogleCalendarUrl, buildWhatsAppUrl, safeUrlForField } from './safe-url.js?v=phase3-logistics-20260813';
 import { createLocationIcon, defaultLocationIconKeys, normalizeLocationIconKey } from './location-icon-registry.js?v=phase126-accommodation-icons-place-library-20260824';
-import { createGiftIcon, inferGiftIconKey, normalizeGiftIconKey } from './gift-icon-registry.js?v=phase141-aloha-gift-icon-picker-interaction-20260825';
+import { inferGiftLetterKey, normalizeGiftLetterKey } from './gift-letter-registry.js?v=phase141-aloha-gift-letter-picker-20260825';
 
 const clean = (value) => String(value ?? '').replace(/\s+/g, ' ').trim();
 const source = (asset) => clean(asset?.previewUrl || asset?.downloadUrl);
@@ -395,13 +395,8 @@ function renderGifts(documentRoot, draft) {
         const link = action(documentRoot, '', gift.url, 'gifts');
         link.className = `gift-registry-card gift-registry-card--${index % 2 ? 'sage' : 'coral'}`;
         link.setAttribute('aria-label', `Abrir ${clean(gift.name || content.ctaLabel || 'opción de regalo')}`);
-        const iconKey = normalizeGiftIconKey(gift.iconKey || inferGiftIconKey(gift));
-        if (iconKey !== 'none') {
-            const icon = node(documentRoot, 'span', 'gift-registry-icon');
-            const svg = createGiftIcon(documentRoot, iconKey, { className: 'gift-registry-svg' });
-            if (svg) icon.append(svg);
-            link.append(icon, node(documentRoot, 'span', 'gift-registry-card-separator'));
-        }
+        const letter = inferGiftLetterKey({ ...gift, letterKey: normalizeGiftLetterKey(gift.letterKey) });
+        link.append(node(documentRoot, 'span', 'gift-registry-monogram', letter), node(documentRoot, 'span', 'gift-registry-card-separator'));
         link.append(node(documentRoot, 'span', 'gift-registry-card-name', gift.name || content.ctaLabel || 'Ver opción'));
         link.append(node(documentRoot, 'span', 'gift-registry-arrow', '\u2192'));
         actions.append(link);

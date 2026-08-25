@@ -389,12 +389,11 @@ footer b, footer span { display: block; letter-spacing: .15em; } footer span { m
 .gift-registry-card--sage { background: linear-gradient(135deg, #648b78, #33716e); }
 .gift-registry-card:hover { border-color: #f6c64a; box-shadow: 0 1rem 1.8rem rgb(8 59 75 / .18), inset 0 1px 0 rgb(255 246 229 / .46); transform: translateY(-2px); }
 .gift-registry-card:active { transform: translateY(1px) scale(.985); box-shadow: 0 .25rem .7rem rgb(8 59 75 / .16), inset 0 2px 0 rgb(8 59 75 / .12); }
-.gift-registry-icon { position: relative; display: grid; place-items: center; width: 2.35rem; aspect-ratio: 1; border: 1px solid rgb(255 246 229 / .65); border-radius: 50%; transition: transform .22s ease, background-color .22s ease; }
-.gift-registry-svg { width: 1.35rem; height: 1.35rem; }
-.gift-registry-card:hover .gift-registry-icon { transform: rotate(-4deg) scale(1.06); background: rgb(255 246 229 / .12); }
-.gift-registry-card:active .gift-registry-icon { transform: scale(.9); }
-.gift-registry-card:has(.gift-registry-icon) { grid-template-columns: 2.6rem 1px minmax(0, 1fr) auto; }
-.gift-registry-card:not(:has(.gift-registry-icon)) { grid-template-columns: minmax(0, 1fr) auto; }
+.gift-registry-card:has(.gift-registry-monogram) { grid-template-columns: 2.6rem 1px minmax(0, 1fr) auto; }
+.gift-registry-monogram { position: relative; display: grid; place-items: center; width: 2.35rem; aspect-ratio: 1; border: 1px double #fff6e1; border-radius: 50%; background: rgb(255 246 229 / .1); color: #fff6e1; font: 600 1.35rem Georgia, serif; text-shadow: 0 1px 3px rgb(8 59 75 / .25); box-shadow: inset 0 1px 0 rgb(255 255 255 / .35), 0 2px 5px rgb(8 59 75 / .14); transition: transform .2s ease, filter .2s ease, box-shadow .2s ease; }
+.gift-registry-monogram::after { content: ''; position: absolute; inset: 3px; border: 1px solid rgb(255 246 229 / .28); border-radius: inherit; pointer-events: none; }
+.gift-registry-card:hover .gift-registry-monogram { transform: scale(1.04); filter: brightness(1.08); box-shadow: inset 0 1px 0 rgb(255 255 255 / .45), 0 3px 7px rgb(8 59 75 / .18); }
+.gift-registry-card:active .gift-registry-monogram { transform: scale(.96); }
 .gift-registry-monogram { position: relative; display: grid; place-items: center; width: 2.35rem; aspect-ratio: 1; border: 1px solid rgb(255 246 229 / .65); border-radius: 50%; font: 400 1.15rem Georgia, serif; }
 .gift-registry-card-separator { width: 1px; height: 1.7rem; background: rgb(255 246 229 / .45); }
 .gift-registry-card-name { position: relative; min-width: 0; overflow: hidden; font-size: .78rem; font-weight: 800; letter-spacing: .1em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }

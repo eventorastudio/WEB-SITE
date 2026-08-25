@@ -1,6 +1,6 @@
 import { getPackageById } from './section-registry.js?v=phase93-package-sections-format-20260821';
 import { normalizeLocationIconKey } from './location-icon-registry.js?v=phase113-aloha-location-cards-20260823';
-import { inferGiftIconKey } from './gift-icon-registry.js?v=phase141-aloha-gift-icon-picker-interaction-20260825';
+import { normalizeGiftLetterKey } from './gift-letter-registry.js?v=phase141-aloha-gift-letter-picker-20260825';
 
 export const LOCATION_TYPES = Object.freeze(['ceremony', 'reception', 'party', 'session', 'accommodation', 'other']);
 export const GIFT_TYPES = Object.freeze(['store', 'transfer', 'cash', 'other']);
@@ -132,7 +132,15 @@ export function createGift(id, seed = {}) {
     };
     // Optional for legacy drafts: infer visually at render time without
     // forcing an absent field into the canonical stored shape.
-    if (Object.hasOwn(seed, 'iconKey')) gift.iconKey = inferGiftIconKey(seed);
+    if (Object.hasOwn(seed, 'letterKey')) {
+        const letterKey = normalizeGiftLetterKey(seed.letterKey);
+        if (!letterKey) {
+            const error = new TypeError('builder/invalid-gift-letter-key');
+            error.code = 'builder/invalid-gift-letter-key';
+            throw error;
+        }
+        gift.letterKey = letterKey;
+    }
     return gift;
 }
 
