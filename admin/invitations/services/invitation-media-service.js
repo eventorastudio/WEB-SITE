@@ -5,7 +5,7 @@ import {
     createEmptyInvitationMedia,
     createMediaAsset,
     getAllMediaAssets
-} from '../core/media-schema.js?v=phase135-media-persistence-rearchitecture-20260824';
+} from '../core/media-schema.js?v=phase136-media-create-swap-persistence-20260824';
 
 const SAFE_EVENT_ID = /^[A-Za-z0-9_-]{1,150}$/;
 const SAFE_MEDIA_ID = /^MED-LOCAL-\d{3,}$/;
@@ -277,6 +277,11 @@ function mergeMediaForPersistence(currentMedia, persistedMedia, uploadedAssets =
     return next;
 }
 
+function mediaIndexReferencesId(mediaIndex, mediaId) {
+    if (!mediaIndex || !mediaId) return false;
+    return Object.values(mediaIndex).some((value) => Array.isArray(value) ? value.includes(mediaId) : value === mediaId);
+}
+
 function removeAssetFromMedia(media, assetId) {
     const next = { ...media, gallery: [...(media?.gallery ?? [])], place: [...(media?.place ?? [])] };
     next.gallery = next.gallery.filter(({ id }) => id !== assetId).map((asset, sortOrder) => ({ ...asset, sortOrder }));
@@ -334,6 +339,7 @@ async function createFirebaseMediaGateway() {
             for (const mediaId of deleteIds) batch.delete(mediaRef(eventId, mediaId));
             await batch.commit();
         },
+        deleteMediaDocument: (eventId, mediaId) => firestoreApi.deleteDoc(mediaRef(eventId, mediaId)),
         uploadObject({ path, file, metadata, onProgress }) {
             const task = storageApi.uploadBytesResumable(storageApi.ref(storage, path), file, metadata);
             const promise = new Promise((resolve, reject) => {
@@ -537,7 +543,7 @@ export class InvitationMediaService {
         await gateway.commitMediaState(eventId, {
             config: { schemaVersion, mediaIndex, updatedAt: timestamp, updatedBy: uid },
             upserts,
-            deleteIds
+            deleteIds: []
         });
         const hydrated = hydrateInvitationMedia({ mediaIndex, mediaDocuments }, eventId);
         return { media: hydrated.media, mediaIndex, upserts, deleteIds };
@@ -606,19 +612,24 @@ export class InvitationMediaService {
         } catch (error) {
             const compensation = await Promise.allSettled([...uploadedAssets.values()].map((asset) => gatewayDeleteOwned(this, eventId, asset.storagePath)));
             throw serviceError(error?.code || 'storage/metadata-write-failed', error, {
-                stage: 'media-document-index',
+                stage: 'media-index-update',
                 uploadedAssetIds: [...uploadedAssets.keys()],
                 compensationAttempted: uploadedAssets.size,
                 compensationFailures: compensation.filter(({ status }) => status === 'rejected').length
             });
         }
         const cleanupPaths = [];
+        const cleanupMediaIds = [...new Set(persisted.deleteIds ?? [])]
+            .filter((mediaId) => !mediaIndexReferencesId(persisted.mediaIndex, mediaId));
         for (const uploaded of uploadedAssets.values()) {
             const previous = findAsset(persistedMedia, uploaded.id);
             if (previous?.storagePath && previous.storagePath !== uploaded.storagePath) cleanupPaths.push(previous.storagePath);
         }
         cleanupPaths.push(...removedAssets.map(({ storagePath }) => storagePath).filter(Boolean));
-        const cleanup = await Promise.allSettled(cleanupPaths.map((path) => gatewayDeleteOwned(this, eventId, path)));
+        const cleanup = await Promise.allSettled([
+            ...cleanupPaths.map((path) => gatewayDeleteOwned(this, eventId, path)),
+            ...cleanupMediaIds.map((mediaId) => gatewayDeleteMediaDocument(this, eventId, mediaId))
+        ]);
         const runtimeMedia = persisted.media;
         await mapWithConcurrency(getAllMediaAssets(runtimeMedia), RESOLVE_URL_CONCURRENCY, async (asset) => {
             const uploaded = uploadedAssets.get(asset.id);
@@ -662,6 +673,7 @@ export class InvitationMediaService {
             });
         }
         try {
+            await gatewayDeleteMediaDocument(this, eventId, asset.id);
             await gatewayDeleteOwned(this, eventId, asset.storagePath);
         } catch (error) {
             throw serviceError(error?.code || 'storage/delete-failed', error, {
@@ -677,6 +689,12 @@ export class InvitationMediaService {
 async function gatewayDeleteOwned(service, eventId, storagePath) {
     assertOwnedInvitationMediaPath(storagePath, eventId);
     return (await service.getGateway()).deleteObject(storagePath);
+}
+
+async function gatewayDeleteMediaDocument(service, eventId, mediaId) {
+    const gateway = await service.getGateway();
+    if (typeof gateway.deleteMediaDocument !== 'function') return;
+    return gateway.deleteMediaDocument(eventId, mediaId);
 }
 
 export const invitationMediaService = new InvitationMediaService({ enabled: INVITATION_MEDIA_UPLOAD_ENABLED });

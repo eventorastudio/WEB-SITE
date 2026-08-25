@@ -28,7 +28,7 @@ import {
     createMediaAsset,
     getMediaRole,
     getMediaRoleAvailability
-} from './media-schema.js?v=phase135-media-persistence-rearchitecture-20260824';
+} from './media-schema.js?v=phase136-media-create-swap-persistence-20260824';
 import {
     RSVP_EDITABLE_FIELD_DEFINITIONS,
     RSVP_GUEST_POLICY_PATH,
@@ -445,6 +445,27 @@ export class InvitationBuilderState {
         });
     }
 
+    replaceMediaAssetWithNewId(id, seed = {}) {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        const found = this._findMediaAsset(id);
+        if (!found) return { ok: false, code: 'builder/media-not-found' };
+        const availability = getMediaRoleAvailability(found.asset.role, this._draft.packageId, this._draft.enabledSections);
+        if (!availability.editable) return { ok: false, code: availability.packageAllowed ? 'builder/media-section-disabled' : 'builder/media-not-allowed' };
+        const previous = this.getSnapshot();
+        const newId = this._nextMediaId();
+        const next = createMediaAsset(newId, {
+            ...seed,
+            role: found.asset.role,
+            sortOrder: found.asset.sortOrder,
+            status: seed.status ?? 'ready',
+            error: seed.error ?? ''
+        });
+        found.assign(next);
+        this._markMediaRoleTouched(next.role);
+        this._commitMediaChange(previous, next.role, 'replace', newId, { replacedId: id });
+        return { ok: true, changed: true, entity: cloneInvitationValue(next), replacedId: id };
+    }
+
     removeMediaAsset(id) {
         if (!this._draft) throw new Error('builder/not-initialized');
         const found = this._findMediaAsset(id);
@@ -685,8 +706,21 @@ export class InvitationBuilderState {
 
     _nextMediaId() {
         const sequences = this._draft.meta.entitySequences;
-        sequences.media = (sequences.media ?? 0) + 1;
-        return `MED-LOCAL-${String(sequences.media).padStart(3, '0')}`;
+        const existing = new Set([
+            this._draft.media?.cover,
+            ...(this._draft.media?.gallery ?? []),
+            ...(this._draft.media?.place ?? []),
+            this._draft.media?.dressCode,
+            this._draft.media?.video,
+            this._draft.media?.videoPoster,
+            this._draft.media?.music
+        ].filter(Boolean).map(({ id }) => id));
+        let candidate;
+        do {
+            sequences.media = (sequences.media ?? 0) + 1;
+            candidate = `MED-LOCAL-${String(sequences.media).padStart(3, '0')}`;
+        } while (existing.has(candidate));
+        return candidate;
     }
 
     _markMediaRoleTouched(role) {

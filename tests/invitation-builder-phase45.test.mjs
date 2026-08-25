@@ -314,33 +314,35 @@ test('reemplazo exitoso publica metadata nueva antes de limpiar el objeto anteri
     const order = [];
     const gateway = createGateway({
         commitMediaState: async (eventId, payload) => { order.push('firestore-batch'); gateway.calls.commits.push({ eventId, ...payload }); },
+        deleteMediaDocument: async (eventId, mediaId) => { order.push('delete-old-doc'); gateway.calls.documentReads.push({ eventId, mediaId, deleted: true }); },
         deleteObject: async (storagePath) => { order.push('delete-old'); gateway.calls.deletes.push(storagePath); }
     });
     const service = new InvitationMediaService({ enabled: true, gateway });
     const persisted = createEmptyInvitationMedia();
     persisted.cover = asset('cover');
     const current = createEmptyInvitationMedia();
-    current.cover = asset('cover', 'MED-LOCAL-001', { storagePath: '', status: 'ready', originalName: 'new.webp' });
+    current.cover = asset('cover', 'MED-LOCAL-002', { storagePath: '', status: 'ready', originalName: 'new.webp' });
     await service.saveMedia({
         eventId: EVENT_ID,
         media: current,
         persistedMedia: persisted,
         files: [{ assetId: current.cover.id, file: { type: current.cover.mimeType, size: current.cover.size } }]
     });
-    assert.deepEqual(order, ['firestore-batch', 'delete-old']);
+    assert.deepEqual(order, ['firestore-batch', 'delete-old', 'delete-old-doc']);
     assert.equal(gateway.calls.commits[0].upserts.length, 1);
-    assert.equal(gateway.calls.commits[0].upserts[0].isCreate, false);
+    assert.equal(gateway.calls.commits[0].upserts[0].isCreate, true);
+    assert.equal(gateway.calls.commits[0].upserts[0].id, 'MED-LOCAL-002');
     assert.equal(gateway.calls.deletes[0], persisted.cover.storagePath);
 });
 
-test('reemplazo de media document conserva createdAt exigido por Rules', async () => {
+test('replacement crea auditoría nueva sin reutilizar createdAt del asset anterior', async () => {
     const gateway = createGateway();
     const service = new InvitationMediaService({ enabled: true, gateway });
     const createdAt = { seconds: 1700000000 };
     const persisted = createEmptyInvitationMedia();
     persisted.cover = asset('cover', 'MED-LOCAL-001', { createdAt });
     const current = createEmptyInvitationMedia();
-    current.cover = asset('cover', 'MED-LOCAL-001', { storagePath: '', status: 'ready' });
+    current.cover = asset('cover', 'MED-LOCAL-002', { storagePath: '', status: 'ready' });
     await service.saveMedia({
         eventId: EVENT_ID,
         media: current,
@@ -348,13 +350,14 @@ test('reemplazo de media document conserva createdAt exigido por Rules', async (
         files: [{ assetId: current.cover.id, file: { type: current.cover.mimeType, size: current.cover.size } }]
     });
     const operation = gateway.calls.commits[0].upserts[0];
-    assert.equal(operation.isCreate, false);
-    assert.deepEqual(operation.data.createdAt, createdAt);
+    assert.equal(operation.isCreate, true);
+    assert.notDeepEqual(operation.data.createdAt, createdAt);
+    assert.deepEqual(operation.data.createdAt, { __serverTimestamp: true });
 });
 
 test('builder state conserva auditoría al hidratar media existente', () => {
     const state = new InvitationBuilderState();
-    state.initialize(EVENT_ID, {});
+    state.initialize(EVENT_ID, { packageId: 'premium' });
     const createdAt = { seconds: 1700000000 };
     const updatedAt = { seconds: 1700000100 };
     state.hydrateMedia({ cover: asset('cover', 'MED-LOCAL-001', { createdAt, updatedAt, updatedBy: 'UID-ADMIN-1' }) });
@@ -364,17 +367,29 @@ test('builder state conserva auditoría al hidratar media existente', () => {
     assert.equal(hydrated.updatedBy, 'UID-ADMIN-1');
 });
 
+test('replacement de Builder asigna un mediaId nuevo sin mutar la identidad anterior', () => {
+    const state = new InvitationBuilderState();
+    state.initialize(EVENT_ID, { packageId: 'premium' });
+    state.hydrateMedia({ cover: asset('cover', 'MED-LOCAL-001') });
+    const result = state.replaceMediaAssetWithNewId('MED-LOCAL-001', { mimeType: 'image/webp', size: 1000, width: 1200, height: 800 });
+    assert.equal(result.ok, true);
+    assert.notEqual(result.entity.id, 'MED-LOCAL-001');
+    assert.equal(result.replacedId, 'MED-LOCAL-001');
+    assert.equal(state.getSnapshot().draft.media.cover.id, result.entity.id);
+});
+
 test('delete retira mediaIndex y media document atómicamente antes de limpiar Storage', async () => {
     const order = [];
     const gateway = createGateway({
         deleteObject: async () => { order.push('storage-delete'); },
-        commitMediaState: async (eventId, payload) => { order.push('firestore-batch'); gateway.calls.commits.push({ eventId, ...payload }); }
+        commitMediaState: async (eventId, payload) => { order.push('firestore-batch'); gateway.calls.commits.push({ eventId, ...payload }); },
+        deleteMediaDocument: async () => { order.push('media-delete'); }
     });
     const service = new InvitationMediaService({ enabled: true, gateway });
     const media = fullMedia({ galleryCount: 1 });
     const result = await service.deleteAsset({ eventId: EVENT_ID, asset: media.cover, media, persistedMedia: media });
-    assert.deepEqual(order, ['firestore-batch', 'storage-delete']);
-    assert.deepEqual(gateway.calls.commits[0].deleteIds, [media.cover.id]);
+    assert.deepEqual(order, ['firestore-batch', 'media-delete', 'storage-delete']);
+    assert.deepEqual(gateway.calls.commits[0].deleteIds, []);
     assert.equal(gateway.calls.commits[0].config.mediaIndex.coverId, null);
     assert.equal(result.media.cover, null);
 });

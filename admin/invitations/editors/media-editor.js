@@ -1,7 +1,7 @@
-import { getAllMediaAssets, getMediaAssetSource, getMediaRoleAvailability } from '../core/media-schema.js?v=phase135-media-persistence-rearchitecture-20260824';
+import { getAllMediaAssets, getMediaAssetSource, getMediaRoleAvailability } from '../core/media-schema.js?v=phase136-media-create-swap-persistence-20260824';
 import { MediaObjectUrlRegistry } from '../core/media-runtime.js?v=phase4-media-20260813';
-import { friendlyMediaError, inspectAndProcessMediaFile } from '../core/media-processor.js?v=phase132-firebase-media-persistence-fix-20260824';
-import { invitationMediaService } from '../services/invitation-media-service.js?v=phase134-firestore-media-permission-root-cause-20260824';
+import { friendlyMediaError, inspectAndProcessMediaFile } from '../core/media-processor.js?v=phase136-media-create-swap-persistence-20260824';
+import { invitationMediaService } from '../services/invitation-media-service.js?v=phase136-media-create-swap-persistence-20260824';
 
 const ROLE_COPY = Object.freeze({
     place: Object.freeze({ title: 'Imágenes de lugares', copy: 'Biblioteca reutilizable para sitios y hospedaje. JPEG, PNG o WebP.', accept: '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp' }),
@@ -441,13 +441,27 @@ export function initMediaEditor({ container, state, mediaService = invitationMed
             const previewUrl = registry.set(assetId, processed.file);
             const currentAsset = findAsset(state.getSnapshot().draft.media, assetId);
             const metadata = metadataFromProcessed(role, file, processed, previewUrl);
-            const update = state.replaceMediaAsset(assetId, {
+            const update = replaceId
+                ? state.replaceMediaAssetWithNewId(assetId, {
+                    ...metadata,
+                    alt: currentAsset?.alt,
+                    caption: currentAsset?.caption,
+                    focalPoint: currentAsset?.focalPoint
+                })
+                : state.replaceMediaAsset(assetId, {
                 ...metadata,
-                alt: replaceId ? currentAsset?.alt : metadata.alt,
-                caption: replaceId ? currentAsset?.caption : '',
-                focalPoint: replaceId ? currentAsset?.focalPoint : { x: 50, y: 50 }
+                alt: metadata.alt,
+                caption: '',
+                focalPoint: { x: 50, y: 50 }
             });
             if (!update.ok) throw new Error(update.code);
+            assetId = update.entity.id;
+            if (replaceId) {
+                registry.revoke(replaceId);
+                const replacementPreviewUrl = registry.set(assetId, processed.file);
+                const previewUpdate = state.replaceMediaAsset(assetId, { previewUrl: replacementPreviewUrl });
+                if (!previewUpdate.ok) throw new Error(previewUpdate.code);
+            }
             delete activity[role];
             render();
             if (role === 'place' && storageStatus.canUpload) await saveMedia([assetId]);
