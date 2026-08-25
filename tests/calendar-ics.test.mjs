@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildIcsEvent, escapeIcsText, handoffIcsEvent, safeIcsFilename } from '../admin/invitations/core/calendar-ics.js';
+import { buildIcsEvent, escapeIcsText, getPublicCalendarUrl, handoffIcsEvent, safeIcsFilename } from '../admin/invitations/core/calendar-ics.js';
 import { JSDOM } from 'jsdom';
 
 test('genera DTSTART/DTEND local con duración y cruce de medianoche', () => {
@@ -39,4 +39,12 @@ test('handoff usa Web Share con File y hace fallback Blob sin URL externa', asyn
     const fallback = await handoffIcsEvent(result, { documentRoot: dom.window.document, navigatorRoot: { userAgent: 'iPhone' }, urlApi: { createObjectURL: () => 'blob:local', revokeObjectURL: () => {} } });
     assert.equal(fallback.strategy, 'blob-download');
     dom.window.close();
+});
+
+test('la acciÃ³n pÃºblica usa el endpoint HTTPS y no Google ni blob', () => {
+    const url = getPublicCalendarUrl({ eventId: 'EVT-0001', publicKey: 'a'.repeat(48) });
+    assert.match(url, /^https:\/\/us-central1-eventorastudio-d6d95\.cloudfunctions\.net\/calendar\?/);
+    assert.match(url, /event=EVT-0001/);
+    assert.match(url, /key=a{48}/);
+    assert.doesNotMatch(url, /google|blob:/i);
 });

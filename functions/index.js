@@ -2,12 +2,15 @@ import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
-import { HttpsError, onCall } from 'firebase-functions/v2/https';
+import { HttpsError, onCall, onRequest } from 'firebase-functions/v2/https';
 
 import { reconcileCurrentRsvpResponse } from './src/rsvp-reconciliation.js';
 import { resolveGuestQrToken } from './src/guest-qr-access.js';
+import { createCalendarHttpHandler } from './src/calendar-http.js';
 
 initializeApp();
+
+export const calendar = onRequest({ region: 'us-central1' }, createCalendarHttpHandler({ db: getFirestore() }));
 
 export const syncRsvpResponseToGuest = onDocumentWritten({
     document: 'eventos/{eventId}/rsvpResponses/{token}',

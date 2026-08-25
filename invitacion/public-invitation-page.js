@@ -62,6 +62,7 @@ export function createPublicInvitationRenderPayload(projection, {
         renderMode: 'public',
         publication: {
             eventId: projection.eventId,
+            publicKey: projection.publicKey,
             revisionId: projection.revisionId,
             revisionNumber: projection.revisionNumber
         }

@@ -15,7 +15,7 @@ import { generateQrCanvas } from '../../modules/qr/qr-renderer.js?v=phase88-qr2-
 import { getThemeById } from '../core/theme-registry.js?v=phase86-appearance-20260820';
 import { normalizeAppearance } from '../core/appearance-schema.js?v=phase86-appearance-20260820';
 import { entityHasContent } from '../core/logistics-schema.js?v=phase3-logistics-20260813';
-import { buildIcsEvent, handoffIcsEvent } from '../core/calendar-ics.js?v=phase146-ios-ics-handoff-fix-20260825';
+import { buildIcsEvent, getPublicCalendarUrl, handoffIcsEvent } from '../core/calendar-ics.js?v=phase147-ios-https-ics-calendar-20260825';
 
 const parentOrigin = window.location.origin;
 const previewHost = window.parent !== window ? window.parent : window.opener;
@@ -305,6 +305,7 @@ function applyPayload(payload) {
         sanitizeAlohaRealContent(payload);
         syncOpeningData(payload);
     }
+    if (publicRuntime) hydratePublicCalendarEndpoints(payload);
     if (payload.theme.id === 'aloha') setupAlohaInteractions(payload);
     if (publicRuntime && payload.personalization) {
         applyPublicInvitationPersonalization(document, payload.personalization, payload.rsvpUrl);
@@ -1016,6 +1017,7 @@ function interceptNavigation(event) {
     const action = event.target.closest?.('[data-builder-action],[data-demo-action]');
     if (!anchor && !action) return;
     if (action?.dataset.publicInvitationRsvp === 'true') return;
+    if (publicRuntime && action?.dataset.builderAction === 'calendar' && anchor?.href) return;
     if (action?.dataset.builderAction === 'calendar') { event.preventDefault(); handleCalendarAction(action); return; }
     event.preventDefault();
     const href = anchor?.getAttribute('href') || '';
@@ -1024,6 +1026,20 @@ function interceptNavigation(event) {
         return;
     }
     showBuilderActionNotice(action?.dataset.builderAction || action?.dataset.demoAction || 'external');
+}
+
+function hydratePublicCalendarEndpoints(payload) {
+    const publicKey = payload.publication?.publicKey;
+    if (!publicKey) return;
+    document.querySelectorAll('[data-builder-action="calendar"]').forEach((button) => {
+        if (button.tagName === 'A') return;
+        const anchor = document.createElement('a');
+        [...button.attributes].forEach((attribute) => { if (attribute.name !== 'type') anchor.setAttribute(attribute.name, attribute.value); });
+        anchor.href = getPublicCalendarUrl({ eventId: payload.publication?.eventId || payload.draft?.eventId, publicKey });
+        anchor.removeAttribute('disabled');
+        anchor.append(...button.childNodes);
+        button.replaceWith(anchor);
+    });
 }
 
 function handleCalendarAction(button) {

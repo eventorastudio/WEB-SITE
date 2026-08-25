@@ -8,7 +8,8 @@ const sharedModules = Object.freeze([
     'event-stats.js',
     'rsvp-access-contract.js',
     'rsvp-response-contract.js',
-    'rsvp-operations-contract.js'
+    'rsvp-operations-contract.js',
+    'calendar-ics.js'
 ]);
 
 await mkdir(targetDirectory, { recursive: true });
