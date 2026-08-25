@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { sniffMediaMimeType, validateMediaSignature } from '../admin/invitations/core/media-schema.js';
 import { validateMediaFileConsistency } from '../admin/invitations/core/media-processor.js';
 
@@ -31,4 +32,9 @@ test('PNG y WebP válidos pasan; extensiones o firmas falseadas fallan', async (
 test('sniffer y validador no confían únicamente en File.type', () => {
     assert.equal(sniffMediaMimeType(bytes.jpeg), 'image/jpeg');
     assert.deepEqual(validateMediaSignature({ declaredMime: 'image/jpeg', detectedMime: 'image/png', kind: 'image' }).ok, false);
+});
+
+test('los inputs de roles de imagen incluyen .jpg y .jpeg', async () => {
+    const source = await readFile(new URL('../admin/invitations/editors/media-editor.js', import.meta.url), 'utf8');
+    assert.equal((source.match(/\.jpg,\.jpeg,\.png,\.webp,image\/jpeg/g) ?? []).length, 4);
 });

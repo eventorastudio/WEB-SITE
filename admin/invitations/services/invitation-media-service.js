@@ -476,7 +476,7 @@ export class InvitationMediaService {
             });
         } catch (error) {
             const cancelled = error?.code === 'storage/canceled' || error?.code === 'storage/cancelled';
-            throw serviceError(cancelled ? 'storage/upload-cancelled' : (error?.code || 'storage/upload-failed'), error, { retryable: !cancelled });
+            throw serviceError(cancelled ? 'storage/upload-cancelled' : (error?.code || 'storage/upload-failed'), error, { retryable: !cancelled, stage: 'storage-upload' });
         } finally {
             this.activeUploads.delete(asset.id);
         }
@@ -581,6 +581,7 @@ export class InvitationMediaService {
         } catch (error) {
             const compensation = await Promise.allSettled([...uploadedAssets.values()].map((asset) => gatewayDeleteOwned(this, eventId, asset.storagePath)));
             throw serviceError(error?.code || 'storage/metadata-write-failed', error, {
+                stage: 'media-document-index',
                 uploadedAssetIds: [...uploadedAssets.keys()],
                 compensationAttempted: uploadedAssets.size,
                 compensationFailures: compensation.filter(({ status }) => status === 'rejected').length

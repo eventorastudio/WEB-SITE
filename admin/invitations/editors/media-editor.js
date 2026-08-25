@@ -1,13 +1,13 @@
 import { getAllMediaAssets, getMediaAssetSource, getMediaRoleAvailability } from '../core/media-schema.js?v=phase89-dress-code-media-20260820';
 import { MediaObjectUrlRegistry } from '../core/media-runtime.js?v=phase4-media-20260813';
 import { friendlyMediaError, inspectAndProcessMediaFile } from '../core/media-processor.js?v=phase128-jpeg-validation-20260824';
-import { invitationMediaService } from '../services/invitation-media-service.js?v=phase89-dress-code-media-20260820';
+import { invitationMediaService } from '../services/invitation-media-service.js?v=phase129-jpg-upload-firebase-persistence-20260824';
 
 const ROLE_COPY = Object.freeze({
-    place: Object.freeze({ title: 'Imágenes de lugares', copy: 'Biblioteca reutilizable para sitios y hospedaje. JPEG, PNG o WebP.', accept: 'image/jpeg,image/png,image/webp' }),
-    cover: Object.freeze({ title: 'Portada / hero', copy: 'JPEG, PNG o WebP. Se optimiza localmente y conserva un punto focal por invitación.', accept: 'image/jpeg,image/png,image/webp' }),
-    gallery: Object.freeze({ title: 'Galería', copy: 'Selección múltiple, orden estable, alt y caption. Límite técnico: 20 imágenes.', accept: 'image/jpeg,image/png,image/webp' }),
-    dressCode: Object.freeze({ title: 'Imagen de referencia de vestimenta', copy: 'Outfit o inspiración visual opcional para la sección Dress Code de Aloha.', accept: 'image/jpeg,image/png,image/webp' }),
+    place: Object.freeze({ title: 'Imágenes de lugares', copy: 'Biblioteca reutilizable para sitios y hospedaje. JPEG, PNG o WebP.', accept: '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp' }),
+    cover: Object.freeze({ title: 'Portada / hero', copy: 'JPEG, PNG o WebP. Se optimiza localmente y conserva un punto focal por invitación.', accept: '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp' }),
+    gallery: Object.freeze({ title: 'Galería', copy: 'Selección múltiple, orden estable, alt y caption. Límite técnico: 20 imágenes.', accept: '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp' }),
+    dressCode: Object.freeze({ title: 'Imagen de referencia de vestimenta', copy: 'Outfit o inspiración visual opcional para la sección Dress Code de Aloha.', accept: '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp' }),
     video: Object.freeze({ title: 'Video de bienvenida', copy: 'MP4 o WebM, hasta 80 MiB y 5 minutos. Nunca inicia automáticamente.', accept: 'video/mp4,video/webm' }),
     videoPoster: Object.freeze({ title: 'Poster del video', copy: 'Imagen opcional para presentar el video antes de reproducirlo.', accept: '.jpg,.jpeg,image/jpeg,image/png,image/webp' }),
     music: Object.freeze({ title: 'Música', copy: 'MP3, M4A/AAC u OGG, hasta 20 MiB y 15 minutos. Reproducción manual.', accept: 'audio/mpeg,audio/mp4,audio/aac,audio/ogg' })
@@ -326,6 +326,17 @@ function friendlyPersistenceError(error) {
     return 'No fue posible guardar este recurso. El preview local permanece disponible para reintentar.';
 }
 
+function reportPersistenceDiagnostic(error, asset) {
+    if (!globalThis.__INVITATION_DEBUG__ || !error) return;
+    console.debug('Media persistence error:', {
+        stage: error.stage || error.cause?.stage || 'unknown',
+        code: error.code || error.cause?.code || 'unknown',
+        role: asset?.role || 'unknown',
+        extension: String(asset?.originalName ?? '').split('.').pop()?.toLowerCase() || 'unknown',
+        mime: asset?.mimeType || 'unknown'
+    });
+}
+
 function waitForCloudPreview(asset, timeoutMs = 8000) {
     if (!asset?.downloadUrl) return Promise.resolve(false);
     return new Promise((resolve) => {
@@ -527,6 +538,7 @@ export function initMediaEditor({ container, state, mediaService = invitationMed
                 if (asset) state.updateMediaAsset(assetId, { status: 'error', error: friendlyPersistenceError(error) });
             }
             const role = findAsset(before, [...savingIds][0])?.role ?? 'cover';
+            reportPersistenceDiagnostic(error, findAsset(before, [...savingIds][0]));
             render();
             showMessage(role, friendlyPersistenceError(error));
         } finally {
