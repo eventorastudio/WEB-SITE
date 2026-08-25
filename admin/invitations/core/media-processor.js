@@ -3,7 +3,7 @@ import {
     getMediaRole,
     sniffMediaMimeType,
     validateMediaSignature
-} from './media-schema.js?v=phase139-media-index-atomic-rule-fix-20250825';
+} from './media-schema.js?v=phase139-isolate-firestore-batch-denial-20250825';
 
 function mediaError(code, detail = '') {
     const error = new Error(code);

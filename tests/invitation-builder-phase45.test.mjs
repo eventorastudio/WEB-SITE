@@ -13,6 +13,7 @@ import {
     assertOwnedInvitationMediaPath,
     buildInvitationMediaStoragePath,
     createInvitationMediaIndex,
+    diagnoseMediaDocumentContract,
     hydrateInvitationMedia,
     parseInvitationMediaStoragePath,
     serializeInvitationMediaDocument
@@ -627,4 +628,23 @@ test('Firebase CLI queda configurado sin comandos de deploy ni estado desplegado
     assert.equal(JSON.parse(firebaseConfig).storage.rules, 'storage.rules');
     assert.equal(JSON.parse(firebaseConfig).firestore.rules, 'firestore.rules');
     assert.doesNotMatch(packageJson, /firebase deploy/);
+});
+
+test('diagnostico de contrato media reproduce las 17 condiciones sin exponer valores', () => {
+    const serialized = serializeInvitationMediaDocument(asset('cover', 'MED-LOCAL-001'), EVENT_ID);
+    const document = {
+        ...serialized,
+        createdAt: { __serverTimestamp: true },
+        updatedAt: { __serverTimestamp: true },
+        updatedBy: 'UID-ADMIN-1'
+    };
+    const diagnostic = diagnoseMediaDocumentContract(document, EVENT_ID, 'UID-ADMIN-1');
+    assert.equal(diagnostic.keysCount, 17);
+    assert.equal(diagnostic.exact17Keys, true);
+    assert.equal(diagnostic.validMediaId, true);
+    assert.equal(diagnostic.objectVersionRegex, true);
+    assert.equal(diagnostic.storagePathRegex, true);
+    assert.equal(diagnostic.mimePathMatch, true);
+    assert.equal(diagnostic.roleTypeValid, true);
+    assert.equal(diagnostic.updatedByMatchesUid, true);
 });

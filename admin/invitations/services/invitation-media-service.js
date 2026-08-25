@@ -5,7 +5,7 @@ import {
     createEmptyInvitationMedia,
     createMediaAsset,
     getAllMediaAssets
-} from '../core/media-schema.js?v=phase139-media-index-atomic-rule-fix-20250825';
+} from '../core/media-schema.js?v=phase139-isolate-firestore-batch-denial-20250825';
 
 const SAFE_EVENT_ID = /^[A-Za-z0-9_-]{1,150}$/;
 const SAFE_MEDIA_ID = /^MED-LOCAL-\d{3,}$/;
@@ -213,6 +213,76 @@ export function serializeInvitationMediaDocument(asset, eventId) {
     };
     if (asset.createdAt !== undefined) document.createdAt = asset.createdAt;
     return document;
+}
+
+export function diagnoseMediaDocumentContract(document, eventId, uid = '') {
+    const keys = Object.keys(document ?? {}).sort();
+    const expected = ['alt', 'caption', 'createdAt', 'duration', 'focalPoint', 'height', 'id', 'kind', 'mimeType', 'objectVersion', 'originalName', 'role', 'size', 'storagePath', 'updatedAt', 'updatedBy', 'width'];
+    const path = String(document?.storagePath ?? '');
+    const role = String(document?.role ?? '');
+    const mimeType = String(document?.mimeType ?? '');
+    const objectVersion = String(document?.objectVersion ?? '');
+    const mediaId = String(document?.id ?? '');
+    const extension = MIME_EXTENSIONS[mimeType] ?? '';
+    let pathMatches = false;
+    try {
+        pathMatches = path === buildInvitationMediaStoragePath({ eventId, assetId: mediaId, role, mimeType, objectVersion });
+    } catch {
+        pathMatches = false;
+    }
+    const timestampMode = (value) => value?.__serverTimestamp ? 'serverTimestamp' : value === undefined ? 'missing' : typeof value;
+    return {
+        keys,
+        keysCount: keys.length,
+        id: mediaId,
+        role,
+        kind: document?.kind ?? null,
+        originalNameLength: String(document?.originalName ?? '').length,
+        mimeType,
+        size: document?.size ?? null,
+        width: document?.width ?? null,
+        height: document?.height ?? null,
+        duration: document?.duration ?? null,
+        altType: typeof document?.alt,
+        captionType: typeof document?.caption,
+        storagePath: path,
+        objectVersion,
+        objectVersionLength: objectVersion.length,
+        focalPoint: document?.focalPoint ? { keys: Object.keys(document.focalPoint), xType: typeof document.focalPoint.x, yType: typeof document.focalPoint.y } : null,
+        createdAtMode: timestampMode(document?.createdAt),
+        updatedAtMode: timestampMode(document?.updatedAt),
+        updatedByMatchesUid: Boolean(uid) && document?.updatedBy === uid,
+        validMediaId: SAFE_MEDIA_ID.test(mediaId),
+        exact17Keys: keys.length === 17 && expected.every((key, index) => key === keys[index]),
+        validRole: SAFE_ROLE.test(role),
+        originalNameValid: typeof document?.originalName === 'string' && document.originalName.length <= 180,
+        sizeValid: Number.isFinite(document?.size) && document.size > 0,
+        dimensionsValid: Number.isFinite(document?.width) && document.width >= 0 && Number.isFinite(document?.height) && document.height >= 0,
+        durationValid: Number.isFinite(document?.duration) && document.duration >= 0,
+        objectVersionRegex: SAFE_OBJECT_VERSION.test(objectVersion),
+        storagePathRegex: pathMatches,
+        focalPointValid: Boolean(document?.focalPoint && Object.keys(document.focalPoint).length === 2
+            && Number.isFinite(document.focalPoint.x) && document.focalPoint.x >= 0 && document.focalPoint.x <= 100
+            && Number.isFinite(document.focalPoint.y) && document.focalPoint.y >= 0 && document.focalPoint.y <= 100),
+        mimePathMatch: Boolean(extension && path.endsWith(`.${extension}`)),
+        roleTypeValid: Boolean(
+            ['cover', 'gallery', 'place', 'dressCode', 'videoPoster'].includes(role)
+                ? role && document?.kind === 'image' && Number(document?.size) <= 20 * 1024 * 1024
+                    && Number(document?.width) > 0 && Number(document?.height) > 0 && Number(document?.duration) === 0
+                    && ['image/jpeg', 'image/png', 'image/webp'].includes(mimeType)
+                : role === 'video'
+                    ? document?.kind === 'video' && Number(document?.size) <= 80 * 1024 * 1024
+                        && Number(document?.width) > 0 && Number(document?.height) > 0
+                        && Number(document?.duration) > 0 && Number(document?.duration) <= 5 * 60
+                        && ['video/mp4', 'video/webm'].includes(mimeType)
+                    : role === 'music'
+                        ? document?.kind === 'audio' && Number(document?.size) <= 20 * 1024 * 1024
+                            && Number(document?.width) === 0 && Number(document?.height) === 0
+                            && Number(document?.duration) > 0 && Number(document?.duration) <= 15 * 60
+                            && ['audio/mpeg', 'audio/mp4', 'audio/aac', 'audio/ogg'].includes(mimeType)
+                        : false
+        )
+    };
 }
 
 function deserializeInvitationMediaDocument(document, eventId, expectedRole) {
@@ -592,6 +662,13 @@ export class InvitationMediaService {
             }
         }
         const deleteIds = [...new Set(removedMediaIds)].filter((mediaId) => previousDocuments.has(mediaId));
+        if (globalThis.__INVITATION_DEBUG__) {
+            console.debug('[Invitation media document payloads]', upserts.map(({ id, isCreate, data }) => ({
+                path: `eventos/${eventId}/invitacion/config/media/${id}`,
+                operation: isCreate ? 'create' : 'update',
+                contract: diagnoseMediaDocumentContract(data, eventId, uid)
+            })));
+        }
         await gateway.commitMediaState(eventId, {
             config: { schemaVersion, mediaIndex, updatedAt: timestamp, updatedBy: uid },
             upserts,
@@ -659,12 +736,6 @@ export class InvitationMediaService {
                 const auth = await gateway.getAuthDiagnostic?.();
                 console.debug('[Invitation media batch]', {
                     auth,
-                    mediaDocuments: persistedMedia ? getAllMediaAssets(nextMedia).map(({ id, role, mimeType, storagePath }) => ({
-                        path: `config/media/${id}`,
-                        operation: uploadedAssets.has(id) ? 'create-or-replace' : 'unchanged',
-                        keys: Object.keys(serializeInvitationMediaDocument(findAsset(nextMedia, id), eventId)),
-                        role, mimeType, storagePathPresent: Boolean(storagePath)
-                    })) : [],
                     config: {
                         path: `eventos/${eventId}/invitacion/config`,
                         operation: 'batch.set',
@@ -688,7 +759,7 @@ export class InvitationMediaService {
         } catch (error) {
             const compensation = await Promise.allSettled([...uploadedAssets.values()].map((asset) => gatewayDeleteOwned(this, eventId, asset.storagePath)));
             throw serviceError(error?.code || 'storage/metadata-write-failed', error, {
-                stage: 'media-index-update',
+                stage: 'firestore-batch-commit',
                 uploadedAssetIds: [...uploadedAssets.keys()],
                 compensationAttempted: uploadedAssets.size,
                 compensationFailures: compensation.filter(({ status }) => status === 'rejected').length

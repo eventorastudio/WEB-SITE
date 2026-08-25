@@ -28,7 +28,7 @@ import {
     createMediaAsset,
     getMediaRole,
     getMediaRoleAvailability
-} from './media-schema.js?v=phase139-media-index-atomic-rule-fix-20250825';
+} from './media-schema.js?v=phase139-isolate-firestore-batch-denial-20250825';
 import {
     RSVP_EDITABLE_FIELD_DEFINITIONS,
     RSVP_GUEST_POLICY_PATH,
