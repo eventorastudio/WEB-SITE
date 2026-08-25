@@ -15,6 +15,7 @@ import { generateQrCanvas } from '../../modules/qr/qr-renderer.js?v=phase88-qr2-
 import { getThemeById } from '../core/theme-registry.js?v=phase86-appearance-20260820';
 import { normalizeAppearance } from '../core/appearance-schema.js?v=phase86-appearance-20260820';
 import { entityHasContent } from '../core/logistics-schema.js?v=phase3-logistics-20260813';
+import { buildIcsEvent, downloadIcsEvent } from '../core/calendar-ics.js?v=phase143-universal-ics-calendar-action-20260825';
 
 const parentOrigin = window.location.origin;
 const previewHost = window.parent !== window ? window.parent : window.opener;
@@ -28,6 +29,7 @@ let activeThemeLinks = [];
 let latestRequestId = 0;
 let currentThemeId = null;
 let countdownTimer = null;
+let activePayload = null;
 
 if (publicRuntime) {
     void startPublicInvitation();
@@ -287,6 +289,7 @@ async function renderCustom(payload, requestId) {
 }
 
 function applyPayload(payload) {
+    activePayload = payload;
     syncOpeningData(payload);
     applyAppearance(payload);
     if (payload.theme.id === 'custom') {
@@ -1013,6 +1016,24 @@ function interceptNavigation(event) {
     const action = event.target.closest?.('[data-builder-action],[data-demo-action]');
     if (!anchor && !action) return;
     if (action?.dataset.publicInvitationRsvp === 'true') return;
+    if (action?.dataset.builderAction === 'calendar') {
+        event.preventDefault();
+        const draft = activePayload?.draft ?? {};
+        const content = draft.content ?? {};
+        const location = draft.locations?.[0] ?? {};
+        const locationText = [location.venueName, location.address, location.city, location.state].filter(Boolean).join(', ');
+        const title = [content.identity?.primaryName, content.identity?.secondaryName].filter(Boolean).join(' & ') || 'Evento';
+        const result = buildIcsEvent({
+            eventId: activePayload?.eventId || draft.eventId,
+            title,
+            date: content.schedule?.date,
+            time: content.schedule?.time,
+            location: locationText,
+            description: content.welcome?.message || content.identity?.eventType || '',
+        });
+        if (!downloadIcsEvent(result)) showBuilderActionNotice('calendar');
+        return;
+    }
     event.preventDefault();
     const href = anchor?.getAttribute('href') || '';
     if (!action && href.startsWith('#') && href.length > 1) {

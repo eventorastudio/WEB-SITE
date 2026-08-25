@@ -1,7 +1,7 @@
 import { entityHasContent } from '../core/logistics-schema.js?v=phase142-aloha-prestige-actions-icon-picker-20260825';
 import { createLocationIcon, LOCATION_ICON_OPTIONS } from '../core/location-icon-registry.js?v=phase113-aloha-location-cards-20260823';
 import { GIFT_LETTER_OPTIONS, inferGiftLetterKey } from '../core/gift-letter-registry.js?v=phase141-aloha-gift-letter-picker-20260825';
-import { LINK_ICON_OPTIONS, createLinkIcon, inferLinkIconKey } from '../core/link-icon-registry.js?v=phase142-aloha-prestige-actions-icon-picker-20260825';
+import { LINK_ICON_OPTIONS, createLinkIcon, inferLinkIconKey } from '../core/link-icon-registry.js?v=phase143-universal-ics-calendar-action-20260825';
 
 function element(tag, className, text = '') {
     const node = document.createElement(tag);
@@ -44,6 +44,8 @@ function createControl(definition, item, snapshot, collection) {
             optionsRoot.append(option);
         });
         if (isGift || isLink) control.append(optionsRoot);
+    } else if (definition.type === 'info') {
+        control = element('small', 'entity-field-help', definition.text);
     } else if (definition.type === 'select') {
         control = document.createElement('select');
         (definition.options ?? []).forEach(({ value, label: optionLabel }) => {
@@ -59,7 +61,7 @@ function createControl(definition, item, snapshot, collection) {
         control = document.createElement('input');
         control.type = definition.type ?? 'text';
     }
-    if (definition.type !== 'iconPicker' && definition.type !== 'giftLetterPicker' && definition.type !== 'linkIconPicker') {
+    if (!['iconPicker', 'giftLetterPicker', 'linkIconPicker', 'info'].includes(definition.type)) {
         control.autocomplete = 'off';
         control.dataset.entityField = definition.field;
         if (definition.nested) control.dataset.entityNested = definition.nested;
@@ -313,4 +315,5 @@ export function selectField(field, label, options, extra = {}) { return { field,
 export function iconPickerField(field, label, extra = {}) { return { field, label, type: 'iconPicker', options: LOCATION_ICON_OPTIONS, ...extra }; }
 export function giftLetterPickerField(field, label, extra = {}) { return { field, label, type: 'giftLetterPicker', options: GIFT_LETTER_OPTIONS, ...extra }; }
 export function linkIconPickerField(field, label, extra = {}) { return { field, label, type: 'linkIconPicker', options: LINK_ICON_OPTIONS, ...extra }; }
+export function infoField(text, extra = {}) { return { field: '__info', label: '', type: 'info', text, wide: true, ...extra }; }
 export function textareaField(field, label, options = {}) { return { field, label, type: 'textarea', wide: true, ...options }; }

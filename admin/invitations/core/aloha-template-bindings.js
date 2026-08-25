@@ -2,7 +2,7 @@ import { entityHasContent, getRenderableLocations } from './logistics-schema.js?
 import { buildGoogleCalendarUrl, buildWhatsAppUrl, safeUrlForField } from './safe-url.js?v=phase3-logistics-20260813';
 import { createLocationIcon, defaultLocationIconKeys, normalizeLocationIconKey } from './location-icon-registry.js?v=phase126-accommodation-icons-place-library-20260824';
 import { inferGiftLetterKey, normalizeGiftLetterKey } from './gift-letter-registry.js?v=phase141-aloha-gift-letter-picker-20260825';
-import { createLinkIcon, inferLinkIconKey } from './link-icon-registry.js?v=phase142-aloha-prestige-actions-icon-picker-20260825';
+import { createLinkIcon, inferLinkIconKey } from './link-icon-registry.js?v=phase143-universal-ics-calendar-action-20260825';
 
 const clean = (value) => String(value ?? '').replace(/\s+/g, ' ').trim();
 const source = (asset) => clean(asset?.previewUrl || asset?.downloadUrl);

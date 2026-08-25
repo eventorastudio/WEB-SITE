@@ -1,7 +1,7 @@
 import { getPackageById } from './section-registry.js?v=phase93-package-sections-format-20260821';
 import { normalizeLocationIconKey } from './location-icon-registry.js?v=phase113-aloha-location-cards-20260823';
 import { normalizeGiftLetterKey } from './gift-letter-registry.js?v=phase141-aloha-gift-letter-picker-20260825';
-import { normalizeLinkIconKey } from './link-icon-registry.js?v=phase142-aloha-prestige-actions-icon-picker-20260825';
+import { normalizeLinkIconKey } from './link-icon-registry.js?v=phase143-universal-ics-calendar-action-20260825';
 
 export const LOCATION_TYPES = Object.freeze(['ceremony', 'reception', 'party', 'session', 'accommodation', 'other']);
 export const GIFT_TYPES = Object.freeze(['store', 'transfer', 'cash', 'other']);
