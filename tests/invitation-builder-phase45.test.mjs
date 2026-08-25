@@ -352,6 +352,18 @@ test('reemplazo de media document conserva createdAt exigido por Rules', async (
     assert.deepEqual(operation.data.createdAt, createdAt);
 });
 
+test('builder state conserva auditoría al hidratar media existente', () => {
+    const state = new InvitationBuilderState();
+    state.initialize(EVENT_ID, {});
+    const createdAt = { seconds: 1700000000 };
+    const updatedAt = { seconds: 1700000100 };
+    state.hydrateMedia({ cover: asset('cover', 'MED-LOCAL-001', { createdAt, updatedAt, updatedBy: 'UID-ADMIN-1' }) });
+    const hydrated = state.getSnapshot().draft.media.cover;
+    assert.deepEqual(hydrated.createdAt, createdAt);
+    assert.deepEqual(hydrated.updatedAt, updatedAt);
+    assert.equal(hydrated.updatedBy, 'UID-ADMIN-1');
+});
+
 test('delete retira mediaIndex y media document atómicamente antes de limpiar Storage', async () => {
     const order = [];
     const gateway = createGateway({

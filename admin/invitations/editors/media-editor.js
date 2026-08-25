@@ -1,4 +1,4 @@
-import { getAllMediaAssets, getMediaAssetSource, getMediaRoleAvailability } from '../core/media-schema.js?v=phase89-dress-code-media-20260820';
+import { getAllMediaAssets, getMediaAssetSource, getMediaRoleAvailability } from '../core/media-schema.js?v=phase135-media-persistence-rearchitecture-20260824';
 import { MediaObjectUrlRegistry } from '../core/media-runtime.js?v=phase4-media-20260813';
 import { friendlyMediaError, inspectAndProcessMediaFile } from '../core/media-processor.js?v=phase132-firebase-media-persistence-fix-20260824';
 import { invitationMediaService } from '../services/invitation-media-service.js?v=phase134-firestore-media-permission-root-cause-20260824';

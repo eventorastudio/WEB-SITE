@@ -5,7 +5,7 @@ import {
     createEmptyInvitationMedia,
     createMediaAsset,
     getAllMediaAssets
-} from '../core/media-schema.js?v=phase134-firestore-media-permission-root-cause-20260824';
+} from '../core/media-schema.js?v=phase135-media-persistence-rearchitecture-20260824';
 
 const SAFE_EVENT_ID = /^[A-Za-z0-9_-]{1,150}$/;
 const SAFE_MEDIA_ID = /^MED-LOCAL-\d{3,}$/;

@@ -28,7 +28,7 @@ import {
     createMediaAsset,
     getMediaRole,
     getMediaRoleAvailability
-} from './media-schema.js?v=phase89-dress-code-media-20260820';
+} from './media-schema.js?v=phase135-media-persistence-rearchitecture-20260824';
 import {
     RSVP_EDITABLE_FIELD_DEFINITIONS,
     RSVP_GUEST_POLICY_PATH,
