@@ -32,7 +32,7 @@ test('picker de acciones actualiza únicamente el enlace elegido', () => {
 });
 
 test('Aloha renderiza acciones dinámicas con iconos y none sin hueco', () => {
-    const dom = new JSDOM('<main><section data-prestige-feature="gift-registry"><div></div></section><section class="social-strip"><p>Color</p><strong>#ALOHA</strong></section></main>');
+    const dom = new JSDOM('<main><section data-prestige-feature="gift-registry"><div></div></section><section class="social-strip"><div class="aloha-actions-copy"><p>Color</p><strong>#ALOHA</strong></div></section></main>');
     applyAlohaPhase3Bindings(dom.window.document, { content: { gifts: {} }, gifts: [], links: [
         { id: 'LNK-LOCAL-001', type: 'calendar', label: 'Fecha' },
         { id: 'LNK-LOCAL-002', type: 'instagram', label: 'Fotos', url: 'https://instagram.com/example', iconKey: 'none' },
@@ -45,5 +45,13 @@ test('Aloha renderiza acciones dinámicas con iconos y none sin hueco', () => {
     assert.equal(social.querySelectorAll('.aloha-action-svg').length, 2);
     assert.equal(social.querySelectorAll('.aloha-action-label')[1].textContent, 'Fotos');
     assert.ok(social.querySelector('.aloha-action-card.is-no-icon'));
+    assert.deepEqual([...social.children].map((child) => child.className), [
+        'aloha-actions-heading',
+        'aloha-actions-grid',
+        'aloha-actions-copy'
+    ]);
+    assert.equal(social.querySelectorAll('.aloha-actions-copy').length, 1);
+    assert.equal(social.querySelector('[data-builder-action="calendar"]')?.getAttribute('data-builder-action'), 'calendar');
+    assert.equal(social.querySelector('a[href="https://instagram.com/example"]')?.getAttribute('href'), 'https://instagram.com/example');
     dom.window.close();
 });

@@ -453,7 +453,13 @@ function renderLinks(documentRoot, draft) {
     heading.append(node(documentRoot, 'span', 'aloha-actions-eyebrow', 'ALOHA LINKS'), node(documentRoot, 'h2', '', 'Enlaces y acciones'));
     const grid = node(documentRoot, 'div', 'aloha-actions-grid');
     actions.forEach((actionNode) => grid.append(actionNode));
-    social.prepend(grid, heading);
+    const copy = social.querySelector('.aloha-actions-copy');
+    if (copy) {
+        social.insertBefore(heading, copy);
+        social.insertBefore(grid, copy);
+    } else {
+        social.append(heading, grid);
+    }
 }
 
 function linkTypeLabelFallback(type) {
