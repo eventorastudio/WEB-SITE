@@ -647,6 +647,113 @@ footer b, footer span { display: block; letter-spacing: .15em; } footer span { m
   .tropical-film .film-poster::after { animation: none; }
 }
 
+/* Countdown Aloha / Prestige: tratamiento ceremonial aislado en .countdown-band. */
+@media (min-width: 1024px) {
+  .countdown-band {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    min-height: 30rem;
+    grid-template-columns: minmax(15rem, .72fr) minmax(0, 1.28fr);
+    gap: clamp(3rem, 7vw, 8rem);
+    padding-inline: max(clamp(24px, 7vw, 110px), calc((100vw - 1240px) / 2));
+    background:
+      radial-gradient(circle at 88% 18%, rgb(246 198 74 / .2) 0 8rem, transparent 8.1rem),
+      linear-gradient(124deg, #075b69 0%, #087a80 52%, #0a6a60 100%);
+  }
+  .countdown-band::before {
+    position: absolute;
+    z-index: -2;
+    top: -17rem;
+    right: 19%;
+    width: 31rem;
+    height: 31rem;
+    content: '';
+    border: 1px solid rgb(255 246 229 / .26);
+    border-radius: 48% 52% 64% 36%;
+    box-shadow: 0 0 0 1.3rem rgb(246 198 74 / .08), 0 0 0 3rem rgb(255 137 173 / .05);
+    transform: rotate(21deg);
+    pointer-events: none;
+    animation: alohaCountdownHalo 14s ease-in-out infinite;
+  }
+  .countdown-band::after {
+    position: absolute;
+    z-index: -1;
+    right: -7rem;
+    bottom: -10rem;
+    width: 38rem;
+    height: 18rem;
+    content: '';
+    border-top: 1px solid rgb(255 246 229 / .22);
+    border-radius: 50%;
+    box-shadow: 0 -2rem 0 -1rem rgb(28 191 210 / .13), 0 -4rem 0 -2rem rgb(244 91 105 / .1);
+    transform: rotate(-8deg);
+    pointer-events: none;
+  }
+  .countdown-band > div:first-child {
+    max-width: 21rem;
+    padding-block: 1rem;
+  }
+  .countdown-band > div:first-child::before {
+    display: block;
+    width: 3.4rem;
+    height: 1px;
+    margin-bottom: 1.4rem;
+    content: '';
+    background: var(--sun);
+    box-shadow: 1.15rem 0 0 rgb(244 91 105 / .72);
+  }
+  .countdown-band .section-no {
+    margin-bottom: 1.15rem;
+    color: var(--sun);
+    font-size: .65rem;
+    letter-spacing: .28em;
+  }
+  .countdown-band h2 {
+    max-width: 7ch;
+    color: var(--cream);
+    font-size: clamp(3.4rem, 5.6vw, 6.2rem);
+    line-height: .84;
+    letter-spacing: -.065em;
+  }
+  .countdown {
+    gap: clamp(.9rem, 2vw, 1.6rem);
+    align-items: stretch;
+  }
+  .countdown div {
+    min-height: 10.5rem;
+    padding: 1.5rem .8rem 1.15rem;
+    border: 1px solid rgb(255 246 229 / .78);
+    border-radius: 1.55rem .45rem 1.55rem .45rem;
+    background: linear-gradient(155deg, rgb(255 250 239 / .99), rgb(255 246 229 / .88));
+    box-shadow: .6rem .7rem 0 rgb(244 91 105 / .3), 0 1.6rem 2.8rem rgb(4 63 75 / .22), inset 0 1px 0 rgb(255 255 255 / .7);
+  }
+  .countdown div::after {
+    position: absolute;
+    right: 1rem;
+    bottom: .8rem;
+    width: 1.8rem;
+    height: .2rem;
+    content: '';
+    border-radius: 999px;
+    background: var(--sun);
+    opacity: .8;
+  }
+  .countdown div:nth-child(2)::after { background: var(--coral); }
+  .countdown div:nth-child(3)::after { background: var(--aqua); }
+  .countdown div:nth-child(4)::after { background: var(--leaf); }
+  .countdown strong { font-size: clamp(2.6rem, 5vw, 5rem); }
+  .countdown span { letter-spacing: .2em; }
+  @keyframes alohaCountdownHalo {
+    0%, 100% { transform: rotate(21deg) translateY(0); opacity: .85; }
+    50% { transform: rotate(23deg) translateY(-6px); opacity: .65; }
+  }
+}
+
+@media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
+  .countdown-band::before { animation: none; }
+}
+
 @media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
   .welcome::after { animation: none; }
 }
