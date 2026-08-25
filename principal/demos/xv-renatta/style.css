@@ -442,6 +442,108 @@ footer b, footer span { display: block; letter-spacing: .15em; } footer span { m
   .gift-registry-card { animation: none; transition: none; }
 }
 
+@media (min-width: 1024px) {
+  /* Historia / bienvenida: ornamento editorial Aloha, aislado en .welcome. */
+  .welcome {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 84% 28%, rgb(246 198 74 / .09) 0 9rem, transparent 9.1rem),
+      radial-gradient(circle at 11% 88%, rgb(28 191 210 / .045) 0 .16rem, transparent .2rem),
+      radial-gradient(circle at 16% 76%, rgb(28 191 210 / .04) 0 .12rem, transparent .17rem),
+      #fffaf0;
+  }
+  .welcome::before {
+    position: absolute;
+    z-index: -1;
+    top: 4%;
+    right: -2%;
+    width: 43%;
+    height: 92%;
+    content: '';
+    pointer-events: none;
+    opacity: .78;
+    background:
+      radial-gradient(ellipse at 68% 32%, transparent 0 7.8rem, rgb(8 91 105 / .2) 7.9rem 8rem, transparent 8.1rem),
+      radial-gradient(ellipse at 78% 58%, rgb(8 122 80 / .13) 0 20%, transparent 20.5%),
+      linear-gradient(124deg, transparent 0 42%, rgb(8 91 105 / .17) 42.2% 42.6%, transparent 42.8%),
+      linear-gradient(154deg, transparent 0 54%, rgb(244 91 105 / .11) 54.2% 54.7%, transparent 55%),
+      radial-gradient(ellipse at 84% 48%, transparent 0 10.2rem, rgb(8 122 80 / .12) 10.3rem 10.42rem, transparent 10.5rem);
+    border-radius: 48% 0 0 52%;
+    transform: rotate(-4deg);
+  }
+  .welcome::after {
+    position: absolute;
+    z-index: 0;
+    top: 14%;
+    right: 15%;
+    width: clamp(6rem, 9vw, 9.4rem);
+    aspect-ratio: 1;
+    content: '';
+    pointer-events: none;
+    opacity: .82;
+    background:
+      radial-gradient(circle at 50% 50%, var(--sun) 0 10%, transparent 11%),
+      radial-gradient(ellipse at 50% 10%, rgb(244 91 105 / .72) 0 22%, transparent 23%),
+      radial-gradient(ellipse at 88% 38%, rgb(244 91 105 / .64) 0 22%, transparent 23%),
+      radial-gradient(ellipse at 74% 83%, rgb(244 91 105 / .62) 0 22%, transparent 23%),
+      radial-gradient(ellipse at 26% 83%, rgb(244 91 105 / .62) 0 22%, transparent 23%),
+      radial-gradient(ellipse at 12% 38%, rgb(244 91 105 / .64) 0 22%, transparent 23%);
+    filter: drop-shadow(0 .8rem 1.2rem rgb(8 59 75 / .1));
+    animation: alohaHistoryFlower 11s ease-in-out infinite;
+  }
+  .welcome > * { position: relative; z-index: 1; }
+  .welcome > .section-no { display: inline-flex; align-items: center; gap: .7rem; }
+  .welcome > .section-no::before {
+    width: 2.8rem;
+    height: 1px;
+    content: '';
+    background: var(--coral);
+    box-shadow: 1.1rem 0 0 rgb(246 198 74 / .72);
+  }
+  .welcome > .section-no::after {
+    width: .42rem;
+    height: .42rem;
+    content: '';
+    border: 1px solid var(--coral);
+    transform: rotate(45deg);
+  }
+  .welcome h2 { position: relative; }
+  .welcome h2::after {
+    position: absolute;
+    right: -2.6rem;
+    bottom: .2rem;
+    width: 2.6rem;
+    height: 2.6rem;
+    content: '';
+    opacity: .72;
+    background: var(--coral);
+    clip-path: polygon(50% 0, 61% 35%, 100% 21%, 70% 50%, 100% 79%, 61% 65%, 50% 100%, 39% 65%, 0 79%, 30% 50%, 0 21%, 39% 35%);
+    transform: rotate(12deg);
+  }
+  .welcome > p:last-child { position: relative; }
+  .welcome > p:last-child::after {
+    position: absolute;
+    bottom: -3.2rem;
+    left: -1.2rem;
+    width: 7rem;
+    height: 3rem;
+    content: '';
+    border-top: 1px solid rgb(8 91 105 / .25);
+    border-radius: 50%;
+    transform: rotate(-12deg);
+  }
+  @keyframes alohaHistoryFlower {
+    0%, 100% { transform: rotate(0deg) translateY(0); }
+    50% { transform: rotate(2deg) translateY(-5px); }
+  }
+}
+
+@media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
+  .welcome::after { animation: none; }
+}
+
 /* Aloha / Prestige: acciones públicas, aisladas de las demás secciones. */
 .social-strip {
   isolation: isolate;
