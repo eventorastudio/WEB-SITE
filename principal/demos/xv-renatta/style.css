@@ -947,6 +947,257 @@ footer b, footer span { display: block; letter-spacing: .15em; } footer span { m
   .countdown-band::before { animation: none; }
 }
 
+/* Gallery editorial layout: visual-only, scoped to the postcard gallery. */
+.postcards {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  grid-template-columns: minmax(0, 1.42fr) minmax(0, .92fr);
+  grid-template-rows: repeat(2, minmax(15rem, 1fr));
+  gap: clamp(14px, 1.8vw, 24px);
+  min-height: 42rem;
+  padding: clamp(64px, 8vw, 112px) max(24px, calc((100vw - 1240px) / 2));
+  background:
+    radial-gradient(circle at 8% 18%, rgb(246 198 74 / .12), transparent 28%),
+    radial-gradient(circle at 92% 86%, rgb(244 91 105 / .14), transparent 30%),
+    linear-gradient(145deg, #043f4b 0%, #075b60 56%, #087a50 100%);
+}
+
+.postcards::before,
+.postcards::after {
+  position: absolute;
+  z-index: -1;
+  display: block;
+  pointer-events: none;
+  content: "";
+}
+
+.postcards::before {
+  top: -5rem;
+  left: -4rem;
+  width: 25rem;
+  height: 25rem;
+  border-radius: 58% 42% 60% 40%;
+  background:
+    radial-gradient(ellipse at 50% 8%, rgb(255 246 229 / .16) 0 12%, transparent 13%),
+    radial-gradient(ellipse at 88% 34%, rgb(255 246 229 / .12) 0 12%, transparent 13%),
+    radial-gradient(ellipse at 75% 82%, rgb(246 198 74 / .13) 0 14%, transparent 15%),
+    radial-gradient(ellipse at 22% 82%, rgb(244 91 105 / .12) 0 14%, transparent 15%),
+    radial-gradient(circle at 50% 50%, rgb(255 246 229 / .14) 0 9%, transparent 10%);
+  opacity: .72;
+  transform: rotate(-18deg);
+}
+
+.postcards::after {
+  right: -6rem;
+  bottom: -9rem;
+  width: 30rem;
+  height: 20rem;
+  border: 1px solid rgb(255 246 229 / .22);
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 22% 28%, rgb(8 122 80 / .24) 0 10%, transparent 11%),
+    radial-gradient(ellipse at 35% 18%, rgb(8 122 80 / .18) 0 9%, transparent 10%),
+    radial-gradient(ellipse at 78% 66%, rgb(255 246 229 / .12) 0 8%, transparent 9%);
+  box-shadow: 0 -2.5rem 0 -1.2rem rgb(246 198 74 / .12), 0 -5rem 0 -2.4rem rgb(244 91 105 / .1);
+  opacity: .72;
+  transform: rotate(-12deg);
+}
+
+.postcards .postcard-card {
+  position: relative;
+  z-index: 0;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: clamp(18px, 2vw, 28px);
+  overflow: hidden;
+  border: 6px solid var(--cream);
+  border-radius: 1.25rem;
+  background: linear-gradient(145deg, rgb(4 63 75 / .72), rgb(4 63 75 / .28));
+  box-shadow: 0 1.25rem 2.8rem rgb(1 36 45 / .28), 0 0 0 1px rgb(255 246 229 / .12);
+  transform: none;
+}
+
+.postcards .postcard-card:first-child {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  min-height: 35rem;
+  border-width: 8px;
+}
+
+.postcards .postcard-card:nth-child(2) {
+  grid-column: 2;
+  grid-row: 1;
+  min-height: 0;
+}
+
+.postcards .postcard-card:nth-child(3) {
+  grid-column: 2;
+  grid-row: 2;
+  min-height: 0;
+}
+
+.postcards .postcard-card::before {
+  position: absolute;
+  top: 1rem;
+  right: 1.2rem;
+  width: 3.8rem;
+  height: 3.8rem;
+  border-radius: 50%;
+  pointer-events: none;
+  content: "";
+  opacity: .3;
+  background:
+    radial-gradient(ellipse at 50% 8%, rgb(255 246 229 / .78) 0 17%, transparent 18%),
+    radial-gradient(ellipse at 90% 37%, rgb(244 91 105 / .62) 0 17%, transparent 18%),
+    radial-gradient(ellipse at 73% 84%, rgb(246 198 74 / .58) 0 17%, transparent 18%),
+    radial-gradient(ellipse at 27% 84%, rgb(244 91 105 / .58) 0 17%, transparent 18%),
+    radial-gradient(ellipse at 10% 37%, rgb(255 246 229 / .62) 0 17%, transparent 18%),
+    radial-gradient(circle at 50% 50%, rgb(246 198 74 / .9) 0 10%, transparent 11%);
+}
+
+.postcards .postcard-card::after {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  width: 4.5rem;
+  height: 4.5rem;
+  border: 1px solid rgb(255 246 229 / .28);
+  border-radius: 50%;
+  pointer-events: none;
+  content: "";
+  opacity: .48;
+}
+
+.postcards .postcard-card > .demo-photo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  object-fit: cover;
+  object-position: var(--photo-position, 50% 50%);
+}
+
+.postcards .postcard-card > :not(.demo-photo) {
+  position: relative;
+  z-index: 2;
+}
+
+@media (hover: hover) and (min-width: 731px) {
+  .postcards .postcard-card {
+    transition: transform .35s ease, box-shadow .35s ease;
+  }
+
+  .postcards .postcard-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 1.6rem 3.2rem rgb(1 36 45 / .34), 0 0 0 1px rgb(255 246 229 / .2);
+  }
+}
+
+@media (min-width: 731px) and (max-width: 1023px) {
+  .postcards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: minmax(26rem, 1fr) minmax(17rem, 1fr);
+    min-height: 0;
+    padding-inline: clamp(20px, 5vw, 48px);
+  }
+
+  .postcards .postcard-card:first-child {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    min-height: 26rem;
+  }
+
+  .postcards .postcard-card:nth-child(2),
+  .postcards .postcard-card:nth-child(3) {
+    grid-column: auto;
+    grid-row: 2;
+    min-height: 17rem;
+  }
+}
+
+@media (min-width: 731px) {
+  /* Keep sparse galleries intentional without changing the render order. */
+  .postcards .postcard-card:only-child {
+    grid-column: 1 / -1;
+    grid-row: 1 / span 2;
+    width: min(100%, 42rem);
+    min-height: 35rem;
+    margin-inline: auto;
+  }
+
+  .postcards .postcard-card:first-child:nth-last-child(2) {
+    grid-column: 1;
+    grid-row: 1;
+    min-height: 35rem;
+  }
+
+  .postcards .postcard-card:nth-child(2):last-child {
+    grid-column: 2;
+    grid-row: 1;
+    min-height: 35rem;
+  }
+
+  .postcards .postcard-card:nth-child(n + 4) {
+    grid-column: auto;
+    grid-row: auto;
+    min-height: 17rem;
+  }
+}
+
+@media (max-width: 730px) {
+  .postcards {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    min-height: 0;
+    padding: 80px 18px;
+  }
+
+  .postcards .postcard-card:first-child,
+  .postcards .postcard-card:nth-child(2),
+  .postcards .postcard-card:nth-child(3) {
+    grid-column: auto;
+    grid-row: auto;
+    min-height: 340px;
+    transform: none;
+  }
+
+  .postcards .postcard-card:only-child,
+  .postcards .postcard-card:first-child:nth-last-child(2),
+  .postcards .postcard-card:nth-child(2):last-child,
+  .postcards .postcard-card:nth-child(n + 4) {
+    grid-column: auto;
+    grid-row: auto;
+    width: auto;
+    min-height: 340px;
+    margin-inline: 0;
+  }
+
+  .postcards::before,
+  .postcards::after {
+    opacity: .34;
+  }
+
+  .postcards .postcard-card > .demo-photo {
+    object-fit: cover;
+  }
+
+  .postcards .postcard-card::after {
+    width: 3rem;
+    height: 3rem;
+    opacity: .3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .postcards .postcard-card { transition: none; }
+}
+
 /* Countdown: refuerzo visual de la columna izquierda, sin alterar el contador. */
 @media (min-width: 1024px) {
   .countdown-band {
