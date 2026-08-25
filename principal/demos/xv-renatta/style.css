@@ -947,6 +947,78 @@ footer b, footer span { display: block; letter-spacing: .15em; } footer span { m
   .countdown-band::before { animation: none; }
 }
 
+/* Gallery heading and compact section finish; scoped to Aloha Gallery only. */
+.gallery-section {
+  background: var(--deep);
+}
+
+.gallery-heading {
+  width: min(100%, 1240px);
+  margin-inline: auto;
+  padding: clamp(70px, 8vw, 100px) max(24px, calc((100vw - 1240px) / 2)) 0;
+  color: var(--cream);
+}
+
+.gallery-eyebrow {
+  display: block;
+  color: var(--sun);
+  font-size: .64rem;
+  font-weight: 800;
+  letter-spacing: .3em;
+  line-height: 1;
+}
+
+.gallery-heading h2 {
+  margin: 1rem 0 1.2rem;
+  color: var(--cream);
+  font: 500 clamp(3.5rem, 6vw, 6.5rem)/.9 Georgia, serif;
+  letter-spacing: -.045em;
+}
+
+.gallery-heading-ornament {
+  position: relative;
+  display: block;
+  width: 5rem;
+  height: 1px;
+  background: var(--sun);
+  box-shadow: 1.2rem 0 0 rgb(244 91 105 / .72);
+}
+
+.gallery-heading-ornament::after {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: .35rem;
+  height: .35rem;
+  border-radius: 50%;
+  background: var(--coral);
+  content: "";
+  pointer-events: none;
+  transform: translate(-.15rem, -50%);
+}
+
+.gallery-section .postcards {
+  min-height: 0;
+  padding-top: clamp(30px, 4vw, 50px);
+  padding-bottom: clamp(64px, 7vw, 96px);
+}
+
+@media (max-width: 730px) {
+  .gallery-heading {
+    padding: 60px 18px 0;
+  }
+
+  .gallery-heading h2 {
+    margin-block: .85rem 1rem;
+    font-size: clamp(3rem, 15vw, 4.5rem);
+  }
+
+  .gallery-section .postcards {
+    padding-top: 28px;
+    padding-bottom: 56px;
+  }
+}
+
 /* Actions order: text hierarchy first, links second. Scoped to Aloha only. */
 .social-strip {
   display: block;
