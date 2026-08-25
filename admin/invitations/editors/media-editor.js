@@ -1,7 +1,7 @@
 import { getAllMediaAssets, getMediaAssetSource, getMediaRoleAvailability } from '../core/media-schema.js?v=phase89-dress-code-media-20260820';
 import { MediaObjectUrlRegistry } from '../core/media-runtime.js?v=phase4-media-20260813';
-import { friendlyMediaError, inspectAndProcessMediaFile } from '../core/media-processor.js?v=phase130-media-runtime-diagnostics-jpg-fix-20260824';
-import { invitationMediaService } from '../services/invitation-media-service.js?v=phase130-media-runtime-diagnostics-jpg-fix-20260824';
+import { friendlyMediaError, inspectAndProcessMediaFile } from '../core/media-processor.js?v=phase132-firebase-media-persistence-fix-20260824';
+import { invitationMediaService } from '../services/invitation-media-service.js?v=phase132-firebase-media-persistence-fix-20260824';
 
 const ROLE_COPY = Object.freeze({
     place: Object.freeze({ title: 'Imágenes de lugares', copy: 'Biblioteca reutilizable para sitios y hospedaje. JPEG, PNG o WebP.', accept: '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp' }),
@@ -326,15 +326,28 @@ function friendlyPersistenceError(error) {
     return 'No fue posible guardar este recurso. El preview local permanece disponible para reintentar.';
 }
 
-function reportPersistenceDiagnostic(error, asset) {
-    if (!globalThis.__INVITATION_DEBUG__ || !error) return;
-    console.debug('Media persistence error:', {
-        stage: error.stage || error.cause?.stage || 'unknown',
-        code: error.code || error.cause?.code || 'unknown',
+function persistenceDiagnostic(error, asset) {
+    return {
+        stage: error?.stage || error?.cause?.stage || 'unknown',
+        code: error?.firebaseCode || error?.cause?.code || error?.code || 'unknown',
         role: asset?.role || 'unknown',
         extension: String(asset?.originalName ?? '').split('.').pop()?.toLowerCase() || 'unknown',
         mime: asset?.mimeType || 'unknown'
-    });
+    };
+}
+
+function reportPersistenceDiagnostic(error, asset) {
+    if (!error) return null;
+    const detail = persistenceDiagnostic(error, asset);
+    console.error('[Invitation media persistence]', detail);
+    return detail;
+}
+
+function persistenceMessage(error, asset) {
+    const message = friendlyPersistenceError(error);
+    if (!globalThis.__INVITATION_DEBUG__) return message;
+    const detail = persistenceDiagnostic(error, asset);
+    return `${message} (${detail.stage} · ${detail.code})`;
 }
 
 function waitForCloudPreview(asset, timeoutMs = 8000) {
@@ -507,10 +520,11 @@ export function initMediaEditor({ container, state, mediaService = invitationMed
                     });
                 }
             }
-            for (const { assetId, code } of result.uploadErrors) {
+            for (const { assetId, code, stage, firebaseCode } of result.uploadErrors) {
                 const local = findAsset(before, assetId);
-                reportPersistenceDiagnostic({ code, stage: 'storage-upload' }, local);
-                if (local) runtimeMedia = replaceAsset(runtimeMedia, { ...local, status: 'error', error: friendlyPersistenceError({ code }) });
+                const error = { code, firebaseCode, stage: stage || result.persistenceStage || 'storage-upload' };
+                reportPersistenceDiagnostic(error, local);
+                if (local) runtimeMedia = replaceAsset(runtimeMedia, { ...local, status: 'error', error: persistenceMessage(error, local) });
             }
             for (const asset of getAllMediaAssets(before)) {
                 if (!asset.storagePath && !result.uploadedAssetIds.includes(asset.id) && !result.uploadErrors.some(({ assetId }) => assetId === asset.id)) {
@@ -530,18 +544,19 @@ export function initMediaEditor({ container, state, mediaService = invitationMed
                 const role = findAsset(before, result.uploadedAssetIds[0])?.role ?? 'cover';
                 showMessage(role, 'La nueva versión quedó guardada, pero un archivo reemplazado requiere limpieza futura.', 'warning');
             }
-            for (const { assetId, code } of result.uploadErrors) {
-                showMessage(findAsset(before, assetId)?.role ?? 'cover', friendlyPersistenceError({ code }));
+            for (const { assetId, code, stage, firebaseCode } of result.uploadErrors) {
+                const local = findAsset(before, assetId);
+                showMessage(local?.role ?? 'cover', persistenceMessage({ code, firebaseCode, stage: stage || result.persistenceStage || 'storage-upload' }, local));
             }
         } catch (error) {
             for (const assetId of savingIds) {
                 const asset = findAsset(state.getSnapshot().draft.media, assetId);
-                if (asset) state.updateMediaAsset(assetId, { status: 'error', error: friendlyPersistenceError(error) });
+                if (asset) state.updateMediaAsset(assetId, { status: 'error', error: persistenceMessage(error, asset) });
             }
             const role = findAsset(before, [...savingIds][0])?.role ?? 'cover';
             reportPersistenceDiagnostic(error, findAsset(before, [...savingIds][0]));
             render();
-            showMessage(role, friendlyPersistenceError(error));
+            showMessage(role, persistenceMessage(error, findAsset(before, [...savingIds][0])));
         } finally {
             savingIds.clear();
             render();

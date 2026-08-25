@@ -302,8 +302,9 @@ test('reemplazo conserva binario anterior si upload falla', async () => {
         files: [{ assetId: current.cover.id, file: { type: current.cover.mimeType, size: current.cover.size } }]
     });
     assert.equal(result.uploadErrors.length, 1);
-    assert.equal(gateway.calls.commits[0].config.mediaIndex.coverId, persisted.cover.id);
-    assert.equal(gateway.calls.commits[0].upserts.length, 0);
+    assert.equal(result.uploadErrors[0].stage, 'storage-upload');
+    assert.equal(result.uploadErrors[0].firebaseCode, 'storage/retry-limit-exceeded');
+    assert.equal(gateway.calls.commits.length, 0);
     assert.equal(gateway.calls.deletes.length, 0);
 });
 

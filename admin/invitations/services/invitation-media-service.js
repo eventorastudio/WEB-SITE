@@ -39,6 +39,7 @@ function serviceError(code, cause = null, details = {}) {
     const error = new Error(code);
     error.code = code;
     error.cause = cause ?? undefined;
+    error.firebaseCode = cause?.code || code;
     Object.assign(error, details);
     return error;
 }
@@ -561,11 +562,29 @@ export class InvitationMediaService {
                 completed += 1;
                 onProgress?.({ assetId, assetProgress: 100, completed, total: fileEntries.length, state: 'uploaded' });
             } catch (error) {
-                uploadErrors.push({ assetId, code: error?.code || 'storage/upload-failed', error });
+                uploadErrors.push({
+                    assetId,
+                    code: error?.code || 'storage/upload-failed',
+                    firebaseCode: error?.code || 'storage/upload-failed',
+                    stage: 'storage-upload',
+                    error
+                });
                 completed += 1;
                 onProgress?.({ assetId, assetProgress: 0, completed, total: fileEntries.length, state: 'error' });
             }
         });
+        if (uploadErrors.length) {
+            const stableMedia = structuredClone(persistedMedia ?? createEmptyInvitationMedia());
+            return {
+                media: stableMedia,
+                mediaIndex: createInvitationMediaIndex(stableMedia),
+                firestoreUpsertCount: 0,
+                uploadedAssetIds: [],
+                uploadErrors,
+                replacementCleanupFailures: 0,
+                persistenceStage: 'storage-upload'
+            };
+        }
         const nextMedia = mergeMediaForPersistence(media, persistedMedia, uploadedAssets);
         const nextIds = new Set(getAllMediaAssets(nextMedia).map(({ id }) => id));
         const removedAssets = getAllMediaAssets(persistedMedia ?? {}).filter(({ id }) => !nextIds.has(id));
