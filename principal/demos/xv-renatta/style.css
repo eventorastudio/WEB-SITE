@@ -441,3 +441,116 @@ footer b, footer span { display: block; letter-spacing: .15em; } footer span { m
 @media (prefers-reduced-motion: reduce) {
   .gift-registry-card { animation: none; transition: none; }
 }
+
+/* Aloha / Prestige: acciones públicas, aisladas de las demás secciones. */
+.social-strip {
+  isolation: isolate;
+  overflow: hidden;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(1.4rem, 3vw, 2.4rem);
+  padding: clamp(4.8rem, 8vw, 7.4rem) clamp(24px, 8vw, 130px);
+  border-top: 1px solid rgb(255 246 229 / .2);
+  border-bottom: 1px solid rgb(255 246 229 / .16);
+  background:
+    radial-gradient(circle at 92% 16%, rgb(246 198 74 / .17), transparent 22rem),
+    linear-gradient(130deg, var(--deep) 0%, var(--leaf) 58%, #0a6a60 100%);
+}
+.social-strip::before,
+.social-strip::after {
+  position: absolute;
+  z-index: -1;
+  content: '';
+  pointer-events: none;
+}
+.social-strip::before {
+  top: -9rem;
+  right: -6rem;
+  width: 25rem;
+  height: 19rem;
+  border: 1px solid rgb(255 246 229 / .16);
+  border-radius: 52% 48% 64% 36%;
+  transform: rotate(-18deg);
+}
+.social-strip::after {
+  bottom: -8rem;
+  left: -5rem;
+  width: 22rem;
+  height: 13rem;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgb(244 91 105 / .2), transparent 68%);
+}
+.social-strip > *,
+.social-strip .aloha-actions-heading,
+.social-strip .aloha-actions-grid {
+  position: relative;
+  z-index: 1;
+}
+.aloha-actions-heading {
+  align-items: start;
+  gap: .55rem;
+  margin-bottom: -.35rem;
+}
+.aloha-actions-eyebrow {
+  color: var(--sun);
+  font-size: .62rem;
+  letter-spacing: .28em;
+}
+.aloha-actions-heading h2 {
+  color: var(--cream);
+  font: 500 clamp(1.8rem, 4vw, 2.7rem)/1.04 Georgia, serif;
+  letter-spacing: -.025em;
+}
+.aloha-actions-grid {
+  gap: .9rem;
+  width: min(100%, 58rem);
+}
+.aloha-action-card {
+  min-height: 4.7rem;
+  padding: .8rem 1rem;
+  border: 1px solid rgb(255 246 229 / .34);
+  border-radius: 1.15rem;
+  background: linear-gradient(135deg, rgb(255 246 229 / .15), rgb(255 246 229 / .06));
+  box-shadow: 0 .75rem 1.8rem rgb(4 63 75 / .2), inset 0 1px 0 rgb(255 255 255 / .2);
+}
+.aloha-action-card:hover {
+  border-color: rgb(246 198 74 / .9);
+  background: linear-gradient(135deg, rgb(255 246 229 / .22), rgb(255 246 229 / .1));
+  box-shadow: 0 1rem 2.1rem rgb(4 63 75 / .25), inset 0 1px 0 rgb(255 255 255 / .24);
+}
+.aloha-action-icon {
+  width: 2.15rem;
+  height: 2.15rem;
+  border-color: rgb(255 246 229 / .58);
+  border-radius: .8rem;
+  background: rgb(255 246 229 / .08);
+}
+.aloha-action-svg { width: 1.3rem; height: 1.3rem; }
+.aloha-action-label { color: var(--cream); font-size: .7rem; letter-spacing: .1em; }
+.aloha-action-arrow { color: var(--sun); font-size: 1.4rem; }
+.social-strip > p {
+  align-self: end;
+  color: rgb(255 246 229 / .74);
+  font-size: .74rem;
+  letter-spacing: .14em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+.social-strip > strong {
+  align-self: end;
+  color: var(--cream);
+  font: italic 500 clamp(1.5rem, 3.5vw, 2.15rem)/1 Georgia, serif;
+  letter-spacing: -.02em;
+  text-shadow: 0 3px 16px rgb(4 63 75 / .24);
+}
+@media (max-width: 650px) {
+  .social-strip {
+    gap: 1.35rem;
+    padding: 4.4rem 20px 4.8rem;
+  }
+  .aloha-actions-heading { margin-bottom: .15rem; }
+  .aloha-actions-grid { gap: .7rem; }
+  .aloha-action-card { min-height: 4.15rem; padding-inline: .75rem; }
+  .aloha-action-label { font-size: .62rem; letter-spacing: .075em; }
+  .social-strip > p { margin-top: .4rem; }
+  .social-strip > strong { font-size: 1.65rem; }
+}
