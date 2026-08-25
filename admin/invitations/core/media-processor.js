@@ -79,10 +79,40 @@ function renameExtension(name, mimeType) {
 
 function declaredMimeForFile(file, role) {
     const declared = String(file?.type ?? '').toLowerCase();
-    if (role === 'videoPoster' && (!declared || declared === 'image/jpg') && /\.(?:jpe?g)$/i.test(file?.name ?? '')) {
+    if ((!declared || declared === 'image/jpg') && /\.(?:jpe?g)$/i.test(file?.name ?? '')) {
         return 'image/jpeg';
     }
     return declared;
+}
+
+function extensionForFile(file) {
+    return String(file?.name ?? '').split('.').pop()?.toLowerCase() ?? '';
+}
+
+function extensionMatchesMime(extension, mime) {
+    return (mime === 'image/jpeg' && ['jpg', 'jpeg'].includes(extension))
+        || (mime === 'image/png' && extension === 'png')
+        || (mime === 'image/webp' && extension === 'webp')
+        || (mime === 'video/mp4' && extension === 'mp4')
+        || (mime === 'video/webm' && extension === 'webm')
+        || (mime === 'audio/mpeg' && ['mp3', 'mpeg'].includes(extension))
+        || (mime === 'audio/mp4' && ['m4a', 'mp4'].includes(extension))
+        || (mime === 'audio/aac' && extension === 'aac')
+        || (mime === 'audio/ogg' && extension === 'ogg');
+}
+
+export async function validateMediaFileConsistency(file, role, { stage = 'original' } = {}) {
+    const definition = getMediaRole(role);
+    const extension = extensionForFile(file);
+    const signature = sniffMediaMimeType(await readHeader(file));
+    const mime = declaredMimeForFile(file, role);
+    const result = validateMediaSignature({ declaredMime: mime, detectedMime: signature, kind: definition?.kind });
+    if (!result.ok || !extensionMatchesMime(extension, signature)) {
+        const error = mediaError(!result.ok ? result.code : 'media/mime-signature-mismatch', `${stage}: extension=${extension} mime=${mime} signature=${signature}`);
+        error.diagnostic = { stage, extension, mime, signature };
+        throw error;
+    }
+    return { stage, extension, mime, signature };
 }
 
 async function processImage(file, definition, { documentRef, temporaryUrl, onProgress }) {
@@ -115,6 +145,7 @@ async function processImage(file, definition, { documentRef, temporaryUrl, onPro
         ? new File([blob], renameExtension(file.name, outputMime), { type: outputMime, lastModified: Date.now() })
         : Object.assign(blob, { name: renameExtension(file.name, outputMime), lastModified: Date.now() });
     if (output.size > definition.maxBytes) throw mediaError('media/file-size-not-allowed');
+    await validateMediaFileConsistency(output, definition.role, { stage: 'processed' });
     return { file: output, width, height, duration: 0 };
 }
 
@@ -129,9 +160,7 @@ export async function inspectAndProcessMediaFile(file, role, {
     if (file.size <= 0 || file.size > definition.maxBytes) throw mediaError('media/file-size-not-allowed');
 
     onProgress?.(10);
-    const detectedMime = sniffMediaMimeType(await readHeader(file));
-    const signature = validateMediaSignature({ declaredMime: declaredMimeForFile(file, role), detectedMime, kind: definition.kind });
-    if (!signature.ok) throw mediaError(signature.code);
+    await validateMediaFileConsistency(file, role, { stage: 'original' });
 
     const temporaryUrl = urlApi.createObjectURL(file);
     try {
