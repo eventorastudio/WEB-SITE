@@ -28,7 +28,7 @@ import {
     createMediaAsset,
     getMediaRole,
     getMediaRoleAvailability
-} from './media-schema.js?v=phase139-isolate-firestore-batch-denial-20250825';
+} from './media-schema.js?v=phase139-media-id-collision-fix-20250825';
 import {
     RSVP_EDITABLE_FIELD_DEFINITIONS,
     RSVP_GUEST_POLICY_PATH,
@@ -398,7 +398,8 @@ export class InvitationBuilderState {
         if (!definition.multiple && this._draft.media[role]) return { ok: false, code: 'builder/media-role-occupied' };
 
         const previous = this.getSnapshot();
-        const id = this._nextMediaId();
+        const requestedId = typeof seed.id === 'string' && /^MED-LOCAL-\d{3,}$/.test(seed.id) ? seed.id : '';
+        const id = requestedId && !this._findMediaAsset(requestedId) ? requestedId : this._nextMediaId();
         const target = definition.multiple ? this._draft.media[role] : null;
         const asset = createMediaAsset(id, {
             ...seed,
@@ -452,7 +453,8 @@ export class InvitationBuilderState {
         const availability = getMediaRoleAvailability(found.asset.role, this._draft.packageId, this._draft.enabledSections);
         if (!availability.editable) return { ok: false, code: availability.packageAllowed ? 'builder/media-section-disabled' : 'builder/media-not-allowed' };
         const previous = this.getSnapshot();
-        const newId = this._nextMediaId();
+        const requestedId = typeof seed.id === 'string' && /^MED-LOCAL-\d{3,}$/.test(seed.id) ? seed.id : '';
+        const newId = requestedId && !this._findMediaAsset(requestedId) ? requestedId : this._nextMediaId();
         const next = createMediaAsset(newId, {
             ...seed,
             role: found.asset.role,

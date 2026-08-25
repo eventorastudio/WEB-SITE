@@ -16,6 +16,7 @@ function gateway() {
         state,
         getCurrentUid: () => 'UID-ADMIN-1',
         serverTimestamp: () => ({ seconds: 1 }),
+        mediaDocumentExists: async (_event, mediaId) => state.documents.has(mediaId),
         uploadObject({ path }) { state.paths.add(path); return { promise: Promise.resolve(), cancel() {} }; },
         resolveUrl: async (path) => `https://cdn.test/${encodeURIComponent(path)}`,
         deleteObject: async (path) => { state.paths.delete(path); },
@@ -27,6 +28,32 @@ function gateway() {
         }
     };
 }
+
+test('allocator omite IDs Firestore ocupados y nunca reutiliza huecos', async () => {
+    const gw = gateway();
+    for (let sequence = 1; sequence <= 6; sequence += 1) gw.state.documents.set(`MED-LOCAL-${String(sequence).padStart(3, '0')}`, {});
+    const service = new InvitationMediaService({ enabled: true, gateway: gw });
+    assert.equal(await service.allocateMediaId(EVENT_ID, ['MED-LOCAL-001']), 'MED-LOCAL-007');
+    gw.state.documents.set('MED-LOCAL-007', {});
+    assert.equal(await service.allocateMediaId(EVENT_ID, ['MED-LOCAL-007']), 'MED-LOCAL-008');
+    const holeGateway = gateway();
+    for (const sequence of [1, 2, 4, 6]) holeGateway.state.documents.set(`MED-LOCAL-${String(sequence).padStart(3, '0')}`, {});
+    const holeService = new InvitationMediaService({ enabled: true, gateway: holeGateway });
+    assert.equal(await holeService.allocateMediaId(EVENT_ID, ['MED-LOCAL-002']), 'MED-LOCAL-007');
+});
+
+test('save aborta antes de Storage si un ID nuevo ya existe en Firestore', async () => {
+    const gw = gateway();
+    gw.state.documents.set('MED-LOCAL-007', {});
+    const service = new InvitationMediaService({ enabled: true, gateway: gw });
+    const media = createEmptyInvitationMedia();
+    media.place = [local('MED-LOCAL-007')];
+    await assert.rejects(
+        service.saveMedia({ eventId: EVENT_ID, media, files: [{ assetId: 'MED-LOCAL-007', file: file() }] }),
+        /firestore\/media-id-collision/
+    );
+    assert.equal(gw.state.paths.size, 0);
+});
 
 test('place upload persists index/document/storage and reload hydrates it', async () => {
     const gw = gateway();

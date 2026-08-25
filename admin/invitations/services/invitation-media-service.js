@@ -5,11 +5,12 @@ import {
     createEmptyInvitationMedia,
     createMediaAsset,
     getAllMediaAssets
-} from '../core/media-schema.js?v=phase139-isolate-firestore-batch-denial-20250825';
+} from '../core/media-schema.js?v=phase139-media-id-collision-fix-20250825';
 
 const SAFE_EVENT_ID = /^[A-Za-z0-9_-]{1,150}$/;
 const SAFE_MEDIA_ID = /^MED-LOCAL-\d{3,}$/;
 const SAFE_OBJECT_VERSION = /^[a-f0-9]{12}$/;
+const MEDIA_ID_FREE_PROBE_WINDOW = 32;
 const SAFE_ROLE = /^(?:cover|gallery|place|dressCode|video|videoPoster|music)$/;
 const INVITATION_CONFIG_SCHEMA_VERSION = 5;
 const MEDIA_INDEX_SCHEMA_VERSION = 1;
@@ -438,6 +439,10 @@ async function createFirebaseMediaGateway() {
             }));
             return new Map(entries.filter(Boolean));
         },
+        async mediaDocumentExists(eventId, mediaId) {
+            const snapshot = await firestoreApi.getDoc(mediaRef(eventId, mediaId));
+            return snapshot.exists();
+        },
         async commitMediaState(eventId, { config, upserts, deleteIds }) {
             const batch = firestoreApi.writeBatch(db);
             batch.set(configRef(eventId), config);
@@ -527,6 +532,58 @@ export class InvitationMediaService {
             if (!SAFE_MEDIA_ID.test(String(mediaId))) throw new TypeError('firestore/invalid-media-id');
         });
         return (await this.getGateway()).readMediaDocuments(eventId, ids);
+    }
+
+    async allocateMediaId(eventId, knownIds = []) {
+        this.assertEnabled();
+        assertSafeEventId(eventId);
+        const gateway = await this.getGateway();
+        const ids = [...new Set(knownIds.map((id) => String(id ?? '')).filter((id) => SAFE_MEDIA_ID.test(id)))];
+        const knownSequences = ids.map((id) => Number.parseInt(id.slice('MED-LOCAL-'.length), 10)).filter(Number.isFinite);
+        let maxSequence = Math.max(0, ...knownSequences);
+        let sequence = Math.max(1, maxSequence + 1);
+        let freeProbes = 0;
+        const occupied = new Set(ids);
+        while (sequence < Number.MAX_SAFE_INTEGER && freeProbes < MEDIA_ID_FREE_PROBE_WINDOW) {
+            const candidate = `MED-LOCAL-${String(sequence).padStart(3, '0')}`;
+            const candidateExists = typeof gateway.mediaDocumentExists === 'function'
+                ? await gateway.mediaDocumentExists(eventId, candidate)
+                : typeof gateway.readMediaDocuments === 'function'
+                    ? (await gateway.readMediaDocuments(eventId, [candidate])).has(candidate)
+                    : false;
+            if (candidateExists) {
+                occupied.add(candidate);
+                maxSequence = Math.max(maxSequence, sequence);
+                freeProbes = 0;
+            } else {
+                freeProbes += 1;
+            }
+            sequence += 1;
+        }
+        let candidateSequence = maxSequence + 1;
+        while (candidateSequence < Number.MAX_SAFE_INTEGER) {
+            const candidate = `MED-LOCAL-${String(candidateSequence).padStart(3, '0')}`;
+            const candidateExists = typeof gateway.mediaDocumentExists === 'function'
+                ? await gateway.mediaDocumentExists(eventId, candidate)
+                : typeof gateway.readMediaDocuments === 'function'
+                    ? (await gateway.readMediaDocuments(eventId, [candidate])).has(candidate)
+                    : occupied.has(candidate);
+            if (!candidateExists) {
+                maxSequence = candidateSequence - 1;
+                if (globalThis.__INVITATION_DEBUG__) {
+                    console.debug('[Invitation mediaId allocation]', {
+                        existingCount: occupied.size,
+                        maxSequence,
+                        candidate,
+                        candidateExists: false
+                    });
+                }
+                return candidate;
+            }
+            occupied.add(candidate);
+            candidateSequence += 1;
+        }
+        throw serviceError('firestore/media-id-exhausted', null, { retryable: false });
     }
 
     async resolveAssetUrl({ eventId, asset }) {
@@ -682,6 +739,22 @@ export class InvitationMediaService {
         this.assertEnabled();
         const gateway = await this.preparePrivilegedWrite();
         const fileEntries = files instanceof Map ? [...files].map(([assetId, file]) => ({ assetId, file })) : [...files];
+        const persistedIds = new Set(getAllMediaAssets(persistedMedia ?? {}).map(({ id }) => id));
+        for (const { assetId } of fileEntries) {
+            if (persistedIds.has(assetId)) continue;
+            const exists = typeof gateway.mediaDocumentExists === 'function'
+                ? await gateway.mediaDocumentExists(eventId, assetId)
+                : typeof gateway.readMediaDocuments === 'function'
+                    ? (await gateway.readMediaDocuments(eventId, [assetId])).has(assetId)
+                    : false;
+            if (exists) {
+                throw serviceError('firestore/media-id-collision', null, {
+                    retryable: true,
+                    stage: 'media-id-allocation',
+                    mediaId: assetId
+                });
+            }
+        }
         const uploadedAssets = new Map();
         const uploadErrors = [];
         let completed = 0;

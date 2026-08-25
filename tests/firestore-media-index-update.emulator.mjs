@@ -31,6 +31,15 @@ function mediaIndex(overrides = {}) {
 function config(index = mediaIndex(), uid = UID) {
     return { schemaVersion: 5, mediaIndex: index, updatedAt: serverTimestamp(), updatedBy: uid };
 }
+function mediaData(id, role = 'cover') {
+    return {
+        id, role, kind: 'image', originalName: `${role}.webp`, mimeType: 'image/webp',
+        size: 1000, width: 1200, height: 800, duration: 0, alt: '', caption: '',
+        storagePath: `eventos/${EVENT_ID}/invitacion/media/${role}/${id}-abcdef123456.webp`,
+        focalPoint: { x: 50, y: 50 }, objectVersion: 'abcdef123456',
+        createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: UID
+    };
+}
 
 test('config canónico + coverId nuevo pasa con batch.set completo', async () => {
     const db = editor().firestore();
@@ -57,6 +66,25 @@ test('índice realista de EVT-0001 + cover inexistente antes del batch pasa', as
         dressCodeId: 'MED-LOCAL-001', videoId: 'MED-LOCAL-006'
     })));
     await assertSucceeds(batch.commit());
+});
+
+test('replacement cover 001..006 reserva 007 y crea el nuevo documento en el batch', async () => {
+    const db = editor().firestore();
+    const seed = writeBatch(db);
+    for (let sequence = 1; sequence <= 6; sequence += 1) {
+        const id = `MED-LOCAL-${String(sequence).padStart(3, '0')}`;
+        seed.set(mediaRef(db, id), mediaData(id));
+    }
+    seed.set(configRef(db), config(mediaIndex({ coverId: 'MED-LOCAL-002' })));
+    await assertSucceeds(seed.commit());
+    const replacement = mediaRef(db, 'MED-LOCAL-007');
+    assert.equal((await getDoc(replacement)).exists(), false);
+    const batch = writeBatch(db);
+    batch.set(replacement, mediaData('MED-LOCAL-007'));
+    batch.set(configRef(db), config(mediaIndex({ coverId: 'MED-LOCAL-007' })));
+    await assertSucceeds(batch.commit());
+    assert.equal((await getDoc(replacement)).exists(), true);
+    assert.equal((await getDoc(mediaRef(db, 'MED-LOCAL-002'))).exists(), true);
 });
 
 test('mediaIndex duplicado entre cover y dressCode es rechazado', async () => {

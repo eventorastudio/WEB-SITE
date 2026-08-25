@@ -1,7 +1,7 @@
-import { getAllMediaAssets, getMediaAssetSource, getMediaRoleAvailability } from '../core/media-schema.js?v=phase139-isolate-firestore-batch-denial-20250825';
+import { getAllMediaAssets, getMediaAssetSource, getMediaRoleAvailability } from '../core/media-schema.js?v=phase139-media-id-collision-fix-20250825';
 import { MediaObjectUrlRegistry } from '../core/media-runtime.js?v=phase4-media-20260813';
-import { friendlyMediaError, inspectAndProcessMediaFile } from '../core/media-processor.js?v=phase139-isolate-firestore-batch-denial-20250825';
-import { invitationMediaService } from '../services/invitation-media-service.js?v=phase139-isolate-firestore-batch-denial-20250825';
+import { friendlyMediaError, inspectAndProcessMediaFile } from '../core/media-processor.js?v=phase139-media-id-collision-fix-20250825';
+import { invitationMediaService } from '../services/invitation-media-service.js?v=phase139-media-id-collision-fix-20250825';
 
 const ROLE_COPY = Object.freeze({
     place: Object.freeze({ title: 'Imágenes de lugares', copy: 'Biblioteca reutilizable para sitios y hospedaje. JPEG, PNG o WebP.', accept: '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp' }),
@@ -433,8 +433,13 @@ export function initMediaEditor({ container, state, mediaService = invitationMed
                 }
             });
             let assetId = replaceId;
+            const eventId = state.getSnapshot().draft.eventId;
+            const knownMediaIds = getAllMediaAssets(state.getSnapshot().draft.media).map(({ id }) => id);
+            const allocatedId = storageStatus.canUpload
+                ? await mediaService.allocateMediaId(eventId, knownMediaIds)
+                : '';
             if (!assetId) {
-                const added = state.addMediaAsset(role, metadataFromProcessed(role, file, processed));
+                const added = state.addMediaAsset(role, { ...metadataFromProcessed(role, file, processed), id: allocatedId });
                 if (!added.ok) throw new Error(added.code);
                 assetId = added.entity.id;
             }
@@ -444,6 +449,7 @@ export function initMediaEditor({ container, state, mediaService = invitationMed
             const update = replaceId
                 ? state.replaceMediaAssetWithNewId(assetId, {
                     ...metadata,
+                    id: allocatedId,
                     alt: currentAsset?.alt,
                     caption: currentAsset?.caption,
                     focalPoint: currentAsset?.focalPoint
