@@ -2490,13 +2490,13 @@ body[data-builder-theme="aloha"] .rsvp {
 body[data-builder-theme="aloha"] .rsvp > .section-no {
     width: auto;
     max-width: 100%;
-    margin: 0 auto .65rem;
+    margin: 0 auto .45rem;
     padding: 0;
     color: #111 !important;
     background: transparent !important;
     border: 0 !important;
     box-shadow: none !important;
-    font-size: clamp(18px, 1.5vw, 22px) !important;
+    font-size: clamp(11px, .9vw, 14px) !important;
     font-weight: 800;
     letter-spacing: .22em;
     line-height: 1.1;
@@ -2504,20 +2504,25 @@ body[data-builder-theme="aloha"] .rsvp > .section-no {
 }
 
 body[data-builder-theme="aloha"] .rsvp > h2 {
-    width: min(100%, 1020px);
-    max-width: 1020px;
-    margin: 0 auto;
-    padding: clamp(12px, 1.5vw, 20px) clamp(18px, 3vw, 38px);
-    color: var(--deep) !important;
-    background: linear-gradient(135deg, #f6c64a, #ffd978);
-    border: 1px solid rgb(255 246 229 / .75);
-    border-radius: 1rem .3rem 1rem .3rem;
-    box-shadow: 0 .3rem 0 rgb(205 151 32 / .55), 0 .9rem 1.8rem rgb(103 32 42 / .12);
-    font-size: clamp(3rem, 4.8vw, 5rem) !important;
-    line-height: .9;
-    letter-spacing: -.055em;
-    text-align: center;
-    white-space: nowrap;
+  width: min(100%, 860px);
+  max-width: 860px;
+  margin: 0 auto;
+  padding: clamp(8px, 1vw, 12px) clamp(18px, 2vw, 28px);
+
+  color: var(--deep) !important;
+  background: linear-gradient(135deg, #f6c64a, #ffd978);
+
+  border: 0 !important;
+  border-radius: 1.4rem;
+
+  box-shadow: none !important;
+
+  font-size: clamp(2.1rem, 3.5vw, 3.6rem) !important;
+  line-height: .95;
+  letter-spacing: -.045em;
+
+  text-align: center;
+  white-space: nowrap;
 }
 
 body[data-builder-theme="aloha"] .rsvp > h2 br { display: none; }
