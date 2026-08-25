@@ -2024,3 +2024,190 @@ body[data-builder-theme="aloha"] .gallery-section {
         padding-block-end: clamp(40px, 8vw, 56px) !important;
     }
 }
+
+/* Aloha RSVP runtime sync: mirrors the centered Prestige pass composition. */
+body[data-builder-theme="aloha"] .rsvp {
+    isolation: isolate;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto auto auto auto;
+    min-height: 0 !important;
+    padding: clamp(5.5rem, 8vw, 8rem) 24px clamp(5rem, 7vw, 7rem) !important;
+    background:
+        radial-gradient(circle at 50% 34%, rgb(255 246 229 / .16), transparent 29rem),
+        radial-gradient(ellipse at 12% 90%, rgb(8 122 80 / .2), transparent 23rem),
+        linear-gradient(145deg, #e95162 0%, var(--coral) 48%, #ef7180 100%);
+}
+
+body[data-builder-theme="aloha"] .rsvp::before {
+    content: '';
+    position: absolute;
+    z-index: -2;
+    top: -12rem;
+    left: 50%;
+    width: min(70vw, 58rem);
+    aspect-ratio: 1;
+    border: 1px solid rgb(255 246 229 / .28);
+    border-radius: 50%;
+    box-shadow: 0 0 0 1.4rem rgb(255 246 229 / .06), 0 0 0 4rem rgb(246 198 74 / .08);
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+body[data-builder-theme="aloha"] .rsvp::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    right: -3rem;
+    bottom: -4rem;
+    width: 18rem;
+    height: 11rem;
+    border-top: 1px solid rgb(255 246 229 / .35);
+    border-radius: 50%;
+    box-shadow: 0 -2.2rem 0 -1rem rgb(255 246 229 / .14), 0 -4.4rem 0 -2rem rgb(246 198 74 / .12);
+    transform: rotate(-12deg);
+    pointer-events: none;
+}
+
+body[data-builder-theme="aloha"] .rsvp > .section-no {
+    width: min(100%, 74rem);
+    margin: 0 auto .9rem;
+    color: var(--sun);
+    font-size: .72rem;
+    letter-spacing: .28em;
+    text-align: center;
+}
+
+body[data-builder-theme="aloha"] .rsvp > h2 {
+    width: min(100%, 74rem);
+    margin: 0 auto;
+    color: var(--cream);
+    font-size: clamp(3.5rem, 5vw, 6rem);
+    line-height: .86;
+    letter-spacing: -.065em;
+    text-align: center;
+    text-wrap: balance;
+}
+
+body[data-builder-theme="aloha"] .rsvp > p:not(.section-no) {
+    width: min(100%, 40rem);
+    margin: 1.45rem auto 1.2rem;
+    color: rgb(255 246 229 / .82);
+    font: italic 400 clamp(1.2rem, 2vw, 1.55rem)/1.25 Georgia, serif;
+    text-align: center;
+}
+
+body[data-builder-theme="aloha"] .rsvp .island-pass {
+    width: min(100%, 55rem);
+    margin: 1.4rem auto 0;
+    padding-bottom: 3.1rem;
+    text-align: left;
+}
+
+body[data-builder-theme="aloha"] .rsvp .island-pass::after {
+    content: 'Presenta este pase desde tu celular al llegar.';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    color: rgb(255 246 229 / .82);
+    font-size: .78rem;
+    line-height: 1.6;
+    letter-spacing: .03em;
+    text-align: center;
+}
+
+body[data-builder-theme="aloha"] .rsvp .island-pass article {
+    position: relative;
+    grid-template-columns: minmax(120px, 156px) minmax(0, 1fr);
+    gap: clamp(1.5rem, 4vw, 3rem);
+    min-height: 250px;
+    padding: clamp(1.6rem, 4vw, 2.8rem);
+    border: 1px solid rgb(255 255 255 / .8);
+    border-radius: 1.7rem .5rem 1.7rem .5rem;
+    background:
+        radial-gradient(circle at 100% 0, rgb(28 191 210 / .2), transparent 35%),
+        linear-gradient(135deg, #fffaf0 0%, #fff6e5 58%, #f7c84d 100%);
+    box-shadow: .65rem .75rem 0 rgb(7 122 80 / .24), 0 1.8rem 3.6rem rgb(103 32 42 / .25), inset 0 1px 0 white;
+}
+
+body[data-builder-theme="aloha"] .rsvp .island-pass article::before {
+    content: 'PASE PERSONALIZADO';
+    position: absolute;
+    top: 1.1rem;
+    right: clamp(1.4rem, 4vw, 2.8rem);
+    color: var(--coral);
+    font-size: .55rem;
+    font-weight: 800;
+    letter-spacing: .18em;
+}
+
+body[data-builder-theme="aloha"] .rsvp .island-pass article > div {
+    min-width: 0;
+    align-self: center;
+    padding-top: 1.2rem;
+}
+
+body[data-builder-theme="aloha"] .rsvp .island-pass article > div::before {
+    content: 'Este pase es personal';
+    display: block;
+    margin-bottom: .55rem;
+    color: rgb(7 91 105 / .7);
+    font: italic 400 1rem/1.2 Georgia, serif;
+}
+
+body[data-builder-theme="aloha"] .rsvp .island-pass article strong {
+    margin-top: .65rem;
+    color: var(--deep);
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    line-height: .95;
+    letter-spacing: -.045em;
+}
+
+body[data-builder-theme="aloha"] .rsvp .builder-access-qr,
+body[data-builder-theme="aloha"] .rsvp .island-code {
+    width: min(100%, 138px);
+    margin: auto;
+    padding: 10px;
+    border: 8px solid white;
+    border-radius: .35rem;
+    background: white;
+    box-shadow: 0 0 0 1px rgb(7 91 105 / .25), 0 .8rem 1.5rem rgb(7 91 105 / .16);
+}
+
+body[data-builder-theme="aloha"] .rsvp .builder-access-qr canvas {
+    width: 100%;
+    height: auto;
+    padding: 0;
+}
+
+body[data-builder-theme="aloha"] .rsvp > [data-prestige-feature~="rsvp"] {
+    justify-self: center;
+    margin: .7rem auto 0;
+}
+
+body[data-builder-theme="aloha"] .rsvp-flower,
+body[data-builder-theme="aloha"] .rsvp-flower::before,
+body[data-builder-theme="aloha"] .rsvp-flower::after {
+    pointer-events: none;
+}
+
+@media (max-width: 730px) {
+    body[data-builder-theme="aloha"] .rsvp { padding: 4.8rem 18px 4.5rem !important; }
+    body[data-builder-theme="aloha"] .rsvp > .section-no { letter-spacing: .2em; text-align: center; }
+    body[data-builder-theme="aloha"] .rsvp > h2 { font-size: clamp(3.4rem, 15vw, 5.8rem); }
+    body[data-builder-theme="aloha"] .rsvp .island-pass { width: min(100%, 55rem); margin-top: 1rem; padding-bottom: 3.4rem; }
+    body[data-builder-theme="aloha"] .rsvp .island-pass article { min-height: 0; gap: 1.1rem; padding: 2.4rem 1.15rem 1.25rem; }
+    body[data-builder-theme="aloha"] .rsvp .island-pass article::before { top: .8rem; right: 1.15rem; font-size: .48rem; }
+    body[data-builder-theme="aloha"] .rsvp .island-pass article > div { padding-top: .35rem; }
+    body[data-builder-theme="aloha"] .rsvp .island-pass article > div::before { font-size: .9rem; }
+    body[data-builder-theme="aloha"] .rsvp .builder-access-qr,
+    body[data-builder-theme="aloha"] .rsvp .island-code { width: min(100%, 100px); }
+    body[data-builder-theme="aloha"] .rsvp::before { top: -7rem; width: 110vw; }
+}
+
+@media (max-width: 390px) {
+    body[data-builder-theme="aloha"] .rsvp .island-pass article { grid-template-columns: 1fr; text-align: center; }
+    body[data-builder-theme="aloha"] .rsvp .builder-access-qr,
+    body[data-builder-theme="aloha"] .rsvp .island-code { width: 84px; }
+    body[data-builder-theme="aloha"] .rsvp .island-pass article > div { padding-top: 0; }
+}
