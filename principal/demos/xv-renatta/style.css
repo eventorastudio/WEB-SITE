@@ -998,9 +998,15 @@ footer b, footer span { display: block; letter-spacing: .15em; } footer span { m
 }
 
 .gallery-section .postcards {
-  min-height: 0;
+  min-height: 0 !important;
   padding-top: clamp(30px, 4vw, 50px);
-  padding-bottom: clamp(64px, 7vw, 96px);
+  padding-bottom: clamp(56px, 6vw, 96px) !important;
+}
+
+@media (min-width: 731px) and (max-width: 1023px) {
+  .gallery-section .postcards {
+    padding-bottom: clamp(48px, 6vw, 80px) !important;
+  }
 }
 
 @media (max-width: 730px) {
@@ -1015,7 +1021,7 @@ footer b, footer span { display: block; letter-spacing: .15em; } footer span { m
 
   .gallery-section .postcards {
     padding-top: 28px;
-    padding-bottom: 56px;
+    padding-bottom: clamp(40px, 12vw, 72px) !important;
   }
 }
 
