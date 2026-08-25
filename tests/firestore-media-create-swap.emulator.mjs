@@ -1,7 +1,7 @@
 import test, { after, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { assertFails, assertSucceeds, initializeTestEnvironment } from '@firebase/rules-unit-testing';
-import { doc, serverTimestamp, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
+import { doc, getDoc, serverTimestamp, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
 import { createMediaAsset } from '../admin/invitations/core/media-schema.js';
 import { buildInvitationMediaStoragePath, createInvitationMediaIndex, serializeInvitationMediaDocument } from '../admin/invitations/services/invitation-media-service.js';
 
@@ -45,10 +45,13 @@ test('actualizar mediaIndex coverId pasa', async () => {
 
 test('create + swap coverId en batch pasa sin actualizar media viejo', async () => {
     const db = editor().firestore();
+    const newMediaRef = mediaRef(db, 'MED-LOCAL-102');
+    assert.equal((await getDoc(newMediaRef)).exists(), false, 'MED-LOCAL-102 debe ser inexistente antes del batch');
     const batch = writeBatch(db);
-    batch.set(mediaRef(db, 'MED-LOCAL-102'), media('MED-LOCAL-102'));
+    batch.set(newMediaRef, media('MED-LOCAL-102'));
     batch.set(configRef(db), config(index({ coverId: 'MED-LOCAL-102' })));
     await assertSucceeds(batch.commit());
+    assert.equal((await getDoc(newMediaRef)).exists(), true);
 });
 
 test('create nuevo place y placeIds pasa', async () => {

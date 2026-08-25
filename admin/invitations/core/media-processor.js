@@ -3,7 +3,7 @@ import {
     getMediaRole,
     sniffMediaMimeType,
     validateMediaSignature
-} from './media-schema.js?v=phase138-full-firebase-permissions-audit-20260824';
+} from './media-schema.js?v=phase139-media-index-atomic-rule-fix-20250825';
 
 function mediaError(code, detail = '') {
     const error = new Error(code);

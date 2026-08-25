@@ -5,7 +5,7 @@ import {
     createEmptyInvitationMedia,
     createMediaAsset,
     getAllMediaAssets
-} from '../core/media-schema.js?v=phase138-full-firebase-permissions-audit-20260824';
+} from '../core/media-schema.js?v=phase139-media-index-atomic-rule-fix-20250825';
 
 const SAFE_EVENT_ID = /^[A-Za-z0-9_-]{1,150}$/;
 const SAFE_MEDIA_ID = /^MED-LOCAL-\d{3,}$/;
@@ -82,6 +82,26 @@ function normalizeDocuments(mediaDocuments) {
 
 function sameDocument(left, right) {
     return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function mediaIndexDiagnostic(index) {
+    const list = (value) => ({
+        type: Array.isArray(value) ? 'array' : typeof value,
+        count: Array.isArray(value) ? value.length : 0,
+        unique: Array.isArray(value) ? new Set(value).size === value.length : false,
+        validIds: Array.isArray(value) && value.every((id) => SAFE_MEDIA_ID.test(String(id)))
+    });
+    const singular = ['coverId', 'dressCodeId', 'videoId', 'posterId', 'audioId'];
+    const singularValues = singular.map((key) => index?.[key]).filter(Boolean);
+    return {
+        keys: Object.keys(index ?? {}),
+        schemaVersion: index?.schemaVersion ?? null,
+        coverIdValid: index?.coverId == null || SAFE_MEDIA_ID.test(String(index.coverId)),
+        galleryIds: list(index?.galleryIds),
+        placeIds: list(index?.placeIds),
+        singularIdsDistinct: new Set(singularValues).size === singularValues.length,
+        singularGalleryDistinct: singularValues.every((id) => !(index?.galleryIds ?? []).includes(id))
+    };
 }
 
 export function buildInvitationMediaStoragePath({ eventId, assetId, role, mimeType, objectVersion = '' }) {
@@ -651,6 +671,7 @@ export class InvitationMediaService {
                         topLevelKeys: ['schemaVersion', 'mediaIndex', 'updatedAt', 'updatedBy'],
                         schemaVersion,
                         mediaIndexKeys: Object.keys(createInvitationMediaIndex(nextMedia)),
+                        mediaIndexDiagnostic: mediaIndexDiagnostic(createInvitationMediaIndex(nextMedia)),
                         coverId: nextMedia.cover?.id ?? null,
                         galleryIdsCount: nextMedia.gallery?.length ?? 0,
                         placeIdsCount: nextMedia.place?.length ?? 0
