@@ -18,7 +18,7 @@ export function initAccommodationEditor({ container, state }) {
             textField('phone', 'Teléfono', { maxLength: 32 }),
             selectField('imageMediaId', 'Imagen del hospedaje', [
                 { value: '', label: 'Sin foto — usar fallback Aloha' },
-                ...(state.getSnapshot().draft.media?.place ?? []).map((asset) => ({ value: asset.id, label: asset.originalName || `Imagen ${asset.id}` }))
+                ...(state.getSnapshot().draft.media?.place ?? []).filter((asset) => asset.storagePath && asset.status === 'uploaded').map((asset) => ({ value: asset.id, label: asset.originalName || `Imagen ${asset.id}` }))
             ], { wide: true }),
             textareaField('address', 'Dirección', { rows: 2, maxLength: 300 }),
             textareaField('description', 'Descripción', { rows: 2, maxLength: 800 }),

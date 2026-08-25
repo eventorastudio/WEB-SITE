@@ -226,7 +226,9 @@ function createRoleSection(role, snapshot, activity, context) {
     const title = document.createElement('h3');
     title.textContent = ROLE_COPY[role].title;
     const description = document.createElement('p');
-    description.textContent = ROLE_COPY[role].copy;
+    description.textContent = role === 'place'
+        ? `${ROLE_COPY[role].copy} Cada imagen válida se guarda automáticamente.`
+        : ROLE_COPY[role].copy;
     copy.append(title, description);
     const state = document.createElement('span');
     state.className = 'media-role-badge';
@@ -424,6 +426,7 @@ export function initMediaEditor({ container, state, mediaService = invitationMed
             if (!update.ok) throw new Error(update.code);
             delete activity[role];
             render();
+            if (role === 'place' && storageStatus.canUpload) await saveMedia([assetId]);
         } catch (error) {
             delete activity[role];
             render();
