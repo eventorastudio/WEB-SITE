@@ -1,4 +1,4 @@
-import { entityHasContent, getRenderableLocations } from './logistics-schema.js?v=phase126-accommodation-icons-place-library-20260824';
+import { entityHasContent, getRenderableLocations } from './logistics-schema.js?v=phase140-aloha-prestige-gift-registry-20250825';
 import { buildGoogleCalendarUrl, buildWhatsAppUrl, safeUrlForField } from './safe-url.js?v=phase3-logistics-20260813';
 import { createLocationIcon, defaultLocationIconKeys, normalizeLocationIconKey } from './location-icon-registry.js?v=phase126-accommodation-icons-place-library-20260824';
 
@@ -19,6 +19,13 @@ function action(documentRoot, label, url, type, field = 'url') {
     if (result.ok && result.value) element.href = result.value;
     else element.disabled = true;
     return element;
+}
+
+function giftMonogram(name) {
+    const normalized = clean(name).toLowerCase();
+    if (normalized.includes('liverpool')) return 'L';
+    if (normalized.includes('macstore') || normalized.includes('mac store')) return 'M';
+    return clean(name).charAt(0).toUpperCase() || 'G';
 }
 
 function renderAlohaLocationCards(documentRoot, content, locations, accommodations, links, draft, visual, copy) {
@@ -313,7 +320,7 @@ function renderDressCode(documentRoot, draft) {
     }
 }
 
-function renderGifts(documentRoot, draft) {
+function renderLegacyGifts(documentRoot, draft) {
     const root = documentRoot.querySelector('[data-prestige-feature~="gift-registry"]');
     const gifts = (draft.gifts ?? []).filter(entityHasContent);
     if (!root || !gifts.length) return;
@@ -328,6 +335,40 @@ function renderGifts(documentRoot, draft) {
     const actions = node(documentRoot, 'div', 'action-row');
     gifts.forEach((gift) => {
         if (gift.url) actions.append(action(documentRoot, gift.name || content.ctaLabel || 'Ver opción', gift.url, 'gifts'));
+    });
+    if (actions.children.length) copy.append(actions);
+}
+
+function renderGifts(documentRoot, draft) {
+    const root = documentRoot.querySelector('[data-prestige-feature~="gift-registry"]');
+    const gifts = (draft.gifts ?? []).filter(entityHasContent);
+    if (!root || !gifts.length) return;
+    const content = draft.content?.gifts ?? {};
+    const copy = root.querySelector(':scope > div:last-child');
+    if (!copy) return;
+    const seal = root.querySelector('.gift-envelope span');
+    if (seal) seal.textContent = clean(draft.content?.identity?.primaryName || draft.content?.identity?.eventName || 'R').charAt(0).toUpperCase() || 'R';
+    copy.className = 'gift-registry-copy';
+    copy.replaceChildren();
+    copy.append(node(documentRoot, 'p', 'section-no gift-registry-eyebrow', '06 Â· CON CARIÃ‘O'));
+    const ornament = node(documentRoot, 'div', 'gift-registry-ornament');
+    ornament.setAttribute('aria-hidden', 'true');
+    ornament.innerHTML = '<span></span><svg viewBox="0 0 40 28" role="presentation"><path d="M20 24C8 23 3 16 6 9c1-3 4-6 8-7-1 5 1 8 6 10-1-5 2-9 7-11 0 8 5 12 7 13-2 6-7 10-14 10Z"/></svg><span></span>';
+    copy.append(ornament);
+    copy.append(node(documentRoot, 'h2', 'gift-registry-title', content.title || 'Mesa de regalos'));
+    const divider = node(documentRoot, 'div', 'gift-registry-divider');
+    divider.setAttribute('aria-hidden', 'true');
+    copy.append(divider);
+    copy.append(node(documentRoot, 'p', 'gift-registry-description', content.description || 'Por si gustas darnos un detalle'));
+    const actions = node(documentRoot, 'div', 'gift-registry-links');
+    gifts.forEach((gift, index) => {
+        if (!gift.url) return;
+        const link = action(documentRoot, '', gift.url, 'gifts');
+        link.className = `gift-registry-card gift-registry-card--${index % 2 ? 'sage' : 'coral'}`;
+        link.setAttribute('aria-label', `Abrir ${clean(gift.name || content.ctaLabel || 'opción de regalo')}`);
+        link.innerHTML = `<span class="gift-registry-monogram" aria-hidden="true">${giftMonogram(gift.name || content.ctaLabel)}</span><span class="gift-registry-card-separator" aria-hidden="true"></span><span class="gift-registry-card-name"></span><span class="gift-registry-arrow" aria-hidden="true">→</span>`;
+        link.querySelector('.gift-registry-card-name').textContent = clean(gift.name || content.ctaLabel || 'Ver opción');
+        actions.append(link);
     });
     if (actions.children.length) copy.append(actions);
 }

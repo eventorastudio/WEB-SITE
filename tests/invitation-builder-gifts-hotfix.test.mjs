@@ -17,6 +17,7 @@ import { COLLECTION_THEMES } from '../admin/invitations/core/theme-registry.js';
 import { PREVIEW_MESSAGE_TYPES } from '../admin/invitations/core/builder-events.js';
 import { initGiftEditor } from '../admin/invitations/editors/gift-editor.js';
 import { initPreviewController } from '../admin/invitations/modules/preview-controller.js';
+import { applyAlohaPhase3Bindings } from '../admin/invitations/core/aloha-template-bindings.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -69,6 +70,23 @@ function isEffectivelyHidden(element) {
     }
     return false;
 }
+
+test('Aloha Prestige renderiza hero y registry cards dinámicas sin hardcodear tiendas', async () => {
+    const html = await readFile(path.join(ROOT, 'principal/demos/xv-renatta/index.html'), 'utf8');
+    const dom = new JSDOM(html);
+    const state = createGiftState('aloha', [
+        { type: 'store', name: 'Liverpool', url: 'https://example.com/liverpool' },
+        { type: 'store', name: 'MACSTORE', url: 'https://example.com/macstore' },
+        { type: 'other', name: 'Otra tienda', url: 'https://example.com/otra' }
+    ]);
+    applyAlohaPhase3Bindings(dom.window.document, state.getSnapshot().draft);
+    const root = dom.window.document.querySelector('[data-prestige-feature~="gift-registry"]');
+    assert.ok(root.querySelector('.gift-registry-hero'));
+    assert.equal(root.querySelectorAll('.gift-registry-card').length, 3);
+    assert.deepEqual([...root.querySelectorAll('.gift-registry-monogram')].map((node) => node.textContent), ['L', 'M', 'O']);
+    assert.equal(root.querySelector('.gift-registry-card').getAttribute('href'), 'https://example.com/liverpool');
+    dom.window.close();
+});
 
 async function renderCollection(theme, draft) {
     const html = await readFile(path.join(ROOT, theme.templatePath.replace(/^\//, '')), 'utf8');
