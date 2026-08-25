@@ -2493,7 +2493,7 @@ body[data-builder-theme="aloha"] .rsvp > .section-no {
   margin: 0 auto .55rem;
   padding: 0;
 
-  color: #111 !important;
+  color: #075b69 !important;
   background: transparent !important;
   border: 0 !important;
   box-shadow: none !important;
@@ -2652,4 +2652,29 @@ body[data-builder-theme="aloha"] .rsvp::after { right: -2rem; bottom: -3rem; wid
 @media (max-width: 390px) {
     body[data-builder-theme="aloha"] .rsvp > h2 { font-size: 2.35rem !important; }
     body[data-builder-theme="aloha"] .rsvp .rsvp-flower { display: none; }
+}
+
+/* RSVP spacing final precedence: composition up, CTA lower, footer closer. */
+body[data-builder-theme="aloha"] .rsvp {
+    height: auto !important;
+    min-height: 0 !important;
+    padding-top: 2.25rem !important;
+    padding-bottom: 4rem !important;
+    margin-bottom: 0 !important;
+}
+
+body[data-builder-theme="aloha"] .rsvp > [data-prestige-feature~="rsvp"] {
+    margin-top: 2.2rem;
+    margin-bottom: 0;
+}
+
+@media (max-width: 730px) {
+    body[data-builder-theme="aloha"] .rsvp {
+        padding-top: 2.75rem !important;
+        padding-bottom: 3.5rem !important;
+    }
+
+    body[data-builder-theme="aloha"] .rsvp > [data-prestige-feature~="rsvp"] {
+        margin-top: 1.25rem;
+    }
 }
