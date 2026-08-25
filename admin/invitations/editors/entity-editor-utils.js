@@ -1,7 +1,7 @@
 import { entityHasContent } from '../core/logistics-schema.js?v=phase142-aloha-prestige-actions-icon-picker-20260825';
 import { createLocationIcon, LOCATION_ICON_OPTIONS } from '../core/location-icon-registry.js?v=phase113-aloha-location-cards-20260823';
 import { GIFT_LETTER_OPTIONS, inferGiftLetterKey } from '../core/gift-letter-registry.js?v=phase141-aloha-gift-letter-picker-20260825';
-import { LINK_ICON_OPTIONS, createLinkIcon, inferLinkIconKey } from '../core/link-icon-registry.js?v=phase143-universal-ics-calendar-action-20260825';
+import { LINK_ICON_OPTIONS, createLinkIcon, inferLinkIconKey } from '../core/link-icon-registry.js?v=phase144-builder-link-icon-picker-sizing-20260825';
 
 function element(tag, className, text = '') {
     const node = document.createElement(tag);
@@ -25,7 +25,7 @@ function createControl(definition, item, snapshot, collection) {
             const summary = element('summary', isGift ? 'gift-letter-picker-trigger' : 'link-icon-picker-trigger');
             const selectedOption = options.find(({ value }) => value === selected) ?? options[0];
             if (isGift) summary.append(element('span', 'gift-letter-picker-current', selectedOption.value));
-            else { const icon = createLinkIcon(document, selectedOption.value, { className: 'link-icon-picker-current' }); if (icon) summary.append(icon); }
+            else { const preview = element('span', 'icon-preview'); const icon = createLinkIcon(document, selectedOption.value, { className: 'link-icon-picker-current' }); if (icon) preview.append(icon); summary.append(preview); }
             summary.append(element('span', '', selectedOption.label));
             control.append(summary);
         }
@@ -38,7 +38,7 @@ function createControl(definition, item, snapshot, collection) {
             option.setAttribute('aria-pressed', String(selected === value));
             option.title = optionLabel;
             if (isGift) option.append(element('span', 'gift-letter-option-medallion', value));
-            else if (isLink) { const icon = createLinkIcon(document, value); if (icon) option.append(icon); else option.append(element('span', 'link-icon-option-none', '—')); }
+            else if (isLink) { const preview = element('span', 'icon-preview'); const icon = createLinkIcon(document, value); if (icon) preview.append(icon); else preview.append(element('span', 'link-icon-option-none', '—')); option.append(preview); }
             else { const icon = createLocationIcon(document, value); if (icon) option.append(icon); }
             option.append(element('span', '', optionLabel));
             optionsRoot.append(option);

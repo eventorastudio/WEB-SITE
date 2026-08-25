@@ -249,6 +249,20 @@ button.review-card { cursor: pointer; }
 .gift-letter-picker-menu { position: absolute; z-index: 5; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; width: 100%; max-height: 220px; overflow: auto; margin-top: 5px; padding: 8px; border: 1px solid #d8c6a5; border-radius: 10px; background: #fffaf0; box-shadow: 0 12px 28px rgb(15 35 45 / .14); }
 .gift-letter-option { display: grid; justify-items: center; gap: 3px; min-height: 43px; padding: 4px 2px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: #073b4c; cursor: pointer; font: 600 .72rem Georgia, serif; }
 .gift-letter-option:hover, .gift-letter-option:focus-visible, .gift-letter-option[aria-pressed="true"] { border-color: #b48a4a; background: rgb(244 145 128 / .16); outline: none; }
+.link-icon-picker { position: relative; width: min(100%, 360px); min-width: 0; }
+.link-icon-picker-trigger { display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 7px 11px; border: 1px solid var(--builder-line); border-radius: 10px; background: #fffaf0; color: #073b4c; cursor: pointer; list-style: none; font-family: Georgia, serif; }
+.link-icon-picker-trigger::-webkit-details-marker { display: none; }
+.link-icon-picker-trigger::after { content: '⌄'; margin-left: auto; color: #b48a4a; }
+.link-icon-picker-menu { position: absolute; z-index: 8; display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; width: 100%; max-height: 360px; overflow-x: hidden; overflow-y: auto; box-sizing: border-box; margin-top: 5px; padding: 10px; border: 1px solid #d8c6a5; border-radius: 10px; background: #fffaf0; box-shadow: 0 12px 28px rgb(15 35 45 / .14); }
+.link-icon-option { display: grid; justify-items: center; align-content: center; gap: 5px; min-width: 0; min-height: 76px; padding: 10px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: #073b4c; cursor: pointer; font: 600 .62rem/1.2 Georgia, serif; text-align: center; }
+.link-icon-option:hover, .link-icon-option:focus-visible, .link-icon-option[aria-pressed="true"] { border-color: #b48a4a; background: rgb(244 145 128 / .16); outline: none; }
+.link-icon-option[aria-pressed="true"] { box-shadow: 0 0 0 2px rgb(183 138 61 / .18); }
+.link-icon-picker .icon-preview { display: grid; place-items: center; width: 34px; height: 34px; max-width: 34px; max-height: 34px; flex: 0 0 34px; }
+.link-icon-picker .icon-preview svg { display: block; width: 32px; height: 32px; max-width: 34px; max-height: 34px; flex-shrink: 0; }
+.link-icon-picker-trigger .icon-preview { width: 32px; height: 32px; max-width: 32px; max-height: 32px; flex-basis: 32px; }
+.link-icon-picker-trigger .icon-preview svg { width: 30px; height: 30px; max-width: 32px; max-height: 32px; }
+.link-icon-option span:not(.icon-preview) { display: -webkit-box; max-width: 100%; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-height: 1.2; }
+@media (max-width: 520px) { .link-icon-picker { width: 100%; } .link-icon-picker-menu { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; max-height: 320px; padding: 8px; } .link-icon-option { min-height: 68px; padding: 8px 5px; } .link-icon-picker .icon-preview { width: 30px; height: 30px; flex-basis: 30px; } .link-icon-picker .icon-preview svg { width: 28px; height: 28px; } }
 .location-icon-option { display: grid; place-items: center; gap: 3px; min-height: 54px; padding: 6px 3px; border: 1px solid var(--builder-line); border-radius: 9px; background: #fff; color: var(--builder-muted); cursor: pointer; font: inherit; }
 .location-icon-option:hover, .location-icon-option[aria-pressed="true"] { border-color: var(--builder-gold); background: var(--builder-gold-soft); color: var(--builder-ink); }
 .location-icon-option[aria-pressed="true"] { box-shadow: 0 0 0 2px rgb(183 138 61 / .18); }
