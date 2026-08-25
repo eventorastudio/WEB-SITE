@@ -1,5 +1,5 @@
 import { getMediaAssetSource, isMediaRoleTouched } from './media-schema.js?v=phase89-dress-code-media-20260820';
-import { applyAlohaGalleryBinding } from './aloha-template-bindings.js?v=phase140-aloha-prestige-gift-registry-20250825';
+import { applyAlohaGalleryBinding } from './aloha-template-bindings.js?v=phase141-aloha-gift-icon-picker-interaction-20260825';
 
 function safeQuery(root, selector) {
     if (!root || !selector) return null;

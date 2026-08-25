@@ -388,7 +388,13 @@ footer b, footer span { display: block; letter-spacing: .15em; } footer span { m
 .gift-registry-card--coral { background: linear-gradient(135deg, #e9947e, #d9646d); }
 .gift-registry-card--sage { background: linear-gradient(135deg, #648b78, #33716e); }
 .gift-registry-card:hover { border-color: #f6c64a; box-shadow: 0 1rem 1.8rem rgb(8 59 75 / .18), inset 0 1px 0 rgb(255 246 229 / .46); transform: translateY(-2px); }
-.gift-registry-card:active { transform: scale(.985); }
+.gift-registry-card:active { transform: translateY(1px) scale(.985); box-shadow: 0 .25rem .7rem rgb(8 59 75 / .16), inset 0 2px 0 rgb(8 59 75 / .12); }
+.gift-registry-icon { position: relative; display: grid; place-items: center; width: 2.35rem; aspect-ratio: 1; border: 1px solid rgb(255 246 229 / .65); border-radius: 50%; transition: transform .22s ease, background-color .22s ease; }
+.gift-registry-svg { width: 1.35rem; height: 1.35rem; }
+.gift-registry-card:hover .gift-registry-icon { transform: rotate(-4deg) scale(1.06); background: rgb(255 246 229 / .12); }
+.gift-registry-card:active .gift-registry-icon { transform: scale(.9); }
+.gift-registry-card:has(.gift-registry-icon) { grid-template-columns: 2.6rem 1px minmax(0, 1fr) auto; }
+.gift-registry-card:not(:has(.gift-registry-icon)) { grid-template-columns: minmax(0, 1fr) auto; }
 .gift-registry-monogram { position: relative; display: grid; place-items: center; width: 2.35rem; aspect-ratio: 1; border: 1px solid rgb(255 246 229 / .65); border-radius: 50%; font: 400 1.15rem Georgia, serif; }
 .gift-registry-card-separator { width: 1px; height: 1.7rem; background: rgb(255 246 229 / .45); }
 .gift-registry-card-name { position: relative; min-width: 0; overflow: hidden; font-size: .78rem; font-weight: 800; letter-spacing: .1em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }

@@ -1,5 +1,6 @@
 import { getPackageById } from './section-registry.js?v=phase93-package-sections-format-20260821';
 import { normalizeLocationIconKey } from './location-icon-registry.js?v=phase113-aloha-location-cards-20260823';
+import { inferGiftIconKey } from './gift-icon-registry.js?v=phase141-aloha-gift-icon-picker-interaction-20260825';
 
 export const LOCATION_TYPES = Object.freeze(['ceremony', 'reception', 'party', 'session', 'accommodation', 'other']);
 export const GIFT_TYPES = Object.freeze(['store', 'transfer', 'cash', 'other']);
@@ -113,7 +114,7 @@ export function createItineraryItem(id, seed = {}) {
 
 export function createGift(id, seed = {}) {
     const details = seed.details ?? {};
-    return {
+    const gift = {
         id,
         type: oneOf(seed.type, GIFT_TYPES, 'store'),
         name: text(seed.name, 'name'),
@@ -129,6 +130,10 @@ export function createGift(id, seed = {}) {
             instructions: text(details.instructions, 'instructions')
         }
     };
+    // Optional for legacy drafts: infer visually at render time without
+    // forcing an absent field into the canonical stored shape.
+    if (Object.hasOwn(seed, 'iconKey')) gift.iconKey = inferGiftIconKey(seed);
+    return gift;
 }
 
 export function createAccommodation(id, seed = {}) {

@@ -1,5 +1,6 @@
-import { entityHasContent } from '../core/logistics-schema.js?v=phase3-logistics-20260813';
+import { entityHasContent } from '../core/logistics-schema.js?v=phase141-aloha-gift-icon-picker-interaction-20260825';
 import { createLocationIcon, LOCATION_ICON_OPTIONS } from '../core/location-icon-registry.js?v=phase113-aloha-location-cards-20260823';
+import { createGiftIcon, GIFT_ICON_OPTIONS, inferGiftIconKey } from '../core/gift-icon-registry.js?v=phase141-aloha-gift-icon-picker-interaction-20260825';
 
 function element(tag, className, text = '') {
     const node = document.createElement(tag);
@@ -12,22 +13,34 @@ function createControl(definition, item, snapshot, collection) {
     const label = element('label', `entity-field${definition.wide ? ' entity-field-wide' : ''}`);
     label.append(element('span', '', definition.label));
     let control;
-    if (definition.type === 'iconPicker') {
-        control = element('div', 'location-icon-picker');
+    if (definition.type === 'iconPicker' || definition.type === 'giftIconPicker') {
+        const isGift = definition.type === 'giftIconPicker';
+        control = element(isGift ? 'details' : 'div', isGift ? 'gift-icon-picker' : 'location-icon-picker');
         const source = definition.nested ? item[definition.nested]?.[definition.field] : item[definition.field];
-        const selected = String(source ?? '');
-        (definition.options ?? LOCATION_ICON_OPTIONS).forEach(({ value, label: optionLabel }) => {
-            const option = element('button', 'location-icon-option');
+        const selected = isGift ? inferGiftIconKey(item) : String(source ?? '');
+        const options = definition.options ?? (isGift ? GIFT_ICON_OPTIONS : LOCATION_ICON_OPTIONS);
+        if (isGift) {
+            const summary = element('summary', 'gift-icon-picker-trigger');
+            const selectedOption = options.find(({ value }) => value === selected) ?? options.find(({ value }) => value === 'gift');
+            const selectedIcon = createGiftIcon(document, selectedOption.value, { className: 'gift-icon-picker-current' });
+            if (selectedIcon) summary.append(selectedIcon);
+            summary.append(element('span', '', selectedOption.label));
+            control.append(summary);
+        }
+        const optionsRoot = isGift ? element('div', 'gift-icon-picker-menu') : control;
+        options.forEach(({ value, label: optionLabel }) => {
+            const option = element('button', isGift ? 'gift-icon-option' : 'location-icon-option');
             option.type = 'button';
             option.dataset.entityIconField = definition.field;
             option.dataset.entityIconValue = value;
             option.setAttribute('aria-pressed', String(selected === value));
             option.title = optionLabel;
-            const icon = createLocationIcon(document, value);
+            const icon = isGift ? createGiftIcon(document, value) : createLocationIcon(document, value);
             if (icon) option.append(icon);
             option.append(element('span', '', optionLabel));
-            control.append(option);
+            optionsRoot.append(option);
         });
+        if (isGift) control.append(optionsRoot);
     } else if (definition.type === 'select') {
         control = document.createElement('select');
         (definition.options ?? []).forEach(({ value, label: optionLabel }) => {
@@ -43,7 +56,7 @@ function createControl(definition, item, snapshot, collection) {
         control = document.createElement('input');
         control.type = definition.type ?? 'text';
     }
-    if (definition.type !== 'iconPicker') {
+    if (definition.type !== 'iconPicker' && definition.type !== 'giftIconPicker') {
         control.autocomplete = 'off';
         control.dataset.entityField = definition.field;
         if (definition.nested) control.dataset.entityNested = definition.nested;
@@ -295,4 +308,5 @@ export function initEntityListEditor({
 export function textField(field, label, options = {}) { return { field, label, ...options }; }
 export function selectField(field, label, options, extra = {}) { return { field, label, type: 'select', options, ...extra }; }
 export function iconPickerField(field, label, extra = {}) { return { field, label, type: 'iconPicker', options: LOCATION_ICON_OPTIONS, ...extra }; }
+export function giftIconPickerField(field, label, extra = {}) { return { field, label, type: 'giftIconPicker', options: GIFT_ICON_OPTIONS, ...extra }; }
 export function textareaField(field, label, options = {}) { return { field, label, type: 'textarea', wide: true, ...options }; }

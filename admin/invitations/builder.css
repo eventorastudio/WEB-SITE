@@ -241,6 +241,14 @@ button.review-card { cursor: pointer; }
 .entity-field [aria-invalid="true"] { border-color: var(--builder-danger); }
 .entity-field-error { min-height: 12px; color: var(--builder-danger); font-size: 0.52rem; }
 .location-icon-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(4.25rem, 1fr)); gap: 6px; }
+.gift-icon-picker { position: relative; width: min(100%, 320px); }
+.gift-icon-picker-trigger { display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 7px 11px; border: 1px solid var(--builder-line); border-radius: 10px; background: var(--builder-surface, #fff); color: var(--builder-ink); cursor: pointer; list-style: none; }
+.gift-icon-picker-trigger::-webkit-details-marker { display: none; }
+.gift-icon-picker-trigger::after { content: '⌄'; margin-left: auto; color: var(--builder-muted); }
+.gift-icon-picker-current, .gift-icon-option svg { width: 22px; height: 22px; flex: 0 0 auto; }
+.gift-icon-picker-menu { position: absolute; z-index: 5; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; width: 100%; max-height: 220px; overflow: auto; margin-top: 5px; padding: 7px; border: 1px solid var(--builder-line); border-radius: 10px; background: var(--builder-surface, #fff); box-shadow: 0 12px 28px rgb(15 35 45 / .16); }
+.gift-icon-option { display: grid; justify-items: center; gap: 3px; min-height: 52px; padding: 6px 3px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--builder-ink); cursor: pointer; font-size: .58rem; }
+.gift-icon-option:hover, .gift-icon-option:focus-visible, .gift-icon-option[aria-pressed="true"] { border-color: var(--builder-accent, #b48a4a); background: rgb(180 138 74 / .1); outline: none; }
 .location-icon-option { display: grid; place-items: center; gap: 3px; min-height: 54px; padding: 6px 3px; border: 1px solid var(--builder-line); border-radius: 9px; background: #fff; color: var(--builder-muted); cursor: pointer; font: inherit; }
 .location-icon-option:hover, .location-icon-option[aria-pressed="true"] { border-color: var(--builder-gold); background: var(--builder-gold-soft); color: var(--builder-ink); }
 .location-icon-option[aria-pressed="true"] { box-shadow: 0 0 0 2px rgb(183 138 61 / .18); }

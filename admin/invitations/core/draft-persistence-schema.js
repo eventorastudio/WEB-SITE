@@ -14,7 +14,7 @@ import {
     DRESS_COLOR_GROUPS,
     createDressColor,
     normalizeEntity
-} from './logistics-schema.js?v=phase126-accommodation-icons-place-library-20260824';
+} from './logistics-schema.js?v=phase141-aloha-gift-icon-picker-interaction-20260825';
 import {
     CURRENT_DRAFT_SCHEMA_VERSION,
     migrateInvitationDraftToCurrentSchema

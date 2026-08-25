@@ -83,7 +83,8 @@ test('Aloha Prestige renderiza hero y registry cards dinámicas sin hardcodear t
     const root = dom.window.document.querySelector('[data-prestige-feature~="gift-registry"]');
     assert.ok(root.querySelector('.gift-registry-hero'));
     assert.equal(root.querySelectorAll('.gift-registry-card').length, 3);
-    assert.deepEqual([...root.querySelectorAll('.gift-registry-monogram')].map((node) => node.textContent), ['L', 'M', 'O']);
+    assert.equal(root.querySelectorAll('.gift-registry-svg').length, 3);
+    assert.equal(root.querySelector('.gift-registry-eyebrow').textContent, '06 · CON CARIÑO');
     assert.equal(root.querySelector('.gift-registry-card').getAttribute('href'), 'https://example.com/liverpool');
     dom.window.close();
 });
