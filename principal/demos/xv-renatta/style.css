@@ -540,6 +540,89 @@ footer b, footer span { display: block; letter-spacing: .15em; } footer span { m
   }
 }
 
+/* Phase155: flores Aloha exclusivamente en video y countdown. */
+@media (min-width: 1024px) {
+  .tropical-film > div:last-child::after {
+    position: absolute;
+    z-index: -1;
+    top: -2.6rem;
+    right: -4.2rem;
+    width: 8rem;
+    height: 8rem;
+    content: '';
+    opacity: .68;
+    background:
+      radial-gradient(ellipse at 50% 8%, rgb(244 91 105 / .78) 0 21%, transparent 22%),
+      radial-gradient(ellipse at 90% 36%, rgb(244 91 105 / .68) 0 21%, transparent 22%),
+      radial-gradient(ellipse at 75% 84%, rgb(244 91 105 / .64) 0 21%, transparent 22%),
+      radial-gradient(ellipse at 25% 84%, rgb(244 91 105 / .64) 0 21%, transparent 22%),
+      radial-gradient(ellipse at 10% 36%, rgb(244 91 105 / .68) 0 21%, transparent 22%),
+      radial-gradient(circle at 50% 50%, var(--sun) 0 10%, transparent 11%);
+    filter: drop-shadow(0 .6rem 1rem rgb(4 63 75 / .16));
+    pointer-events: none;
+    animation: alohaFilmFlower 12s ease-in-out infinite;
+  }
+  .tropical-film::after {
+    right: -7rem;
+    bottom: -9rem;
+    width: 34rem;
+    height: 18rem;
+    background:
+      radial-gradient(ellipse at 72% 28%, rgb(255 137 173 / .3) 0 8%, transparent 8.5%),
+      radial-gradient(ellipse at 84% 24%, rgb(255 137 173 / .22) 0 5%, transparent 5.5%),
+      transparent;
+  }
+  .countdown-band::before {
+    top: 28%;
+    left: -4.5rem;
+    width: 15rem;
+    height: 15rem;
+    border-radius: 50%;
+    background:
+      radial-gradient(ellipse at 50% 9%, rgb(244 91 105 / .62) 0 20%, transparent 21%),
+      radial-gradient(ellipse at 89% 37%, rgb(244 91 105 / .52) 0 20%, transparent 21%),
+      radial-gradient(ellipse at 73% 83%, rgb(244 91 105 / .48) 0 20%, transparent 21%),
+      radial-gradient(ellipse at 27% 83%, rgb(244 91 105 / .48) 0 20%, transparent 21%),
+      radial-gradient(ellipse at 11% 37%, rgb(244 91 105 / .52) 0 20%, transparent 21%),
+      radial-gradient(circle at 50% 50%, rgb(246 198 74 / .78) 0 9%, transparent 10%);
+    opacity: .62;
+    box-shadow: none;
+    transform: rotate(-18deg);
+    pointer-events: none;
+    animation: alohaCountdownFlower 13s ease-in-out infinite;
+  }
+  .countdown-band::after {
+    right: -4.8rem;
+    bottom: -3.5rem;
+    width: 13rem;
+    height: 13rem;
+    border: 0;
+    border-radius: 50%;
+    background:
+      radial-gradient(ellipse at 50% 9%, rgb(255 137 173 / .4) 0 20%, transparent 21%),
+      radial-gradient(ellipse at 89% 37%, rgb(255 137 173 / .34) 0 20%, transparent 21%),
+      radial-gradient(ellipse at 73% 83%, rgb(255 137 173 / .3) 0 20%, transparent 21%),
+      radial-gradient(ellipse at 27% 83%, rgb(255 137 173 / .3) 0 20%, transparent 21%),
+      radial-gradient(ellipse at 11% 37%, rgb(255 137 173 / .34) 0 20%, transparent 21%),
+      radial-gradient(circle at 50% 50%, rgb(246 198 74 / .55) 0 9%, transparent 10%);
+    box-shadow: none;
+    transform: rotate(14deg);
+    pointer-events: none;
+  }
+  @keyframes alohaFilmFlower {
+    0%, 100% { transform: rotate(0deg) translateY(0); }
+    50% { transform: rotate(3deg) translateY(-4px); }
+  }
+  @keyframes alohaCountdownFlower {
+    0%, 100% { transform: rotate(-18deg) translateY(0); }
+    50% { transform: rotate(-15deg) translateY(-4px); }
+  }
+}
+
+@media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
+  .tropical-film > div:last-child::after, .countdown-band::before { animation: none; }
+}
+
 /* Countdown: composición central limpia y sin recortes en desktop. */
 @media (min-width: 1024px) {
   .countdown-band {
@@ -1069,4 +1152,23 @@ footer b, footer span { display: block; letter-spacing: .15em; } footer span { m
   .countdown-band .countdown strong { min-width: 0; font-size: clamp(2.4rem, 4.8vw, 4.8rem); line-height: 1; letter-spacing: -.07em; white-space: nowrap; }
   .countdown-band::before { top: 20%; left: -5rem; right: auto; width: 17rem; height: 25rem; border: 0; border-radius: 50% 0 50% 0; background: linear-gradient(145deg, transparent 22%, rgb(8 122 80 / .2) 23% 43%, transparent 44%), linear-gradient(35deg, transparent 42%, rgb(255 246 229 / .16) 43% 43.5%, transparent 44%); box-shadow: none; transform: rotate(-18deg); animation: none; }
   .countdown-band::after { right: -4rem; bottom: -5rem; width: 19rem; height: 15rem; border-top: 1px solid rgb(255 246 229 / .22); border-radius: 50%; box-shadow: 0 -2rem 0 -1rem rgb(244 91 105 / .12), 0 -4rem 0 -2rem rgb(246 198 74 / .1); transform: rotate(-12deg); }
+}
+
+@media (min-width: 1024px) {
+  /* Flores laterales finales: quedan fuera del bloque central y de las cards. */
+  .countdown-band::before {
+    top: 28%; left: -4.5rem; right: auto; width: 15rem; height: 15rem;
+    border: 0; border-radius: 50%; opacity: .62;
+    background: radial-gradient(ellipse at 50% 9%, rgb(244 91 105 / .62) 0 20%, transparent 21%), radial-gradient(ellipse at 89% 37%, rgb(244 91 105 / .52) 0 20%, transparent 21%), radial-gradient(ellipse at 73% 83%, rgb(244 91 105 / .48) 0 20%, transparent 21%), radial-gradient(ellipse at 27% 83%, rgb(244 91 105 / .48) 0 20%, transparent 21%), radial-gradient(ellipse at 11% 37%, rgb(244 91 105 / .52) 0 20%, transparent 21%), radial-gradient(circle at 50% 50%, rgb(246 198 74 / .78) 0 9%, transparent 10%);
+    box-shadow: none; transform: rotate(-18deg); animation: alohaCountdownFlower 13s ease-in-out infinite; pointer-events: none;
+  }
+  .countdown-band::after {
+    right: -4.8rem; bottom: -3.5rem; width: 13rem; height: 13rem; border: 0; border-radius: 50%; opacity: .48;
+    background: radial-gradient(ellipse at 50% 9%, rgb(255 137 173 / .4) 0 20%, transparent 21%), radial-gradient(ellipse at 89% 37%, rgb(255 137 173 / .34) 0 20%, transparent 21%), radial-gradient(ellipse at 73% 83%, rgb(255 137 173 / .3) 0 20%, transparent 21%), radial-gradient(ellipse at 27% 83%, rgb(255 137 173 / .3) 0 20%, transparent 21%), radial-gradient(ellipse at 11% 37%, rgb(255 137 173 / .34) 0 20%, transparent 21%), radial-gradient(circle at 50% 50%, rgb(246 198 74 / .55) 0 9%, transparent 10%);
+    box-shadow: none; transform: rotate(14deg); pointer-events: none;
+  }
+}
+
+@media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
+  .countdown-band::before { animation: none; }
 }
