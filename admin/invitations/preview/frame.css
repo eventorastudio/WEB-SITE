@@ -1927,19 +1927,33 @@ body[data-builder-theme="aloha"] .builder-phase4-gallery-aloha .builder-phase4-g
 /* Aloha Gallery runtime: close the section after its real content. */
 body[data-builder-theme="aloha"] .postcards {
     min-height: 0 !important;
+    min-block-size: 0 !important;
     height: auto !important;
+    block-size: auto !important;
     margin-bottom: 0 !important;
-    padding-bottom: clamp(56px, 6vw, 96px) !important;
+    padding-bottom: clamp(56px, 6vw, 80px) !important;
+    padding-block-end: clamp(56px, 6vw, 80px) !important;
+}
+body[data-builder-theme="aloha"] .gallery-section {
+    min-height: 0 !important;
+    min-block-size: 0 !important;
+    height: auto !important;
+    block-size: auto !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+    padding-block-end: 0 !important;
 }
 
 @media (min-width: 731px) and (max-width: 1050px) {
     body[data-builder-theme="aloha"] .postcards {
-        padding-bottom: clamp(48px, 6vw, 80px) !important;
+        padding-bottom: clamp(48px, 4vw, 64px) !important;
+        padding-block-end: clamp(48px, 4vw, 64px) !important;
     }
 }
 
 @media (max-width: 730px) {
     body[data-builder-theme="aloha"] .postcards {
-        padding-bottom: clamp(40px, 12vw, 72px) !important;
+        padding-bottom: clamp(40px, 8vw, 56px) !important;
+        padding-block-end: clamp(40px, 8vw, 56px) !important;
     }
 }
