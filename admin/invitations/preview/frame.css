@@ -2211,3 +2211,99 @@ body[data-builder-theme="aloha"] .rsvp-flower::after {
     body[data-builder-theme="aloha"] .rsvp .island-code { width: 84px; }
     body[data-builder-theme="aloha"] .rsvp .island-pass article > div { padding-top: 0; }
 }
+
+/* Aloha RSVP copy alignment: visual-only final correction for Builder/Public. */
+body[data-builder-theme="aloha"] .rsvp > .section-no {
+    color: #111 !important;
+    font-size: clamp(1rem, 1.6vw, 1.35rem) !important;
+    font-weight: 800;
+    letter-spacing: .24em;
+    line-height: 1.15;
+    text-align: center;
+}
+
+body[data-builder-theme="aloha"] .rsvp > h2 {
+    max-width: none;
+    font-size: clamp(3rem, 5vw, 5.8rem) !important;
+    white-space: nowrap;
+}
+
+body[data-builder-theme="aloha"] .rsvp > h2 br {
+    display: none;
+}
+
+body[data-builder-theme="aloha"] .rsvp .island-pass::after,
+body[data-builder-theme="aloha"] .rsvp .access-options-note,
+body[data-builder-theme="aloha"] .rsvp .vertical-title,
+body[data-builder-theme="aloha"] .rsvp .vertical-note {
+    display: none !important;
+}
+
+body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"]::before {
+    top: 1.15rem;
+    right: 1.4rem;
+    left: 1.4rem;
+    color: var(--deep);
+    font: 700 .72rem/1.1 Georgia, "Times New Roman", serif;
+    letter-spacing: .16em;
+    text-align: center;
+}
+
+body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"] > div {
+    justify-items: center;
+    text-align: center;
+}
+
+body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"] > div small,
+body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"] > div strong,
+body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"] > div p {
+    width: 100%;
+    text-align: center;
+}
+
+body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"] > div small {
+    color: var(--coral);
+    font: 700 .72rem/1.15 Georgia, "Times New Roman", serif;
+    letter-spacing: .16em;
+}
+
+body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"] > div strong {
+    font: 400 clamp(1.9rem, 3.5vw, 2.8rem)/1 Georgia, "Times New Roman", serif;
+    letter-spacing: -.025em;
+}
+
+body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"] > div p {
+    color: var(--deep);
+    font: 700 .72rem/1.25 Georgia, "Times New Roman", serif;
+    letter-spacing: .08em;
+}
+
+body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"] .builder-access-qr {
+    align-self: center;
+}
+
+body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"] .builder-access-qr small {
+    display: block;
+    width: 100%;
+    color: var(--deep);
+    font: 700 .68rem/1.1 Georgia, "Times New Roman", serif;
+    letter-spacing: .13em;
+    text-align: center;
+}
+
+@media (max-width: 730px) {
+    body[data-builder-theme="aloha"] .rsvp > h2 {
+        max-width: 100%;
+        font-size: clamp(2.8rem, 12vw, 4.8rem) !important;
+        white-space: normal;
+    }
+
+    body[data-builder-theme="aloha"] .rsvp > h2 br {
+        display: block;
+    }
+
+    body[data-builder-theme="aloha"] .rsvp .island-pass [data-access-view="digital"]::before {
+        right: 1rem;
+        left: 1rem;
+    }
+}
