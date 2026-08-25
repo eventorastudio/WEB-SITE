@@ -754,6 +754,80 @@ footer b, footer span { display: block; letter-spacing: .15em; } footer span { m
   .countdown-band::before { animation: none; }
 }
 
+/* Countdown: refuerzo visual de la columna izquierda, sin alterar el contador. */
+@media (min-width: 1024px) {
+  .countdown-band {
+    grid-template-columns: minmax(19rem, .92fr) minmax(0, 1.08fr);
+    gap: clamp(3.5rem, 7vw, 8rem);
+  }
+  .countdown-band > div:first-child {
+    position: relative;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 17rem;
+    max-width: 26rem;
+    padding: 2rem 3rem 2rem 0;
+    border-right: 1px solid rgb(255 246 229 / .2);
+    background:
+      radial-gradient(ellipse at 20% 78%, rgb(28 191 210 / .18) 0 15%, transparent 15.6%),
+      radial-gradient(ellipse at 40% 76%, transparent 0 27%, rgb(255 246 229 / .11) 27.2% 27.7%, transparent 28.1%);
+  }
+  .countdown-band > div:first-child::after {
+    position: absolute;
+    right: -1.8rem;
+    bottom: -1.6rem;
+    width: 10rem;
+    height: 8rem;
+    content: '';
+    opacity: .2;
+    border: 1px solid var(--sun);
+    border-radius: 100% 0 100% 0;
+    transform: rotate(-23deg);
+    pointer-events: none;
+  }
+  .countdown-band .section-no {
+    position: relative;
+    width: fit-content;
+    padding-left: 1.2rem;
+  }
+  .countdown-band .section-no::before {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: .45rem;
+    height: .45rem;
+    content: '';
+    border: 1px solid var(--sun);
+    border-radius: 50%;
+    box-shadow: 0 0 0 .28rem rgb(246 198 74 / .1);
+    transform: translateY(-50%);
+  }
+  .countdown-band h2 {
+    position: relative;
+    z-index: 1;
+    text-wrap: balance;
+  }
+  .countdown-band h2::after {
+    position: absolute;
+    right: -2rem;
+    bottom: .15rem;
+    width: 2.2rem;
+    height: 2.2rem;
+    content: '';
+    opacity: .72;
+    background: var(--coral);
+    clip-path: polygon(50% 0, 61% 35%, 100% 21%, 70% 50%, 100% 79%, 61% 65%, 50% 100%, 39% 65%, 0 79%, 30% 50%, 0 21%, 39% 35%);
+    transform: rotate(13deg);
+    pointer-events: none;
+  }
+  .countdown-band .countdown {
+    position: relative;
+    z-index: 2;
+  }
+}
+
 @media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
   .welcome::after { animation: none; }
 }
