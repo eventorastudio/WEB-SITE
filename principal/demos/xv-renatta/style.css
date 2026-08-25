@@ -947,6 +947,112 @@ footer b, footer span { display: block; letter-spacing: .15em; } footer span { m
   .countdown-band::before { animation: none; }
 }
 
+/* Actions order: text hierarchy first, links second. Scoped to Aloha only. */
+.social-strip {
+  display: block;
+  width: min(100%, 1240px);
+  margin-inline: auto;
+  padding: clamp(4.5rem, 8vw, 7rem) max(24px, 5vw);
+}
+
+.social-strip .aloha-actions-heading,
+.social-strip .aloha-actions-copy,
+.social-strip .aloha-actions-grid {
+  width: min(100%, 750px);
+  margin-inline: 0;
+}
+
+.social-strip .aloha-actions-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .85rem;
+  margin-bottom: 1.35rem;
+}
+
+.social-strip .aloha-actions-eyebrow {
+  display: block;
+  color: var(--sun);
+  font-size: .64rem;
+  font-weight: 800;
+  letter-spacing: .28em;
+  line-height: 1;
+}
+
+.social-strip .aloha-actions-heading h2 {
+  margin: 0;
+  color: var(--cream);
+  font: 500 clamp(3rem, 4vw, 5rem)/.96 Georgia, serif;
+  letter-spacing: -.035em;
+}
+
+.social-strip .aloha-actions-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .65rem;
+  margin-bottom: clamp(2.25rem, 4vw, 3.4rem);
+}
+
+.social-strip .aloha-actions-copy p,
+.social-strip .aloha-actions-copy strong {
+  margin: 0;
+}
+
+.social-strip .aloha-actions-copy p {
+  color: rgb(255 246 229 / .78);
+  font-size: .78rem;
+  letter-spacing: .12em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+.social-strip .aloha-actions-copy strong {
+  color: var(--cream);
+  font: italic 500 clamp(1.8rem, 3.5vw, 2.45rem)/1 Georgia, serif;
+  letter-spacing: -.025em;
+  text-shadow: 0 3px 16px rgb(4 63 75 / .24);
+}
+
+.social-strip .aloha-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: .9rem;
+}
+
+.social-strip .aloha-actions-grid > a {
+  width: min(100%, 900px);
+}
+
+@media (max-width: 650px) {
+  .social-strip {
+    width: 100%;
+    padding: 4.4rem 20px 4.8rem;
+  }
+
+  .social-strip .aloha-actions-heading,
+  .social-strip .aloha-actions-copy,
+  .social-strip .aloha-actions-grid {
+    width: 100%;
+  }
+
+  .social-strip .aloha-actions-heading h2 {
+    font-size: clamp(2.5rem, 12vw, 3.7rem);
+  }
+
+  .social-strip .aloha-actions-copy {
+    margin-bottom: 2.2rem;
+  }
+
+  .social-strip .aloha-actions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .social-strip .aloha-actions-grid > a {
+    width: 100%;
+  }
+}
+
 /* Gallery editorial layout: visual-only, scoped to the postcard gallery. */
 .postcards {
   position: relative;
