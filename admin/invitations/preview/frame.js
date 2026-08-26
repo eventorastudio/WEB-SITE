@@ -121,7 +121,7 @@ function setupPreviewShell() {
     const devices = {
         desktop: { label: 'PC', width: 1440, height: 900 },
         tablet: { label: 'TABLET', width: 820, height: 1024 },
-        mobile: { label: 'MÃ“VIL', width: 390, height: 844 }
+        mobile: { label: 'Móvil', width: 390, height: 844 }
     };
     let childReady = false;
     let queuedMessage = null;
@@ -1188,9 +1188,9 @@ function showPublicUnavailable() {
 function showPublicDeviceBlocked(allowedDevices) {
     clearThemeStyles();
     window.clearInterval(countdownTimer);
-    document.title = 'InvitaciÃ³n no disponible | Eventora Studio';
+    document.title = 'Invitación no disponible | Eventora Studio';
     document.body.className = 'builder-preview-error public-invitation-device-blocked';
-    document.body.innerHTML = '<main class="device-availability-blocked" role="status" aria-live="polite"><span class="device-availability-eyebrow">EVENTORA STUDIO</span><h1>Esta invitaciÃ³n no estÃ¡ disponible<br>en este dispositivo</h1><p>Tu invitaciÃ³n fue diseÃ±ada para <strong></strong>.</p></main>';
+    document.body.innerHTML = '<main class="device-availability-blocked" role="status" aria-live="polite"><span class="device-availability-eyebrow">EVENTORA STUDIO</span><h1>Esta invitación no está disponible<br>en este dispositivo</h1><p>Tu invitación fue diseñada para <strong></strong>.</p></main>';
     const message = document.querySelector('.device-availability-blocked p strong');
     if (message) message.textContent = allowedDevices;
 }
