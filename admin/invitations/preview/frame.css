@@ -2658,8 +2658,8 @@ body[data-builder-theme="aloha"] .rsvp::after { right: -2rem; bottom: -3rem; wid
 body[data-builder-theme="aloha"] .rsvp {
     height: auto !important;
     min-height: 0 !important;
-    padding-top: 2.25rem !important;
-    padding-bottom: 4rem !important;
+    padding-top: 1.5rem !important;
+    padding-bottom: 2.5rem !important;
     margin-bottom: 0 !important;
 }
 
