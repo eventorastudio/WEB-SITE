@@ -511,7 +511,7 @@ function normalizeAlohaRsvpCopy(optionsNote, config = {}) {
     const sectionNo = document.querySelector('body[data-builder-theme="aloha"] .rsvp .section-no');
     if (sectionNo) sectionNo.textContent = '07 · RSVP';
     const heading = document.querySelector('body[data-builder-theme="aloha"] .rsvp h2');
-    if (heading && /Ã|Â/.test(heading.textContent || '')) heading.innerHTML = '¿Te unes<br>a la ola?';
+    if (heading && /Ã|Â/.test(heading.textContent || '')) heading.innerHTML = '¿Te unes <br>a la ola?';
 }
 
 function normalizeAlohaRsvpVisibleCopy(config = {}) {
@@ -520,7 +520,7 @@ function normalizeAlohaRsvpVisibleCopy(config = {}) {
     root.querySelector('.section-no')?.replaceChildren(document.createTextNode('07 · RSVP'));
     const heading = root.querySelector('h2');
     if (heading) {
-        heading.replaceChildren(document.createTextNode('¿Te unes'), document.createElement('br'), document.createTextNode('a la ola?'));
+        heading.replaceChildren(document.createTextNode('¿Te unes '), document.createElement('br'), document.createTextNode('a la ola?'));
     }
     const note = root.querySelector('[data-access-options-note]');
     if (note) {
