@@ -873,6 +873,59 @@ body[data-builder-theme="aloha"] .social-strip {
         radial-gradient(circle at 88% 84%, rgb(244 91 105 / .15), transparent 20rem),
         linear-gradient(130deg, var(--deep) 0%, var(--leaf) 58%, #0a6a60 100%);
 }
+
+/* General public device-availability screen, independent from invitation themes. */
+body.public-invitation-device-blocked {
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    margin: 0;
+    padding: clamp(1.5rem, 5vw, 4rem);
+    box-sizing: border-box;
+    background: #f6f1e8;
+    color: #073b4c;
+}
+
+.device-availability-blocked {
+    width: min(100%, 42rem);
+    padding: clamp(2rem, 6vw, 4.5rem);
+    border: 1px solid rgb(7 91 105 / .16);
+    border-radius: 1.5rem .45rem 1.5rem .45rem;
+    background: rgb(255 250 240 / .88);
+    box-shadow: .55rem .65rem 0 rgb(244 91 105 / .14), 0 1.5rem 4rem rgb(7 59 76 / .12);
+    text-align: center;
+}
+
+.device-availability-eyebrow {
+    display: block;
+    color: #087a50;
+    font: 800 .62rem/1 Poppins, "Segoe UI", sans-serif;
+    letter-spacing: .24em;
+}
+
+.device-availability-blocked h1 {
+    margin: 1.2rem auto;
+    color: #073b4c;
+    font: 400 clamp(2.2rem, 6vw, 4.8rem)/.94 Georgia, serif;
+    letter-spacing: -.045em;
+}
+
+.device-availability-blocked p {
+    max-width: 32ch;
+    margin: 0 auto;
+    color: rgb(7 59 76 / .72);
+    font: 500 clamp(.88rem, 2vw, 1.05rem)/1.6 Poppins, "Segoe UI", sans-serif;
+}
+
+.device-availability-blocked p strong {
+    color: #075b69;
+    font-weight: 800;
+}
+
+@media (max-width: 600px) {
+    .device-availability-blocked { padding: 2rem 1.25rem 2.35rem; }
+    .device-availability-blocked h1 { font-size: clamp(2rem, 11vw, 3.4rem); }
+}
 body[data-builder-theme="aloha"] .social-strip::before {
     top: -7rem;
     right: -3rem;

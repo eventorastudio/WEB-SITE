@@ -34,8 +34,9 @@ import {
     RSVP_GUEST_POLICY_PATH,
     normalizeRsvpConfig
 } from './rsvp-schema.js?v=phase54a-rsvp-time-20260817';
-import { getPersistedGeneralContentPaths } from './draft-persistence-schema.js?v=phase93-package-sections-format-20260821';
+import { getPersistedGeneralContentPaths } from './draft-persistence-schema.js?v=phase168-device-availability-20260825';
 import { normalizeAppearance } from './appearance-schema.js?v=phase86-appearance-20260820';
+import { DEVICE_CATEGORIES, normalizeDeviceAvailability } from './device-availability.js?v=phase168-device-availability-20260825';
 
 const PREVIEW_DEVICES = Object.freeze(['mobile', 'tablet', 'desktop']);
 const RSVP_EDITABLE_PATHS = Object.freeze(RSVP_EDITABLE_FIELD_DEFINITIONS.map(([path]) => path));
@@ -97,7 +98,12 @@ export function createInvitationDraft(eventId, eventData = {}) {
         accommodations: [],
         links: [],
         appearance: {},
-        settings: { renderMode: 'builder', packageId, format: 'website' },
+        settings: {
+            renderMode: 'builder',
+            packageId,
+            format: 'website',
+            deviceAvailability: normalizeDeviceAvailability()
+        },
         meta: {
             packageSource: packageId ? 'event' : 'unselected',
             touchedPaths: [],
@@ -193,6 +199,23 @@ export class InvitationBuilderState {
         this._draft.settings.format = selected.id;
         this._markDirty();
         this._notify('format-changed', previous);
+        return { ok: true, changed: true };
+    }
+
+    setDeviceAvailability(device, enabled) {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        if (!DEVICE_CATEGORIES.includes(device) || typeof enabled !== 'boolean') {
+            return { ok: false, code: 'builder/invalid-device-availability' };
+        }
+        const current = normalizeDeviceAvailability(this._draft.settings?.deviceAvailability);
+        if (!enabled && Object.values(current).filter(Boolean).length === 1 && current[device]) {
+            return { ok: false, code: 'builder/device-availability-minimum' };
+        }
+        if (current[device] === enabled) return { ok: true, changed: false };
+        const previous = this.getSnapshot();
+        this._draft.settings.deviceAvailability = { ...current, [device]: enabled };
+        this._markDirty();
+        this._notify('settings-changed', previous);
         return { ok: true, changed: true };
     }
 
@@ -537,7 +560,11 @@ export class InvitationBuilderState {
         this._draft.accommodations = cloneInvitationValue(persisted.accommodations);
         this._draft.links = cloneInvitationValue(persisted.links);
         this._draft.appearance = cloneInvitationValue(persisted.appearance);
-        this._draft.settings = { format: 'website', ...cloneInvitationValue(persisted.settings) };
+        this._draft.settings = {
+            format: 'website',
+            deviceAvailability: normalizeDeviceAvailability(persisted.settings?.deviceAvailability),
+            ...cloneInvitationValue(persisted.settings)
+        };
         this._draft.packageId = this._draft.settings?.packageId ?? null;
         this._draft.enabledSections = this._draft.packageId
             ? getEnabledSectionsForPackage(this._draft.packageId)

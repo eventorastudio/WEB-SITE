@@ -3,7 +3,7 @@ import {
     createInvitationDraftFingerprint,
     deserializeInvitationDraft,
     serializeInvitationDraft
-} from '../core/draft-persistence-schema.js?v=phase126-accommodation-icons-place-library-20260824';
+} from '../core/draft-persistence-schema.js?v=phase168-device-availability-20260825';
 
 function serviceError(code, cause = null, details = {}) {
     const error = new Error(code);

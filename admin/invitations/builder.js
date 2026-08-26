@@ -6,7 +6,7 @@ import { eventBus } from '../core/event-bus.js';
 import { EVENT_TYPES } from '../core/event-types.js';
 import { hasPermission, PERMISSIONS } from '../core/roles.js';
 import { initThemeManager } from '../core/theme-manager.js';
-import { builderState } from './core/builder-state.js?v=phase139-media-id-collision-fix-20250825';
+import { builderState } from './core/builder-state.js?v=phase168-device-availability-20260825';
 import { createBuilderUrl, readBuilderRoute } from './core/builder-routing.js?v=phase131-preserve-media-debug-query-20260824';
 import {
     BUILDER_DESKTOP_MIN_WIDTH,
@@ -19,7 +19,7 @@ import { initSectionCopyEditors } from './editors/section-copy-editor.js?v=phase
 import { initLogisticsEditors } from './editors/logistics-editor.js?v=phase93-package-sections-format-20260821';
 import { initAccessPassEditor } from './editors/access-pass-editor.js?v=phase88-qr2-20260820';
 import { initMediaEditor } from './editors/media-editor.js?v=phase139-media-id-collision-fix-20250825';
-import { initAppearanceEditor } from './editors/appearance-editor.js?v=phase86-appearance-20260820';
+import { initAppearanceEditor } from './editors/appearance-editor.js?v=phase168-device-availability-20260825';
 import { initReviewEditor } from './editors/review-editor.js?v=phase86-review-20260820';
 import { invitationMediaService } from './services/invitation-media-service.js?v=phase139-media-id-collision-fix-20250825';
 import { invitationRsvpService } from './services/invitation-rsvp-service.js?v=phase54-public-rsvp-20260817';

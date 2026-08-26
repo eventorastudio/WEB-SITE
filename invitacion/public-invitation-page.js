@@ -1,13 +1,19 @@
-import { getPersistedGeneralContentPaths } from '../admin/invitations/core/draft-persistence-schema.js?v=phase86-appearance-20260820';
+import { getPersistedGeneralContentPaths } from '../admin/invitations/core/draft-persistence-schema.js?v=phase168-device-availability-20260825';
 import { SECTION_REGISTRY, isSectionAllowed } from '../admin/invitations/core/section-registry.js?v=phase3-logistics-20260813';
 import { createTemplateSectionContract } from '../admin/invitations/core/template-binding-registry.js?v=phase86-aloha-a2-20260820';
 import { getThemeById } from '../admin/invitations/core/theme-registry.js?v=phase3-logistics-20260813';
-import { publicInvitationLoader } from './public-invitation-loader.js?v=phase63-public-invitation-20260817';
+import { publicInvitationLoader } from './public-invitation-loader.js?v=phase168-device-availability-20260825';
 import { publicInvitationPersonalizationLoader } from './public-invitation-personalization.js?v=phase64-personalized-invitation-20260817';
 import {
     buildInvitationRsvpUrl,
     readPublicInvitationRoute
-} from './public-invitation-route.js?v=phase105-aloha-rsvp-functional-20260822';
+} from './public-invitation-route.js?v=phase168-device-availability-20260825';
+import {
+    formatAllowedDevices,
+    getDeviceCategory,
+    isDeviceAllowed,
+    normalizeDeviceAvailability
+} from '../admin/invitations/core/device-availability.js?v=phase168-device-availability-20260825';
 
 const AUTHORITATIVE_COLLECTIONS = Object.freeze([
     'locations',
@@ -83,34 +89,94 @@ export class PublicInvitationPage {
         loader = publicInvitationLoader,
         personalizationLoader = publicInvitationPersonalizationLoader,
         renderer,
-        onUnavailable = () => {}
+        onUnavailable = () => {},
+        onDeviceBlocked = () => {}
     } = {}) {
         this.loader = loader;
         this.personalizationLoader = personalizationLoader;
         this.renderer = renderer;
         this.onUnavailable = onUnavailable;
+        this.onDeviceBlocked = onDeviceBlocked;
+        this.projection = null;
+        this.payload = null;
+        this.deviceState = null;
+        this.deviceCheckFrame = 0;
+        this.deviceCheckRunning = false;
+        this.deviceCheckPending = false;
+        this.resizeListenerRegistered = false;
+        this.resizeListener = () => {
+            if (this.deviceCheckRunning) {
+                this.deviceCheckPending = true;
+                return;
+            }
+            if (this.deviceCheckFrame) return;
+            this.deviceCheckFrame = globalThis.requestAnimationFrame?.(() => {
+                this.deviceCheckFrame = 0;
+                void this.evaluateDeviceAvailability();
+            }) ?? globalThis.setTimeout(() => { this.deviceCheckFrame = 0; void this.evaluateDeviceAvailability(); }, 80);
+        };
     }
 
     async load(locationLike = globalThis.location) {
         const { eventId, publicKey, rsvpToken } = readPublicInvitationRoute(locationLike);
         try {
             const projection = await this.loader.load(eventId, publicKey);
-            const personalization = rsvpToken
-                ? await this.loadPersonalization(eventId, rsvpToken)
-                : null;
-            const rsvpUrl = personalization
-                ? buildInvitationRsvpUrl(eventId, rsvpToken, {
-                    origin: locationOrigin(locationLike)
-                })
-                : '';
-            const payload = createPublicInvitationRenderPayload(projection, { personalization, rsvpUrl });
-            if (typeof this.renderer !== 'function') throw new TypeError('public-invitation/renderer-required');
-            await this.renderer(payload);
-            return Object.freeze({ status: 'rendered', eventId, publicKey, projection, payload });
+            this.projection = projection;
+            this.route = { eventId, publicKey, rsvpToken, locationLike };
+            if (!this.resizeListenerRegistered) {
+                globalThis.addEventListener?.('resize', this.resizeListener, { passive: true });
+                this.resizeListenerRegistered = true;
+            }
+            const status = await this.evaluateDeviceAvailability();
+            return Object.freeze({ status, eventId, publicKey, projection, payload: this.payload });
         } catch (error) {
             this.onUnavailable(error);
             return Object.freeze({ status: 'unavailable', eventId, publicKey, error });
         }
+    }
+
+    async evaluateDeviceAvailability() {
+        if (!this.projection) return this.deviceState ?? 'blocked';
+        if (this.deviceCheckRunning) {
+            this.deviceCheckPending = true;
+            return this.deviceState ?? 'blocked';
+        }
+        this.deviceCheckRunning = true;
+        let result = this.deviceState ?? 'blocked';
+        try {
+            do {
+                this.deviceCheckPending = false;
+                result = await this.evaluateDeviceAvailabilityOnce();
+            } while (this.deviceCheckPending);
+            return result;
+        } finally {
+            this.deviceCheckRunning = false;
+        }
+    }
+
+    async evaluateDeviceAvailabilityOnce() {
+        const availability = normalizeDeviceAvailability(this.projection.settings?.deviceAvailability);
+        const category = getDeviceCategory(globalThis.innerWidth);
+        const allowed = isDeviceAllowed(availability, category);
+        const nextState = allowed ? 'allowed' : 'blocked';
+        if (this.deviceState === nextState && (nextState === 'blocked' || this.payload)) return nextState;
+        this.deviceState = nextState;
+        if (!allowed) {
+            this.onDeviceBlocked({ category, allowedDevices: formatAllowedDevices(availability) });
+            return 'blocked';
+        }
+        const { eventId, publicKey, rsvpToken, locationLike } = this.route;
+        const personalization = rsvpToken
+            ? await this.loadPersonalization(eventId, rsvpToken)
+            : null;
+        const rsvpUrl = personalization
+            ? buildInvitationRsvpUrl(eventId, rsvpToken, { origin: locationOrigin(locationLike) })
+            : '';
+        const payload = createPublicInvitationRenderPayload(this.projection, { personalization, rsvpUrl });
+        if (typeof this.renderer !== 'function') throw new TypeError('public-invitation/renderer-required');
+        this.payload = payload;
+        await this.renderer(payload);
+        return 'rendered';
     }
 
     async loadPersonalization(eventId, rsvpToken) {

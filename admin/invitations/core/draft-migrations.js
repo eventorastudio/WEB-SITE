@@ -4,6 +4,7 @@ import {
     createInvitationContent
 } from './content-schema.js?v=phase126-accommodation-icons-place-library-20260824';
 import { getInvitationFormat } from './section-registry.js?v=phase126-accommodation-icons-place-library-20260824';
+import { normalizeDeviceAvailability } from './device-availability.js?v=phase168-device-availability-20260825';
 
 export const CURRENT_DRAFT_SCHEMA_VERSION = 2;
 
@@ -123,6 +124,9 @@ export function migrateInvitationDraftToCurrentSchema(rawDraft) {
     if (migrated.theme === '') migrated.theme = null;
     if (migrated.settings && !Object.hasOwn(migrated.settings, 'format')) {
         migrated.settings.format = getInvitationFormat().id;
+    }
+    if (migrated.settings) {
+        migrated.settings.deviceAvailability = normalizeDeviceAvailability(migrated.settings.deviceAvailability);
     }
     return migrated;
 }

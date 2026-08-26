@@ -9,7 +9,7 @@ import {
     formatInvitationEventLine,
     prepareBuilderTemplate
 } from '../core/template-binding-registry.js?v=phase162-aloha-actions-runtime-20260825';
-import { PublicInvitationPage } from '../../../invitacion/public-invitation-page.js?v=phase108-aloha-rsvp-access-20260822';
+import { PublicInvitationPage } from '../../../invitacion/public-invitation-page.js?v=phase168-device-availability-20260825';
 import { applyPublicInvitationPersonalization } from '../../../invitacion/public-invitation-personalization.js?v=phase88-qr2-20260820';
 import { generateQrCanvas } from '../../modules/qr/qr-renderer.js?v=phase88-qr2-20260820';
 import { getThemeById } from '../core/theme-registry.js?v=phase86-appearance-20260820';
@@ -49,7 +49,8 @@ window.addEventListener('beforeunload', () => {
 async function startPublicInvitation() {
     const page = new PublicInvitationPage({
         renderer: renderPublicPayload,
-        onUnavailable: () => showPublicUnavailable()
+        onUnavailable: () => showPublicUnavailable(),
+        onDeviceBlocked: ({ allowedDevices }) => showPublicDeviceBlocked(allowedDevices)
     });
     await page.load(window.location);
 }
@@ -1179,6 +1180,16 @@ function showPublicUnavailable() {
     document.title = 'Invitación no disponible | Eventora Studio';
     document.body.className = 'builder-preview-error public-invitation-unavailable';
     document.body.innerHTML = '<main class="preview-placeholder"><span>EVENTORA STUDIO</span><strong>Invitación no disponible</strong><p>Verifica el enlace o solicita uno nuevo.</p></main>';
+}
+
+function showPublicDeviceBlocked(allowedDevices) {
+    clearThemeStyles();
+    window.clearInterval(countdownTimer);
+    document.title = 'InvitaciÃ³n no disponible | Eventora Studio';
+    document.body.className = 'builder-preview-error public-invitation-device-blocked';
+    document.body.innerHTML = '<main class="device-availability-blocked" role="status" aria-live="polite"><span class="device-availability-eyebrow">EVENTORA STUDIO</span><h1>Esta invitaciÃ³n no estÃ¡ disponible<br>en este dispositivo</h1><p>Tu invitaciÃ³n fue diseÃ±ada para <strong></strong>.</p></main>';
+    const message = document.querySelector('.device-availability-blocked p strong');
+    if (message) message.textContent = allowedDevices;
 }
 
 function postToParent(message) {

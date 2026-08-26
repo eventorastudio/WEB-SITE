@@ -8,12 +8,12 @@ import {
     deserializeInvitationRevision,
     serializeInvitationPublication,
     serializeInvitationRevision
-} from '../core/invitation-publication-schema.js?v=phase63-public-invitation-20260817';
+} from '../core/invitation-publication-schema.js?v=phase168-device-availability-20260825';
 import {
     INVITATION_PUBLIC_COLLECTION_ID,
     createPublicInvitationProjectionFingerprint,
     serializePublicInvitationProjection
-} from '../core/invitation-public-projection.js?v=phase97-public-rsvp-20260821';
+} from '../core/invitation-public-projection.js?v=phase168-device-availability-20260825';
 
 function serviceError(code, cause = null, details = {}) {
     const error = new Error(code);

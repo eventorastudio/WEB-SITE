@@ -1,8 +1,8 @@
 import {
     INVITATION_PUBLIC_COLLECTION_ID,
     deserializePublicInvitationProjection
-} from '../admin/invitations/core/invitation-public-projection.js?v=phase97-public-rsvp-20260821';
-import { isInvitationPublicKey } from '../admin/invitations/core/invitation-publication-schema.js?v=phase63-public-invitation-20260817';
+} from '../admin/invitations/core/invitation-public-projection.js?v=phase168-device-availability-20260825';
+import { isInvitationPublicKey } from '../admin/invitations/core/invitation-publication-schema.js?v=phase168-device-availability-20260825';
 
 const SAFE_EVENT_ID = /^[A-Za-z0-9_-]{1,150}$/;
 
