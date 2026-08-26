@@ -2765,6 +2765,22 @@ body[data-builder-theme="aloha"] .hero::before {
     filter: drop-shadow(0 .7rem 1.2rem rgb(0 35 45 / .16));
 }
 
+/* Aloha hero: keep the event details clear of tall two-line names. */
+body[data-builder-theme="aloha"] .hero-copy > .hero-date {
+    margin-top: 2rem;
+}
+
+body[data-builder-theme="aloha"] .hero-copy > .scroll-cue {
+    display: inline-block;
+    margin-top: .85rem;
+}
+
+@media (max-width: 730px) {
+    body[data-builder-theme="aloha"] .hero-copy > .hero-date {
+        margin-top: 1.25rem;
+    }
+}
+
 body[data-builder-theme="aloha"] .pool-note {
     isolation: isolate;
 }
