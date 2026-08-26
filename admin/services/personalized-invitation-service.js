@@ -10,7 +10,10 @@ import {
     isRsvpAccessExpired
 } from '../../shared/rsvp-access-contract.js?v=phase64-personalized-invitation-20260817';
 import { rsvpAccessService } from '../invitations/services/rsvp-access-service.js?v=phase71-invitation-sharing-20260817';
-import { buildPersonalizedInvitationUrl } from '../../invitacion/public-invitation-route.js?v=phase90-canonical-invitation-urls-20260821';
+import {
+    buildPersonalizedInvitationUrl,
+    buildPublicInvitationUrl
+} from '../../invitacion/public-invitation-route.js?v=phase90-canonical-invitation-urls-20260821';
 
 function serviceError(code, cause = null) {
     const error = new Error(code);
@@ -66,6 +69,36 @@ export class PersonalizedInvitationService {
         if (!this.gatewayPromise) this.gatewayPromise = this.gatewayFactory();
         this.gateway = await this.gatewayPromise;
         return this.gateway;
+    }
+
+    async getPublicInvitationUrl({ eventId } = {}) {
+        const safeEventId = assertRsvpAccessEventId(eventId);
+        const gateway = await this.getGateway();
+        let publicationDocument;
+        try {
+            publicationDocument = await gateway.readPublication(safeEventId);
+        } catch (error) {
+            throw serviceError('personalized-invitation/read-failed', error);
+        }
+        if (!publicationDocument) throw serviceError('personalized-invitation/not-published');
+
+        let publication;
+        try {
+            publication = deserializeInvitationPublication(publicationDocument, safeEventId);
+        } catch (error) {
+            throw serviceError('personalized-invitation/invalid-source', error);
+        }
+        if (!isInvitationPublicKey(publication.publicKey)) {
+            throw serviceError('personalized-invitation/not-published');
+        }
+
+        const options = { eventId: safeEventId, publicKey: publication.publicKey };
+        if (this.publicBaseUrl) options.baseUrl = this.publicBaseUrl;
+        return Object.freeze({
+            eventId: safeEventId,
+            publicKey: publication.publicKey,
+            url: buildPublicInvitationUrl(options)
+        });
     }
 
     async createGuestInvitationUrl({ eventId, guestId } = {}) {

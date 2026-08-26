@@ -6,6 +6,7 @@ import {
     indexRsvpOperationalDocuments
 } from './guests/rsvp-operational-view.js';
 import { buildWhatsAppUrl, normalizeWhatsAppPhone } from '../invitations/core/safe-url.js';
+import { copyInvitation } from '../invitation-utils.js';
 
 
 /* ========================================================================== 
@@ -43,6 +44,9 @@ let guestLoadError = null;
 let rsvpOperationsLoadState = 'idle';
 let rsvpStatesByGuestId = new Map();
 let rsvpConflictGuestIds = new Set();
+let publicInvitationUrl = '';
+let publicInvitationUrlState = 'idle';
+let publicInvitationUrlRequest = 0;
 
 /** Filtros visuales efímeros; las listas completas nunca se guardan en State. */
 let guestFilters = { search: '', status: 'all', table: 'all', sort: 'name-asc' };
@@ -126,6 +130,9 @@ export function destroy() {
     rsvpOperationsLoadState = 'idle';
     rsvpStatesByGuestId.clear();
     rsvpConflictGuestIds.clear();
+    publicInvitationUrl = '';
+    publicInvitationUrlState = 'idle';
+    publicInvitationUrlRequest += 1;
     guestFilters = { search: '', status: 'all', table: 'all', sort: 'name-asc' };
     guestVisibleLimit = 50;
     activeGuestMode = 'create';
@@ -1466,6 +1473,55 @@ function renderConfiguration(eventData) {
     setInputValue('conf-whatsapp-template', whatsAppTemplate);
 }
 
+function renderPublicInvitationUrl() {
+    const input = getElement('public-invitation-url');
+    const status = getElement('public-invitation-url-status');
+    const copyButton = getElement('btn-copy-public-invitation-url');
+    const openLink = getElement('btn-open-public-invitation-url');
+    if (!input || !status || !copyButton || !openLink) return;
+
+    const ready = publicInvitationUrlState === 'ready' && Boolean(publicInvitationUrl);
+    input.value = ready ? publicInvitationUrl : '';
+    input.placeholder = publicInvitationUrlState === 'loading'
+        ? 'Consultando la publicación…'
+        : 'Publica la invitación para generar su URL pública.';
+    status.textContent = publicInvitationUrlState === 'loading'
+        ? 'Consultando la publicación activa…'
+        : ready
+            ? 'Invitación publicada. Esta URL no contiene token de invitado.'
+            : 'Publica la invitación para generar su URL pública.';
+    copyButton.disabled = !ready;
+    openLink.href = ready ? publicInvitationUrl : '#';
+    openLink.setAttribute('aria-disabled', String(!ready));
+    openLink.tabIndex = ready ? 0 : -1;
+}
+
+async function refreshPublicInvitationUrl() {
+    const service = deps?.services?.personalizedInvitation;
+    if (typeof service?.getPublicInvitationUrl !== 'function') return;
+    const request = ++publicInvitationUrlRequest;
+    publicInvitationUrlState = 'loading';
+    publicInvitationUrl = '';
+    renderPublicInvitationUrl();
+    try {
+        const result = await service.getPublicInvitationUrl({ eventId: deps.eventContext.eventId });
+        if (request !== publicInvitationUrlRequest) return;
+        publicInvitationUrl = result.url;
+        publicInvitationUrlState = 'ready';
+    } catch (error) {
+        if (request !== publicInvitationUrlRequest) return;
+        publicInvitationUrl = '';
+        publicInvitationUrlState = error?.code === 'personalized-invitation/not-published'
+            ? 'not-published'
+            : 'error';
+        if (publicInvitationUrlState === 'error') {
+            console.error('[Event Controller] No se pudo cargar la URL pública:', error);
+        }
+    } finally {
+        if (request === publicInvitationUrlRequest) renderPublicInvitationUrl();
+    }
+}
+
 
 /* ========================================================================== 
  * Eventos
@@ -1495,6 +1551,7 @@ function registerEventBusListeners() {
 function handleEventLoaded(payload) {
     if (isCurrentEventPayload(payload)) {
         render();
+        void refreshPublicInvitationUrl();
     }
 }
 
@@ -1512,6 +1569,7 @@ function handleEventUpdated(payload) {
     }
 
     render();
+    void refreshPublicInvitationUrl();
 }
 
 function handleEventStatsUpdated(payload) {
@@ -1616,6 +1674,8 @@ function bindButtons() {
     listen(getElement('guests-list'), 'change', handleGuestSelectionChange);
     listen(getElement('btn-share-selected-guests'), 'click', handleShareSelectedGuests);
     listen(getElement('btn-update-invitation-urls'), 'click', handleUpdateInvitationUrls);
+    listen(getElement('btn-copy-public-invitation-url'), 'click', handleCopyPublicInvitationUrl);
+    listen(getElement('btn-open-public-invitation-url'), 'click', handleOpenPublicInvitationUrl);
     listen(getElement('btn-close-whatsapp-share'), 'click', closeWhatsAppShareModal);
     listen(getElement('modal-whatsapp-share'), 'click', handleWhatsAppShareOverlayClick);
     listen(getElement('btn-whatsapp-share-next'), 'click', handleWhatsAppShareNext);
@@ -1660,7 +1720,22 @@ async function handleUpdateInvitationUrls() {
     } finally {
         button.disabled = false;
         button.textContent = originalLabel;
+        void refreshPublicInvitationUrl();
     }
+}
+
+async function handleCopyPublicInvitationUrl() {
+    if (!publicInvitationUrl) return;
+    await copyInvitation(
+        publicInvitationUrl,
+        () => deps.ui.showToast({ title: 'URL copiada', message: 'La URL pública del evento se copió correctamente.', type: 'success' }),
+        () => deps.ui.showToast({ title: 'No se pudo copiar', message: 'Copia la URL manualmente desde el campo.', type: 'error' })
+    );
+}
+
+function handleOpenPublicInvitationUrl(event) {
+    if (publicInvitationUrl) return;
+    event.preventDefault();
 }
 
 /**
