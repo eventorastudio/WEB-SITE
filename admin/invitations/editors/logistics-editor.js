@@ -1,10 +1,10 @@
 import { getSectionEditor } from '../core/section-editor-registry.js?v=phase164-aloha-rsvp-builder-cleanup-20260825';
-import { initAccommodationEditor } from './accommodation-editor.js?v=phase3-logistics-20260813';
+import { initAccommodationEditor } from './accommodation-editor.js?v=phase173-place-library-selector-20260826';
 import { initDressCodeEditor } from './dress-code-editor.js?v=phase89-dress-code-media-20260820';
 import { initGiftEditor } from './gift-editor.js?v=phase142-aloha-prestige-actions-icon-picker-20260825';
 import { initItineraryEditor } from './itinerary-editor.js?v=phase3-logistics-20260813';
 import { initLinksEditor } from './links-editor.js?v=phase145-native-ics-calendar-handoff-20260825';
-import { initLocationEditor } from './location-editor.js?v=phase93-package-sections-format-20260821';
+import { initLocationEditor } from './location-editor.js?v=phase173-place-library-selector-20260826';
 
 const MOUNTERS = Object.freeze({
     locations: initLocationEditor,

@@ -26,7 +26,7 @@ export function initLocationEditor({ container, state }) {
             textField('venueName', 'Nombre del lugar', { placeholder: 'Catedral de Santiago', maxLength: 160 }),
             selectField('imageMediaId', 'Imagen del lugar', [
                 { value: '', label: 'Sin foto — usar fallback Aloha' },
-                ...(snapshot.draft.media?.place ?? []).filter((asset) => asset.storagePath && asset.status === 'uploaded').map((asset) => ({
+                ...(snapshot.draft.media?.place ?? []).map((asset) => ({
                     value: asset.id,
                     label: asset.originalName || `Imagen ${asset.id}`
                 }))

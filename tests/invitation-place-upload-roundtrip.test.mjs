@@ -84,11 +84,13 @@ test('two place uploads, replacement and delete keep index integrity', async () 
     assert.equal(deleted.media.place.length, 1);
 });
 
-test('place editor auto-persists after processing and selectors exclude local-only assets', async () => {
+test('place editor auto-persists after processing and selectors expose the reusable library', async () => {
     const source = await readFile(new URL('../admin/invitations/editors/media-editor.js', import.meta.url), 'utf8');
     const locationEditor = await readFile(new URL('../admin/invitations/editors/location-editor.js', import.meta.url), 'utf8');
     const accommodationEditor = await readFile(new URL('../admin/invitations/editors/accommodation-editor.js', import.meta.url), 'utf8');
     assert.match(source, /role === 'place' && storageStatus\.canUpload\) await saveMedia\(\[assetId\]\)/);
-    assert.match(locationEditor, /storagePath && asset\.status === 'uploaded'/);
-    assert.match(accommodationEditor, /storagePath && asset\.status === 'uploaded'/);
+    assert.match(locationEditor, /media\?\.place \?\? \[\]\)\.map\(\(asset\) =>/);
+    assert.match(accommodationEditor, /media\?\.place \?\? \[\]\)\.map\(\(asset\) =>/);
+    assert.doesNotMatch(locationEditor, /media\?\.place \?\? \[\]\)\.filter\(/);
+    assert.doesNotMatch(accommodationEditor, /media\?\.place \?\? \[\]\)\.filter\(/);
 });
