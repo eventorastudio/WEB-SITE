@@ -2859,7 +2859,7 @@ body[data-builder-theme="aloha"] footer > * {
     body[data-builder-theme="aloha"] footer::before { animation: none; }
 }
 
-/* Aloha actions recovery: keep real dynamic content above ornaments. */
+/* Aloha actions recovery: minimal hierarchy and natural height. */
 body[data-builder-theme="aloha"] .social-strip {
     min-height: 0;
     height: auto;
@@ -2871,8 +2871,6 @@ body[data-builder-theme="aloha"] .social-strip .aloha-actions-grid,
 body[data-builder-theme="aloha"] .social-strip .aloha-actions-copy {
     position: relative;
     z-index: 2;
-    visibility: visible;
-    opacity: 1;
 }
 
 body[data-builder-theme="aloha"] .social-strip .aloha-actions-heading {
@@ -2883,16 +2881,14 @@ body[data-builder-theme="aloha"] .social-strip .aloha-actions-heading {
     margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
 }
 
-body[data-builder-theme="aloha"] .social-strip .aloha-actions-heading h2,
-body[data-builder-theme="aloha"] .social-strip .aloha-actions-eyebrow,
-body[data-builder-theme="aloha"] .social-strip .aloha-actions-copy p {
-    visibility: visible;
-    opacity: 1;
-}
-
 body[data-builder-theme="aloha"] .social-strip .aloha-actions-heading h2 {
     display: block;
     color: var(--cream, #fff6e1);
+}
+
+body[data-builder-theme="aloha"] .social-strip .aloha-actions-grid {
+    display: grid;
+    gap: .8rem;
 }
 
 body[data-builder-theme="aloha"] .social-strip .aloha-actions-copy {
@@ -2908,38 +2904,13 @@ body[data-builder-theme="aloha"] .social-strip .aloha-actions-copy p {
     color: rgb(255 246 229 / .86);
 }
 
-body[data-builder-theme="aloha"] .social-strip .aloha-actions-grid {
-    display: grid;
-    gap: .8rem;
-}
-
 body[data-builder-theme="aloha"] .social-strip .aloha-action-card {
     display: grid;
-    visibility: visible;
-    opacity: 1;
     color: var(--cream, #fff6e1);
-    position: relative;
-    z-index: 2;
-}
-
-body[data-builder-theme="aloha"] .social-strip .aloha-action-card > .aloha-action-icon,
-body[data-builder-theme="aloha"] .social-strip .aloha-action-card > .aloha-action-label,
-body[data-builder-theme="aloha"] .social-strip .aloha-action-card > .aloha-action-arrow {
-    display: block;
-    visibility: visible;
-    opacity: 1;
-}
-
-body[data-builder-theme="aloha"] .social-strip .aloha-action-card > .aloha-action-icon {
-    display: grid;
 }
 
 body[data-builder-theme="aloha"] .social-strip .aloha-action-label {
-    min-width: 0;
-    overflow: visible;
     color: var(--cream, #fff6e1);
-    text-overflow: clip;
-    white-space: normal;
 }
 
 body[data-builder-theme="aloha"] .social-strip .aloha-action-arrow {
