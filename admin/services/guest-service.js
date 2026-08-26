@@ -32,6 +32,7 @@ import {
 import {
     findNextAvailableGuestSequence
 } from '../../shared/guest-numbering.js';
+import { getGuestQrAvailability } from '../../shared/qr-code.js';
 import { createEventStatsMutation } from '../../shared/event-stats.js';
 import { eventStatsService } from './event-stats-service.js';
 
@@ -334,6 +335,20 @@ export const guestService = {
                 .filter(Boolean));
         } catch (error) {
             wrapGuestServiceError('fetch-qr', error);
+        }
+    },
+
+    async getQrAvailability(eventId) {
+        if (!eventId) throw new Error('guest/invalid-event-id');
+        try {
+            const snapshot = await getDocs(collection(db, 'eventos', eventId, 'invitados'));
+            let guestsWithQr = 0;
+            snapshot.forEach((item) => {
+                if (getGuestQrAvailability(item.data()).available) guestsWithQr += 1;
+            });
+            return Object.freeze({ totalGuests: snapshot.size, guestsWithQr });
+        } catch (error) {
+            wrapGuestServiceError('fetch-qr-availability', error);
         }
     },
 

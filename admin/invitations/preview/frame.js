@@ -446,7 +446,7 @@ function renderAccessPass(payload) {
         node.hidden = !valid;
     });
     access.querySelectorAll('[data-pass-selector]').forEach((node) => { node.hidden = true; });
-    const qrToken = builderPreview ? 'PREVIEW-QR-NO-OPERATIVO' : personalization?.qrToken;
+    const qrToken = builderPreview ? 'EVENTORA-PREVIEW-QR' : personalization?.qrToken;
     access.querySelectorAll('[data-access-view]').forEach((view) => {
         let qrHost = view.querySelector('[data-builder-access-qr]') || view.querySelector('.island-code');
         if (!qrHost) {

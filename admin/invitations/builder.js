@@ -17,7 +17,8 @@ import { createBuilderDebugLogger } from './core/builder-debug.js?v=phase3-logis
 import { initIdentityEditor } from './editors/identity-editor.js?v=phase94-opening-cover-20260821';
 import { initSectionCopyEditors } from './editors/section-copy-editor.js?v=phase54a-rsvp-time-20260817';
 import { initLogisticsEditors } from './editors/logistics-editor.js?v=phase93-package-sections-format-20260821';
-import { initAccessPassEditor } from './editors/access-pass-editor.js?v=phase88-qr2-20260820';
+import { initAccessPassEditor } from './editors/access-pass-editor.js?v=phase170-access-qr-visibility-20260826';
+import { guestService } from '../services/guest-service.js?v=phase170-access-qr-visibility-20260826';
 import { initMediaEditor } from './editors/media-editor.js?v=phase139-media-id-collision-fix-20250825';
 import { initAppearanceEditor } from './editors/appearance-editor.js?v=phase168-device-availability-20260825';
 import { initReviewEditor } from './editors/review-editor.js?v=phase86-review-20260820';
@@ -313,7 +314,8 @@ function mountModules() {
     }));
     moduleCleanups.push(initAccessPassEditor({
         container: document.getElementById('access-pass-editor'),
-        state: builderState
+        state: builderState,
+        guestService
     }));
     moduleCleanups.push(initLogisticsEditors({
         container: document.getElementById('phase3-details-editors'),

@@ -216,7 +216,7 @@ export const SECTION_EDITOR_REGISTRY = Object.freeze({
         notice: 'Configura la experiencia de acceso digital e impresa para tus invitados.',
         fields: [
             field('content.access.passesLabel', 'Label de pases'),
-            field('content.access.showQr', 'Mostrar QR', { kind: 'toggle', wide: true }),
+            field('content.access.showQr', 'Mostrar QR de acceso en RSVP', { kind: 'toggle', wide: true }),
             field('content.access.showPrintPass', 'Permitir imprimir pase', { kind: 'toggle', wide: true }),
             field('content.access.printButtonLabel', 'Texto del botÃ³n de impresiÃ³n'),
             field('content.access.printTitle', 'TÃ­tulo del pase impreso'),
