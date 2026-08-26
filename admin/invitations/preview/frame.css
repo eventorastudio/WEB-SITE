@@ -2922,3 +2922,11 @@ body[data-builder-theme="aloha"] .social-strip .aloha-action-arrow {
         padding-block: 2.5rem 3rem;
     }
 }
+
+/* Restore the approved historical Aloha actions palette from 0ef5f48. */
+body[data-builder-theme="aloha"] .social-strip {
+    background:
+        radial-gradient(circle at 10% 18%, rgb(28 191 210 / .16), transparent 18rem),
+        radial-gradient(circle at 88% 84%, rgb(244 91 105 / .15), transparent 20rem),
+        linear-gradient(130deg, var(--deep) 0%, var(--leaf) 58%, #0a6a60 100%);
+}
