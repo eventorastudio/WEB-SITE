@@ -223,12 +223,27 @@ service cloud.firestore {
             && settings.keys().hasOnly(['renderMode', 'packageId', 'format'])
             && settings.format in ['website', 'stories', 'cards']
           )
+          || (
+            settings.keys().size() == 4
+            && settings.keys().hasOnly(['renderMode', 'packageId', 'format', 'deviceAvailability'])
+            && settings.format in ['website', 'stories', 'cards']
+            && validDeviceAvailability(settings.deviceAvailability)
+          )
         )
         && settings.renderMode == 'builder'
         && (
           settings.packageId == null
           || settings.packageId in ['esencial', 'premium', 'prestige']
         );
+    }
+
+    function validDeviceAvailability(availability) {
+      return availability is map
+        && availability.keys().size() == 3
+        && availability.keys().hasOnly(['desktop', 'tablet', 'mobile'])
+        && availability.desktop is bool
+        && availability.tablet is bool
+        && availability.mobile is bool;
     }
 
     function validInvitationAppearance(appearance) {
