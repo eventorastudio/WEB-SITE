@@ -7,6 +7,7 @@ import {
     applyPhase4ContentBindings,
     applyPhase5ContentBindings,
     formatInvitationEventLine,
+    formatInvitationDate,
     prepareBuilderTemplate
 } from '../core/template-binding-registry.js?v=phase162-aloha-actions-runtime-20260825';
 import { PublicInvitationPage } from '../../../invitacion/public-invitation-page.js?v=phase168-device-availability-20260825';
@@ -802,9 +803,16 @@ function sanitizeAlohaRealContent(payload) {
     if (!hasGallery) document.querySelector('[data-prestige-feature~="gallery"]')?.setAttribute('hidden', 'true');
     if (!hasVideo) document.querySelector('[data-prestige-feature~="welcome-video"]')?.setAttribute('hidden', 'true');
     if (!hasDressCode) document.querySelector('[data-prestige-feature~="dress-code"]')?.setAttribute('hidden', 'true');
-    const staticDeadline = [...document.querySelectorAll('.rsvp p')]
-        .find((element) => /confirma antes del 20 de mayo/i.test(element.textContent ?? ''));
-    if (!content.rsvp?.deadline) staticDeadline?.setAttribute('hidden', 'true');
+    const deadlineElement = document.querySelector('.rsvp [data-builder-bound-path="content.rsvp.deadline"]')
+        ?? document.querySelector('.rsvp [data-builder-field-path="content.rsvp.deadline"]')
+        ?? document.querySelector('.rsvp > [data-demo-rsvp-deadline]');
+    const deadlineValue = String(content.rsvp?.deadline ?? '').trim();
+    if (deadlineElement) {
+        deadlineElement.textContent = deadlineValue
+            ? `Confirma antes del ${formatInvitationDate(deadlineValue) || deadlineValue}.`
+            : '';
+        deadlineElement.hidden = !deadlineValue;
+    }
     const ticket = document.querySelector('.guest-ticket');
     const personalization = payload.personalization;
     const hasValidPersonalization = personalization
