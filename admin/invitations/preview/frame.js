@@ -522,6 +522,7 @@ function normalizeAlohaRsvpVisibleCopy(config = {}) {
     if (heading) {
         heading.replaceChildren(document.createTextNode('¿Te unes '), document.createElement('br'), document.createTextNode('a la ola?'));
     }
+    if (heading) heading.textContent = '\u00bfTe unes a la ola?';
     const note = root.querySelector('[data-access-options-note]');
     if (note) {
         note.textContent = config.showQr !== false && config.showPrintPass !== false
