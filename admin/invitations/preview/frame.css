@@ -16,6 +16,16 @@ html, body { min-height: 100%; max-inline-size: 100%; overflow-x: clip; }
 .preview-device-viewport[data-device="tablet"] iframe, .preview-device-viewport[data-device="mobile"] iframe { box-shadow: none; }
 html[data-preview-embedded="true"] .preview-toolbar, html[data-preview-embedded="true"] #preview-stage { display: none; }
 html[data-preview-embedded="true"], html[data-preview-embedded="true"] body { min-height: 100%; overflow-x: hidden; }
+
+/* Keep the Aloha opening gate isolated to its runtime document, including mobile viewport scrolling. */
+html.aloha-opening-locked,
+html.aloha-opening-locked body {
+    overflow: hidden;
+    overscroll-behavior: none;
+    scrollbar-width: none;
+}
+html.aloha-opening-locked body::-webkit-scrollbar { display: none; }
+
 @media (max-width: 700px) {
     .preview-toolbar { grid-template-columns: 1fr auto; }
     .preview-toolbar-brand { display: none; }

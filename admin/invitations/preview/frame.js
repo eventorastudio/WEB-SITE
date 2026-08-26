@@ -322,6 +322,7 @@ function applyPayload(payload) {
 }
 
 function setupOpening(payload) {
+    document.documentElement.classList.remove('aloha-opening-locked');
     const opening = document.getElementById('opening');
     const invitation = document.getElementById('invitation');
     const openButton = document.getElementById('open-invitation');
@@ -338,9 +339,11 @@ function setupOpening(payload) {
     invitation.inert = true;
     invitation.setAttribute('aria-hidden', 'true');
     document.body.classList.add('locked');
+    if (payload.theme.id === 'aloha') document.documentElement.classList.add('aloha-opening-locked');
     openButton.addEventListener('click', async () => {
         opening.classList.add('opened');
         document.body.classList.remove('locked');
+        document.documentElement.classList.remove('aloha-opening-locked');
         document.body.classList.add('invitation-open');
         invitation.inert = false;
         invitation.setAttribute('aria-hidden', 'false');
