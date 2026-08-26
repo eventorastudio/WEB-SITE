@@ -1,8 +1,8 @@
 import {
     INVITATION_PUBLIC_COLLECTION_ID,
     deserializePublicInvitationProjection
-} from '../admin/invitations/core/invitation-public-projection.js?v=phase168-device-availability-20260825';
-import { isInvitationPublicKey } from '../admin/invitations/core/invitation-publication-schema.js?v=phase168-device-availability-20260825';
+} from '../admin/invitations/core/invitation-public-projection.js?v=phase171-demo-mode-20260826';
+import { isInvitationPublicKey } from '../admin/invitations/core/invitation-publication-schema.js?v=phase171-demo-mode-20260826';
 
 const SAFE_EVENT_ID = /^[A-Za-z0-9_-]{1,150}$/;
 

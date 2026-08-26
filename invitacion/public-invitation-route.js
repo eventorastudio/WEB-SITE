@@ -1,6 +1,6 @@
 import {
     assertInvitationPublicKey
-} from '../admin/invitations/core/invitation-publication-schema.js?v=phase168-device-availability-20260825';
+} from '../admin/invitations/core/invitation-publication-schema.js?v=phase171-demo-mode-20260826';
 import {
     assertRsvpAccessEventId,
     assertRsvpAccessToken,

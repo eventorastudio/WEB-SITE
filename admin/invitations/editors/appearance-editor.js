@@ -5,12 +5,14 @@ export function initAppearanceEditor({ container, state }) {
     if (!container || !state) return () => {};
     let input = null;
     let definition = null;
+    let demoInput = null;
     const deviceInputs = new Map();
     let deviceFeedback = null;
     const sync = () => {
         if (input) input.value = state.getSnapshot().draft?.appearance?.accentColor || definition?.default || '#000000';
         const availability = normalizeDeviceAvailability(state.getSnapshot().draft?.settings?.deviceAvailability);
         deviceInputs.forEach((control, device) => { control.checked = availability[device]; });
+        if (demoInput) demoInput.checked = state.getSnapshot().draft?.settings?.demoMode === true;
     };
     const renderDeviceSettings = (container) => {
         const group = document.createElement('section');
@@ -49,6 +51,7 @@ export function initAppearanceEditor({ container, state }) {
     const render = (snapshot) => {
         container.replaceChildren();
         input = null;
+        demoInput = null;
         deviceInputs.clear();
         deviceFeedback = null;
         definition = getThemeById(snapshot.draft?.themeId)?.appearance?.accentColor ?? null;
@@ -81,13 +84,34 @@ export function initAppearanceEditor({ container, state }) {
             group.append(form);
         }
         container.append(group);
+        const demoGroup = document.createElement('section');
+        demoGroup.className = 'information-group';
+        demoGroup.innerHTML = '<header><span>DEMOSTRACIÓN</span><h3>Modo DEMO</h3><p>Desactiva acciones que llevan fuera de la invitación. Ideal para invitaciones de muestra.</p></header>';
+        const demoRow = document.createElement('label');
+        demoRow.className = 'field-toggle-row';
+        demoInput = document.createElement('input');
+        demoInput.type = 'checkbox';
+        demoInput.addEventListener('change', () => state.updateDraftField('settings.demoMode', demoInput.checked));
+        const demoLabel = document.createElement('strong');
+        demoLabel.textContent = 'Activar modo DEMO';
+        demoRow.append(demoInput, demoLabel);
+        const demoNotice = document.createElement('small');
+        demoNotice.className = 'field-help';
+        demoNotice.textContent = 'Esta invitación está configurada como DEMO.';
+        demoNotice.hidden = true;
+        demoRow.append(demoNotice);
+        demoGroup.append(demoRow);
+        container.append(demoGroup);
+        const syncDemoNotice = () => { demoNotice.hidden = !demoInput?.checked; };
+        demoInput.addEventListener('change', syncDemoNotice);
         renderDeviceSettings(container);
         sync();
+        syncDemoNotice();
     };
     render(state.getSnapshot());
     const unsubscribe = state.subscribe(({ snapshot, reason }) => {
         if (reason === 'initialized' || reason === 'theme-changed') render(snapshot);
-        else if (reason === 'appearance-changed' || reason === 'settings-changed') sync();
+        else if (reason === 'appearance-changed' || reason === 'settings-changed' || reason === 'content-changed') sync();
     }, { source: 'appearance-editor' });
     return () => unsubscribe();
 }

@@ -34,6 +34,8 @@ const btnCreateEvent = document.getElementById('btn-create-event');
 const btnCreateInvitation = document.getElementById('btn-create-invitation');
 const statsContainer = document.getElementById('stats-container');
 const eventsContainer = document.getElementById('events-container');
+const demosSection = document.getElementById('demos-section');
+const demosContainer = document.getElementById('demos-container');
 
 // ============================================================================
 // REFERENCIAS DOM (MÓDULO 3 - MODAL)
@@ -196,10 +198,49 @@ async function loadDashboardData() {
         } else {
             renderEvents(eventsList);
         }
+        renderDemos(eventsList);
 
     } catch (error) {
         renderDashboardFailure(error, { operation: 'getDocs/orderBy(fecha desc)', collection: 'eventos' });
     }
+}
+
+function renderDemos(events) {
+    if (!demosSection || !demosContainer) return;
+    const demos = events.filter((event) => event.demoMode === true);
+    demosSection.hidden = demos.length === 0;
+    demosContainer.replaceChildren();
+    demosContainer.style.gridTemplateColumns = '';
+    demos.forEach((event, index) => {
+        const card = document.createElement('div');
+        card.className = 'event-card';
+        card.style.animation = `fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${Math.min(index * 0.05, 0.5)}s forwards`;
+        card.style.opacity = '0';
+        const theme = event.themeId || event.theme || 'Colección no definida';
+        const packageId = event.packageId || event.paqueteId || 'Paquete no definido';
+        card.innerHTML = `
+            <div class="event-card-header"><span class="badge badge-info">DEMO</span></div>
+            <div class="event-card-body">
+                <h3 class="event-name">${event.nombreEvento || event.nombre || 'Evento sin título'}</h3>
+                <div class="event-meta"><div class="meta-item"><span>Colección: ${theme}</span></div><div class="meta-item"><span>Paquete: ${packageId}</span></div></div>
+            </div>
+            <div class="event-card-footer">
+                <button class="btn-card btn-demo-builder" type="button">Abrir Builder</button>
+                ${isSafePublicKey(event.publicKey) ? '<button class="btn-card btn-demo-public" type="button">Abrir demo</button>' : ''}
+            </div>
+        `;
+        card.querySelector('.btn-demo-builder')?.addEventListener('click', () => {
+            window.location.href = `./invitations/builder.html?event=${encodeURIComponent(event.id)}`;
+        });
+        card.querySelector('.btn-demo-public')?.addEventListener('click', () => {
+            window.location.href = `../invitacion/?event=${encodeURIComponent(event.id)}&key=${event.publicKey}`;
+        });
+        demosContainer.append(card);
+    });
+}
+
+function isSafePublicKey(value) {
+    return /^[a-f0-9]{48}$/.test(String(value ?? ''));
 }
 
 function renderDashboardFailure(error, context) {
@@ -211,6 +252,8 @@ function renderDashboardFailure(error, context) {
     message.textContent = `${detail.title}. ${detail.userMessage} Código: ${detail.code}.`;
     statsContainer.replaceChildren(message);
     eventsContainer.replaceChildren();
+    demosContainer?.replaceChildren();
+    if (demosSection) demosSection.hidden = true;
     if (authGuard) {
         authGuard.classList.add('auth-guard-message');
         authGuard.textContent = detail.userMessage;

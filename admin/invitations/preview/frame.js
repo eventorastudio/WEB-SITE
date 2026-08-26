@@ -32,6 +32,7 @@ let countdownTimer = null;
 let activePayload = null;
 
 if (publicRuntime) {
+    window.addEventListener('click', interceptNavigation, true);
     void startPublicInvitation();
 } else if (embeddedPreview) {
     window.addEventListener('message', handleParentMessage);
@@ -1018,11 +1019,13 @@ function safeQueryAll(selector) {
 }
 
 function interceptNavigation(event) {
+    const demoMode = activePayload?.draft?.settings?.demoMode === true;
+    if (publicRuntime && !demoMode) return;
     const anchor = event.target.closest?.('a');
     const action = event.target.closest?.('[data-builder-action],[data-demo-action]');
     if (!anchor && !action) return;
-    if (action?.dataset.publicInvitationRsvp === 'true') return;
-    if (publicRuntime && action?.dataset.builderAction === 'calendar' && anchor?.href) return;
+    if (action?.dataset.publicInvitationRsvp === 'true' && !demoMode) return;
+    if (publicRuntime && !demoMode && action?.dataset.builderAction === 'calendar' && anchor?.href) return;
     if (action?.dataset.builderAction === 'calendar') { event.preventDefault(); handleCalendarAction(action); return; }
     event.preventDefault();
     const href = anchor?.getAttribute('href') || '';
@@ -1030,7 +1033,7 @@ function interceptNavigation(event) {
         document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
         return;
     }
-    showBuilderActionNotice(action?.dataset.builderAction || action?.dataset.demoAction || 'external');
+    showBuilderActionNotice(action?.dataset.builderAction || action?.dataset.demoAction || 'external', { demoMode });
 }
 
 function hydratePublicCalendarEndpoints(payload) {
@@ -1095,7 +1098,7 @@ function handleCalendarAction(button) {
     });
 }
 
-function showBuilderActionNotice(actionType) {
+function showBuilderActionNotice(actionType, { demoMode = false } = {}) {
     document.querySelector('[data-builder-action-notice]')?.remove();
     const overlay = document.createElement('div');
     overlay.className = 'builder-action-notice-overlay';
@@ -1107,7 +1110,7 @@ function showBuilderActionNotice(actionType) {
     const eyebrow = document.createElement('span');
     eyebrow.textContent = 'VISTA DEL EDITOR';
     const title = document.createElement('strong');
-    title.textContent = 'Acción externa interceptada';
+    title.textContent = demoMode ? 'Demostración' : 'Acción externa interceptada';
     const messages = {
         maps: 'Este botón abrirá Google Maps en la invitación publicada.',
         waze: 'Este botón abrirá Waze en la invitación publicada.',
@@ -1119,6 +1122,7 @@ function showBuilderActionNotice(actionType) {
     };
     const message = document.createElement('p');
     message.textContent = messages[actionType] || 'Este enlace se habilitará únicamente en la invitación publicada.';
+    if (demoMode) message.textContent = 'Esta acción está deshabilitada en la demostración.';
     const close = document.createElement('button');
     close.type = 'button';
     close.textContent = 'Continuar editando';

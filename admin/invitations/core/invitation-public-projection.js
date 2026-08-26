@@ -3,7 +3,7 @@ import {
     assertInvitationPublicKey,
     createInvitationRevisionId,
     deserializeInvitationRevision
-} from './invitation-publication-schema.js?v=phase168-device-availability-20260825';
+} from './invitation-publication-schema.js?v=phase171-demo-mode-20260826';
 
 export const INVITATION_PUBLIC_PROJECTION_SCHEMA_VERSION = 1;
 export const INVITATION_PUBLIC_COLLECTION_ID = 'invitacionPublic';

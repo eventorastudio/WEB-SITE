@@ -2,7 +2,7 @@ import {
     INVITATION_CONTENT_SCHEMA_VERSION,
     cloneInvitationValue,
     createInvitationContent
-} from './content-schema.js?v=phase126-accommodation-icons-place-library-20260824';
+} from './content-schema.js?v=phase171-demo-mode-20260826';
 import { getInvitationFormat } from './section-registry.js?v=phase126-accommodation-icons-place-library-20260824';
 import { normalizeDeviceAvailability } from './device-availability.js?v=phase168-device-availability-20260825';
 
@@ -127,6 +127,7 @@ export function migrateInvitationDraftToCurrentSchema(rawDraft) {
     }
     if (migrated.settings) {
         migrated.settings.deviceAvailability = normalizeDeviceAvailability(migrated.settings.deviceAvailability);
+        if (!Object.hasOwn(migrated.settings, 'demoMode')) migrated.settings.demoMode = false;
     }
     return migrated;
 }

@@ -68,7 +68,8 @@ const FIELD_DEFINITIONS = [
     ['content.access.showPrintPass', 'boolean', 0],
     ['content.access.printButtonLabel', 'text', 80],
     ['content.access.printTitle', 'text', 120],
-    ['content.access.printFooter', 'text', 240]
+    ['content.access.printFooter', 'text', 240],
+    ['settings.demoMode', 'boolean', 0]
 ];
 
 export const INVITATION_EDITABLE_FIELDS = Object.freeze(Object.fromEntries(

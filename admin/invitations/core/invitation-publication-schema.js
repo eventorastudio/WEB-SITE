@@ -1,9 +1,9 @@
-import { INVITATION_CONTENT_SCHEMA_VERSION, cloneInvitationValue } from './content-schema.js?v=phase61-draft-persistence-20260817';
+import { INVITATION_CONTENT_SCHEMA_VERSION, cloneInvitationValue } from './content-schema.js?v=phase171-demo-mode-20260826';
 import {
     INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION,
     createInvitationDraftSnapshot,
     deserializeInvitationDraft
-} from './draft-persistence-schema.js?v=phase168-device-availability-20260825';
+} from './draft-persistence-schema.js?v=phase171-demo-mode-20260826';
 
 export const INVITATION_PUBLICATION_DOCUMENT_ID = 'publication';
 export const INVITATION_PUBLICATION_SCHEMA_VERSION = 2;

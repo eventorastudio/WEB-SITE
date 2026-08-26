@@ -5,7 +5,7 @@ import {
     createInvitationContent,
     getDraftValue,
     setDraftValue
-} from './content-schema.js?v=phase126-accommodation-icons-place-library-20260824';
+} from './content-schema.js?v=phase171-demo-mode-20260826';
 import { validateInvitationDraft } from './builder-validation.js?v=phase89-dress-code-media-20260820';
 import { getInvitationFormat, getPackageById, getSectionById } from './section-registry.js?v=phase93-package-sections-format-20260821';
 import { getThemeById } from './theme-registry.js?v=phase3-logistics-20260813';
@@ -19,7 +19,7 @@ import {
 import {
     CURRENT_DRAFT_SCHEMA_VERSION,
     migrateInvitationDraftToCurrentSchema
-} from './draft-migrations.js?v=phase168-device-availability-20260825';
+} from './draft-migrations.js?v=phase171-demo-mode-20260826';
 
 export const INVITATION_DRAFT_DOCUMENT_ID = 'draft';
 export const INVITATION_DRAFT_PERSISTENCE_SCHEMA_VERSION = CURRENT_DRAFT_SCHEMA_VERSION;
@@ -48,7 +48,7 @@ const DOCUMENT_FIELDS = Object.freeze([
 const LEGACY_DOCUMENT_FIELDS = Object.freeze(
     DOCUMENT_FIELDS.filter((field) => field !== 'accommodations')
 );
-const SETTINGS_FIELDS = Object.freeze(['renderMode', 'packageId', 'format', 'deviceAvailability']);
+const SETTINGS_FIELDS = Object.freeze(['renderMode', 'packageId', 'format', 'deviceAvailability', 'demoMode']);
 const COLLECTION_LIMITS = Object.freeze({
     locations: 20,
     itinerary: 80,
@@ -218,7 +218,11 @@ function normalizeSettings(settings = {}, packageId = undefined) {
         renderMode,
         packageId: normalizedPackage,
         format,
-        deviceAvailability: normalizeDeviceAvailability(settings?.deviceAvailability)
+        deviceAvailability: normalizeDeviceAvailability(settings?.deviceAvailability),
+        demoMode: settings?.demoMode === undefined ? false : (() => {
+            if (typeof settings.demoMode !== 'boolean') fail('draft/invalid-demo-mode');
+            return settings.demoMode;
+        })()
     };
 }
 

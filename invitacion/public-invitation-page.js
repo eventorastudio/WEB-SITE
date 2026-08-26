@@ -2,7 +2,7 @@ import { getPersistedGeneralContentPaths } from '../admin/invitations/core/draft
 import { SECTION_REGISTRY, isSectionAllowed } from '../admin/invitations/core/section-registry.js?v=phase3-logistics-20260813';
 import { createTemplateSectionContract } from '../admin/invitations/core/template-binding-registry.js?v=phase86-aloha-a2-20260820';
 import { getThemeById } from '../admin/invitations/core/theme-registry.js?v=phase3-logistics-20260813';
-import { publicInvitationLoader } from './public-invitation-loader.js?v=phase168-device-availability-20260825';
+import { publicInvitationLoader } from './public-invitation-loader.js?v=phase171-demo-mode-20260826';
 import { publicInvitationPersonalizationLoader } from './public-invitation-personalization.js?v=phase64-personalized-invitation-20260817';
 import {
     buildInvitationRsvpUrl,

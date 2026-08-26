@@ -1,7 +1,7 @@
 import {
     deserializeInvitationPublication,
     isInvitationPublicKey
-} from '../invitations/core/invitation-publication-schema.js?v=phase168-device-availability-20260825';
+} from '../invitations/core/invitation-publication-schema.js?v=phase171-demo-mode-20260826';
 import {
     assertRsvpAccessEventId,
     assertRsvpAccessGuestId,

@@ -3,7 +3,7 @@ import {
     createInvitationDraftFingerprint,
     deserializeInvitationDraft,
     serializeInvitationDraft
-} from '../core/draft-persistence-schema.js?v=phase168-device-availability-20260825';
+} from '../core/draft-persistence-schema.js?v=phase171-demo-mode-20260826';
 
 function serviceError(code, cause = null, details = {}) {
     const error = new Error(code);
@@ -25,6 +25,7 @@ async function createFirebaseInvitationDraftGateway() {
         'invitacion',
         INVITATION_DRAFT_DOCUMENT_ID
     );
+    const eventRef = (eventId) => firestoreApi.doc(db, 'eventos', eventId);
     return {
         getCurrentUid: () => auth.currentUser?.uid ?? '',
         serverTimestamp: () => firestoreApi.serverTimestamp(),
@@ -32,8 +33,13 @@ async function createFirebaseInvitationDraftGateway() {
             const snapshot = await firestoreApi.getDoc(draftRef(eventId));
             return snapshot.exists() ? snapshot.data() : null;
         },
-        async writeDraft(eventId, document) {
-            await firestoreApi.setDoc(draftRef(eventId), document);
+        async writeDraftAndDemoMode(eventId, document) {
+            await firestoreApi.runTransaction(db, async (transaction) => {
+                transaction.set(draftRef(eventId), document);
+                transaction.set(eventRef(eventId), {
+                    demoMode: document.settings.demoMode === true
+                }, { merge: true });
+            });
         }
     };
 }
@@ -95,7 +101,13 @@ export class InvitationDraftService {
             });
         }
         try {
-            await gateway.writeDraft(eventId, document);
+            if (typeof gateway.writeDraftAndDemoMode === 'function') {
+                await gateway.writeDraftAndDemoMode(eventId, document);
+            } else {
+                // Compatibility for isolated legacy test adapters. The Firebase
+                // gateway above always uses the atomic transaction path.
+                await gateway.writeDraft(eventId, document);
+            }
         } catch (error) {
             throw serviceError('draft/write-failed', error);
         }

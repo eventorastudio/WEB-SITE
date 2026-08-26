@@ -8,7 +8,7 @@ import {
     createInvitationContent,
     getDraftValue,
     setDraftValue
-} from './content-schema.js?v=phase94-opening-cover-20260821';
+} from './content-schema.js?v=phase171-demo-mode-20260826';
 import { validateInvitationDraft } from './builder-validation.js?v=phase89-dress-code-media-20260820';
 import {
     DRESS_COLOR_GROUPS,
@@ -34,7 +34,7 @@ import {
     RSVP_GUEST_POLICY_PATH,
     normalizeRsvpConfig
 } from './rsvp-schema.js?v=phase54a-rsvp-time-20260817';
-import { getPersistedGeneralContentPaths } from './draft-persistence-schema.js?v=phase168-device-availability-20260825';
+import { getPersistedGeneralContentPaths } from './draft-persistence-schema.js?v=phase171-demo-mode-20260826';
 import { normalizeAppearance } from './appearance-schema.js?v=phase86-appearance-20260820';
 import { DEVICE_CATEGORIES, normalizeDeviceAvailability } from './device-availability.js?v=phase168-device-availability-20260825';
 
@@ -102,7 +102,8 @@ export function createInvitationDraft(eventId, eventData = {}) {
             renderMode: 'builder',
             packageId,
             format: 'website',
-            deviceAvailability: normalizeDeviceAvailability()
+            deviceAvailability: normalizeDeviceAvailability(),
+            demoMode: false
         },
         meta: {
             packageSource: packageId ? 'event' : 'unselected',
@@ -563,6 +564,7 @@ export class InvitationBuilderState {
         this._draft.settings = {
             format: 'website',
             deviceAvailability: normalizeDeviceAvailability(persisted.settings?.deviceAvailability),
+            demoMode: persisted.settings?.demoMode === true,
             ...cloneInvitationValue(persisted.settings)
         };
         this._draft.packageId = this._draft.settings?.packageId ?? null;

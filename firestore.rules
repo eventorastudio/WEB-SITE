@@ -224,10 +224,28 @@ service cloud.firestore {
             && settings.format in ['website', 'stories', 'cards']
           )
           || (
+            settings.keys().size() == 3
+            && settings.keys().hasOnly(['renderMode', 'packageId', 'demoMode'])
+            && settings.demoMode is bool
+          )
+          || (
             settings.keys().size() == 4
             && settings.keys().hasOnly(['renderMode', 'packageId', 'format', 'deviceAvailability'])
             && settings.format in ['website', 'stories', 'cards']
             && validDeviceAvailability(settings.deviceAvailability)
+          )
+          || (
+            settings.keys().size() == 5
+            && settings.keys().hasOnly(['renderMode', 'packageId', 'format', 'deviceAvailability', 'demoMode'])
+            && settings.format in ['website', 'stories', 'cards']
+            && validDeviceAvailability(settings.deviceAvailability)
+            && settings.demoMode is bool
+          )
+          || (
+            settings.keys().size() == 4
+            && settings.keys().hasOnly(['renderMode', 'packageId', 'format', 'demoMode'])
+            && settings.format in ['website', 'stories', 'cards']
+            && settings.demoMode is bool
           )
         )
         && settings.renderMode == 'builder'
@@ -1104,7 +1122,11 @@ service cloud.firestore {
       allow get: if isInternalReader() || portalEnabled(eventId);
       allow list: if isInternalReader();
       // El Portal nunca recibe update sobre el documento padre.
-      allow create, update, delete: if isPlatformManager();
+      allow create, delete: if isPlatformManager();
+      allow update: if isPlatformManager()
+        || (isThemeEditor()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['demoMode'])
+          && request.resource.data.demoMode is bool);
 
       match /rsvpAccess/{token} {
         allow get: if isThemeEditor() || validPublicRsvpAccessGet(eventId, token);

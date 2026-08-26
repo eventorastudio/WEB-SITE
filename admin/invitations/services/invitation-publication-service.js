@@ -8,7 +8,7 @@ import {
     deserializeInvitationRevision,
     serializeInvitationPublication,
     serializeInvitationRevision
-} from '../core/invitation-publication-schema.js?v=phase168-device-availability-20260825';
+} from '../core/invitation-publication-schema.js?v=phase171-demo-mode-20260826';
 import {
     INVITATION_PUBLIC_COLLECTION_ID,
     createPublicInvitationProjectionFingerprint,
@@ -47,9 +47,10 @@ async function createFirebaseInvitationPublicationGateway() {
         INVITATION_PUBLIC_COLLECTION_ID,
         publicKey
     );
+    const eventRef = (eventId) => firestoreApi.doc(db, 'eventos', eventId);
     return {
         getCurrentUid: () => auth.currentUser?.uid ?? '',
-        async runPublicationTransaction(eventId, { createPublicKey: generatePublicKey, planner }) {
+        async runPublicationTransaction(eventId, { createPublicKey: generatePublicKey, planner, demoMode = false }) {
             return firestoreApi.runTransaction(db, async (transaction) => {
                 const metadataReference = publicationRef(eventId);
                 const metadataSnapshot = await transaction.get(metadataReference);
@@ -80,7 +81,10 @@ async function createFirebaseInvitationPublicationGateway() {
                     publicKey,
                     serverTimestamp: () => firestoreApi.serverTimestamp()
                 });
-                if (plan.status === 'unchanged') return plan;
+                if (plan.status === 'unchanged') {
+                    transaction.set(eventRef(eventId), { demoMode: demoMode === true }, { merge: true });
+                    return plan;
+                }
 
                 if (plan.revision) {
                     const targetReference = revisionRef(eventId, plan.revisionId);
@@ -88,6 +92,7 @@ async function createFirebaseInvitationPublicationGateway() {
                     if (targetSnapshot.exists()) throw serviceError('publication/revision-id-conflict');
                     transaction.set(targetReference, plan.revision);
                 }
+                transaction.set(eventRef(eventId), { demoMode: demoMode === true }, { merge: true });
                 if (plan.publication) transaction.set(metadataReference, plan.publication);
                 transaction.set(projectionReference, plan.publicProjection);
                 return plan;
@@ -135,6 +140,7 @@ export class InvitationPublicationService {
         try {
             let generatedPublicKey = null;
             return await gateway.runPublicationTransaction(eventId, {
+                demoMode: draft.settings?.demoMode === true,
                 createPublicKey: () => {
                     if (!generatedPublicKey) generatedPublicKey = this.publicKeyFactory();
                     return generatedPublicKey;

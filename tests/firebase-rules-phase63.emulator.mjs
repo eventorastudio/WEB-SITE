@@ -14,6 +14,7 @@ import {
     getDocs,
     serverTimestamp,
     setDoc,
+    updateDoc,
     writeBatch
 } from 'firebase/firestore';
 
@@ -24,6 +25,7 @@ import {
     serializeInvitationRevision
 } from '../admin/invitations/core/invitation-publication-schema.js';
 import { serializePublicInvitationProjection } from '../admin/invitations/core/invitation-public-projection.js';
+import { serializeInvitationDraft } from '../admin/invitations/core/draft-persistence-schema.js';
 
 const PROJECT_ID = 'demo-eventorastudio-phase63';
 const UID = 'UID-PHASE63-RULES';
@@ -54,6 +56,10 @@ function revisionRef(db, eventId, revisionId) {
 
 function publicProjectionRef(db, eventId, publicKey = PUBLIC_KEY) {
     return doc(db, 'eventos', eventId, 'invitacionPublic', publicKey);
+}
+
+function draftRef(db, eventId) {
+    return doc(db, 'eventos', eventId, 'invitacion', 'draft');
 }
 
 function createState(eventId, phrase = '') {
@@ -219,4 +225,46 @@ test('public projection permits rsvp/access-preview but rejects pass-selection',
         sections: ['welcome-story', 'rsvp', 'access-preview', 'pass-selection']
     };
     await assertFails(setDoc(publicProjectionRef(db, eventId), invalidProjection));
+});
+
+test('demoMode en settings acepta legacy/booleanos y rechaza tipos o claves extra', async () => {
+    const cases = [
+        ['legacy', undefined, true],
+        ['true', true, true],
+        ['false', false, true],
+        ['string', 'true', false],
+        ['object', {}, false],
+        ['extra', true, false]
+    ];
+    for (const [label, value, allowed] of cases) {
+        const eventId = `EVT-DEMO-SETTINGS-${label.toUpperCase()}`;
+        const current = actor('DISENADOR');
+        const draft = serializeInvitationDraft(createState(eventId).getSnapshot().draft, {
+            eventId,
+            updatedAt: serverTimestamp(),
+            updatedBy: current.uid
+        });
+        if (value === undefined) delete draft.settings.demoMode;
+        else draft.settings.demoMode = value;
+        if (label === 'extra') draft.settings.unexpected = true;
+        const operation = setDoc(draftRef(current.context.firestore(), eventId), draft);
+        if (allowed) await assertSucceeds(operation);
+        else await assertFails(operation);
+    }
+});
+
+test('demoMode metadata sólo permite el cambio booleano aislado al theme editor', async () => {
+    const eventId = 'EVT-DEMO-METADATA';
+    await testEnv.withSecurityRulesDisabled(async (admin) => {
+        await setDoc(doc(admin.firestore(), 'eventos', eventId), { demoMode: false, nombreEvento: 'Demo' });
+    });
+    const designer = actor('DISENADOR');
+    const designerDb = designer.context.firestore();
+    await assertSucceeds(updateDoc(doc(designerDb, 'eventos', eventId), { demoMode: true }));
+    await assertSucceeds(updateDoc(doc(designerDb, 'eventos', eventId), { demoMode: false }));
+    await assertFails(updateDoc(doc(designerDb, 'eventos', eventId), { demoMode: true, nombreEvento: 'Cambio' }));
+    await assertFails(updateDoc(doc(designerDb, 'eventos', eventId), { demoMode: 'true' }));
+
+    const manager = actor('CEO');
+    await assertSucceeds(updateDoc(doc(manager.context.firestore(), 'eventos', eventId), { nombreEvento: 'Manager' }));
 });
