@@ -2678,3 +2678,129 @@ body[data-builder-theme="aloha"] .rsvp > [data-prestige-feature~="rsvp"] {
         margin-top: 1.25rem;
     }
 }
+
+/* Aloha final visual pass: restrained edge ornaments only; no flow/layout changes. */
+body[data-builder-theme="aloha"] .hero::before {
+    position: absolute;
+    z-index: 1;
+    top: 8%;
+    left: 4%;
+    width: clamp(7rem, 14vw, 13rem);
+    aspect-ratio: 1;
+    content: "";
+    pointer-events: none;
+    opacity: .42;
+    background:
+        radial-gradient(circle at 50% 50%, rgb(246 198 74 / .9) 0 8%, transparent 9%),
+        radial-gradient(ellipse at 50% 7%, rgb(244 91 105 / .55) 0 20%, transparent 21%),
+        radial-gradient(ellipse at 91% 38%, rgb(28 191 210 / .42) 0 20%, transparent 21%),
+        radial-gradient(ellipse at 72% 86%, rgb(244 91 105 / .42) 0 20%, transparent 21%),
+        radial-gradient(ellipse at 28% 86%, rgb(28 191 210 / .34) 0 20%, transparent 21%),
+        radial-gradient(ellipse at 9% 38%, rgb(244 91 105 / .42) 0 20%, transparent 21%);
+    filter: drop-shadow(0 .7rem 1.2rem rgb(0 35 45 / .16));
+}
+
+body[data-builder-theme="aloha"] .pool-note {
+    isolation: isolate;
+}
+
+body[data-builder-theme="aloha"] .pool-note::before,
+body[data-builder-theme="aloha"] .pool-note::after {
+    position: absolute;
+    content: "";
+    pointer-events: none;
+}
+
+body[data-builder-theme="aloha"] .pool-note::before {
+    top: 12%;
+    left: -3rem;
+    width: clamp(10rem, 22vw, 18rem);
+    aspect-ratio: 1;
+    border: 1px solid rgb(8 91 105 / .18);
+    border-radius: 48% 52% 42% 58%;
+    box-shadow: 0 0 0 1rem rgb(28 191 210 / .06), 0 0 0 2.2rem rgb(244 91 105 / .045);
+    transform: rotate(-18deg);
+}
+
+body[data-builder-theme="aloha"] .pool-note::after {
+    right: 7%;
+    bottom: 10%;
+    width: 5rem;
+    height: 5rem;
+    opacity: .58;
+    background:
+        radial-gradient(circle at 50% 50%, var(--sun) 0 9%, transparent 10%),
+        radial-gradient(ellipse at 50% 7%, var(--coral) 0 19%, transparent 20%),
+        radial-gradient(ellipse at 91% 38%, var(--coral) 0 19%, transparent 20%),
+        radial-gradient(ellipse at 72% 86%, var(--coral) 0 19%, transparent 20%),
+        radial-gradient(ellipse at 28% 86%, var(--coral) 0 19%, transparent 20%),
+        radial-gradient(ellipse at 9% 38%, var(--coral) 0 19%, transparent 20%);
+}
+
+body[data-builder-theme="aloha"] .postcards {
+    position: relative;
+    isolation: isolate;
+    background-image:
+        radial-gradient(ellipse at 6% 16%, rgb(28 191 210 / .18) 0 7%, transparent 7.5%),
+        radial-gradient(ellipse at 94% 82%, rgb(244 91 105 / .16) 0 6%, transparent 6.5%),
+        linear-gradient(135deg, transparent 0 48%, rgb(246 198 74 / .1) 48.2% 48.7%, transparent 49%);
+}
+
+body[data-builder-theme="aloha"] footer {
+    position: relative;
+    isolation: isolate;
+}
+
+body[data-builder-theme="aloha"] footer::before {
+    position: absolute;
+    z-index: 0;
+    top: 1.25rem;
+    left: 50%;
+    width: min(15rem, 58vw);
+    height: 2.4rem;
+    content: "";
+    pointer-events: none;
+    border-top: 1px solid rgb(246 198 74 / .28);
+    border-radius: 50%;
+    box-shadow: 0 -.45rem 0 rgb(28 191 210 / .12), 0 -.9rem 0 rgb(244 91 105 / .08);
+    transform: translateX(-50%);
+}
+
+body[data-builder-theme="aloha"] footer > * {
+    position: relative;
+    z-index: 1;
+}
+
+@media (max-width: 730px) {
+    body[data-builder-theme="aloha"] .hero::before {
+        top: 15%;
+        left: -2.5rem;
+        width: 8rem;
+        opacity: .28;
+    }
+
+    body[data-builder-theme="aloha"] .pool-note::before {
+        left: -6rem;
+        opacity: .65;
+    }
+
+    body[data-builder-theme="aloha"] .pool-note::after {
+        right: 3%;
+        bottom: 7%;
+        width: 3.6rem;
+        height: 3.6rem;
+    }
+
+    body[data-builder-theme="aloha"] .postcards {
+        background-image:
+            radial-gradient(ellipse at 4% 10%, rgb(28 191 210 / .13) 0 8%, transparent 8.5%),
+            radial-gradient(ellipse at 96% 92%, rgb(244 91 105 / .11) 0 7%, transparent 7.5%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body[data-builder-theme="aloha"] .hero::before,
+    body[data-builder-theme="aloha"] .pool-note::before,
+    body[data-builder-theme="aloha"] .pool-note::after,
+    body[data-builder-theme="aloha"] footer::before { animation: none; }
+}
