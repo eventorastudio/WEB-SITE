@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Aloha, una invitaciÃ³n tropical premium de Eventora Studio."
+    />
+    <title>Aloha Â· Demo Eventora Studio</title>
+    <link rel="icon" href="../../favicon.ico" />
+    <link rel="stylesheet" href="../demo-mode.css" />
+    <link rel="stylesheet" href="style.css?v=phase158-aloha-gallery-heading-spacing-20260825" />
+    <link rel="stylesheet" href="../assets/demo-photos.css" />
+    <link rel="stylesheet" href="../../../admin/invitations/preview/frame.css?v=phase169-aloha-opening-scroll-lock-20260825" />
+  </head>
+  <body
+    data-prestige-features="opening hero internal-navigation personalized-design responsive premium-animations advanced-personalization demo-notice footer-disclosure"
+    class="locked public-invitation-rendered"
+    data-builder-theme="aloha"
+  >
+    <div
+      class="opening"
+      id="opening"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="opening-title"
+    >
+      <div class="opening-water" aria-hidden="true"></div>
+      <span class="opening-leaf leaf-one" aria-hidden="true"></span>
+      <span class="opening-leaf leaf-two" aria-hidden="true"></span>
+      <div class="resort-card">
+        <span class="prestige-badge">EVENTORA STUDIO</span>
+        <div class="postcard-stamp" aria-hidden="true">XV<br />27</div>
+        <p class="opening-kicker">Eventora Resort presenta</p>
+        <h1 id="opening-title">Aloha,<br /><span>Mariana &amp; Diego</span></h1>
+        <p class="opening-date">18 Â· OCT Â· 2027</p>
+        <p class="opening-guest" data-opening-guest></p>
+        <button id="open-invitation" type="button">
+          Abrir postal tropical
+        </button>
+        <small>Boda 2027 Â· celebraciÃ³n tropical</small>
+      </div>
+    </div>
+
+    <button
+      class="music-control"
+      id="music-control"
+      type="button"
+      aria-label="Pausar mÃºsica"
+      data-pause-label="Pausar"
+      data-play-label="Reproducir"
+      hidden
+    >
+      <span class="music-disc" aria-hidden="true"></span
+      ><span class="music-label">Pausar</span>
+    </button>
+    <audio
+      id="event-music"
+      loop
+      preload="none"
+      data-prestige-feature="music"
+    ></audio>
+
+    <main id="invitation" aria-hidden="true">
+    <header class="hero photo-frame" id="inicio" style="--photo-position: 50% 68%">
+      <img class="demo-photo" src="../assets/images/aloha/aloha-palm-pool.webp" alt="Alberca turquesa frente al mar entre palmeras" width="1200" height="1600" fetchpriority="high" decoding="async">
+      <span class="photo-scrim" aria-hidden="true" style="--photo-scrim: linear-gradient(90deg, rgb(0 54 72 / 74%), rgb(0 45 59 / 18%)), linear-gradient(0deg, rgb(0 34 46 / 38%), transparent 48%)"></span>
+        <nav class="island-nav" aria-label="NavegaciÃ³n de la invitaciÃ³n">
+          <a href="#itinerario">Itinerario</a><a href="#ubicacion">Lugar</a
+          ><a href="#confirmacion">Confirmar</a>
+        </nav>
+        <div class="hero-sun" aria-hidden="true"></div>
+        <div class="hero-copy">
+        <p class="eyebrow">Boda Â· celebraciÃ³n tropical</p>
+          <h2><span>ALOHA</span> MARIANA &amp; DIEGO</h2>
+          <p class="hero-date">18 OCTUBRE 2027 <i>Â·</i> 16:30 H</p>
+          <div class="guest-ticket">
+            <p
+              data-guest-message
+              data-prestige-feature="guest-personalization"
+            ></p>
+            <strong
+              data-pass-message
+              data-prestige-feature="personalized-passes"
+            ></strong>
+          </div>
+          <a class="scroll-cue" href="#bienvenida">Descubre la celebraciÃ³n â†“</a>
+        </div>
+        <span class="hibiscus hibiscus-a" aria-hidden="true"></span>
+        <span class="hibiscus hibiscus-b" aria-hidden="true"></span>
+      </header>
+
+      <section class="welcome reveal" id="bienvenida">
+        <p class="section-no">01 Â· HISTORIA</p>
+        <div>
+          <p class="handwritten">AquÃ­ comienza nuestra aventura</p>
+          <h2>Un capÃ­tulo nuevo,<br />rodeado de quienes amamos.</h2>
+        </div>
+        <p>
+          <span data-demo-story></span>
+        </p>
+      </section>
+
+      <section
+        class="tropical-film reveal"
+        data-prestige-feature="welcome-video"
+        aria-label="Video de bienvenida"
+      >
+        <div class="film-poster" aria-hidden="true">
+          <span>ALOHA</span><i>15</i>
+        </div>
+        <div>
+          <p class="section-no">WELCOME FILM Â· VIDEO</p>
+          <h2>Un vistazo<br />a nuestra historia.</h2>
+          <p>
+            <span data-demo-video-copy></span>
+          </p>
+          <button class="prestige-video-button" type="button" data-demo-video>
+            Reproducir vista previa</button
+          ><span
+            class="prestige-video-status"
+            data-video-status
+            aria-live="polite"
+            >Vista previa audiovisual preparada.</span
+          >
+        </div>
+      </section>
+
+      <section
+        class="countdown-band reveal"
+        aria-labelledby="countdown-title"
+        data-prestige-feature="countdown"
+      >
+        <div>
+          <p class="section-no">Tropical time</p>
+          <h2 id="countdown-title">La isla nos espera</h2>
+        </div>
+        <div class="countdown" data-countdown aria-live="polite"></div>
+      </section>
+
+      <section
+        class="itinerary reveal"
+        id="itinerario"
+        data-prestige-feature="itinerary"
+      >
+        <div class="section-heading">
+        <p class="section-no">02 Â· ITINERARIO</p>
+          <h2>El dÃ­a que imaginamos</h2>
+        </div>
+        <ol>
+          <li>
+            <time>16:30</time><span>Ceremonia</span
+            ><small>JardÃ­n Coral</small>
+          </li>
+          <li>
+            <time>18:00</time><span>CÃ³ctel</span
+            ><small>Terraza del Mar</small>
+          </li>
+          <li>
+            <time>19:00</time><span>Cena</span
+            ><small>Sabores junto al mar</small>
+          </li>
+          <li>
+            <time>21:00</time><span>Fiesta</span
+            ><small>MÃºsica, baile y celebraciÃ³n</small>
+          </li>
+        </ol>
+      </section>
+
+      <section
+        class="location reveal"
+        id="ubicacion"
+        data-prestige-feature="multiple-locations"
+      >
+        <div class="location-visual photo-frame" style="--photo-position: 48% 58%">
+          <img class="demo-photo" src="../assets/images/aloha/aloha-resort-hero.webp" alt="Resort tropical con alberca y vegetaciÃ³n" width="1800" height="1200" loading="lazy" decoding="async">
+          <span class="pool-ring" aria-hidden="true"></span
+          ><span class="map-pin" aria-hidden="true"></span>
+        </div>
+        <div class="location-copy">
+          <p class="section-no">03 Â· DESTINO</p>
+          <h2>JardÃ­n Coral<br />Terraza del Mar</h2>
+          <p>Un destino ficticio Â· dos momentos, una misma celebraciÃ³n.</p>
+          <div class="location-stops">
+            <p><strong>JardÃ­n Coral</strong><br />Ceremonia Â· 16:30</p>
+            <p><strong>Terraza del Mar</strong><br />RecepciÃ³n Â· 18:00</p>
+          </div>
+          <div class="aloha-accommodation-feature">
+            <p class="aloha-accommodation-eyebrow">STAY / ALOHA</p>
+            <h3 class="aloha-location-subtitle">Hospedaje sugerido</h3>
+            <p class="aloha-accommodation-intro">Una recomendaciÃ³n ficticia para disfrutar la celebraciÃ³n con mayor comodidad.</p>
+            <div class="location-stops aloha-location-grid aloha-accommodations aloha-accommodations-single">
+              <article class="aloha-location-card aloha-place-card aloha-place-card--hotel">
+                <p class="aloha-location-type">Hospedaje</p>
+                <h3>Aloha Bay Resort</h3>
+                <div class="aloha-location-image" data-image-state="fallback"><span class="aloha-location-image-fallback">ALOHA STAY</span></div>
+                <p class="aloha-location-venue">Aloha Bay Resort</p>
+                <div class="aloha-location-details aloha-stay-details">
+                  <p class="aloha-stay-description">Estancia demo frente al mar.</p>
+                  <p class="aloha-stay-notes">InformaciÃ³n completamente ficticia.</p>
+                </div>
+                <div class="aloha-location-actions">
+                  <a class="tropical-button" data-demo-action="hotel">Ver informaciÃ³n demo</a>
+                </div>
+              </article>
+            </div>
+          </div>
+          <div class="action-row">
+            <a
+              class="tropical-button"
+              data-demo-action="maps"
+              data-prestige-feature="maps"
+              >Ver ubicaciÃ³n demo</a
+            >
+            <a class="text-action" data-demo-action="calendar">Guardar fecha demo</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="pool-note reveal">
+        <p class="section-no">04 Â· DETALLES</p>
+        <div class="pool-title"><span>WET</span><i>&</i><span>WILD</span></div>
+        <div class="pool-tips">
+          <p data-demo-pool-note="one"></p>
+          <p data-demo-pool-note="two"></p>
+          <p data-demo-pool-note="three"></p>
+        </div>
+      </section>
+
+      <section class="dress reveal" data-prestige-feature="dress-code">
+        <div class="dress-copy">
+          <p class="section-no">05 Â· DRESS CODE</p>
+          <h2>Formal<br />tropical</h2>
+          <p>
+            Colores cÃ¡lidos, fibras naturales y un toque de elegancia relajada.
+          </p>
+          <div class="swatches" aria-label="Colores sugeridos">
+            <i></i><i></i><i></i><i></i><i></i>
+          </div>
+        </div>
+        <figure>
+          <img
+            src="dresscode.webp"
+            alt="Propuesta visual de vestimenta tropical"
+            width="1536"
+            height="1024"
+            loading="lazy"
+            decoding="async"
+          />
+          <figcaption>GuÃ­a visual Â· formal tropical</figcaption>
+        </figure>
+      </section>
+
+      <div class="gallery-section">
+        <header class="gallery-heading">
+          <span class="gallery-eyebrow">RECUERDOS</span>
+          <h2>GalerÃ­a</h2>
+          <span class="gallery-heading-ornament" aria-hidden="true"></span>
+        </header>
+        <section
+          class="postcards reveal"
+          aria-label="GalerÃ­a tropical"
+          data-prestige-feature="gallery"
+        >
+        <div class="postcard-card postcard-one photo-frame">
+          <img class="demo-photo" src="../assets/images/aloha/aloha-sunset-pool.webp" alt="Atardecer dorado sobre una alberca con palmeras" width="1200" height="802" loading="lazy" decoding="async">
+          <span>01</span>
+          <p>sun kissed</p>
+        </div>
+        <div class="postcard-card postcard-two photo-frame" style="--photo-position: 50% 58%">
+          <img class="demo-photo" src="../assets/images/aloha/aloha-hibiscus-cocktail.webp" alt="CÃ³ctel rojo adornado con una flor tropical" width="1200" height="1602" loading="lazy" decoding="async">
+          <span>02</span>
+          <p>pool mood</p>
+        </div>
+        <div class="postcard-card postcard-three">
+          <span>03</span>
+          <p>aloha night</p>
+        </div>
+      </section>
+      </div>
+
+      <section
+        class="envelope-section reveal"
+        data-prestige-feature="gift-registry"
+      >
+        <div class="gift-registry-hero" aria-hidden="true"><div class="css-envelope gift-envelope"><span>R</span></div><i class="gift-leaf gift-leaf--one"></i><i class="gift-leaf gift-leaf--two"></i><i class="gift-flower gift-flower--one"></i><i class="gift-flower gift-flower--two"></i><span class="gift-spark gift-spark--one"></span><span class="gift-spark gift-spark--two"></span></div>
+        <div>
+          <p class="section-no">06 Â· CON CARIÃ‘O</p>
+          <h2>Mesa de regalos</h2>
+          <p>
+            Tu presencia es el mejor regalo. TambiÃ©n puedes consultar la opciÃ³n
+            tropical elegida por los anfitriones.
+          </p>
+          <div class="gift-registry-links">
+            <a class="gift-registry-card gift-registry-card--coral" data-demo-action="gifts">
+              <span class="gift-registry-monogram" aria-hidden="true">R</span>
+              <span class="gift-registry-card-separator" aria-hidden="true"></span>
+              <span class="gift-registry-card-name">Regalo libre</span>
+              <span class="gift-registry-arrow" aria-hidden="true">â†’</span>
+            </a>
+            <a class="gift-registry-card gift-registry-card--sage" data-demo-action="gifts">
+              <span class="gift-registry-monogram" aria-hidden="true">A</span>
+              <span class="gift-registry-card-separator" aria-hidden="true"></span>
+              <span class="gift-registry-card-name">Mesa de regalos demo</span>
+              <span class="gift-registry-arrow" aria-hidden="true">â†’</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="social-strip reveal">
+        <div class="aloha-actions-heading">
+          <span class="aloha-actions-eyebrow">ALOHA LINKS</span>
+          <h2>Enlaces y acciones</h2>
+        </div>
+        <div class="aloha-actions-copy">
+          <p>Comparte el color del dÃ­a</p>
+          <strong hidden>#ALOHAdemo</strong>
+        </div>
+        <div class="aloha-actions-grid">
+          <a class="aloha-action-card" data-demo-action="instagram"><span class="aloha-action-icon" aria-hidden="true">â—Ž</span><span class="aloha-action-label">GalerÃ­a demo</span><span class="aloha-action-arrow" aria-hidden="true">â†’</span></a>
+          <a class="aloha-action-card" data-demo-action="calendar"><span class="aloha-action-icon" aria-hidden="true">â—‡</span><span class="aloha-action-label">Guardar fecha</span><span class="aloha-action-arrow" aria-hidden="true">â†’</span></a>
+        </div>
+      </section>
+
+      <section
+        class="rsvp reveal"
+        id="confirmacion"
+        data-prestige-feature="guest-control"
+      >
+        <span class="rsvp-flower" aria-hidden="true"></span>
+        <p class="section-no">07 Â· RSVP</p>
+        <h2>Â¿Te unes <br />a la ola?</h2>
+        <p data-demo-rsvp-deadline></p>
+        <div
+          class="island-pass"
+          data-access-preview
+          data-prestige-feature="access-preview"
+        >
+          <div
+            class="island-pass-tabs"
+            role="group"
+            aria-label="Vista de acceso"
+          >
+            <button
+              type="button"
+              data-access-mode="digital"
+              aria-pressed="true"
+            >
+              Pase digital</button
+            ><button
+              type="button"
+              data-access-mode="printed"
+              aria-pressed="false"
+            >
+              Pase impreso
+            </button>
+          </div>
+          <article data-access-view="digital">
+            <span class="island-code" aria-hidden="true"></span>
+            <div>
+              <small>ISLAND ACCESS</small><strong data-access-guest></strong>
+              <p data-access-passes></p>
+            </div>
+          </article>
+          <article data-access-view="printed" hidden>
+            <small>DEMO PASS Â· ALOHA 2027</small
+            ><strong data-access-guest></strong>
+            <p data-access-passes></p>
+            <span>Presenta este pase al llegar.</span>
+          </article>
+        </div>
+        <div data-pass-selector data-prestige-feature="pass-selection"></div>
+        <a
+          class="tropical-button"
+          data-demo-action="rsvp"
+          data-prestige-feature="rsvp"
+          >Confirmar asistencia</a
+        >
+      </section>
+    </main>
+
+    <footer>
+      <b>EVENTORA STUDIO</b><span data-demo-footer></span>
+      <p class="demo-legend">
+        <strong>DemostraciÃ³n Prestige.</strong> Esta experiencia usa datos
+        ficticios y acciones simuladas para mostrar la colecciÃ³n Aloha.
+      </p>
+    </footer>
+    <script src="../demo-runtime.js"></script>
+    <script src="demo-public.js"></script>
+  </body>
+</html>
+
