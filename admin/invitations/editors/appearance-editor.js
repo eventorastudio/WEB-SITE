@@ -91,7 +91,14 @@ export function initAppearanceEditor({ container, state }) {
         demoRow.className = 'field-toggle-row';
         demoInput = document.createElement('input');
         demoInput.type = 'checkbox';
-        demoInput.addEventListener('change', () => state.updateDraftField('settings.demoMode', demoInput.checked));
+        demoInput.addEventListener('change', () => {
+            const result = state.setDemoMode(demoInput.checked);
+            if (!result.ok) {
+                demoInput.checked = true;
+                demoNotice.textContent = result.message;
+                demoNotice.hidden = false;
+            }
+        });
         const demoLabel = document.createElement('strong');
         demoLabel.textContent = 'Activar modo DEMO';
         demoRow.append(demoInput, demoLabel);

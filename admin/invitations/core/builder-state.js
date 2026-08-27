@@ -26,9 +26,10 @@ import {
 import {
     createEmptyInvitationMedia,
     createMediaAsset,
+    getAllMediaAssets,
     getMediaRole,
     getMediaRoleAvailability
-} from './media-schema.js?v=phase139-media-id-collision-fix-20250825';
+} from './media-schema.js?v=phase174-demo-shared-image-library-20260826';
 import {
     RSVP_EDITABLE_FIELD_DEFINITIONS,
     RSVP_GUEST_POLICY_PATH,
@@ -313,6 +314,24 @@ export class InvitationBuilderState {
         if (normalized.some(([path]) => !RSVP_EDITABLE_PATH_SET.has(path))) this._markDirty('draft');
         this._notify('content-changed', previous);
         return { ok: true, changed: true, errors: cloneInvitationValue(this._ui.validationErrors) };
+    }
+
+    setDemoMode(enabled) {
+        if (!this._draft) throw new Error('builder/not-initialized');
+        if (typeof enabled !== 'boolean') return { ok: false, code: 'builder/invalid-demo-mode' };
+        if (!enabled && getAllMediaAssets(this._draft.media).some((asset) => asset.sharedDemoAssetId)) {
+            return {
+                ok: false,
+                code: 'builder/demo-library-assets-active',
+                message: 'Esta invitación utiliza imágenes de la Biblioteca DEMO. Reemplázalas o impórtalas antes de desactivar el modo DEMO.'
+            };
+        }
+        if (this._draft.settings.demoMode === enabled) return { ok: true, changed: false };
+        const previous = this.getSnapshot();
+        this._draft.settings.demoMode = enabled;
+        this._markDirty();
+        this._notify('settings-changed', previous);
+        return { ok: true, changed: true };
     }
 
     addLocation(seed = {}) {

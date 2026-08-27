@@ -291,6 +291,17 @@ button.review-card { cursor: pointer; }
 .media-storage-notice.is-enabled { border-color: #b8ccbd; background: #f0f7f2; color: var(--builder-green); }
 .media-storage-notice strong { font-family: var(--builder-serif); font-size: 1.08rem; }
 .media-storage-notice p { margin: 4px 0 0; font-size: 0.59rem; line-height: 1.55; }
+.media-shared-demo-library { display: grid; gap: 12px; padding: 16px; border: 1px solid #b8ccbd; border-radius: 12px; background: #f0f7f2; }
+.media-shared-demo-library header { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+.media-shared-demo-library h3, .media-shared-demo-library p { margin: 0; }
+.media-shared-demo-library h3 { color: var(--builder-green); font-size: .76rem; letter-spacing: .08em; }
+.media-shared-demo-library p, .media-shared-demo-library small { color: #557060; font-size: .65rem; }
+.media-shared-demo-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.media-shared-demo-card { display: grid; gap: 8px; min-width: 0; padding: 10px; border: 1px solid #d0dfd3; border-radius: 10px; background: #fff; }
+.media-shared-demo-card img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 7px; }
+.media-shared-demo-card strong { overflow-wrap: anywhere; font-size: .68rem; }
+.media-shared-demo-card > div { display: grid; gap: 5px; }
+.media-shared-demo-use { padding: 6px 8px; font-size: .58rem; }
 .media-save-controls { flex: 0 0 auto; display: grid; justify-items: end; gap: 6px; }
 .media-save-controls small { color: var(--builder-muted); font-size: 0.5rem; }
 .media-role-card { min-width: 0; padding: 16px; border: 1px solid var(--builder-line); border-radius: 14px; background: var(--builder-paper); }

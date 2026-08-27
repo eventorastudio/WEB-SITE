@@ -6,7 +6,7 @@ import { eventBus } from '../core/event-bus.js';
 import { EVENT_TYPES } from '../core/event-types.js';
 import { hasPermission, PERMISSIONS } from '../core/roles.js';
 import { initThemeManager } from '../core/theme-manager.js';
-import { builderState } from './core/builder-state.js?v=phase171-demo-mode-20260826';
+import { builderState } from './core/builder-state.js?v=phase174-demo-shared-image-library-20260826';
 import { createBuilderUrl, readBuilderRoute } from './core/builder-routing.js?v=phase131-preserve-media-debug-query-20260824';
 import {
     BUILDER_DESKTOP_MIN_WIDTH,
@@ -19,10 +19,10 @@ import { initSectionCopyEditors } from './editors/section-copy-editor.js?v=phase
 import { initLogisticsEditors } from './editors/logistics-editor.js?v=phase173-place-library-selector-20260826';
 import { initAccessPassEditor } from './editors/access-pass-editor.js?v=phase170-access-qr-visibility-20260826';
 import { guestService } from '../services/guest-service.js?v=phase170-access-qr-visibility-20260826';
-import { initMediaEditor } from './editors/media-editor.js?v=phase139-media-id-collision-fix-20250825';
-import { initAppearanceEditor } from './editors/appearance-editor.js?v=phase171-demo-mode-20260826';
+import { initMediaEditor } from './editors/media-editor.js?v=phase174-demo-shared-image-library-20260826';
+import { initAppearanceEditor } from './editors/appearance-editor.js?v=phase174-demo-shared-image-library-20260826';
 import { initReviewEditor } from './editors/review-editor.js?v=phase86-review-20260820';
-import { invitationMediaService } from './services/invitation-media-service.js?v=phase139-media-id-collision-fix-20250825';
+import { invitationMediaService } from './services/invitation-media-service.js?v=phase174-demo-shared-image-library-20260826';
 import { invitationRsvpService } from './services/invitation-rsvp-service.js?v=phase54-public-rsvp-20260817';
 import { invitationDraftService } from './services/invitation-draft-service.js?v=phase171-demo-mode-20260826';
 import { invitationPublicationService } from './services/invitation-publication-service.js?v=phase171-demo-mode-20260826';

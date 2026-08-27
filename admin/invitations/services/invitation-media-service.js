@@ -5,11 +5,12 @@ import {
     createEmptyInvitationMedia,
     createMediaAsset,
     getAllMediaAssets
-} from '../core/media-schema.js?v=phase139-media-id-collision-fix-20250825';
+} from '../core/media-schema.js?v=phase174-demo-shared-image-library-20260826';
 
 const SAFE_EVENT_ID = /^[A-Za-z0-9_-]{1,150}$/;
 const SAFE_MEDIA_ID = /^MED-LOCAL-\d{3,}$/;
 const SAFE_OBJECT_VERSION = /^[a-f0-9]{12}$/;
+const SAFE_SHARED_DEMO_ASSET_ID = /^DML-[A-Za-z0-9_-]{8,80}$/;
 const MEDIA_ID_FREE_PROBE_WINDOW = 32;
 const SAFE_ROLE = /^(?:cover|gallery|place|dressCode|video|videoPoster|music)$/;
 const INVITATION_CONFIG_SCHEMA_VERSION = 5;
@@ -56,6 +57,29 @@ function assertSafeEventId(eventId) {
     return String(eventId);
 }
 
+function assertSafeSharedDemoAssetId(assetId) {
+    if (!SAFE_SHARED_DEMO_ASSET_ID.test(String(assetId ?? ''))) throw new TypeError('storage/invalid-demo-library-asset-id');
+    return String(assetId);
+}
+
+function buildDemoLibraryStoragePath({ assetId, mimeType, objectVersion }) {
+    const extension = MIME_EXTENSIONS[mimeType];
+    if (!extension) throw new TypeError('storage/unsupported-media-mime');
+    const id = assertSafeSharedDemoAssetId(assetId);
+    if (!SAFE_OBJECT_VERSION.test(String(objectVersion ?? ''))) throw new TypeError('storage/invalid-object-version');
+    return `demo-library/${id}-${objectVersion}.${extension}`;
+}
+
+function isDemoLibraryPath(path) {
+    return /^demo-library\/DML-[A-Za-z0-9_-]{8,80}-[a-f0-9]{12}\.(jpg|png|webp)$/.test(String(path ?? ''));
+}
+
+function newSharedDemoAssetId() {
+    const raw = globalThis.crypto?.randomUUID?.().replaceAll('-', '').slice(0, 20);
+    if (!raw) throw serviceError('storage/crypto-unavailable');
+    return assertSafeSharedDemoAssetId(`DML-${raw}`);
+}
+
 function assertSafeAsset(asset) {
     if (!asset || !SAFE_MEDIA_ID.test(String(asset.id ?? ''))) throw new TypeError('storage/invalid-media-id');
     if (!SAFE_ROLE.test(String(asset.role ?? ''))) throw new TypeError('storage/invalid-media-role');
@@ -63,6 +87,7 @@ function assertSafeAsset(asset) {
     if (!definition || definition.kind !== asset.kind) throw new TypeError('storage/media-kind-mismatch');
     if (!MEDIA_MIME_POLICY[definition.kind]?.includes(asset.mimeType)) throw new TypeError('storage/unsupported-media-mime');
     if (!Number.isFinite(asset.size) || asset.size <= 0 || asset.size > definition.maxBytes) throw new TypeError('storage/invalid-media-size');
+    if (asset.sharedDemoAssetId) assertSafeSharedDemoAssetId(asset.sharedDemoAssetId);
     return asset;
 }
 
@@ -188,10 +213,16 @@ export function assertInvitationMediaIndex(index) {
 export function serializeInvitationMediaDocument(asset, eventId) {
     assertSafeAsset(asset);
     if (!asset.storagePath) throw new TypeError('storage/media-path-required');
-    assertOwnedInvitationMediaPath(asset.storagePath, eventId, asset.id);
-    const parsed = parseInvitationMediaStoragePath(asset.storagePath);
+    const isShared = Boolean(asset.sharedDemoAssetId) && isDemoLibraryPath(asset.storagePath);
+    if (isShared) {
+        assertSafeSharedDemoAssetId(asset.sharedDemoAssetId);
+        if (!isDemoLibraryPath(asset.storagePath)) throw new TypeError('storage/invalid-demo-library-path');
+    } else assertOwnedInvitationMediaPath(asset.storagePath, eventId, asset.id);
+    const parsed = isShared
+        ? { objectVersion: String(asset.storagePath).match(/-([a-f0-9]{12})\./)?.[1] ?? '', extension: String(asset.storagePath).split('.').at(-1) }
+        : parseInvitationMediaStoragePath(asset.storagePath);
     if (!parsed.objectVersion) throw new TypeError('storage/object-version-required');
-    if (parsed.role !== asset.role) throw new TypeError('storage/path-role-mismatch');
+    if (!isShared && parsed.role !== asset.role) throw new TypeError('storage/path-role-mismatch');
     if (MIME_EXTENSIONS[asset.mimeType] !== parsed.extension) throw new TypeError('storage/path-mime-mismatch');
     const document = {
         id: asset.id,
@@ -212,6 +243,7 @@ export function serializeInvitationMediaDocument(asset, eventId) {
         },
         objectVersion: parsed.objectVersion
     };
+    if (isShared) document.sharedDemoAssetId = asset.sharedDemoAssetId;
     if (asset.createdAt !== undefined) document.createdAt = asset.createdAt;
     return document;
 }
@@ -288,8 +320,16 @@ export function diagnoseMediaDocumentContract(document, eventId, uid = '') {
 
 function deserializeInvitationMediaDocument(document, eventId, expectedRole) {
     if (!document || document.role !== expectedRole) throw new TypeError('firestore/persisted-role-mismatch');
-    assertOwnedInvitationMediaPath(document.storagePath, eventId, document.id);
-    const parsed = parseInvitationMediaStoragePath(document.storagePath);
+    const inferredSharedDemoAssetId = String(document.storagePath).match(/^demo-library\/(DML-[A-Za-z0-9_-]{8,80})-/)?.[1] ?? '';
+    const sharedDemoAssetId = document.sharedDemoAssetId || inferredSharedDemoAssetId;
+    const isShared = Boolean(sharedDemoAssetId);
+    if (isShared) {
+        assertSafeSharedDemoAssetId(sharedDemoAssetId);
+        if (!isDemoLibraryPath(document.storagePath)) throw new TypeError('storage/invalid-demo-library-path');
+    } else assertOwnedInvitationMediaPath(document.storagePath, eventId, document.id);
+    const parsed = isShared
+        ? { objectVersion: String(document.storagePath).match(/-([a-f0-9]{12})\./)?.[1] ?? '' }
+        : parseInvitationMediaStoragePath(document.storagePath);
     if (parsed.objectVersion !== document.objectVersion) throw new TypeError('firestore/object-version-mismatch');
     const normalized = createMediaAsset(document.id, {
         ...document,
@@ -298,7 +338,8 @@ function deserializeInvitationMediaDocument(document, eventId, expectedRole) {
         downloadUrl: '',
         uploadProgress: 100,
         error: '',
-        status: 'uploaded'
+        status: 'uploaded',
+        ...(sharedDemoAssetId ? { sharedDemoAssetId } : {})
     });
     assertSafeAsset(normalized);
     return normalized;
@@ -428,6 +469,29 @@ async function createFirebaseMediaGateway() {
             };
         },
         serverTimestamp: () => firestoreApi.serverTimestamp(),
+        async listDemoMedia() {
+            const listing = await storageApi.listAll(storageApi.ref(storage, 'demo-library'));
+            const assets = await Promise.all(listing.items.map(async (item) => {
+                const metadata = await storageApi.getMetadata(item);
+                const match = item.name.match(/^(DML-[A-Za-z0-9_-]{8,80})-([a-f0-9]{12})\.(jpg|png|webp)$/);
+                if (!match) return null;
+                return {
+                    id: match[1],
+                    kind: 'image',
+                    role: metadata.customMetadata?.role || 'gallery',
+                    originalName: metadata.customMetadata?.originalName || item.name,
+                    mimeType: metadata.contentType,
+                    size: Number(metadata.size) || 0,
+                    width: Number(metadata.customMetadata?.width) || 0,
+                    height: Number(metadata.customMetadata?.height) || 0,
+                    storagePath: item.fullPath,
+                    objectVersion: match[2],
+                    downloadUrl: await storageApi.getDownloadURL(item)
+                };
+            }));
+            return assets.filter(Boolean);
+        },
+        async createDemoMedia() {},
         async readMediaIndex(eventId) {
             const snapshot = await firestoreApi.getDoc(configRef(eventId));
             return snapshot.exists() ? snapshot.data() : null;
@@ -588,8 +652,60 @@ export class InvitationMediaService {
 
     async resolveAssetUrl({ eventId, asset }) {
         this.assertEnabled();
-        assertOwnedInvitationMediaPath(asset?.storagePath, eventId, asset?.id);
+        if (!asset?.sharedDemoAssetId || !isDemoLibraryPath(asset.storagePath)) assertOwnedInvitationMediaPath(asset?.storagePath, eventId, asset?.id);
+        else if (!isDemoLibraryPath(asset.storagePath)) throw new TypeError('storage/invalid-demo-library-path');
         return (await this.getGateway()).resolveUrl(asset.storagePath);
+    }
+
+    async listDemoMedia() {
+        this.assertEnabled();
+        const gateway = await this.getGateway();
+        const assets = await gateway.listDemoMedia();
+        return Promise.all(assets.map(async (asset) => ({
+            ...asset,
+            downloadUrl: await gateway.resolveUrl(asset.storagePath)
+        })));
+    }
+
+    async importDemoMedia({ eventId, sharedAsset, role, knownMediaIds = [] }) {
+        this.assertEnabled();
+        if (!sharedAsset || sharedAsset.kind !== 'image' || !['cover', 'gallery', 'place', 'dressCode', 'videoPoster'].includes(role)) {
+            throw serviceError('storage/invalid-demo-library-import');
+        }
+        const localId = await this.allocateMediaId(eventId, knownMediaIds);
+        const asset = createMediaAsset(localId, {
+            ...sharedAsset,
+            id: localId,
+            role,
+            sharedDemoAssetId: sharedAsset.id,
+            status: 'uploaded',
+            previewUrl: '',
+            downloadUrl: sharedAsset.downloadUrl || await (await this.getGateway()).resolveUrl(sharedAsset.storagePath),
+            uploadProgress: 100,
+            error: ''
+        });
+        return { asset };
+    }
+
+    async promoteDemoMedia({ eventId, asset, demoMode = false, onProgress = null }) {
+        this.assertEnabled();
+        if (demoMode !== true) throw serviceError('storage/demo-mode-required');
+        if (!asset || asset.kind !== 'image' || !['image/jpeg', 'image/png', 'image/webp'].includes(asset.mimeType)) {
+            throw serviceError('storage/invalid-demo-library-promotion');
+        }
+        if (asset.sharedDemoAssetId || isDemoLibraryPath(asset.storagePath)) {
+            throw serviceError('storage/demo-library-asset-already-shared');
+        }
+        assertOwnedInvitationMediaPath(asset.storagePath, eventId, asset.id);
+        const gateway = await this.getGateway();
+        const sourceUrl = asset.downloadUrl || await gateway.resolveUrl(asset.storagePath);
+        if (typeof fetch !== 'function') throw serviceError('storage/fetch-unavailable');
+        const response = await fetch(sourceUrl);
+        if (!response.ok) throw serviceError('storage/demo-library-source-download-failed');
+        const blob = await response.blob();
+        const file = new File([blob], asset.originalName || `${asset.id}.${asset.mimeType.split('/').at(-1)}`, { type: asset.mimeType });
+        if (file.size !== asset.size) throw serviceError('storage/demo-library-source-size-mismatch');
+        return this.uploadAsset({ eventId, asset, file, onProgress, shareToDemo: true });
     }
 
     async loadMedia(eventId) {
@@ -629,13 +745,16 @@ export class InvitationMediaService {
         };
     }
 
-    async uploadAsset({ eventId, asset, file, objectVersion = currentObjectVersion(), onProgress = null }) {
+    async uploadAsset({ eventId, asset, file, objectVersion = currentObjectVersion(), onProgress = null, shareToDemo = false }) {
         this.assertEnabled();
         assertSafeEventId(eventId);
         assertSafeAsset(asset);
         if (!file || file.type !== asset.mimeType || file.size !== asset.size) throw serviceError('storage/file-metadata-mismatch');
-        const path = buildInvitationMediaStoragePath({ eventId, assetId: asset.id, role: asset.role, mimeType: asset.mimeType, objectVersion });
-        this.retryRequests.set(asset.id, { eventId, asset, file, objectVersion, onProgress });
+        const sharedDemoAssetId = shareToDemo ? newSharedDemoAssetId() : '';
+        const path = shareToDemo
+            ? buildDemoLibraryStoragePath({ assetId: sharedDemoAssetId, mimeType: asset.mimeType, objectVersion })
+            : buildInvitationMediaStoragePath({ eventId, assetId: asset.id, role: asset.role, mimeType: asset.mimeType, objectVersion });
+        this.retryRequests.set(asset.id, { eventId, asset, file, objectVersion, onProgress, shareToDemo });
         const gateway = await this.getGateway();
         const controller = gateway.uploadObject({
             path,
@@ -643,7 +762,16 @@ export class InvitationMediaService {
             metadata: {
                 contentType: asset.mimeType,
                 cacheControl: 'private,max-age=31536000,immutable',
-                customMetadata: { eventId, mediaId: asset.id, role: asset.role }
+                customMetadata: shareToDemo
+                    ? {
+                        sourceEventId: eventId,
+                        sharedDemoAssetId,
+                        role: asset.role,
+                        originalName: asset.originalName,
+                        width: String(asset.width),
+                        height: String(asset.height)
+                    }
+                    : { eventId, mediaId: asset.id, role: asset.role }
             },
             onProgress
         });
@@ -660,6 +788,7 @@ export class InvitationMediaService {
             return createMediaAsset(asset.id, {
                 ...asset,
                 storagePath: path,
+                ...(shareToDemo ? { sharedDemoAssetId } : {}),
                 downloadUrl,
                 previewUrl: asset.previewUrl,
                 status: 'uploaded',
@@ -735,7 +864,7 @@ export class InvitationMediaService {
         return { media: hydrated.media, mediaIndex, upserts, deleteIds };
     }
 
-    async saveMedia({ eventId, media, persistedMedia = null, files = [], schemaVersion = INVITATION_CONFIG_SCHEMA_VERSION, concurrency = DEFAULT_UPLOAD_CONCURRENCY, onProgress = null }) {
+    async saveMedia({ eventId, media, persistedMedia = null, files = [], schemaVersion = INVITATION_CONFIG_SCHEMA_VERSION, concurrency = DEFAULT_UPLOAD_CONCURRENCY, onProgress = null, demoMode = false }) {
         this.assertEnabled();
         const gateway = await this.preparePrivilegedWrite();
         const fileEntries = files instanceof Map ? [...files].map(([assetId, file]) => ({ assetId, file })) : [...files];
@@ -771,6 +900,7 @@ export class InvitationMediaService {
                     eventId,
                     asset,
                     file,
+                    shareToDemo: demoMode && asset.kind === 'image' && !asset.sharedDemoAssetId,
                     onProgress: (assetProgress) => onProgress?.({ assetId, assetProgress, completed, total: fileEntries.length, state: 'uploading' })
                 });
                 uploadedAssets.set(assetId, uploaded);
@@ -799,6 +929,22 @@ export class InvitationMediaService {
                 replacementCleanupFailures: 0,
                 persistenceStage: 'storage-upload'
             };
+        }
+        for (const uploaded of uploadedAssets.values()) {
+            if (!uploaded.sharedDemoAssetId || typeof gateway.createDemoMedia !== 'function') continue;
+            await gateway.createDemoMedia({
+                id: uploaded.sharedDemoAssetId,
+                originalName: uploaded.originalName,
+                mimeType: uploaded.mimeType,
+                size: uploaded.size,
+                width: uploaded.width,
+                height: uploaded.height,
+                role: uploaded.role,
+                storagePath: uploaded.storagePath,
+                objectVersion: uploaded.storagePath.match(/-([a-f0-9]{12})\./)?.[1] ?? '',
+                createdAt: gateway.serverTimestamp(),
+                sourceEventId: eventId
+            });
         }
         const nextMedia = mergeMediaForPersistence(media, persistedMedia, uploadedAssets);
         const nextIds = new Set(getAllMediaAssets(nextMedia).map(({ id }) => id));
@@ -845,9 +991,15 @@ export class InvitationMediaService {
             const previous = findAsset(persistedMedia, uploaded.id);
             if (previous?.storagePath && previous.storagePath !== uploaded.storagePath) cleanupPaths.push(previous.storagePath);
         }
-        cleanupPaths.push(...removedAssets.map(({ storagePath }) => storagePath).filter(Boolean));
+        const promotedOriginals = new Set(getAllMediaAssets(nextMedia)
+            .filter((asset) => asset.sharedDemoAssetId)
+            .flatMap((asset) => getAllMediaAssets(persistedMedia ?? {})
+                .filter((previous) => previous.role === asset.role && previous.originalName === asset.originalName)
+                .map(({ storagePath }) => storagePath)
+                .filter(Boolean)));
+        cleanupPaths.push(...removedAssets.map(({ storagePath }) => storagePath).filter((path) => path && !promotedOriginals.has(path)));
         const cleanup = await Promise.allSettled([
-            ...cleanupPaths.map((path) => gatewayDeleteOwned(this, eventId, path)),
+            ...cleanupPaths.filter((path) => !isDemoLibraryPath(path)).map((path) => gatewayDeleteOwned(this, eventId, path)),
             ...cleanupMediaIds.map((mediaId) => gatewayDeleteMediaDocument(this, eventId, mediaId))
         ]);
         const runtimeMedia = persisted.media;
@@ -876,7 +1028,10 @@ export class InvitationMediaService {
 
     async deleteAsset({ eventId, asset, media, persistedMedia = null, schemaVersion = INVITATION_CONFIG_SCHEMA_VERSION }) {
         this.assertEnabled();
-        assertOwnedInvitationMediaPath(asset?.storagePath, eventId, asset?.id);
+        if (asset?.sharedDemoAssetId && isDemoLibraryPath(asset.storagePath)) {
+            assertSafeSharedDemoAssetId(asset.sharedDemoAssetId);
+            if (!isDemoLibraryPath(asset.storagePath)) throw new TypeError('storage/invalid-demo-library-path');
+        } else assertOwnedInvitationMediaPath(asset?.storagePath, eventId, asset?.id);
         const nextMedia = removeAssetFromMedia(mergeMediaForPersistence(media, persistedMedia), asset.id);
         try {
             await this.persistMedia({
@@ -894,7 +1049,7 @@ export class InvitationMediaService {
         }
         try {
             await gatewayDeleteMediaDocument(this, eventId, asset.id);
-            await gatewayDeleteOwned(this, eventId, asset.storagePath);
+            if (!isDemoLibraryPath(asset.storagePath)) await gatewayDeleteOwned(this, eventId, asset.storagePath);
         } catch (error) {
             throw serviceError(error?.code || 'storage/delete-failed', error, {
                 metadataDeleted: true,

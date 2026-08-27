@@ -874,12 +874,20 @@ service cloud.firestore {
     }
 
     function validMediaDocumentCore(data, eventId, mediaId) {
-      return data.keys().size() == 17
-        && data.keys().hasOnly([
+      return ((data.keys().size() == 17
+          && data.keys().hasOnly([
           'id', 'role', 'kind', 'originalName', 'mimeType', 'size', 'width',
           'height', 'duration', 'alt', 'caption', 'storagePath', 'focalPoint',
           'objectVersion', 'createdAt', 'updatedAt', 'updatedBy'
-        ])
+          ]))
+        || (data.keys().size() == 18
+          && data.keys().hasOnly([
+            'id', 'role', 'kind', 'originalName', 'mimeType', 'size', 'width',
+            'height', 'duration', 'alt', 'caption', 'storagePath', 'focalPoint',
+            'objectVersion', 'createdAt', 'updatedAt', 'updatedBy', 'sharedDemoAssetId'
+          ])
+          && data.sharedDemoAssetId is string
+          && data.sharedDemoAssetId.matches('^DML-[A-Za-z0-9_-]{8,80}$')))
         && validMediaId(mediaId)
         && data.id == mediaId
         && data.role in ['cover', 'gallery', 'place', 'dressCode', 'video', 'videoPoster', 'music']
@@ -892,7 +900,10 @@ service cloud.firestore {
         && data.caption is string && data.caption.size() <= 360
         && data.objectVersion is string && data.objectVersion.matches('^[a-f0-9]{12}$')
         && data.storagePath is string
-        && data.storagePath.matches('^eventos/' + eventId + '/invitacion/media/' + data.role + '/' + mediaId + '-' + data.objectVersion + '\\.(jpg|png|webp|mp4|webm|mp3|m4a|aac|ogg)$')
+        && ('sharedDemoAssetId' in data
+          ? (data.storagePath.matches('^demo-library/' + data.sharedDemoAssetId + '-' + data.objectVersion + '\\.(jpg|png|webp)$')
+            && get(eventPath(eventId)).data.demoMode == true)
+          : data.storagePath.matches('^eventos/' + eventId + '/invitacion/media/' + data.role + '/' + mediaId + '-' + data.objectVersion + '\\.(jpg|png|webp|mp4|webm|mp3|m4a|aac|ogg)$'))
         && data.focalPoint is map
         && data.focalPoint.keys().size() == 2
         && data.focalPoint.keys().hasOnly(['x', 'y'])

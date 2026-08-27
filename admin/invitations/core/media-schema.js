@@ -153,6 +153,7 @@ export function createMediaAsset(id, seed = {}) {
         error: boundedText(seed.error, 300),
         focalPoint: { x: focalX, y: focalY },
         sortOrder: Math.max(0, Math.trunc(finiteNumber(seed.sortOrder))),
+        ...(seed.sharedDemoAssetId !== undefined ? { sharedDemoAssetId: boundedText(seed.sharedDemoAssetId, 80) } : {}),
         ...(seed.createdAt !== undefined ? { createdAt: seed.createdAt } : {}),
         ...(seed.updatedAt !== undefined ? { updatedAt: seed.updatedAt } : {}),
         ...(seed.updatedBy !== undefined ? { updatedBy: seed.updatedBy } : {})

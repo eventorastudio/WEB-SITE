@@ -1,7 +1,7 @@
-import { getAllMediaAssets, getMediaAssetSource, getMediaRoleAvailability } from '../core/media-schema.js?v=phase139-media-id-collision-fix-20250825';
+import { getAllMediaAssets, getMediaAssetSource, getMediaRoleAvailability } from '../core/media-schema.js?v=phase174-demo-shared-image-library-20260826';
 import { MediaObjectUrlRegistry } from '../core/media-runtime.js?v=phase4-media-20260813';
 import { friendlyMediaError, inspectAndProcessMediaFile } from '../core/media-processor.js?v=phase139-media-id-collision-fix-20250825';
-import { invitationMediaService } from '../services/invitation-media-service.js?v=phase139-media-id-collision-fix-20250825';
+import { invitationMediaService } from '../services/invitation-media-service.js?v=phase174-demo-shared-image-library-20260826';
 
 const ROLE_COPY = Object.freeze({
     place: Object.freeze({ title: 'Imágenes de lugares', copy: 'Biblioteca reutilizable para sitios y hospedaje. JPEG, PNG o WebP.', accept: '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp' }),
@@ -114,7 +114,7 @@ function field(label, property, asset, { multiline = false } = {}) {
     return wrapper;
 }
 
-function createAssetCard(asset, role, index, total, { storageStatus, registry, savingIds }) {
+function createAssetCard(asset, role, index, total, { storageStatus, registry, savingIds, promotingIds, demoMode }) {
     const isUploading = savingIds.has(asset.id);
     const card = document.createElement('article');
     card.className = 'media-asset-card';
@@ -128,7 +128,7 @@ function createAssetCard(asset, role, index, total, { storageStatus, registry, s
     copy.append(title, meta);
     const badge = document.createElement('span');
     badge.className = `media-status media-status-${isUploading ? 'uploading' : asset.status}`;
-    badge.textContent = STATUS_LABELS[isUploading ? 'uploading' : asset.status] ?? asset.status.toUpperCase();
+    badge.textContent = asset.sharedDemoAssetId ? 'COMPARTIDA CON DEMOS' : (STATUS_LABELS[isUploading ? 'uploading' : asset.status] ?? asset.status.toUpperCase());
     header.append(copy, badge);
 
     const body = document.createElement('div');
@@ -204,6 +204,16 @@ function createAssetCard(asset, role, index, total, { storageStatus, registry, s
         actions.append(isUploading
             ? button('Cancelar', 'cancel-upload', asset.id)
             : button(asset.status === 'error' ? 'Reintentar' : 'Subir', 'upload', asset.id));
+    }
+    const promotableImage = asset.kind === 'image'
+        && ['image/jpeg', 'image/png', 'image/webp'].includes(asset.mimeType)
+        && !asset.sharedDemoAssetId
+        && asset.storagePath
+        && !asset.storagePath.startsWith('demo-library/');
+    if (demoMode && promotableImage) {
+        actions.append(promotingIds.has(asset.id)
+            ? button('Compartiendo…', 'promote-demo-asset', asset.id, 'media-action-pending')
+            : button('Compartir con DEMOS', 'promote-demo-asset', asset.id));
     }
     const remove = button('Eliminar', 'remove', asset.id, 'is-danger');
     remove.disabled = isUploading;
@@ -378,6 +388,73 @@ export function initMediaEditor({ container, state, mediaService = invitationMed
     let persistedMedia = structuredClone(state.getSnapshot().draft.media);
     let applyingPersistenceResult = false;
     let disposed = false;
+    let sharedDemoAssets = [];
+    let sharedDemoError = '';
+    const promotingIds = new Set();
+
+    const renderSharedDemoLibrary = (snapshot) => {
+        if (snapshot.draft.settings?.demoMode !== true) return null;
+        const section = document.createElement('section');
+        section.className = 'media-shared-demo-library';
+        const heading = document.createElement('header');
+        const title = document.createElement('h3');
+        title.textContent = 'BIBLIOTECA COMPARTIDA DEMO';
+        const note = document.createElement('p');
+        note.textContent = 'Disponible para todas las invitaciones DEMO.';
+        const count = document.createElement('small');
+        count.textContent = `${sharedDemoAssets.length} imagen${sharedDemoAssets.length === 1 ? '' : 'es'}`;
+        heading.append(title, note, count);
+        section.append(heading);
+        if (sharedDemoError) {
+            const error = document.createElement('p');
+            error.className = 'media-role-message';
+            error.textContent = sharedDemoError;
+            section.append(error);
+        }
+        const list = document.createElement('div');
+        list.className = 'media-shared-demo-list';
+        sharedDemoAssets.forEach((asset) => {
+            const card = document.createElement('article');
+            card.className = 'media-shared-demo-card';
+            const image = document.createElement('img');
+            image.src = asset.downloadUrl;
+            image.alt = asset.originalName || '';
+            const name = document.createElement('strong');
+            name.textContent = asset.originalName || asset.id;
+            const actions = document.createElement('div');
+            ['cover', 'gallery', 'place', ...(snapshot.draft.themeId === 'aloha' ? ['dressCode'] : []), 'videoPoster'].forEach((role) => {
+                const use = button(`Usar en ${ROLE_COPY[role].title}`, 'use-demo-asset', asset.id, 'media-shared-demo-use');
+                use.dataset.demoRole = role;
+                actions.append(use);
+            });
+            card.append(image, name, actions);
+            list.append(card);
+        });
+        if (!sharedDemoAssets.length && !sharedDemoError) {
+            const empty = document.createElement('p');
+            empty.className = 'media-empty';
+            empty.textContent = 'Aún no hay imágenes compartidas.';
+            list.append(empty);
+        }
+        section.append(list);
+        return section;
+    };
+
+    const loadSharedDemoLibrary = async () => {
+        if (state.getSnapshot().draft.settings?.demoMode !== true) {
+            sharedDemoAssets = [];
+            sharedDemoError = '';
+            return;
+        }
+        try {
+            sharedDemoError = '';
+            sharedDemoAssets = await mediaService.listDemoMedia();
+        } catch {
+            sharedDemoAssets = [];
+            sharedDemoError = 'No fue posible cargar la Biblioteca DEMO.';
+        }
+        render();
+    };
 
     const render = (snapshot = state.getSnapshot()) => {
         if (disposed) return;
@@ -406,8 +483,16 @@ export function initMediaEditor({ container, state, mediaService = invitationMed
             notice.append(controls);
         }
         fragment.append(notice);
+        if (snapshot.draft.settings?.demoMode === true) {
+            const localHeading = document.createElement('h3');
+            localHeading.className = 'media-demo-local-heading';
+            localHeading.textContent = 'IMÁGENES DE ESTA DEMO';
+            fragment.append(localHeading);
+        }
+        const sharedLibrary = renderSharedDemoLibrary(snapshot);
+        if (sharedLibrary) fragment.append(sharedLibrary);
         ['cover', 'gallery', 'place', ...(snapshot.draft.themeId === 'aloha' ? ['dressCode'] : []), 'video', 'videoPoster', 'music'].forEach((role) => {
-            fragment.append(createRoleSection(role, snapshot, activity, { storageStatus, registry, savingIds }));
+            fragment.append(createRoleSection(role, snapshot, activity, { storageStatus, registry, savingIds, promotingIds, demoMode: snapshot.draft.settings?.demoMode === true }));
         });
         container.replaceChildren(fragment);
         if (scroller) scroller.scrollTop = scrollTop;
@@ -512,6 +597,7 @@ export function initMediaEditor({ container, state, mediaService = invitationMed
                 persistedMedia,
                 files,
                 schemaVersion: state.getSnapshot().draft.schemaVersion,
+                demoMode: state.getSnapshot().draft.settings?.demoMode === true,
                 concurrency: 3,
                 onProgress: ({ assetId, assetProgress, completed, total, state: uploadState }) => {
                     const meter = container.querySelector(`[data-upload-meter="${assetId}"]`);
@@ -636,6 +722,52 @@ export function initMediaEditor({ container, state, mediaService = invitationMed
         const action = event.target.closest('[data-media-action]');
         if (!action || action.disabled) return;
         const assetId = action.dataset.assetId;
+        if (action.dataset.mediaAction === 'promote-demo-asset') {
+            const current = findAsset(state.getSnapshot().draft.media, assetId);
+            if (!current || promotingIds.has(assetId)) return;
+            promotingIds.add(assetId);
+            render();
+            void mediaService.promoteDemoMedia({
+                eventId: state.getSnapshot().draft.eventId,
+                asset: current,
+                demoMode: state.getSnapshot().draft.settings?.demoMode === true,
+                onProgress: (progress) => {
+                    activity[current.role] = `Compartiendo… ${Math.round(progress)}%`;
+                    render();
+                }
+            }).then(async (promoted) => {
+                const result = state.replaceMediaAssetWithNewId(assetId, promoted);
+                if (!result?.ok) throw new Error(result?.code || 'builder/media-promotion-failed');
+                await saveMedia();
+                await loadSharedDemoLibrary();
+                showMessage(current.role, 'Compartida con DEMOS.', 'success');
+            }).catch(() => showMessage(current?.role ?? 'cover', 'No fue posible compartir esta imagen. El original sigue intacto.')).finally(() => {
+                promotingIds.delete(assetId);
+                delete activity[current?.role];
+                render();
+            });
+            return;
+        }
+        if (action.dataset.mediaAction === 'use-demo-asset') {
+            const sharedAsset = sharedDemoAssets.find(({ id }) => id === assetId);
+            const role = action.dataset.demoRole;
+            if (!sharedAsset || !role) return;
+            void mediaService.importDemoMedia({
+                eventId: state.getSnapshot().draft.eventId,
+                sharedAsset,
+                role,
+                knownMediaIds: getAllMediaAssets(state.getSnapshot().draft.media).map(({ id }) => id)
+            }).then(({ asset }) => {
+                const current = state.getSnapshot().draft.media[role];
+                const result = ['gallery', 'place'].includes(role)
+                    ? state.addMediaAsset(role, asset)
+                    : current
+                        ? state.replaceMediaAssetWithNewId(current.id, asset)
+                        : state.addMediaAsset(role, asset);
+                if (!result?.ok) showMessage(role, 'No fue posible usar esta imagen en la sección seleccionada.');
+            }).catch(() => showMessage(role, 'No fue posible importar la imagen compartida.'));
+            return;
+        }
         if (action.dataset.mediaAction === 'remove') void removeAsset(assetId);
         if (action.dataset.mediaAction === 'up' || action.dataset.mediaAction === 'down') state.moveGalleryAsset(assetId, action.dataset.mediaAction);
         if (action.dataset.mediaAction === 'upload') void saveMedia([assetId]);
@@ -672,11 +804,15 @@ export function initMediaEditor({ container, state, mediaService = invitationMed
     container.addEventListener('drop', onDrop);
     window.addEventListener('beforeunload', onBeforeUnload);
     render();
+    void loadSharedDemoLibrary();
     const unsubscribe = state.subscribe(({ snapshot, reason }) => {
         if (reason === 'initialized' || (reason === 'media-hydrated' && !applyingPersistenceResult)) {
             persistedMedia = structuredClone(snapshot.draft.media);
         }
-        if (['initialized', 'package-changed', 'sections-changed', 'media-changed', 'media-hydrated', 'media-persisted', 'media-pending'].includes(reason)) render(snapshot);
+        if (['initialized', 'package-changed', 'sections-changed', 'media-changed', 'media-hydrated', 'media-persisted', 'media-pending', 'settings-changed'].includes(reason)) {
+            render(snapshot);
+            if (reason === 'settings-changed') void loadSharedDemoLibrary();
+        }
     }, { source: 'media-editor' });
     return () => {
         disposed = true;

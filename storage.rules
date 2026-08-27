@@ -107,6 +107,31 @@ service firebase.storage {
         && existingMetadataMatches(eventId, role);
     }
 
+    match /demo-library {
+      allow read, write: if false;
+    }
+
+    match /demo-library/{allFiles=**} {
+      allow list: if hasInvitationEditorClaim();
+      allow get, create, update, delete: if false;
+    }
+
+    match /demo-library/{fileName} {
+      allow read: if hasInvitationEditorClaim()
+        && fileName.matches('^DML-[A-Za-z0-9_-]{8,80}-[a-f0-9]{12}\\.(jpg|png|webp)$');
+      allow create: if hasInvitationEditorClaim()
+        && resource == null
+        && fileName.matches('^DML-[A-Za-z0-9_-]{8,80}-[a-f0-9]{12}\\.(jpg|png|webp)$')
+        && request.resource.contentType.matches('^image/(jpeg|png|webp)$')
+        && request.resource.size > 0
+        && request.resource.size <= 20 * 1024 * 1024
+        && request.resource.metadata.sourceEventId is string
+        && request.resource.metadata.sharedDemoAssetId is string
+        && fileName.matches('^' + request.resource.metadata.sharedDemoAssetId + '-[a-f0-9]{12}\\..+$')
+        && firestore.get(/databases/(default)/documents/eventos/$(request.resource.metadata.sourceEventId)).data.demoMode == true;
+      allow update, delete: if false;
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }
