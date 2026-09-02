@@ -52,14 +52,17 @@ export async function handleLatePurgedEventObject({ event, db, bucket, expectedB
     if (!shouldDelete) return Object.freeze({ action: 'KEEP', eventId: parsed.eventId, purgeStatus: record?.status ?? null });
 
     const generation = String(event?.data?.generation ?? event?.generation ?? '');
+    if (!generation) return Object.freeze({ action: 'KEEP', reason: 'MISSING_GENERATION', eventId: parsed.eventId });
     const file = bucket.file(name);
     try {
-        if (generation) await file.delete({ ifGenerationMatch: generation });
-        else await file.delete();
+        await file.delete({ ifGenerationMatch: generation });
     } catch (error) {
         const code = Number(error?.code);
         if (code === 404 || error?.code === 'not-found') {
             return Object.freeze({ action: 'ALREADY_GONE', eventId: parsed.eventId });
+        }
+        if (code === 412 || error?.code === 'precondition-failed') {
+            return Object.freeze({ action: 'KEEP', reason: 'GENERATION_MISMATCH', eventId: parsed.eventId, generation });
         }
         throw error;
     }

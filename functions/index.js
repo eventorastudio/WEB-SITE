@@ -4,6 +4,7 @@ import { getStorage } from 'firebase-admin/storage';
 import { logger } from 'firebase-functions';
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { HttpsError, onCall, onRequest } from 'firebase-functions/v2/https';
+import { onObjectFinalized } from 'firebase-functions/v2/storage';
 
 import { reconcileCurrentRsvpResponse } from './src/rsvp-reconciliation.js';
 import { resolveGuestQrToken } from './src/guest-qr-access.js';
@@ -11,6 +12,7 @@ import { createCalendarHttpHandler } from './src/calendar-http.js';
 import { isCeoClaims, prepareRefundPurgeDryRun } from './src/purge/refund-purge-preparation.js';
 import { authorizeRefundProjectPurge as authorizeRefundProjectPurgeCore, cancelRefundProjectPurge as cancelRefundProjectPurgeCore } from './src/purge/refund-purge-authorization.js';
 import { confirmRefundRecord as confirmRefundRecordCore, recordRefundProcessed as recordRefundProcessedCore } from './src/purge/refund-records.js';
+import { handleLatePurgedEventObject } from './src/purge/late-upload-sweeper.js';
 
 initializeApp();
 
@@ -52,6 +54,17 @@ export const syncRsvpResponseToGuest = onDocumentWritten({
         throw error;
     }
 });
+
+export const refundPurgeLateUploadSweeper = onObjectFinalized({
+    bucket: 'eventorastudio-d6d95.firebasestorage.app',
+    region: 'us-east1',
+    retry: true
+}, async (event) => handleLatePurgedEventObject({
+    event,
+    db: getFirestore(),
+    bucket: getStorage().bucket(),
+    expectedBucket: 'eventorastudio-d6d95.firebasestorage.app'
+}));
 
 export const getGuestQrToken = onCall({
     region: 'us-central1'
