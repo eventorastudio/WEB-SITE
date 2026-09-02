@@ -37,6 +37,7 @@ const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
 const UID = 'UID-RULES-EDITOR';
 const VERSION_A = 'abcdef123456';
 const VERSION_B = 'fedcba654321';
+const MEDIA_WRITE_CHUNK_SIZE = 1;
 
 let testEnv;
 const contextUids = new WeakMap();
@@ -170,12 +171,15 @@ function mediaRef(db, eventId, id) {
 
 async function commitMedia(context, eventId, media) {
     const db = context.firestore();
-    const batch = writeBatch(db);
-    batch.set(configRef(db, eventId), configData(uidFor(context), createInvitationMediaIndex(media)));
-    for (const item of allAssets(media)) {
-        batch.set(mediaRef(db, eventId, item.id), mediaDocumentData(item, eventId, uidFor(context)));
+    const operations = allAssets(media);
+    for (let start = 0; start < operations.length; start += MEDIA_WRITE_CHUNK_SIZE) {
+        const batch = writeBatch(db);
+        for (const item of operations.slice(start, start + MEDIA_WRITE_CHUNK_SIZE)) {
+            batch.set(mediaRef(db, eventId, item.id), mediaDocumentData(item, eventId, uidFor(context)));
+        }
+        await assertSucceeds(batch.commit());
     }
-    await assertSucceeds(batch.commit());
+    await assertSucceeds(setDoc(configRef(db, eventId), configData(uidFor(context), createInvitationMediaIndex(media))));
 }
 
 function storageMetadata(eventId, item, contentType = item.mimeType) {
@@ -186,12 +190,60 @@ function storageMetadata(eventId, item, contentType = item.mimeType) {
 }
 
 async function uploadAsset(context, eventId, item, bytes = new Uint8Array(item.size)) {
+    await seedFirestore(async (db) => {
+        const root = doc(db, 'eventos', eventId);
+        if (!(await getDoc(root)).exists()) {
+            await setDoc(root, { nombreEvento: 'Storage rules test', demoMode: false });
+        }
+    });
     return assertSucceeds(uploadBytes(ref(context.storage(), item.storagePath), bytes, storageMetadata(eventId, item)));
 }
 
 async function seedFirestore(seed) {
     await testEnv.withSecurityRulesDisabled(async (context) => seed(context.firestore()));
 }
+
+test('Storage bloquea create y delete cuando el evento entra en purgeLock', async () => {
+    const eventId = 'EVT-STORAGE-FREEZE';
+    const context = contextFor('CEO');
+    const item = asset(eventId, 'cover', mediaId(1));
+    await seedFirestore(async (db) => {
+        await setDoc(doc(db, 'eventos', eventId), { demoMode: false });
+    });
+    await uploadAsset(context, eventId, item);
+    await seedFirestore(async (db) => {
+        await setDoc(doc(db, 'eventos', eventId), {
+            demoMode: false,
+            purgeLock: { operationId: 'PURGE-EVT-STORAGE-FREEZE', status: 'STORAGE_PURGING' }
+        });
+    });
+    const nextItem = asset(eventId, 'gallery', mediaId(2));
+    await assertFails(uploadBytes(ref(context.storage(), nextItem.storagePath), new Uint8Array(4), storageMetadata(eventId, nextItem)));
+    await assertFails(deleteObject(ref(context.storage(), item.storagePath)));
+});
+
+test('Storage falla cerrado si falta el root del evento', async () => {
+    const eventId = 'EVT-STORAGE-MISSING-ROOT';
+    const context = contextFor('CEO');
+    const item = asset(eventId, 'cover', mediaId(1));
+    await assertFails(uploadBytes(ref(context.storage(), item.storagePath), new Uint8Array(4), storageMetadata(eventId, item)));
+});
+
+test('Storage congela únicamente el evento purgado y conserva otro evento activo', async () => {
+    const frozenEventId = 'EVT-STORAGE-FROZEN-A';
+    const activeEventId = 'EVT-STORAGE-ACTIVE-B';
+    const context = contextFor('CEO');
+    const frozenItem = asset(frozenEventId, 'cover', mediaId(1));
+    const activeItem = asset(activeEventId, 'cover', mediaId(1));
+    await seedFirestore(async (db) => {
+        await setDoc(doc(db, 'eventos', frozenEventId), {
+            purgeLock: { operationId: 'PURGE-A', status: 'PURGE_PENDING' }
+        });
+        await setDoc(doc(db, 'eventos', activeEventId), { demoMode: false });
+    });
+    await assertFails(uploadBytes(ref(context.storage(), frozenItem.storagePath), new Uint8Array(4), storageMetadata(frozenEventId, frozenItem)));
+    await uploadAsset(context, activeEventId, activeItem);
+});
 
 test('contratos productivos Admin preservan eventos, invitados, themes y lectura interna', async () => {
     const eventId = 'EVT-PRESERVE-ADMIN';
