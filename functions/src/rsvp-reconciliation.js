@@ -4,6 +4,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 
 import { createEventStatsMutation } from '../generated/event-stats.js';
 import { RSVP_GUEST_FIELDS, createGuestRsvpPatch } from '../generated/guest-contract.js';
+import { isEventPurgeLocked } from './purge/refund-purge-executor.js';
 import {
     deserializeRsvpResponseDocument
 } from '../generated/rsvp-response-contract.js';
@@ -71,6 +72,7 @@ export async function reconcileCurrentRsvpResponse({
         ]);
         if (!guestSnapshot.exists) fail('rsvp-sync/guest-not-found');
         if (!eventSnapshot.exists) fail('rsvp-sync/event-not-found');
+        if (isEventPurgeLocked(eventSnapshot.data())) fail('rsvp-sync/purge-in-progress');
 
         const guestBefore = guestSnapshot.data();
         const guestPatch = createGuestRsvpPatch(response, guestBefore);

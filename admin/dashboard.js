@@ -117,6 +117,8 @@ function initUI() {
             window.location.href = './invitations/builder.html';
         });
     }
+    const refundPurgeLink = document.getElementById('dashboard-nav-refund-purge');
+    if (refundPurgeLink) refundPurgeLink.hidden = !dashboardRoleContext?.isCeo;
 }
 
 function renderWelcomeHero(user) {

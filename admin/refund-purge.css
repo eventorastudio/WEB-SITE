@@ -1,0 +1,33 @@
+.purge-page-main { padding-bottom: 96px; }
+.danger-chip, .status-chip { display: inline-flex; align-items: center; min-height: 30px; padding: 0 12px; border: 1px solid #9b2929; border-radius: 999px; color: #9b2929; font-size: .68rem; font-weight: 800; letter-spacing: .1em; white-space: nowrap; }
+.status-chip { border-color: var(--admin-border); color: var(--admin-muted); }
+.purge-warning { display: grid; gap: 5px; padding: 20px 22px; border: 1px solid rgba(155,41,41,.32); border-left: 4px solid #9b2929; border-radius: 14px; background: rgba(155,41,41,.06); color: var(--admin-text); }
+.purge-warning span, .purge-messages { color: var(--admin-muted); font-size: .82rem; line-height: 1.55; }
+.purge-card { display: grid; gap: 20px; }
+.event-identity { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; padding: 16px; border: 1px solid var(--admin-border); border-radius: 12px; background: var(--admin-surface-muted); }
+.event-identity span, .confirmation-identifiers span { display: block; margin-bottom: 5px; color: var(--admin-muted); font-size: .64rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.event-identity strong, .confirmation-identifiers strong { overflow-wrap: anywhere; color: var(--admin-text); font-size: .82rem; }
+.purge-summary-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.purge-summary-grid div { padding: 14px; border: 1px solid var(--admin-border); border-radius: 12px; background: var(--admin-surface-muted); }
+.purge-summary-grid span { display: block; color: var(--admin-muted); font-size: .68rem; }
+.purge-summary-grid strong { display: block; margin-top: 7px; color: var(--admin-text); font-size: 1.35rem; }
+.purge-messages { display: grid; gap: 5px; }
+.purge-messages strong { color: #9b2929; }
+.confirmation-list { display: grid; gap: 13px; padding: 18px; border: 1px solid var(--admin-border); border-radius: 12px; background: var(--admin-surface-muted); color: var(--admin-text); font-size: .82rem; line-height: 1.5; }
+.confirmation-list input { margin-right: 9px; accent-color: #9b2929; }
+.confirmation-identifiers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.confirmation-identifiers > div { padding: 14px; border: 1px solid var(--admin-border); border-radius: 12px; }
+.btn-danger, .btn-danger-outline { min-height: 44px; padding: 0 18px; border-radius: 12px; font-size: .78rem; font-weight: 800; letter-spacing: .04em; }
+.btn-danger { border: 1px solid #8e2424; background: #8e2424; color: #fff; }
+.btn-danger-outline { border: 1px solid #9b2929; background: transparent; color: #9b2929; }
+.btn-danger:hover:not(:disabled), .btn-danger-outline:hover:not(:disabled) { background: #742020; color: #fff; }
+.authorization-result { margin: 0; color: var(--admin-muted); font-size: .82rem; }
+.reauth-panel { display: grid; gap: 10px; padding: 16px; border: 1px solid var(--admin-border); border-radius: 12px; background: var(--admin-surface-muted); }
+.reauth-panel > span { color: var(--admin-muted); font-size: .78rem; }
+.termination-choice { display: grid; gap: 10px; margin: 0; padding: 16px; border: 1px solid var(--admin-border); border-radius: 12px; background: var(--admin-surface-muted); color: var(--admin-text); }
+.termination-choice legend { padding: 0 5px; color: var(--admin-muted); font-size: .68rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.termination-choice label { font-size: .82rem; line-height: 1.45; }
+.termination-choice input { margin-right: 9px; accent-color: #9b2929; }
+.termination-warning { margin: 3px 0 0; color: #9b2929; font-size: .78rem; line-height: 1.5; }
+@media (max-width: 760px) { .event-identity, .purge-summary-grid, .confirmation-identifiers { grid-template-columns: repeat(2, minmax(0, 1fr)); } .page-intro { align-items: start; flex-direction: column; } }
+@media (max-width: 480px) { .admin-page-shell { padding: 0 18px 60px; } .event-identity, .purge-summary-grid { grid-template-columns: 1fr 1fr; } .form-actions { align-items: stretch; flex-direction: column; } }
