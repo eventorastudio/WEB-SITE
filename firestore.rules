@@ -557,14 +557,17 @@ service cloud.firestore {
 
     function validCompactInvitationMediaIndex(index) {
       return index is map
-        && index.keys().size() >= 6
-        && index.keys().size() <= 8
-        && index.keys().hasOnly(['schemaVersion', 'coverId', 'galleryIds', 'placeIds', 'dressCodeId', 'videoId', 'posterId', 'audioId'])
+        && (
+          (index.keys().size() == 6
+            && index.keys().hasOnly(['schemaVersion', 'coverId', 'galleryIds', 'videoId', 'posterId', 'audioId']))
+          || (index.keys().size() == 7
+            && index.keys().hasOnly(['schemaVersion', 'coverId', 'galleryIds', 'dressCodeId', 'videoId', 'posterId', 'audioId']))
+          || (index.keys().size() == 8
+            && index.keys().hasOnly(['schemaVersion', 'coverId', 'galleryIds', 'placeIds', 'dressCodeId', 'videoId', 'posterId', 'audioId']))
+        )
         && index.schemaVersion == 1
-        && index.galleryIds is list
-        && index.galleryIds.size() <= 20
-        && index.galleryIds.toSet().size() == index.galleryIds.size()
-        && (!('placeIds' in index) || (index.placeIds is list && index.placeIds.size() <= 20 && index.placeIds.toSet().size() == index.placeIds.size()))
+        && validGalleryIds(index.galleryIds)
+        && (!('placeIds' in index) || validGalleryIds(index.placeIds))
         && validOptionalMediaId(index.get('coverId', null))
         && validOptionalMediaId(index.get('dressCodeId', null))
         && validOptionalMediaId(index.get('videoId', null))
@@ -1011,7 +1014,10 @@ service cloud.firestore {
     // de 1000 expresiones incluso para un único media document.
     function validCompactMediaDocument(data, eventId, mediaId, isCreate) {
       return data is map
-        && (data.keys().size() == 17 || data.keys().size() == 18)
+        && (data.keys().size() == 17
+          || (data.keys().size() == 18
+            && data.sharedDemoAssetId is string
+            && data.sharedDemoAssetId.matches('^DML-[A-Za-z0-9_-]{8,80}$')))
         && data.keys().hasOnly([
           'id', 'role', 'kind', 'originalName', 'mimeType', 'size', 'width',
           'height', 'duration', 'alt', 'caption', 'storagePath', 'focalPoint',
@@ -1025,13 +1031,17 @@ service cloud.firestore {
         && data.id == mediaId
         && data.role in ['cover', 'gallery', 'place', 'dressCode', 'video', 'videoPoster', 'music']
         && data.kind in ['image', 'video', 'audio']
-        && data.originalName is string
+        && data.originalName is string && data.originalName.size() <= 180
         && data.mimeType in ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm', 'audio/mpeg', 'audio/mp4', 'audio/aac', 'audio/ogg']
         && data.size > 0 && data.size <= 80 * 1024 * 1024
         && data.width >= 0 && data.height >= 0 && data.duration >= 0
-        && data.alt is string && data.caption is string
+        && data.alt is string && data.alt.size() <= 220
+        && data.caption is string && data.caption.size() <= 360
         && data.objectVersion.matches('^[a-f0-9]{12}$')
-        && data.storagePath.matches('^eventos/' + eventId + '/invitacion/media/' + data.role + '/' + mediaId + '-[a-f0-9]{12}\\.(jpg|png|webp|mp4|webm|mp3|m4a|aac|ogg)$')
+        && ('sharedDemoAssetId' in data
+          ? (data.storagePath.matches('^demo-library/' + data.sharedDemoAssetId + '-' + data.objectVersion + '\\.(jpg|png|webp)$')
+            && get(eventPath(eventId)).data.demoMode == true)
+          : data.storagePath.matches('^eventos/' + eventId + '/invitacion/media/' + data.role + '/' + mediaId + '-[a-f0-9]{12}\\.(jpg|png|webp|mp4|webm|mp3|m4a|aac|ogg)$'))
         && data.focalPoint is map
         && data.focalPoint.keys().hasOnly(['x', 'y'])
         && data.focalPoint.x >= 0 && data.focalPoint.x <= 100
@@ -1042,14 +1052,20 @@ service cloud.firestore {
         && (isCreate ? true : data.createdAt == resource.data.createdAt)
         && ((data.role in ['cover', 'gallery', 'place', 'dressCode', 'videoPoster']
           && data.kind == 'image'
+          && data.size <= 20 * 1024 * 1024
+          && data.width > 0 && data.height > 0 && data.duration == 0
           && data.mimeType in ['image/jpeg', 'image/png', 'image/webp']
           && ((data.mimeType == 'image/jpeg' && data.storagePath.matches('^.+\\.jpg$'))
             || (data.mimeType == 'image/png' && data.storagePath.matches('^.+\\.png$'))
             || (data.mimeType == 'image/webp' && data.storagePath.matches('^.+\\.webp$'))))
           || (data.role == 'video' && data.kind == 'video'
+            && data.size <= 80 * 1024 * 1024
+            && data.width > 0 && data.height > 0 && data.duration > 0 && data.duration <= 5 * 60
             && data.mimeType in ['video/mp4', 'video/webm']
             && data.storagePath.matches('^.+\\.(mp4|webm)$'))
           || (data.role == 'music' && data.kind == 'audio'
+            && data.size <= 20 * 1024 * 1024
+            && data.width == 0 && data.height == 0 && data.duration > 0 && data.duration <= 15 * 60
             && data.mimeType in ['audio/mpeg', 'audio/mp4', 'audio/aac', 'audio/ogg']
             && data.storagePath.matches('^.+\\.(mp3|m4a|aac|ogg)$')));
     }
