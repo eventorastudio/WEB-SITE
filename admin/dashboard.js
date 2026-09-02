@@ -12,6 +12,7 @@ import {
     createEmptyEventStats
 } from '../shared/event-stats.js';
 import { getEventStatusPresentation, isEventInProgress } from '../shared/event-status.js';
+import { normalizeEventDate } from '../shared/event-date.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { collection, getDocs, query, orderBy, addDoc, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getToken as getAppCheckToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js";
@@ -578,7 +579,7 @@ async function submitNewEvent(e) {
             claveAcceso: claveAcceso,
             nombreEvento: document.getElementById('evt-nombre').value.trim(),
             tipoEvento: document.getElementById('evt-tipo').value,
-            fecha: document.getElementById('evt-fecha').value,
+            fecha: normalizeEventDate(document.getElementById('evt-fecha').value, { strict: true }),
             hora: document.getElementById('evt-hora').value,
             pais: document.getElementById('evt-pais').value.trim(),
             estado: document.getElementById('evt-estado-lugar').value.trim(),

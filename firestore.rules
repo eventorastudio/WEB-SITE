@@ -534,12 +534,54 @@ service cloud.firestore {
         && singularIdsAreDistinct(index);
     }
 
+    // La validación exhaustiva de cada posición de una galería de 20 elementos
+    // supera el límite de expresiones cuando se combina con el freeze del root.
+    // En ese caso se conserva la forma, el límite y la unicidad del índice; cada
+    // documento media continúa sujeto a validMediaDocumentCore y al freeze.
+    function validLargeGalleryMediaIndex(index) {
+      return index is map
+        && index.keys().hasOnly(['schemaVersion', 'coverId', 'galleryIds', 'placeIds', 'dressCodeId', 'videoId', 'posterId', 'audioId'])
+        && index.keys().size() >= 6
+        && index.keys().size() <= 8
+        && index.schemaVersion == 1
+        && index.galleryIds is list
+        && index.galleryIds.size() == 20
+        && index.galleryIds.toSet().size() == 20
+        && (!('placeIds' in index) || (index.placeIds is list && index.placeIds.size() <= 20 && index.placeIds.toSet().size() == index.placeIds.size()))
+        && validOptionalMediaId(index.get('coverId', null))
+        && validOptionalMediaId(index.get('dressCodeId', null))
+        && validOptionalMediaId(index.get('videoId', null))
+        && validOptionalMediaId(index.get('posterId', null))
+        && validOptionalMediaId(index.get('audioId', null));
+    }
+
+    function validCompactInvitationMediaIndex(index) {
+      return index is map
+        && index.keys().size() >= 6
+        && index.keys().size() <= 8
+        && index.keys().hasOnly(['schemaVersion', 'coverId', 'galleryIds', 'placeIds', 'dressCodeId', 'videoId', 'posterId', 'audioId'])
+        && index.schemaVersion == 1
+        && index.galleryIds is list
+        && index.galleryIds.size() <= 20
+        && index.galleryIds.toSet().size() == index.galleryIds.size()
+        && (!('placeIds' in index) || (index.placeIds is list && index.placeIds.size() <= 20 && index.placeIds.toSet().size() == index.placeIds.size()))
+        && validOptionalMediaId(index.get('coverId', null))
+        && validOptionalMediaId(index.get('dressCodeId', null))
+        && validOptionalMediaId(index.get('videoId', null))
+        && validOptionalMediaId(index.get('posterId', null))
+        && validOptionalMediaId(index.get('audioId', null))
+        && (index.get('coverId', null) == null || !(index.coverId in index.galleryIds))
+        && (index.get('videoId', null) == null || !(index.videoId in index.galleryIds))
+        && (index.get('posterId', null) == null || !(index.posterId in index.galleryIds))
+        && (index.get('audioId', null) == null || !(index.audioId in index.galleryIds));
+    }
+
     function validInvitationConfigWrite() {
       let data = request.resource.data;
       return data.keys().size() == 4
         && data.keys().hasOnly(['schemaVersion', 'mediaIndex', 'updatedAt', 'updatedBy'])
         && data.schemaVersion == 5
-        && validMediaIndex(data.mediaIndex)
+        && validCompactInvitationMediaIndex(data.mediaIndex)
         && data.updatedAt == request.time
         && data.updatedBy == request.auth.uid;
     }
@@ -964,12 +1006,82 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt;
     }
 
+    // Versión compacta para que el guard de freeze pueda convivir con la
+    // evaluación de Rules. La validación exhaustiva histórica supera el límite
+    // de 1000 expresiones incluso para un único media document.
+    function validCompactMediaDocument(data, eventId, mediaId, isCreate) {
+      return data is map
+        && (data.keys().size() == 17 || data.keys().size() == 18)
+        && data.keys().hasOnly([
+          'id', 'role', 'kind', 'originalName', 'mimeType', 'size', 'width',
+          'height', 'duration', 'alt', 'caption', 'storagePath', 'focalPoint',
+          'objectVersion', 'createdAt', 'updatedAt', 'updatedBy', 'sharedDemoAssetId'
+        ])
+        && data.keys().hasAll([
+          'id', 'role', 'kind', 'originalName', 'mimeType', 'size', 'width',
+          'height', 'duration', 'alt', 'caption', 'storagePath', 'focalPoint',
+          'objectVersion', 'createdAt', 'updatedAt', 'updatedBy'
+        ])
+        && data.id == mediaId
+        && data.role in ['cover', 'gallery', 'place', 'dressCode', 'video', 'videoPoster', 'music']
+        && data.kind in ['image', 'video', 'audio']
+        && data.originalName is string
+        && data.mimeType in ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm', 'audio/mpeg', 'audio/mp4', 'audio/aac', 'audio/ogg']
+        && data.size > 0 && data.size <= 80 * 1024 * 1024
+        && data.width >= 0 && data.height >= 0 && data.duration >= 0
+        && data.alt is string && data.caption is string
+        && data.objectVersion.matches('^[a-f0-9]{12}$')
+        && data.storagePath.matches('^eventos/' + eventId + '/invitacion/media/' + data.role + '/' + mediaId + '-[a-f0-9]{12}\\.(jpg|png|webp|mp4|webm|mp3|m4a|aac|ogg)$')
+        && data.focalPoint is map
+        && data.focalPoint.keys().hasOnly(['x', 'y'])
+        && data.focalPoint.x >= 0 && data.focalPoint.x <= 100
+        && data.focalPoint.y >= 0 && data.focalPoint.y <= 100
+        && data.createdAt is timestamp
+        && data.updatedAt == request.time
+        && data.updatedBy == request.auth.uid
+        && (isCreate ? true : data.createdAt == resource.data.createdAt)
+        && ((data.role in ['cover', 'gallery', 'place', 'dressCode', 'videoPoster']
+          && data.kind == 'image'
+          && data.mimeType in ['image/jpeg', 'image/png', 'image/webp']
+          && ((data.mimeType == 'image/jpeg' && data.storagePath.matches('^.+\\.jpg$'))
+            || (data.mimeType == 'image/png' && data.storagePath.matches('^.+\\.png$'))
+            || (data.mimeType == 'image/webp' && data.storagePath.matches('^.+\\.webp$'))))
+          || (data.role == 'video' && data.kind == 'video'
+            && data.mimeType in ['video/mp4', 'video/webm']
+            && data.storagePath.matches('^.+\\.(mp4|webm)$'))
+          || (data.role == 'music' && data.kind == 'audio'
+            && data.mimeType in ['audio/mpeg', 'audio/mp4', 'audio/aac', 'audio/ogg']
+            && data.storagePath.matches('^.+\\.(mp3|m4a|aac|ogg)$')));
+    }
+
+    function validCompactMediaCreate(eventId, mediaId) {
+      return validCompactMediaDocument(request.resource.data, eventId, mediaId, true);
+    }
+
+    function validCompactMediaUpdate(eventId, mediaId) {
+      return validCompactMediaDocument(request.resource.data, eventId, mediaId, false);
+    }
+
     function profilePath() {
       return /databases/$(database)/documents/usuarios/$(request.auth.uid);
     }
 
     function eventPath(eventId) {
       return /databases/$(database)/documents/eventos/$(eventId);
+    }
+
+    function eventNotPurging(eventId) {
+      return !exists(eventPath(eventId))
+        || get(eventPath(eventId)).data.get('purgeLock', null) == null;
+    }
+
+    function purgeRecordPath(eventId) {
+      let purgeId = 'PURGE-' + eventId;
+      return /databases/$(database)/documents/administrativePurgeRecords/$(purgeId);
+    }
+
+    function eventIdIsAvailable(eventId) {
+      return !exists(purgeRecordPath(eventId));
     }
 
     function guestPath(eventId, guestId) {
@@ -1133,33 +1245,47 @@ service cloud.firestore {
       allow get: if isInternalReader() || portalEnabled(eventId);
       allow list: if isInternalReader();
       // El Portal nunca recibe update sobre el documento padre.
-      allow create, delete: if isPlatformManager();
-      allow update: if isPlatformManager()
+      allow create: if isPlatformManager()
+        && eventIdIsAvailable(eventId)
+        && !request.resource.data.keys().hasAny(['purgeLock']);
+      allow delete: if isPlatformManager()
+        && (!resource.data.keys().hasAny(['purgeLock']) || resource.data.purgeLock == null);
+      allow update: if eventNotPurging(eventId)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['purgeLock'])
+        && isPlatformManager()
         || (isThemeEditor()
+          && eventNotPurging(eventId)
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['purgeLock'])
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['demoMode'])
-          && request.resource.data.demoMode is bool);
+          && request.resource.data.demoMode is bool)
+        || (isThemeEditor()
+          && eventNotPurging(eventId)
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['purgeLock'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['fecha'])
+          && request.resource.data.fecha is string
+          && request.resource.data.fecha.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'));
 
       match /rsvpAccess/{token} {
         allow get: if isThemeEditor() || validPublicRsvpAccessGet(eventId, token);
         allow list: if isThemeEditor();
-        allow create: if validRsvpAccessCreate(eventId, token);
-        allow update: if validRsvpAccessUpdate(eventId, token);
+        allow create: if eventNotPurging(eventId) && validRsvpAccessCreate(eventId, token);
+        allow update: if eventNotPurging(eventId) && validRsvpAccessUpdate(eventId, token);
         allow delete: if false;
       }
 
       match /rsvpPublic/{configKey} {
         allow get: if isThemeEditor() || validPublicRsvpConfigGet(eventId, configKey);
         allow list: if false;
-        allow create, update: if isThemeEditor() && validRsvpPublicConfigWrite(eventId, configKey);
+        allow create, update: if eventNotPurging(eventId) && isThemeEditor() && validRsvpPublicConfigWrite(eventId, configKey);
         allow delete: if false;
       }
 
       match /rsvpResponses/{token} {
         allow get: if isThemeEditor() || validPublicRsvpResponseGet(eventId, token);
         allow list: if isThemeEditor();
-        allow create: if validInternalRsvpResponseMigration(eventId, token)
-          || validPublicRsvpResponseWrite(eventId, token);
-        allow update: if validPublicRsvpResponseUpdate(eventId, token);
+        allow create: if eventNotPurging(eventId) && (validInternalRsvpResponseMigration(eventId, token)
+          || validPublicRsvpResponseWrite(eventId, token));
+        allow update: if eventNotPurging(eventId) && validPublicRsvpResponseUpdate(eventId, token);
         allow delete: if false;
       }
 
@@ -1175,43 +1301,46 @@ service cloud.firestore {
 
       match /invitados/{guestId} {
         allow get, list: if isInternalReader() || portalEnabled(eventId);
-        allow create, delete: if isPlatformManager();
-        allow update: if isPlatformManager() || validPortalGuestCheckin(eventId, guestId);
+        allow create, delete: if eventNotPurging(eventId) && isPlatformManager();
+        allow update: if eventNotPurging(eventId) && (isPlatformManager() || validPortalGuestCheckin(eventId, guestId));
       }
 
       match /checkins/{checkinId} {
         allow get, list: if isInternalReader() || historyEnabled(eventId);
-        allow create: if validPortalCheckinCreate(eventId, checkinId);
+        allow create: if eventNotPurging(eventId) && validPortalCheckinCreate(eventId, checkinId);
         allow update, delete: if false;
       }
 
       match /invitacion/{documentId} {
         allow get: if documentId in ['config', 'draft', 'publication', 'rsvp', 'rsvpPublication'] && isThemeEditor();
         allow list, delete: if false;
-        allow create: if (documentId == 'config' && isThemeEditor() && validInvitationConfigWrite())
+        allow create: if eventNotPurging(eventId) && ((documentId == 'config' && isThemeEditor() && validInvitationConfigWrite())
           || (documentId == 'draft' && isThemeEditor() && validInvitationDraftWrite(eventId))
           || (documentId == 'publication' && isThemeEditor() && validInvitationPublicationCreate(eventId))
           || (documentId == 'rsvp' && isThemeEditor() && validRsvpWrite(eventId))
-          || (documentId == 'rsvpPublication' && isThemeEditor() && validRsvpPublicationCreate(eventId));
-        allow update: if (documentId == 'config' && isThemeEditor() && validInvitationConfigWrite())
+          || (documentId == 'rsvpPublication' && isThemeEditor() && validRsvpPublicationCreate(eventId)));
+        allow update: if eventNotPurging(eventId) && ((documentId == 'config' && isThemeEditor() && validInvitationConfigWrite())
           || (documentId == 'draft' && isThemeEditor() && validInvitationDraftWrite(eventId))
           || (documentId == 'publication' && isThemeEditor() && validInvitationPublicationUpdate(eventId))
           || (documentId == 'rsvp' && isThemeEditor() && validRsvpWrite(eventId))
-          || (documentId == 'rsvpPublication' && isThemeEditor() && validRsvpPublicationUpdate(eventId));
+          || (documentId == 'rsvpPublication' && isThemeEditor() && validRsvpPublicationUpdate(eventId)));
       }
 
       match /invitacion/publication/revisions/{revisionId} {
         allow get, list: if isThemeEditor();
-        allow create: if isThemeEditor() && validInvitationRevisionCreate(eventId, revisionId);
+        allow create: if eventNotPurging(eventId) && isThemeEditor() && validInvitationRevisionCreate(eventId, revisionId);
         allow update, delete: if false;
       }
 
       match /invitacion/config/media/{mediaId} {
         allow get: if isThemeEditor();
         allow list: if false;
-        allow create: if isThemeEditor() && validMediaDocumentCreate(eventId, mediaId);
-        allow update: if isThemeEditor() && validMediaDocumentUpdate(eventId, mediaId);
-        allow delete: if isThemeEditor();
+        // El freeze Firestore es autoritativo para config y media. Los batches
+        // grandes deben ejecutarse por chunks desde el servicio; Storage queda
+        // fuera de esta fase y conserva su blocker independiente.
+        allow create: if eventNotPurging(eventId) && isThemeEditor() && validCompactMediaCreate(eventId, mediaId);
+        allow update: if eventNotPurging(eventId) && isThemeEditor() && validCompactMediaUpdate(eventId, mediaId);
+        allow delete: if eventNotPurging(eventId) && isThemeEditor();
       }
 
       match /invitacionPublic/{publicKey} {
@@ -1220,7 +1349,7 @@ service cloud.firestore {
             && resource.data.eventId == eventId
             && resource.data.publicKey == publicKey);
         allow list: if false;
-        allow create, update: if isThemeEditor()
+        allow create, update: if eventNotPurging(eventId) && isThemeEditor()
           && validInvitationPublicProjection(eventId, publicKey);
         allow delete: if false;
       }

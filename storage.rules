@@ -67,6 +67,11 @@ service firebase.storage {
         && resource.metadata.mediaId.matches('^MED-LOCAL-[0-9]{3,}$');
     }
 
+    function eventNotPurging(eventId) {
+      return firestore.exists(/databases/(default)/documents/eventos/$(eventId))
+        && firestore.get(/databases/(default)/documents/eventos/$(eventId)).data.get('purgeLock', null) == null;
+    }
+
     function isAllowedTypeAndSize(role) {
       return request.resource != null
         && (
@@ -94,6 +99,7 @@ service firebase.storage {
       // Cada binario usa un path inmutable; los reemplazos crean una nueva versión.
       allow create: if hasInvitationEditorClaim()
         && resource == null
+        && eventNotPurging(eventId)
         && isAllowedRole(role)
         && isVersionedFileName(fileName)
         && typeMatchesRoleAndExtension(role, fileName)
@@ -102,6 +108,7 @@ service firebase.storage {
       allow update: if false;
 
       allow delete: if hasInvitationEditorClaim()
+        && eventNotPurging(eventId)
         && isAllowedRole(role)
         && isVersionedFileName(fileName)
         && existingMetadataMatches(eventId, role);

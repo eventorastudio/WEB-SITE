@@ -3,6 +3,8 @@
 
 import { db } from '../firebase.js';
 import { EVENT_STATS_SCHEMA_VERSION, createEmptyEventStats } from '../../shared/event-stats.js';
+import { normalizeEventDate } from '../../shared/event-date.js';
+import { buildDraftEventDatePatch } from '../../shared/event-date-sync.js';
 import { 
     collection, 
     doc, 
@@ -10,6 +12,7 @@ import {
     getDoc, 
     addDoc, 
     updateDoc, 
+    runTransaction,
     deleteDoc, 
     query, 
     orderBy, 
@@ -108,6 +111,26 @@ export const eventService = {
         if (!eventId) throw new Error('event/invalid-id');
         try {
             const docRef = doc(db, 'eventos', eventId);
+            if (eventData?.fecha !== undefined) {
+                const canonicalDate = normalizeEventDate(eventData.fecha, { strict: true });
+                const draftRef = doc(db, 'eventos', eventId, 'invitacion', 'draft');
+                const payload = {
+                    ...eventData,
+                    fecha: canonicalDate,
+                    fechaActualizacion: serverTimestamp()
+                };
+                await runTransaction(db, async (transaction) => {
+                    const eventSnapshot = await transaction.get(docRef);
+                    const draftSnapshot = await transaction.get(draftRef);
+                    if (!eventSnapshot.exists()) throw new Error('event/not-found');
+                    transaction.update(docRef, payload);
+                    if (draftSnapshot.exists()) {
+                        const draftPatch = buildDraftEventDatePatch(draftSnapshot.data(), canonicalDate);
+                        if (Object.keys(draftPatch).length > 0) transaction.update(draftRef, draftPatch);
+                    }
+                });
+                return;
+            }
             const payload = {
                 ...eventData,
                 fechaActualizacion: serverTimestamp()

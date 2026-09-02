@@ -4,6 +4,7 @@ import {
     deserializeInvitationDraft,
     serializeInvitationDraft
 } from '../core/draft-persistence-schema.js?v=phase171-demo-mode-20260826';
+import { buildRootEventDatePatch } from '../../../shared/event-date-sync.js';
 
 function serviceError(code, cause = null, details = {}) {
     const error = new Error(code);
@@ -35,10 +36,21 @@ async function createFirebaseInvitationDraftGateway() {
         },
         async writeDraftAndDemoMode(eventId, document) {
             await firestoreApi.runTransaction(db, async (transaction) => {
+                const eventReference = eventRef(eventId);
+                const eventSnapshot = await transaction.get(eventReference);
+                if (!eventSnapshot.exists()) throw serviceError('draft/event-not-found');
+                const currentEvent = eventSnapshot.data();
+                if (currentEvent.purgeLock?.operationId) throw serviceError('draft/event-purge-in-progress');
+                const rootPatch = buildRootEventDatePatch(
+                    currentEvent,
+                    document.content?.schedule?.date
+                );
+                const demoMode = document.settings.demoMode === true;
+                if (currentEvent.demoMode !== demoMode) rootPatch.demoMode = demoMode;
                 transaction.set(draftRef(eventId), document);
-                transaction.set(eventRef(eventId), {
-                    demoMode: document.settings.demoMode === true
-                }, { merge: true });
+                if (Object.keys(rootPatch).length > 0) {
+                    transaction.set(eventReference, rootPatch, { merge: true });
+                }
             });
         }
     };

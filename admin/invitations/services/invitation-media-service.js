@@ -17,6 +17,10 @@ const INVITATION_CONFIG_SCHEMA_VERSION = 5;
 const MEDIA_INDEX_SCHEMA_VERSION = 1;
 const DEFAULT_UPLOAD_CONCURRENCY = 3;
 const RESOLVE_URL_CONCURRENCY = 4;
+// Firestore Rules evalúa cada operación media de forma independiente. Mantener
+// chunks pequeños evita superar el límite de expresiones/access calls sin
+// retirar el freeze autoritativo del root.
+const FIRESTORE_MEDIA_WRITE_CHUNK_SIZE = 1;
 
 const MIME_EXTENSIONS = Object.freeze({
     'image/jpeg': 'jpg',
@@ -507,18 +511,39 @@ async function createFirebaseMediaGateway() {
             const snapshot = await firestoreApi.getDoc(mediaRef(eventId, mediaId));
             return snapshot.exists();
         },
-        async commitMediaState(eventId, { config, upserts, deleteIds }) {
-            const batch = firestoreApi.writeBatch(db);
-            batch.set(configRef(eventId), config);
-            for (const operation of upserts) {
-                const reference = mediaRef(eventId, operation.id);
-                if (operation.isCreate) batch.set(reference, operation.data);
-                else batch.update(reference, operation.data);
-            }
-            for (const mediaId of deleteIds) batch.delete(mediaRef(eventId, mediaId));
-            await batch.commit();
+        async assertEventNotPurging(eventId) {
+            const snapshot = await firestoreApi.getDoc(firestoreApi.doc(db, 'eventos', eventId));
+            if (!snapshot.exists()) throw new Error('storage/event-not-found');
+            if (snapshot.data()?.purgeLock?.operationId) throw new Error('storage/event-purge-in-progress');
         },
-        deleteMediaDocument: (eventId, mediaId) => firestoreApi.deleteDoc(mediaRef(eventId, mediaId)),
+        async commitMediaState(eventId, { config, upserts, deleteIds }) {
+            const eventSnapshot = await firestoreApi.getDoc(firestoreApi.doc(db, 'eventos', eventId));
+            if (!eventSnapshot.exists()) throw new Error('storage/event-not-found');
+            if (eventSnapshot.data()?.purgeLock?.operationId) throw new Error('storage/event-purge-in-progress');
+            const operations = [
+                ...upserts.map((operation) => ({ type: operation.isCreate ? 'set' : 'update', id: operation.id, data: operation.data })),
+                ...deleteIds.map((mediaId) => ({ type: 'delete', id: mediaId }))
+            ];
+            for (let start = 0; start < operations.length; start += FIRESTORE_MEDIA_WRITE_CHUNK_SIZE) {
+                const batch = firestoreApi.writeBatch(db);
+                for (const operation of operations.slice(start, start + FIRESTORE_MEDIA_WRITE_CHUNK_SIZE)) {
+                    const reference = mediaRef(eventId, operation.id);
+                    if (operation.type === 'set') batch.set(reference, operation.data);
+                    else if (operation.type === 'update') batch.update(reference, operation.data);
+                    else batch.delete(reference);
+                }
+                await batch.commit();
+            }
+            // El índice se publica al final: durante una escritura parcial no
+            // queda un índice público apuntando a media aún no persistida.
+            const configBatch = firestoreApi.writeBatch(db);
+            configBatch.set(configRef(eventId), config);
+            await configBatch.commit();
+        },
+        async deleteMediaDocument(eventId, mediaId) {
+            await this.assertEventNotPurging(eventId);
+            return firestoreApi.deleteDoc(mediaRef(eventId, mediaId));
+        },
         uploadObject({ path, file, metadata, onProgress }) {
             const task = storageApi.uploadBytesResumable(storageApi.ref(storage, path), file, metadata);
             const promise = new Promise((resolve, reject) => {
@@ -541,6 +566,9 @@ export class InvitationMediaService {
         this.gatewayFactory = gatewayFactory;
         this.gatewayPromise = null;
         this.activeUploads = new Map();
+        this.activeUploadsByEvent = new Map();
+        this.pendingUploads = new Set();
+        this.cancelRequestedUploads = new Set();
         this.retryRequests = new Map();
         this.authRefreshAttempted = false;
     }
@@ -565,7 +593,7 @@ export class InvitationMediaService {
     }
 
     async preparePrivilegedWrite() {
-        const gateway = await this.getGateway();
+        const gateway = this.gateway ?? await this.getGateway();
         if (!this.authRefreshAttempted && typeof gateway.refreshAuthClaims === 'function') {
             this.authRefreshAttempted = true;
             await gateway.refreshAuthClaims();
@@ -755,7 +783,16 @@ export class InvitationMediaService {
             ? buildDemoLibraryStoragePath({ assetId: sharedDemoAssetId, mimeType: asset.mimeType, objectVersion })
             : buildInvitationMediaStoragePath({ eventId, assetId: asset.id, role: asset.role, mimeType: asset.mimeType, objectVersion });
         this.retryRequests.set(asset.id, { eventId, asset, file, objectVersion, onProgress, shareToDemo });
-        const gateway = await this.getGateway();
+        this.pendingUploads.add(asset.id);
+        let gateway;
+        try {
+            gateway = this.gateway ?? await this.getGateway();
+            if (typeof gateway.assertEventNotPurging === 'function') await gateway.assertEventNotPurging(eventId);
+        } catch (error) {
+            this.pendingUploads.delete(asset.id);
+            this.cancelRequestedUploads.delete(asset.id);
+            throw error;
+        }
         const controller = gateway.uploadObject({
             path,
             file,
@@ -776,7 +813,10 @@ export class InvitationMediaService {
             onProgress
         });
         this.activeUploads.set(asset.id, controller);
+        if (!this.activeUploadsByEvent.has(eventId)) this.activeUploadsByEvent.set(eventId, new Set());
+        this.activeUploadsByEvent.get(eventId).add(asset.id);
         try {
+            if (this.cancelRequestedUploads.delete(asset.id)) controller.cancel();
             await controller.promise;
             let downloadUrl = '';
             try {
@@ -800,14 +840,29 @@ export class InvitationMediaService {
             throw serviceError(cancelled ? 'storage/upload-cancelled' : (error?.code || 'storage/upload-failed'), error, { retryable: !cancelled, stage: 'storage-upload' });
         } finally {
             this.activeUploads.delete(asset.id);
+            this.pendingUploads.delete(asset.id);
+            this.cancelRequestedUploads.delete(asset.id);
+            const eventUploads = this.activeUploadsByEvent.get(eventId);
+            eventUploads?.delete(asset.id);
+            if (eventUploads?.size === 0) this.activeUploadsByEvent.delete(eventId);
         }
     }
 
     cancelUpload(assetId) {
         const active = this.activeUploads.get(assetId);
-        if (!active) return false;
+        if (!active) {
+            if (!this.pendingUploads.has(assetId)) return false;
+            this.cancelRequestedUploads.add(assetId);
+            return true;
+        }
         active.cancel();
         return true;
+    }
+
+    cancelUploadsForEvent(eventId) {
+        const assetIds = [...(this.activeUploadsByEvent.get(eventId) ?? [])];
+        for (const assetId of assetIds) this.cancelUpload(assetId);
+        return assetIds.length;
     }
 
     retryUpload(assetId, overrides = {}) {
@@ -1077,6 +1132,7 @@ export function getInvitationMediaStorageStatus() { return invitationMediaServic
 export function configureInvitationMediaPersistence({ enabled }) { invitationMediaService.setEnabled(enabled); return invitationMediaService.getStatus(); }
 export function startInvitationMediaUpload(input) { invitationMediaService.assertEnabled(); return invitationMediaService.uploadAsset(input); }
 export function cancelInvitationMediaUpload(assetId) { return invitationMediaService.cancelUpload(assetId); }
+export function cancelInvitationMediaUploadsForEvent(eventId) { return invitationMediaService.cancelUploadsForEvent(eventId); }
 export function retryInvitationMediaUpload(assetId, overrides) { return invitationMediaService.retryUpload(assetId, overrides); }
 export function resolveInvitationMediaUrl(input) { return invitationMediaService.resolveAssetUrl(input); }
 export function deleteInvitationMediaObject(input) { return invitationMediaService.deleteAsset(input); }

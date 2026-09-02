@@ -52,8 +52,12 @@ async function createFirebaseInvitationPublicationGateway() {
         getCurrentUid: () => auth.currentUser?.uid ?? '',
         async runPublicationTransaction(eventId, { createPublicKey: generatePublicKey, planner, demoMode = false }) {
             return firestoreApi.runTransaction(db, async (transaction) => {
-                const metadataReference = publicationRef(eventId);
-                const metadataSnapshot = await transaction.get(metadataReference);
+                    const metadataReference = publicationRef(eventId);
+                    const eventReference = eventRef(eventId);
+                    const eventSnapshot = await transaction.get(eventReference);
+                    if (!eventSnapshot.exists()) throw serviceError('publication/event-not-found');
+                    if (eventSnapshot.data()?.purgeLock?.operationId) throw serviceError('publication/event-purge-in-progress');
+                    const metadataSnapshot = await transaction.get(metadataReference);
                 let currentPublication = null;
                 let currentRevision = null;
 
@@ -82,7 +86,7 @@ async function createFirebaseInvitationPublicationGateway() {
                     serverTimestamp: () => firestoreApi.serverTimestamp()
                 });
                 if (plan.status === 'unchanged') {
-                    transaction.set(eventRef(eventId), { demoMode: demoMode === true }, { merge: true });
+                    transaction.set(eventReference, { demoMode: demoMode === true }, { merge: true });
                     return plan;
                 }
 
@@ -92,7 +96,7 @@ async function createFirebaseInvitationPublicationGateway() {
                     if (targetSnapshot.exists()) throw serviceError('publication/revision-id-conflict');
                     transaction.set(targetReference, plan.revision);
                 }
-                transaction.set(eventRef(eventId), { demoMode: demoMode === true }, { merge: true });
+                transaction.set(eventReference, { demoMode: demoMode === true }, { merge: true });
                 if (plan.publication) transaction.set(metadataReference, plan.publication);
                 transaction.set(projectionReference, plan.publicProjection);
                 return plan;
