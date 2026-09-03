@@ -21,6 +21,11 @@ const ADMIN_PURGE_CALLABLE_OPTIONS = Object.freeze({
     enforceAppCheck: true
 });
 
+function assertAdminPurgeCeo(request) {
+    if (!request.auth) throw new HttpsError('unauthenticated', 'Autenticación requerida.');
+    if (!isCeoClaims(request.auth.token)) throw new HttpsError('permission-denied', 'No autorizado.');
+}
+
 export const calendar = onRequest({ region: 'us-central1' }, createCalendarHttpHandler({ db: getFirestore() }));
 
 export const syncRsvpResponseToGuest = onDocumentWritten({
@@ -84,9 +89,7 @@ export const getGuestQrToken = onCall({
 export const prepareRefundProjectPurge = onCall({
     ...ADMIN_PURGE_CALLABLE_OPTIONS
 }, async (request) => {
-    if (!request.auth || !isCeoClaims(request.auth.token)) {
-        throw new HttpsError('permission-denied', 'No autorizado.');
-    }
+    assertAdminPurgeCeo(request);
     if (!request.data?.refundRecordId) {
         throw new HttpsError('failed-precondition', 'REFUND_EVIDENCE_NOT_PRODUCTION_READY');
     }
@@ -114,7 +117,7 @@ export const prepareRefundProjectPurge = onCall({
 });
 
 export const recordRefundProcessed = onCall(ADMIN_PURGE_CALLABLE_OPTIONS, async (request) => {
-    if (!request.auth || !isCeoClaims(request.auth.token)) throw new HttpsError('permission-denied', 'No autorizado.');
+    assertAdminPurgeCeo(request);
     try {
         return await recordRefundProcessedCore({
             db: getFirestore(), input: request.data, actorUid: request.auth.uid, claims: request.auth.token
@@ -131,7 +134,7 @@ export const recordRefundProcessed = onCall(ADMIN_PURGE_CALLABLE_OPTIONS, async 
 });
 
 export const confirmRefundRecord = onCall(ADMIN_PURGE_CALLABLE_OPTIONS, async (request) => {
-    if (!request.auth || !isCeoClaims(request.auth.token)) throw new HttpsError('permission-denied', 'No autorizado.');
+    assertAdminPurgeCeo(request);
     try {
         return await confirmRefundRecordCore({
             db: getFirestore(), refundRecordId: request.data?.refundRecordId,
@@ -149,9 +152,7 @@ export const confirmRefundRecord = onCall(ADMIN_PURGE_CALLABLE_OPTIONS, async (r
 export const authorizeRefundProjectPurge = onCall({
     ...ADMIN_PURGE_CALLABLE_OPTIONS
 }, async (request) => {
-    if (!request.auth || !isCeoClaims(request.auth.token)) {
-        throw new HttpsError('permission-denied', 'No autorizado.');
-    }
+    assertAdminPurgeCeo(request);
     try {
         return await authorizeRefundProjectPurgeCore({
             db: getFirestore(),
@@ -181,9 +182,7 @@ export const authorizeRefundProjectPurge = onCall({
 export const cancelRefundProjectPurgeAuthorization = onCall({
     ...ADMIN_PURGE_CALLABLE_OPTIONS
 }, async (request) => {
-    if (!request.auth || !isCeoClaims(request.auth.token)) {
-        throw new HttpsError('permission-denied', 'No autorizado.');
-    }
+    assertAdminPurgeCeo(request);
     try {
         return await cancelRefundProjectPurgeCore({
             db: getFirestore(),
