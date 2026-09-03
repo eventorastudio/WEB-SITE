@@ -40,6 +40,7 @@ function nextId(label) {
 class StorageMock {
     constructor(paths = []) {
         this.paths = new Set(paths);
+        this.generations = new Map(paths.map((path) => [path, '1']));
         this.failPath = null;
         this.failed = false;
         this.__eventoraStorageEmulatorMock = true;
@@ -48,12 +49,22 @@ class StorageMock {
     async getFiles({ prefix } = {}) {
         return [[...this.paths]
             .filter((path) => path.startsWith(prefix ?? ''))
-            .map((name) => ({ name }))];
+            .map((name) => ({ name, generation: this.generations.get(name), metadata: { generation: this.generations.get(name) } }))];
     }
 
     file(path) {
         return {
-            delete: async () => {
+            delete: async (options = {}) => {
+                if (!this.paths.has(path)) {
+                    const error = new Error('not found');
+                    error.code = '404';
+                    throw error;
+                }
+                if (options.ifGenerationMatch !== this.generations.get(path)) {
+                    const error = new Error('generation mismatch');
+                    error.code = '412';
+                    throw error;
+                }
                 if (this.failPath === path && !this.failed) {
                     this.failed = true;
                     const error = new Error('storage fixture failure');
@@ -61,6 +72,7 @@ class StorageMock {
                     throw error;
                 }
                 this.paths.delete(path);
+                this.generations.delete(path);
             },
             exists: async () => [this.paths.has(path)]
         };
@@ -98,10 +110,14 @@ async function seedEvent(eventId, storagePaths, { demoMode = false } = {}) {
 }
 
 async function prepare({ eventId, bucket, refundRecordId }) {
-    return prepareRefundPurgeDryRun({
+    const result = await prepareRefundPurgeDryRun({
         db, bucket, eventId, actorUid: 'CEO-TEST', claims: { role: 'CEO' }, refundRecordId,
         now: new Date('2030-01-03T12:00:00.000Z')
     });
+    if (result.manifest?.storage?.some((item) => !item.generation)) {
+        throw new Error(`MISSING_GENERATION:${JSON.stringify(result.manifest.storage)}`);
+    }
+    return result;
 }
 
 async function authorize(eventId, prepared) {
@@ -241,4 +257,128 @@ test('guards y lock RSVP exigen emulador, Storage seguro y flag explícito', asy
     const event = { purgeLock: { operationId: 'PURGE-lock' } };
     assert.equal(isEventPurgeLocked(event), true);
     assert.equal(isEventPurgeLocked({}), false);
+});
+
+test('kill switch cerrado bloquea READY_FOR_EXECUTION sin deletes', async () => {
+    const eventId = nextId('KILL-SWITCH');
+    await db.doc(`eventos/${eventId}`).set({ demoMode: false });
+    await db.doc(`administrativePurgeRecords/PURGE-${eventId}`).set({
+        originalEventId: eventId, operationId: `PURGE-${eventId}`, status: 'READY_FOR_EXECUTION'
+    });
+    const storage = new StorageMock([`eventos/${eventId}/invitacion/media/cover/a.webp`]);
+    await assert.rejects(
+        executeRefundProjectPurge({
+            db, bucket: storage, eventId, actorUid: 'CEO-TEST', claims: { role: 'CEO' },
+            authorizationId: 'unused', authorizationToken: 'unused',
+            testHooks: { allowDestructiveStage: () => false }
+        }),
+        (error) => error.code === 'PRODUCTION_PURGE_DISABLED'
+    );
+    assert.equal(storage.paths.size, 1);
+    assert.equal((await db.doc(`eventos/${eventId}`).get()).exists, true);
+});
+
+test('kill switch apagado entre etapas detiene el avance sin rollback ficticio', async () => {
+    const eventId = nextId('KILL-MID');
+    const path = `eventos/${eventId}/invitacion/media/cover/a.webp`;
+    const storage = new StorageMock([path]);
+    await seedEvent(eventId, [path]);
+    const prepared = await prepare({ eventId, bucket: storage, refundRecordId: `REF-${eventId}-${encodeURIComponent(`${REFUND.refundReference}-${eventId}`)}` });
+    const authorization = await authorize(eventId, prepared);
+    const allowed = new Set(['OPERATION_START', 'FIRESTORE_PURGING']);
+    await assert.rejects(
+        executeRefundProjectPurge({
+            db, bucket: storage, eventId, actorUid: 'CEO-TEST', claims: { role: 'CEO' },
+            authorizationId: authorization.authorizationId, authorizationToken: authorization.authorizationToken,
+            testHooks: { allowDestructiveStage: (stage) => allowed.has(stage) }
+        }),
+        (error) => error.code === 'PRODUCTION_PURGE_DISABLED'
+    );
+    assert.equal(storage.paths.has(path), true);
+    assert.equal((await db.doc(`eventos/${eventId}/invitados/GUEST-A`).get()).exists, false);
+    assert.equal((await db.doc(`administrativePurgeRecords/PURGE-${eventId}`).get()).data().checkpoint, 'FIRESTORE_PURGING');
+});
+
+test('generation mismatch bloquea y conserva la generación nueva', async () => {
+    const eventId = nextId('GENERATION-RACE');
+    const path = `eventos/${eventId}/invitacion/media/cover/a.webp`;
+    const storage = new StorageMock([path]);
+    await seedEvent(eventId, [path]);
+    const prepared = await prepare({ eventId, bucket: storage, refundRecordId: `REF-${eventId}-${encodeURIComponent(`${REFUND.refundReference}-${eventId}`)}` });
+    const authorization = await authorize(eventId, prepared);
+    storage.generations.set(path, '2');
+    await assert.rejects(
+        executeRefundProjectPurge({
+            db, bucket: storage, eventId, actorUid: 'CEO-TEST', claims: { role: 'CEO' },
+            authorizationId: authorization.authorizationId, authorizationToken: authorization.authorizationToken
+        }),
+        (error) => error.code === 'GENERATION_MISMATCH'
+    );
+    assert.equal(storage.paths.has(path), true);
+    assert.equal((await db.doc(`administrativePurgeRecords/PURGE-${eventId}`).get()).data().status, 'BLOCKED');
+});
+
+test('binding comercial divergente bloquea antes del primer delete', async () => {
+    const eventId = nextId('COMMERCIAL-BINDING');
+    const path = `eventos/${eventId}/invitacion/media/cover/a.webp`;
+    const storage = new StorageMock([path]);
+    await seedEvent(eventId, [path]);
+    const prepared = await prepare({ eventId, bucket: storage, refundRecordId: `REF-${eventId}-${encodeURIComponent(`${REFUND.refundReference}-${eventId}`)}` });
+    const authorization = await authorize(eventId, prepared);
+    await db.doc(`administrativePurgeRecords/PURGE-${eventId}`).update({
+        'authorization.commercialFileReference': 'MISMATCHED-COMMERCIAL-REFERENCE'
+    });
+    await assert.rejects(
+        executeRefundProjectPurge({
+            db, bucket: storage, eventId, actorUid: 'CEO-TEST', claims: { role: 'CEO' },
+            authorizationId: authorization.authorizationId, authorizationToken: authorization.authorizationToken
+        }),
+        (error) => error.code === 'AUTHORIZATION_BINDING_MISMATCH'
+    );
+    assert.equal(storage.paths.has(path), true);
+    assert.equal((await db.doc(`eventos/${eventId}`).get()).exists, true);
+});
+
+test('generation ausente bloquea y nunca hace fallback path-only', async () => {
+    const eventId = nextId('GENERATION-MISSING');
+    const path = `eventos/${eventId}/invitacion/media/cover/a.webp`;
+    const storage = new StorageMock([path]);
+    await seedEvent(eventId, [path]);
+    const prepared = await prepare({ eventId, bucket: storage, refundRecordId: `REF-${eventId}-${encodeURIComponent(`${REFUND.refundReference}-${eventId}`)}` });
+    const authorization = await authorize(eventId, prepared);
+    await db.doc(`administrativePurgeRecords/PURGE-${eventId}`).update({
+        'manifest.storage': [{ storagePath: path, classification: 'OWN_EVENT' }]
+    });
+    await assert.rejects(
+        executeRefundProjectPurge({
+            db, bucket: storage, eventId, actorUid: 'CEO-TEST', claims: { role: 'CEO' },
+            authorizationId: authorization.authorizationId, authorizationToken: authorization.authorizationToken
+        }),
+        (error) => error.code === 'STORAGE_GENERATION_MISSING'
+    );
+    assert.equal(storage.paths.has(path), true);
+});
+
+test('ROOT_DELETE_READY sin root confirmado no se interpreta como PURGED', async () => {
+    const eventId = nextId('ROOT-MISSING');
+    const path = `eventos/${eventId}/invitacion/media/cover/a.webp`;
+    const storage = new StorageMock([path]);
+    await seedEvent(eventId, [path]);
+    const prepared = await prepare({ eventId, bucket: storage, refundRecordId: `REF-${eventId}-${encodeURIComponent(`${REFUND.refundReference}-${eventId}`)}` });
+    const authorization = await authorize(eventId, prepared);
+    const purgeReference = db.doc(`administrativePurgeRecords/PURGE-${eventId}`);
+    await purgeReference.update({ status: 'FIRESTORE_PURGING', checkpoint: 'ROOT_DELETE_READY', 'authorization.used': true });
+    await db.doc(`eventos/${eventId}`).update({ purgeLock: { operationId: `PURGE-${eventId}` } });
+    await db.doc('administrativeLocks/refundProjectPurge').set({
+        operationId: `PURGE-${eventId}`, eventId, leaseExpiresAt: new Date(Date.now() + 300000), lockVersion: 1
+    });
+    await db.doc(`eventos/${eventId}`).delete();
+    await assert.rejects(
+        executeRefundProjectPurge({
+            db, bucket: storage, eventId, actorUid: 'CEO-TEST', claims: { role: 'CEO' },
+            authorizationId: authorization.authorizationId, authorizationToken: authorization.authorizationToken
+        }),
+        (error) => error.code === 'ROOT_MISSING_UNEXPECTED'
+    );
+    assert.notEqual((await purgeReference.get()).data().status, 'PURGED');
 });

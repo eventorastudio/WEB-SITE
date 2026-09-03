@@ -5,7 +5,9 @@ export const PRODUCTION_PROJECT_ID = 'eventorastudio-d6d95';
 export const PRODUCTION_STORAGE_BUCKET = 'eventorastudio-d6d95.firebasestorage.app';
 export const PRODUCTION_PURGE_KILL_SWITCH = false;
 
-export function assertProductionPurgeGate() {
+export function assertProductionPurgeGate({ allowEmulatorOverride = false } = {}) {
+    if (allowEmulatorOverride && process.env.FIRESTORE_EMULATOR_HOST) return true;
+    if (PRODUCTION_PURGE_KILL_SWITCH) return true;
     const error = new Error('PRODUCTION_PURGE_DISABLED');
     error.code = 'PRODUCTION_PURGE_DISABLED';
     throw error;

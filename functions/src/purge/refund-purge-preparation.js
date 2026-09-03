@@ -160,7 +160,12 @@ async function collectStorage(bucket, eventId, knownPaths) {
         const path = String(file.name ?? '');
         if (!path.startsWith(`eventos/${eventId}/invitacion/media/`)) continue;
         if (!knownPaths.has(path)) warnings.push({ code: 'ORPHAN_CANDIDATE', storagePath: path });
-        objects.push({ storagePath: path, classification: knownPaths.has(path) ? 'OWN_EVENT' : 'ORPHAN_CANDIDATE' });
+        const generation = String(file.metadata?.generation ?? file.generation ?? '').trim();
+        objects.push({
+            storagePath: path,
+            classification: knownPaths.has(path) ? 'OWN_EVENT' : 'ORPHAN_CANDIDATE',
+            ...(generation ? { generation } : {})
+        });
     }
     return { objects, warnings };
 }

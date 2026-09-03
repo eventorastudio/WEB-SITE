@@ -7,6 +7,7 @@ import {
 } from './refund-purge-preparation.js';
 import { buildRefundEvidenceHash, getConfirmedRefundRecord } from './refund-records.js';
 import { hashPurgeManifest } from './refund-purge-authorization.js';
+import { assertProductionPurgeGate } from './production-purge-gate.js';
 import {
     globalLockExpiresAt,
     globalLockIsRecoverable,
@@ -27,6 +28,14 @@ const ACTIVE_STATUSES = new Set([
 ]);
 const OWN_STORAGE_PREFIX = (eventId) => `eventos/${eventId}/invitacion/media/`;
 const CHUNK_SIZE = 400;
+
+function assertStageGate(testHooks, stage) {
+    const hasTestOverride = typeof testHooks?.allowDestructiveStage === 'function';
+    const allowEmulatorOverride = hasTestOverride
+        ? testHooks.allowDestructiveStage(stage) === true
+        : process.env.EVENTORA_ALLOW_DESTRUCTIVE_EMULATOR_PURGE === 'true';
+    assertProductionPurgeGate({ allowEmulatorOverride });
+}
 
 function purgeError(code, details = {}) {
     const error = new Error(code);
@@ -103,6 +112,13 @@ function sameManifest(left, right) {
     return JSON.stringify(canonical(left)) === JSON.stringify(canonical(right));
 }
 
+function manifestWithoutGenerations(manifest = {}) {
+    return {
+        ...manifest,
+        storage: (manifest.storage ?? []).map(({ generation, ...item }) => item)
+    };
+}
+
 function manifestFromInventory(inventory) {
     return createRefundPurgeManifest(inventory);
 }
@@ -128,6 +144,9 @@ function assertManifestReady(record) {
 function assertAuthorizationBinding({ record, authorizationId, authorizationToken, actorUid, now }) {
     const authorization = record.authorization ?? {};
     if (!authorizationId || authorization.authorizationId !== authorizationId) throw purgeError('AUTHORIZATION_MISMATCH');
+    if (authorization.commercialFileReference !== record.commercialFileReference) {
+        throw purgeError('AUTHORIZATION_BINDING_MISMATCH');
+    }
     if (authorization.actorUid !== actorUid || authorization.eventId !== record.originalEventId
         || authorization.operationId !== record.operationId
         || authorization.manifestHash !== record.manifestHash
@@ -213,7 +232,15 @@ async function acquirePurgeLock({ db, eventId, actorUid, authorizationId, author
             }
             return { recordReference, eventReference, record, rootDeleted: true, alreadyPurged: false };
         }
-        if (ACTIVE_STATUSES.has(record.status)) throw purgeError('PURGE_ALREADY_RUNNING');
+        if (ACTIVE_STATUSES.has(record.status)) {
+            if (record.checkpoint === 'ROOT_DELETE_READY'
+                && globalLockIsRecoverable(globalSnapshot.data(), record.operationId, eventId)
+                && record.authorization?.authorizationId === authorizationId
+                && record.authorization?.actorUid === actorUid) {
+                return { recordReference, eventReference, record, alreadyPurged: false };
+            }
+            throw purgeError('PURGE_ALREADY_RUNNING');
+        }
         if (!['READY_FOR_EXECUTION', 'FAILED_RETRYABLE'].includes(record.status)) {
             throw purgeError('PURGE_NOT_READY');
         }
@@ -303,7 +330,9 @@ async function renewGlobalPurgeLock({ db, eventId, operationId, now = new Date()
 async function revalidateManifest({ db, bucket, eventId, record, eventReference }) {
     const inventory = await buildRefundPurgeInventory({ db, bucket, eventReference, eventId });
     const currentManifest = manifestFromInventory(inventory);
-    if (!sameManifest(record.manifest, currentManifest)) throw purgeError('MANIFEST_STALE');
+    if (!sameManifest(manifestWithoutGenerations(record.manifest), manifestWithoutGenerations(currentManifest))) {
+        throw purgeError('MANIFEST_STALE');
+    }
     if (inventory.blockers.length) throw purgeError('MANIFEST_BLOCKED');
     return inventory;
 }
@@ -320,13 +349,15 @@ function storagePathForDeletion(path, eventId) {
 async function deleteStorageManifest({ bucket, eventId, recordReference, record }) {
     const paths = (record.manifest?.storage ?? []).map((item) => ({
         path: storagePathForDeletion(item.storagePath, eventId),
-        classification: item.classification
+        classification: item.classification,
+        generation: item.generation
     }));
     const deletedPaths = new Set(record.storageDeletedPaths ?? []);
     for (const item of paths) {
         if (item.classification !== 'OWN_EVENT') throw purgeError(
             item.classification === 'SHARED_DEMO' ? 'SHARED_DEMO_DELETE_BLOCKED' : 'BLOCKED_ORPHAN_ASSET'
         );
+        if (!/^\d+$/.test(String(item.generation ?? ''))) throw purgeError('STORAGE_GENERATION_MISSING');
         if (deletedPaths.has(item.path)) continue;
         if (!item.path || !item.path.startsWith(OWN_STORAGE_PREFIX(eventId))
             || item.path.includes('..') || item.path.includes('\\') || item.path.startsWith('/')
@@ -335,9 +366,13 @@ async function deleteStorageManifest({ bucket, eventId, recordReference, record 
         }
         const file = bucket.file(item.path);
         try {
-            await file.delete();
+            await file.delete({ ifGenerationMatch: String(item.generation) });
         } catch (error) {
-            if (String(error?.code) !== '404') throw purgeError('STORAGE_DELETE_FAILED', { cause: error });
+            if (String(error?.code) === '404' || error?.code === 'not-found') {
+                // The manifest proves that this exact path/generation was authorized.
+            } else if (String(error?.code) === '412' || error?.code === 'precondition-failed') {
+                throw purgeError('GENERATION_MISMATCH');
+            } else throw purgeError('STORAGE_DELETE_FAILED', { cause: error });
         }
         deletedPaths.add(item.path);
         await updateRecord(recordReference, { storageDeletedPaths: [...deletedPaths], checkpoint: 'STORAGE_PURGING' });
@@ -378,6 +413,30 @@ async function deleteInvitationAndMediaMetadata({ eventReference }) {
     await deleteCollection(invitation.doc('publication').collection('revisions'));
     await deleteCollection(invitation.doc('config').collection('media'));
     await deleteCollection(invitation);
+}
+
+async function deleteRootAtomically({ db, eventReference, recordReference, operationId, eventId, now }) {
+    await db.runTransaction(async (transaction) => {
+        const [recordSnapshot, eventSnapshot] = await Promise.all([
+            transaction.get(recordReference),
+            transaction.get(eventReference)
+        ]);
+        if (!recordSnapshot.exists || recordSnapshot.data()?.operationId !== operationId
+            || recordSnapshot.data()?.checkpoint !== 'ROOT_DELETE_READY') {
+            throw purgeError('ROOT_DELETE_STATE_MISMATCH');
+        }
+        if (!eventSnapshot.exists) throw purgeError('ROOT_MISSING_UNEXPECTED');
+        if (eventSnapshot.data()?.purgeLock?.operationId !== operationId) {
+            throw purgeError('ROOT_DELETE_LOCK_MISMATCH');
+        }
+        transaction.delete(eventReference);
+        transaction.update(recordReference, {
+            status: 'VERIFYING',
+            checkpoint: 'ROOT_DELETED',
+            rootDeletedAt: now,
+            updatedAt: now
+        });
+    });
 }
 
 async function assertNoUnexpectedEventData(eventReference) {
@@ -461,7 +520,7 @@ export async function executeRefundProjectPurge({
     if (record.status === 'DRY_RUN_READY' && !authorizationId) throw purgeError('AUTHORIZATION_REQUIRED');
     if (record.status === 'READY_FOR_EXECUTION' && !authorizationId) throw purgeError('AUTHORIZATION_REQUIRED');
     if (record.status === 'DRY_RUN_READY') throw purgeError('PURGE_NOT_READY');
-    if (['FAILED_RETRYABLE', 'BLOCKED'].includes(record.status) && record.checkpoint === 'ROOT_DELETED'
+    if (['FAILED_RETRYABLE', 'BLOCKED', 'VERIFYING'].includes(record.status) && record.checkpoint === 'ROOT_DELETED'
         && !record.blockers?.some((item) => ['POST_ROOT_RESIDUAL_DATA', 'VERIFY_FAILED'].includes(item.code))) {
         if (record.authorization?.authorizationId !== authorizationId || record.authorization?.actorUid !== actorUid) {
             throw purgeError('AUTHORIZATION_MISMATCH');
@@ -478,9 +537,12 @@ export async function executeRefundProjectPurge({
             throw error;
         }
     }
-    const preflightEvent = await eventReference.get();
-    if (!preflightEvent.exists) throw purgeError('EVENT_NOT_FOUND');
-    if (preflightEvent.data()?.demoMode === true) throw purgeError('DEMO_PURGE_BLOCKED');
+    assertStageGate(testHooks, 'OPERATION_START');
+    if (record.checkpoint !== 'ROOT_DELETE_READY') {
+        const preflightEvent = await eventReference.get();
+        if (!preflightEvent.exists) throw purgeError('EVENT_NOT_FOUND');
+        if (preflightEvent.data()?.demoMode === true) throw purgeError('DEMO_PURGE_BLOCKED');
+    }
     const lock = await acquirePurgeLock({
         db, eventId: safeEventId, actorUid, authorizationId, authorizationToken
     });
@@ -492,11 +554,14 @@ export async function executeRefundProjectPurge({
     try {
         assertManifestReady(record);
         await assertConfirmedTerminationRefund({ db, record, eventId: safeEventId });
-        await assertEventSafety({ eventReference, record });
+        if (record.checkpoint !== 'ROOT_DELETE_READY') {
+            await assertEventSafety({ eventReference, record });
+        }
         if (record.checkpoint === 'PUBLIC_ACCESS' || record.checkpoint === 'PRECONDITIONS_VALIDATED') {
             await revalidateManifest({ db, bucket, eventId: safeEventId, record, eventReference });
         }
         if (record.checkpoint === 'PUBLIC_ACCESS' || record.checkpoint === 'PRECONDITIONS_VALIDATED') {
+            assertStageGate(testHooks, 'FIRESTORE_PURGING');
             await updateRecord(lockedRecordReference, { checkpoint: 'PRECONDITIONS_VALIDATED' });
             await renewGlobalPurgeLock({ db, eventId: safeEventId, operationId: record.operationId });
             destructionStarted = true;
@@ -504,6 +569,7 @@ export async function executeRefundProjectPurge({
             record = { ...record, checkpoint: 'FIRESTORE_PURGING' };
         }
         if (record.checkpoint === 'FIRESTORE_PURGING') {
+            assertStageGate(testHooks, 'STORAGE_PURGING');
             await updateRecord(lockedRecordReference, { status: 'STORAGE_PURGING', checkpoint: 'STORAGE_PURGING' });
             record = { ...record, checkpoint: 'STORAGE_PURGING' };
         }
@@ -515,25 +581,33 @@ export async function executeRefundProjectPurge({
             record = { ...record, checkpoint: 'MEDIA_METADATA' };
         }
         if (record.checkpoint === 'MEDIA_METADATA') {
+            assertStageGate(testHooks, 'MEDIA_METADATA');
             await renewGlobalPurgeLock({ db, eventId: safeEventId, operationId: record.operationId });
             await deleteInvitationAndMediaMetadata({ eventReference });
             await updateRecord(lockedRecordReference, { status: 'PROFILES', checkpoint: 'PROFILES' });
             record = { ...record, checkpoint: 'PROFILES' };
         }
         if (record.checkpoint === 'PROFILES') {
+            assertStageGate(testHooks, 'PROFILES');
             await renewGlobalPurgeLock({ db, eventId: safeEventId, operationId: record.operationId });
             await detachProfiles(db, safeEventId);
             await updateRecord(lockedRecordReference, { status: 'FIRESTORE_PURGING', checkpoint: 'ROOT' });
             record = { ...record, checkpoint: 'ROOT' };
         }
-        if (record.checkpoint === 'ROOT') {
+        if (record.checkpoint === 'ROOT' || record.checkpoint === 'ROOT_DELETE_READY') {
+            assertStageGate(testHooks, 'ROOT');
             await renewGlobalPurgeLock({ db, eventId: safeEventId, operationId: record.operationId });
-            await assertNoUnexpectedEventData(eventReference);
-            await verifyPurge({ db, bucket, eventId: safeEventId, eventReference, record, rootMustBeAbsent: false });
-            await updateRecord(lockedRecordReference, { checkpoint: 'ROOT_DELETE_READY' });
-            await eventReference.delete();
+            if (record.checkpoint === 'ROOT') {
+                await assertNoUnexpectedEventData(eventReference);
+                await verifyPurge({ db, bucket, eventId: safeEventId, eventReference, record, rootMustBeAbsent: false });
+                await updateRecord(lockedRecordReference, { checkpoint: 'ROOT_DELETE_READY' });
+            }
+            await deleteRootAtomically({
+                db, eventReference, recordReference: lockedRecordReference,
+                operationId: record.operationId, eventId: safeEventId, now: new Date()
+            });
             rootDeleted = true;
-            await updateRecord(lockedRecordReference, { status: 'VERIFYING', checkpoint: 'ROOT_DELETED' });
+            record = { ...record, status: 'VERIFYING', checkpoint: 'ROOT_DELETED' };
             if (typeof testHooks.afterRootDelete === 'function') await testHooks.afterRootDelete({ db, eventId: safeEventId });
         }
         const verification = await verifyPurge({ db, bucket, eventId: safeEventId, eventReference, record });
@@ -547,6 +621,8 @@ export async function executeRefundProjectPurge({
         const blocker = new Set([
             'MANIFEST_STALE', 'MANIFEST_VERSION_UNSUPPORTED', 'MANIFEST_BLOCKED', 'UNKNOWN_STORAGE_ASSET',
             'BLOCKED_ORPHAN_ASSET', 'SHARED_DEMO_DELETE_BLOCKED', 'STORAGE_PATH_OUTSIDE_EVENT_PREFIX',
+            'STORAGE_GENERATION_MISSING', 'GENERATION_MISMATCH', 'ROOT_MISSING_UNEXPECTED',
+            'ROOT_DELETE_STATE_MISMATCH', 'ROOT_DELETE_LOCK_MISMATCH',
             'EVENT_SAFETY_STALE', 'REFUND_EVIDENCE_STALE', 'REFUND_DOES_NOT_TERMINATE_SERVICE',
             'PRE_ROOT_VERIFY_FAILED', 'POST_ROOT_RESIDUAL_DATA', 'VERIFY_FAILED'
         ]).has(code);
@@ -556,6 +632,9 @@ export async function executeRefundProjectPurge({
             checkpoint: postRoot ? 'ROOT_DELETED' : (record.checkpoint ?? 'PUBLIC_ACCESS'),
             ...(blocker || postRoot ? { blockers: [{ code }] } : { lastError: { code } })
         });
+        if ((code === 'PRODUCTION_PURGE_DISABLED' || blocker) && !postRoot) {
+            await releaseGlobalPurgeLock({ db, eventId: safeEventId, operationId: record.operationId });
+        }
         if (!postRoot && blocker && !destructionStarted) {
             await releasePurgeLock(eventReference);
             await releaseGlobalPurgeLock({ db, eventId: safeEventId, operationId: record.operationId });
