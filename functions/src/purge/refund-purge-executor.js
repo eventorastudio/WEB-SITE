@@ -141,7 +141,13 @@ function assertManifestReady(record) {
     }
 }
 
-function assertAuthorizationBinding({ record, authorizationId, authorizationToken, actorUid, now }) {
+function isTrustedOperatorExecution(context) {
+    return context?.executionMode === 'OPERATOR_IAM'
+        && context?.adapter === 'refund-purge-service'
+        && context?.authenticatedBy === 'cloud-run-iam';
+}
+
+function assertAuthorizationBinding({ record, authorizationId, authorizationToken, actorUid, now, trustedExecution = false }) {
     const authorization = record.authorization ?? {};
     if (!authorizationId || authorization.authorizationId !== authorizationId) throw purgeError('AUTHORIZATION_MISMATCH');
     if (authorization.commercialFileReference !== record.commercialFileReference) {
@@ -156,7 +162,7 @@ function assertAuthorizationBinding({ record, authorizationId, authorizationToke
     }
     if (authorization.used !== false) throw purgeError('AUTHORIZATION_ALREADY_USED');
     if (!(authorization.expiresAt?.toDate?.()?.getTime?.() > now.getTime())) throw purgeError('AUTHORIZATION_EXPIRED');
-    if (authorization.authorizationTokenHash !== hashPurgeManifest({ authorizationToken })) {
+    if (!trustedExecution && authorization.authorizationTokenHash !== hashPurgeManifest({ authorizationToken })) {
         throw purgeError('AUTHORIZATION_INVALID');
     }
     return authorization;
@@ -212,7 +218,7 @@ async function updateRecord(recordReference, patch) {
     await recordReference.set({ ...patch, updatedAt: new Date() }, { merge: true });
 }
 
-async function acquirePurgeLock({ db, eventId, actorUid, authorizationId, authorizationToken, now = new Date() }) {
+async function acquirePurgeLock({ db, eventId, actorUid, authorizationId, authorizationToken, trustedExecution = false, now = new Date() }) {
     const recordReference = db.collection('administrativePurgeRecords').doc(purgeRecordId(eventId));
     const eventReference = db.doc(`eventos/${eventId}`);
     const globalReference = purgeGlobalLockReference(db);
@@ -266,7 +272,7 @@ async function acquirePurgeLock({ db, eventId, actorUid, authorizationId, author
             }
         });
         if (record.status === 'READY_FOR_EXECUTION') {
-            assertAuthorizationBinding({ record, authorizationId, authorizationToken, actorUid, now });
+            assertAuthorizationBinding({ record, authorizationId, authorizationToken, actorUid, now, trustedExecution });
         } else if (record.authorization?.used !== true) {
             throw purgeError('AUTHORIZATION_MISMATCH');
         }
@@ -504,10 +510,12 @@ async function minimizeFinalRecord({ recordReference, record, verification, now 
 }
 
 export async function executeRefundProjectPurge({
-    db, bucket, eventId, actorUid, claims, authorizationId, authorizationToken, testHooks = {}
+    db, bucket, eventId, actorUid, claims, authorizationId, authorizationToken,
+    trustedExecutionContext = null, testHooks = {}
 }) {
     assertDestructiveEmulatorEnvironment(bucket);
-    if (!(claims?.role === 'CEO' || claims?.userRole === 'CEO')) throw purgeError('UNAUTHORIZED');
+    const trustedExecution = isTrustedOperatorExecution(trustedExecutionContext);
+    if (!trustedExecution && !(claims?.role === 'CEO' || claims?.userRole === 'CEO')) throw purgeError('UNAUTHORIZED');
     const safeEventId = assertEventId(eventId);
     const recordReference = db.collection('administrativePurgeRecords').doc(purgeRecordId(safeEventId));
     const eventReference = db.doc(`eventos/${safeEventId}`);
@@ -517,12 +525,21 @@ export async function executeRefundProjectPurge({
     }
     if (!existingRecord.exists) throw purgeError('PURGE_RECORD_NOT_FOUND');
     let record = existingRecord.data();
-    if (record.status === 'DRY_RUN_READY' && !authorizationId) throw purgeError('AUTHORIZATION_REQUIRED');
-    if (record.status === 'READY_FOR_EXECUTION' && !authorizationId) throw purgeError('AUTHORIZATION_REQUIRED');
+    const effectiveActorUid = trustedExecution
+        ? String(record.authorization?.actorUid ?? '')
+        : actorUid;
+    const effectiveAuthorizationId = trustedExecution
+        ? record.authorization?.authorizationId
+        : authorizationId;
+    if (trustedExecution && (!effectiveActorUid || !effectiveAuthorizationId)) {
+        throw purgeError('AUTHORIZATION_MISMATCH');
+    }
+    if (record.status === 'DRY_RUN_READY' && !effectiveAuthorizationId) throw purgeError('AUTHORIZATION_REQUIRED');
+    if (record.status === 'READY_FOR_EXECUTION' && !effectiveAuthorizationId) throw purgeError('AUTHORIZATION_REQUIRED');
     if (record.status === 'DRY_RUN_READY') throw purgeError('PURGE_NOT_READY');
     if (['FAILED_RETRYABLE', 'BLOCKED', 'VERIFYING'].includes(record.status) && record.checkpoint === 'ROOT_DELETED'
         && !record.blockers?.some((item) => ['POST_ROOT_RESIDUAL_DATA', 'VERIFY_FAILED'].includes(item.code))) {
-        if (record.authorization?.authorizationId !== authorizationId || record.authorization?.actorUid !== actorUid) {
+        if (record.authorization?.authorizationId !== effectiveAuthorizationId || record.authorization?.actorUid !== effectiveActorUid) {
             throw purgeError('AUTHORIZATION_MISMATCH');
         }
         try {
@@ -544,7 +561,8 @@ export async function executeRefundProjectPurge({
         if (preflightEvent.data()?.demoMode === true) throw purgeError('DEMO_PURGE_BLOCKED');
     }
     const lock = await acquirePurgeLock({
-        db, eventId: safeEventId, actorUid, authorizationId, authorizationToken
+        db, eventId: safeEventId, actorUid: effectiveActorUid,
+        authorizationId: effectiveAuthorizationId, authorizationToken, trustedExecution
     });
     if (lock.alreadyPurged) return Object.freeze({ status: 'ALREADY_PURGED', eventId: safeEventId });
     const { recordReference: lockedRecordReference } = lock;

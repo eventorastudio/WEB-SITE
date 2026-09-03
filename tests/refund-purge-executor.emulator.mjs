@@ -1,5 +1,7 @@
 import test, { after, before } from 'node:test';
 import assert from 'node:assert/strict';
+import { createServer } from 'node:http';
+import { once } from 'node:events';
 import { getApps, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { confirmRefundRecord, recordRefundProcessed } from '../functions/src/purge/refund-records.js';
@@ -11,6 +13,8 @@ import {
     executeRefundProjectPurge,
     isEventPurgeLocked
 } from '../functions/src/purge/refund-purge-executor.js';
+import { createRefundPurgeOperatorAdapter } from '../functions/operator/refund-purge-adapter.js';
+import { createOperatorServiceHandler } from '../functions/operator/refund-purge-service.js';
 
 if (!process.env.FIRESTORE_EMULATOR_HOST) throw new Error('EMULATOR_REQUIRED');
 
@@ -381,4 +385,27 @@ test('ROOT_DELETE_READY sin root confirmado no se interpreta como PURGED', async
         (error) => error.code === 'ROOT_MISSING_UNEXPECTED'
     );
     assert.notEqual((await purgeReference.get()).data().status, 'PURGED');
+});
+
+test('integración HTTP operator-only conserva revalidaciones del executor', async () => {
+    const eventId = nextId('OPERATOR');
+    const path = `eventos/${eventId}/invitacion/media/cover/operator.webp`;
+    const storage = new StorageMock([path]);
+    const refundRecordId = await seedEvent(eventId, [path]);
+    const prepared = await prepare({ eventId, bucket: storage, refundRecordId });
+    await authorize(eventId, prepared);
+    const adapter = createRefundPurgeOperatorAdapter({ db, bucket: storage, allowLocalTestEnvironment: true });
+    const server = createServer(createOperatorServiceHandler({ adapter, logger: {} })).listen(0, '127.0.0.1');
+    await once(server, 'listening');
+    const { port } = server.address();
+    const response = await fetch(`http://127.0.0.1:${port}/v1/execute`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ operationId: `PURGE-${eventId}` })
+    });
+    const result = await response.json();
+    server.close();
+    assert.equal(response.status, 200);
+    assert.deepEqual(result, { ok: true, operationId: `PURGE-${eventId}`, status: 'PURGED' });
+    assert.equal((await db.doc(`eventos/${eventId}`).get()).exists, false);
+    assert.equal(storage.paths.has(path), false);
 });

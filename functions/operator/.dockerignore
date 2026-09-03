@@ -1,0 +1,9 @@
+.git
+.env*
+audit
+node_modules
+*.log
+test-artifacts
+credentials
+**/*key*.json
+**/*token*.json
