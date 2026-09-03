@@ -63,7 +63,7 @@ export function createOperatorServiceHandler({ adapter, logger = console } = {})
     return async (request, response) => {
         const startedAt = Date.now();
         const path = new URL(request.url ?? '/', 'http://operator.local');
-        if (path.pathname === '/healthz' && request.method === 'GET') return writeJson(response, 200, { ok: true });
+        if (path.pathname === '/health' && request.method === 'GET') return writeJson(response, 200, { ok: true });
         if (path.pathname !== '/v1/execute') return writeJson(response, 404, { ok: false, code: 'NOT_FOUND' });
         if (path.search) return writeJson(response, 400, { ok: false, code: 'QUERY_PARAMETERS_NOT_ALLOWED' });
         if (request.method !== 'POST') return writeJson(response, 405, { ok: false, code: 'METHOD_NOT_ALLOWED' });

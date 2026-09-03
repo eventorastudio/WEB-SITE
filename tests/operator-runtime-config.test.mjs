@@ -20,7 +20,22 @@ test('project guard rechaza conflicto y solo permite GCLOUD_PROJECT en emulator 
     assert.equal(configuredProjectId({ GCLOUD_PROJECT: EXPECTED_PROJECT_ID }), '');
 });
 
-test('healthz solo valida disponibilidad del handler y no llama executor ni Google APIs', async () => {
+test('health solo valida disponibilidad del handler y no llama executor ni Google APIs', async () => {
+    let executions = 0;
+    const handler = createOperatorServiceHandler({ adapter: { execute: async () => { executions += 1; } }, logger: {} });
+    const request = new PassThrough();
+    request.method = 'GET';
+    request.url = '/health';
+    request.headers = {};
+    const chunks = [];
+    const response = { writeHead(status) { this.statusCode = status; }, end(body) { chunks.push(body); } };
+    await handler(request, response);
+    assert.equal(response.statusCode, 200);
+    assert.equal(chunks.join(''), '{"ok":true}');
+    assert.equal(executions, 0);
+});
+
+test('healthz ya no es un endpoint válido del runtime', async () => {
     let executions = 0;
     const handler = createOperatorServiceHandler({ adapter: { execute: async () => { executions += 1; } }, logger: {} });
     const request = new PassThrough();
@@ -30,7 +45,8 @@ test('healthz solo valida disponibilidad del handler y no llama executor ni Goog
     const chunks = [];
     const response = { writeHead(status) { this.statusCode = status; }, end(body) { chunks.push(body); } };
     await handler(request, response);
-    assert.equal(response.statusCode, 200);
+    assert.equal(response.statusCode, 404);
+    assert.equal(chunks.join(''), '{"ok":false,"code":"NOT_FOUND"}');
     assert.equal(executions, 0);
 });
 
