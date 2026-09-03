@@ -1,5 +1,6 @@
 import { purgeRecordId } from '../src/purge/refund-purge-preparation.js';
 import { executeRefundProjectPurge } from '../src/purge/refund-purge-executor.js';
+import { assertProductionPurgeGate } from '../src/purge/production-purge-gate.js';
 import { createStorageAdapter, configuredProjectId, EXPECTED_BUCKET_NAME, EXPECTED_PROJECT_ID } from './storage-adapters.js';
 
 export const OPERATION_ID_PATTERN = /^PURGE-[A-Za-z0-9_-]{1,150}$/;
@@ -45,6 +46,7 @@ export function createRefundPurgeOperatorAdapter({ db, bucket = null, storageAda
     return Object.freeze({
         async execute(operationId) {
             const safeOperationId = validateOperationId(operationId);
+            assertProductionPurgeGate({ allowEmulatorOverride: allowLocalTestEnvironment });
             const snapshot = await db.collection('administrativePurgeRecords')
                 .where('operationId', '==', safeOperationId).limit(1).get();
             if (snapshot.empty) throw operatorError('PURGE_RECORD_NOT_FOUND');

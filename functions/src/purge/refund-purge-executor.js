@@ -536,6 +536,7 @@ export async function executeRefundProjectPurge({
     }
     if (!trustedExecution && !(claims?.role === 'CEO' || claims?.userRole === 'CEO')) throw purgeError('UNAUTHORIZED');
     const safeEventId = assertEventId(eventId);
+    assertStageGate(testHooks, 'OPERATION_START');
     const recordReference = db.collection('administrativePurgeRecords').doc(purgeRecordId(safeEventId));
     const eventReference = db.doc(`eventos/${safeEventId}`);
     const existingRecord = await recordReference.get();
@@ -573,7 +574,6 @@ export async function executeRefundProjectPurge({
             throw error;
         }
     }
-    assertStageGate(testHooks, 'OPERATION_START');
     if (record.checkpoint !== 'ROOT_DELETE_READY') {
         const preflightEvent = await eventReference.get();
         if (!preflightEvent.exists) throw purgeError('EVENT_NOT_FOUND');
