@@ -38,7 +38,12 @@ const TOUCHED_PATHS = [
 let testEnv;
 
 before(async () => {
-    testEnv = await initializeTestEnvironment({ projectId: PROJECT_ID });
+    const hub = process.env.FIREBASE_EMULATOR_HUB;
+    delete process.env.FIREBASE_EMULATOR_HUB;
+    try { const firestorePort = Number((process.env.FIRESTORE_EMULATOR_HOST ?? '127.0.0.1:8080').split(':').pop());
+        testEnv = await initializeTestEnvironment({ projectId: PROJECT_ID,
+            firestore: { host: '127.0.0.1', port: firestorePort } });
+    } finally { if (hub) process.env.FIREBASE_EMULATOR_HUB = hub; }
 });
 
 after(async () => {
