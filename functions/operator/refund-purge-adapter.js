@@ -1,8 +1,7 @@
 import { purgeRecordId } from '../src/purge/refund-purge-preparation.js';
 import { executeRefundProjectPurge } from '../src/purge/refund-purge-executor.js';
+import { createStorageAdapter, configuredProjectId, EXPECTED_BUCKET_NAME, EXPECTED_PROJECT_ID } from './storage-adapters.js';
 
-export const EXPECTED_PROJECT_ID = 'eventorastudio-d6d95';
-export const EXPECTED_BUCKET_NAME = 'eventorastudio-d6d95.firebasestorage.app';
 export const OPERATION_ID_PATTERN = /^PURGE-[A-Za-z0-9_-]{1,150}$/;
 
 function operatorError(code, details = {}) {
@@ -21,12 +20,7 @@ export function validateOperationId(value) {
 }
 
 function projectIdFromEnvironment(environment) {
-    if (environment.GCLOUD_PROJECT) return environment.GCLOUD_PROJECT;
-    try {
-        return JSON.parse(environment.FIREBASE_CONFIG ?? '{}').projectId ?? '';
-    } catch {
-        return '';
-    }
+    return configuredProjectId(environment);
 }
 
 export function assertBackendBindings({ bucket, environment = process.env, allowLocalTestEnvironment = false } = {}) {
@@ -43,10 +37,11 @@ export function assertBackendBindings({ bucket, environment = process.env, allow
     return true;
 }
 
-export function createRefundPurgeOperatorAdapter({ db, bucket, executor = executeRefundProjectPurge,
+export function createRefundPurgeOperatorAdapter({ db, bucket = null, storageAdapter = null, executor = executeRefundProjectPurge,
     environment = process.env, allowLocalTestEnvironment = false } = {}) {
-    if (!db || !bucket) throw operatorError('BACKEND_DEPENDENCIES_MISSING');
-    assertBackendBindings({ bucket, environment, allowLocalTestEnvironment });
+    if (!db) throw operatorError('BACKEND_DEPENDENCIES_MISSING');
+    const resolvedStorageAdapter = storageAdapter ?? createStorageAdapter({ bucket, environment });
+    assertBackendBindings({ bucket: resolvedStorageAdapter, environment, allowLocalTestEnvironment });
     return Object.freeze({
         async execute(operationId) {
             const safeOperationId = validateOperationId(operationId);
@@ -60,7 +55,7 @@ export function createRefundPurgeOperatorAdapter({ db, bucket, executor = execut
             }
             const eventId = record.originalEventId;
             const result = await executor({
-                db, bucket, eventId,
+                db, bucket: resolvedStorageAdapter, eventId,
                 trustedExecutionContext: Object.freeze({
                     executionMode: 'OPERATOR_IAM',
                     adapter: 'refund-purge-service',

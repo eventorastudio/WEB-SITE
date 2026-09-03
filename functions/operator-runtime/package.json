@@ -1,0 +1,12 @@
+{
+  "name": "eventora-refund-purge-operator-runtime",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@google-cloud/firestore": "9.0.1",
+    "google-auth-library": "11.0.2"
+  }
+}

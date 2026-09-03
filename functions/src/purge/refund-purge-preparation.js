@@ -150,10 +150,13 @@ async function collectMedia(eventReference, eventId) {
 }
 
 async function collectStorage(bucket, eventId, knownPaths) {
-    if (!bucket || typeof bucket.getFiles !== 'function') {
+    if (!bucket || (typeof bucket.listObjects !== 'function' && typeof bucket.getFiles !== 'function')) {
         return { objects: [], warnings: ['STORAGE_DISCOVERY_UNAVAILABLE'] };
     }
-    const [files] = await bucket.getFiles({ prefix: `eventos/${eventId}/invitacion/media/` });
+    const prefix = `eventos/${eventId}/invitacion/media/`;
+    const files = bucket.listObjects
+        ? (await bucket.listObjects({ prefix })).items
+        : (await bucket.getFiles({ prefix }))[0];
     const objects = [];
     const warnings = [];
     for (const file of files ?? []) {

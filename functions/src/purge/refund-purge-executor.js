@@ -370,11 +370,14 @@ async function deleteStorageManifest({ bucket, eventId, recordReference, record 
             || item.path.startsWith('demo-library/')) {
             throw purgeError('STORAGE_PATH_OUTSIDE_EVENT_PREFIX');
         }
-        const file = bucket.file(item.path);
         try {
-            await file.delete({ ifGenerationMatch: String(item.generation) });
+            if (typeof bucket.deleteObjectIfGenerationMatch === 'function') {
+                await bucket.deleteObjectIfGenerationMatch(item.path, String(item.generation));
+            } else {
+                await bucket.file(item.path).delete({ ifGenerationMatch: String(item.generation) });
+            }
         } catch (error) {
-            if (String(error?.code) === '404' || error?.code === 'not-found') {
+            if (String(error?.code) === '404' || error?.code === 'not-found' || error?.code === 'NOT_FOUND') {
                 // The manifest proves that this exact path/generation was authorized.
             } else if (String(error?.code) === '412' || error?.code === 'precondition-failed') {
                 throw purgeError('GENERATION_MISMATCH');
@@ -471,8 +474,10 @@ async function verifyPurge({ db, bucket, eventId, eventReference, record, rootMu
         counts[`invitacion_${documentName}`] = (await invitation.doc(documentName).get()).exists ? 1 : 0;
     }
     counts.revisions = (await invitation.doc('publication').collection('revisions').limit(1).get()).size;
-    const storageFiles = await bucket.getFiles({ prefix: OWN_STORAGE_PREFIX(eventId) });
-    counts.storageOwnEvent = (storageFiles[0] ?? []).filter((file) => String(file.name).startsWith(OWN_STORAGE_PREFIX(eventId))).length;
+    const storageFiles = bucket.listObjects
+        ? (await bucket.listObjects({ prefix: OWN_STORAGE_PREFIX(eventId) })).items
+        : (await bucket.getFiles({ prefix: OWN_STORAGE_PREFIX(eventId) }))[0] ?? [];
+    counts.storageOwnEvent = storageFiles.filter((file) => String(file.name).startsWith(OWN_STORAGE_PREFIX(eventId))).length;
     const profiles = await db.collection('usuarios').get();
     counts.profileReferences = profiles.docs.filter((profile) => profile.data()?.eventosPermitidos?.includes(eventId)).length;
     const rootSnapshot = await eventReference.get();
@@ -483,8 +488,18 @@ async function verifyPurge({ db, bucket, eventId, eventReference, record, rootMu
     if (residual) throw purgeError(rootMustBeAbsent ? 'VERIFY_FAILED' : 'PRE_ROOT_VERIFY_FAILED', { counts });
     const sharedDemo = (record.manifest?.sharedDemoReferences ?? []).map((item) => item.storagePath).filter(Boolean);
     for (const path of sharedDemo) {
-        const [exists] = await bucket.file(path).exists();
-        if (!exists) throw purgeError('SHARED_DEMO_VERIFY_FAILED');
+        try {
+            if (bucket.getObjectMetadata) await bucket.getObjectMetadata(path);
+            else {
+                const [exists] = await bucket.file(path).exists();
+                if (!exists) throw purgeError('SHARED_DEMO_VERIFY_FAILED');
+            }
+        } catch (error) {
+            if (String(error?.code) === 'NOT_FOUND' || String(error?.code) === '404') {
+                throw purgeError('SHARED_DEMO_VERIFY_FAILED');
+            }
+            throw error;
+        }
     }
     return Object.freeze(counts);
 }
@@ -513,8 +528,12 @@ export async function executeRefundProjectPurge({
     db, bucket, eventId, actorUid, claims, authorizationId, authorizationToken,
     trustedExecutionContext = null, testHooks = {}
 }) {
-    assertDestructiveEmulatorEnvironment(bucket);
     const trustedExecution = isTrustedOperatorExecution(trustedExecutionContext);
+    if (bucket?.__eventoraStorageProductionAdapter) {
+        if (!trustedExecution) throw purgeError('DESTRUCTIVE_PURGE_NOT_ALLOWED');
+    } else {
+        assertDestructiveEmulatorEnvironment(bucket);
+    }
     if (!trustedExecution && !(claims?.role === 'CEO' || claims?.userRole === 'CEO')) throw purgeError('UNAUTHORIZED');
     const safeEventId = assertEventId(eventId);
     const recordReference = db.collection('administrativePurgeRecords').doc(purgeRecordId(safeEventId));
