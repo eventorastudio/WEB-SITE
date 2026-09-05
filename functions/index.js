@@ -12,7 +12,7 @@ import { createCalendarHttpHandler } from './src/calendar-http.js';
 import { isCeoClaims, prepareRefundPurgeDryRun } from './src/purge/refund-purge-preparation.js';
 import { authorizeRefundProjectPurge as authorizeRefundProjectPurgeCore, cancelRefundProjectPurge as cancelRefundProjectPurgeCore } from './src/purge/refund-purge-authorization.js';
 import { confirmRefundRecord as confirmRefundRecordCore, recordRefundProcessed as recordRefundProcessedCore } from './src/purge/refund-records.js';
-import { handleLatePurgedEventObject } from './src/purge/late-upload-sweeper.js';
+import { acknowledgeProductionPurgeDisabled, handleLatePurgedEventObject } from './src/purge/late-upload-sweeper.js';
 
 initializeApp();
 
@@ -64,12 +64,17 @@ export const refundPurgeLateUploadSweeper = onObjectFinalized({
     bucket: 'eventorastudio-d6d95.firebasestorage.app',
     region: 'us-east1',
     retry: true
-}, async (event) => handleLatePurgedEventObject({
-    event,
-    db: getFirestore(),
-    bucket: getStorage().bucket(),
-    expectedBucket: 'eventorastudio-d6d95.firebasestorage.app'
-}));
+}, async (event) => {
+    if (acknowledgeProductionPurgeDisabled()) {
+        return { action: 'DISABLED', reason: 'PRODUCTION_PURGE_DISABLED' };
+    }
+    return handleLatePurgedEventObject({
+        event,
+        db: getFirestore(),
+        bucket: getStorage().bucket(),
+        expectedBucket: 'eventorastudio-d6d95.firebasestorage.app'
+    });
+});
 
 export const getGuestQrToken = onCall({
     region: 'us-central1'

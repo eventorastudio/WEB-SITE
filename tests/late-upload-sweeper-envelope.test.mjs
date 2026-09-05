@@ -8,10 +8,13 @@ const EXPECTED_BUCKET = 'eventorastudio-d6d95.firebasestorage.app';
 const TARGET = 'eventos/EVT-SWEEPER/invitacion/media/gallery/MED-LOCAL-901-abcdef123456.webp';
 
 function fakeDb(docs) {
+    const reads = [];
     return {
+        reads,
         doc(path) {
             return {
                 async get() {
+                    reads.push(path);
                     const value = docs[path];
                     return { exists: value !== undefined, data: () => value };
                 }
@@ -22,9 +25,12 @@ function fakeDb(docs) {
 
 function fakeBucket({ deleteError = null } = {}) {
     const deleted = [];
+    const fileCalls = [];
     return {
         deleted,
+        fileCalls,
         file(name) {
+            fileCalls.push(name);
             return {
                 async delete(options) {
                     deleted.push({ name, options });
@@ -44,7 +50,8 @@ async function runHandler({ event, docs = {}, bucket = fakeBucket() }) {
         event,
         db: fakeDb(docs),
         bucket,
-        expectedBucket: EXPECTED_BUCKET
+        expectedBucket: EXPECTED_BUCKET,
+        productionGate: () => {}
     });
 }
 
@@ -56,6 +63,21 @@ test('export productivo es Gen 2, bucket exacto, region exacta y retry true', ()
     assert.equal(endpoint.eventTrigger.eventType, 'google.cloud.storage.object.v1.finalized');
     assert.equal(endpoint.eventTrigger.retry, true);
     assert.deepEqual(endpoint.eventTrigger.eventFilters, { bucket: EXPECTED_BUCKET });
+});
+
+test('kill switch cerrado resuelve sin acceso Firestore ni Storage', async () => {
+    const db = fakeDb({
+        'eventos/EVT-SWEEPER': { purgeLock: { operationId: 'PURGE-LOCK' } },
+        'administrativePurgeRecords/PURGE-EVT-SWEEPER': { status: 'PURGED' }
+    });
+    const bucket = fakeBucket();
+    const result = await handleLatePurgedEventObject({
+        event: objectEvent(TARGET), db, bucket, expectedBucket: EXPECTED_BUCKET
+    });
+    assert.deepEqual(result, { action: 'DISABLED', reason: 'PRODUCTION_PURGE_DISABLED' });
+    assert.equal(db.reads.length, 0);
+    assert.equal(bucket.fileCalls.length, 0);
+    assert.equal(bucket.deleted.length, 0);
 });
 
 test('normal, shared demo, namespace ajeno y root missing sin tombstone conservan', async () => {

@@ -1,4 +1,5 @@
 import { logger } from 'firebase-functions';
+import { assertProductionPurgeGate } from './production-purge-gate.js';
 
 export const PURGE_DESTRUCTIVE_CHECKPOINTS = Object.freeze([
     'FIRESTORE_PURGING', 'STORAGE_PURGING', 'MEDIA_METADATA', 'PROFILES',
@@ -18,6 +19,19 @@ function lateUploadError(code) {
     return error;
 }
 
+export function acknowledgeProductionPurgeDisabled(log = logger, productionGate = assertProductionPurgeGate) {
+    try {
+        productionGate();
+        return false;
+    } catch (error) {
+        if (error?.code !== 'PRODUCTION_PURGE_DISABLED') throw error;
+        log.info?.('Production purge sweeper disabled.', {
+            code: 'PRODUCTION_PURGE_DISABLED'
+        });
+        return true;
+    }
+}
+
 export function parseOwnedEventMediaPath(name) {
     const match = String(name ?? '').match(EVENT_MEDIA_PREFIX);
     if (!match || !match[2]) return null;
@@ -31,7 +45,10 @@ export function isDestructivePurgeRecord(record = {}) {
         || (safeRecord.status === 'FAILED_RETRYABLE' && PURGE_DESTRUCTIVE_CHECKPOINTS.includes(safeRecord.checkpoint));
 }
 
-export async function handleLatePurgedEventObject({ event, db, bucket, expectedBucket = null, log = logger } = {}) {
+export async function handleLatePurgedEventObject({ event, db, bucket, expectedBucket = null, log = logger, productionGate = assertProductionPurgeGate } = {}) {
+    if (acknowledgeProductionPurgeDisabled(log, productionGate)) {
+        return Object.freeze({ action: 'DISABLED', reason: 'PRODUCTION_PURGE_DISABLED' });
+    }
     const name = String(event?.data?.name ?? event?.name ?? '');
     const parsed = parseOwnedEventMediaPath(name);
     if (!parsed) return Object.freeze({ action: 'IGNORE', reason: 'WRONG_PREFIX' });

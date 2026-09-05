@@ -5,6 +5,7 @@ import { handleLatePurgedEventObject, parseOwnedEventMediaPath } from '../functi
 function fakeDb(docs) {
     return { doc(path) { return { async get() { const value = docs[path]; return { exists: value !== undefined, data: () => value }; } }; } };
 }
+const testProductionGate = () => {};
 function fakeBucket() {
     const deleted = [];
     return { deleted, file(name) { return { async delete(options) { deleted.push({ name, options }); } }; } };
@@ -25,7 +26,7 @@ test('normal event conserva late object', async () => {
     const bucket = fakeBucket();
     const result = await handleLatePurgedEventObject({
         event: objectEvent('eventos/EVT-NORMAL/invitacion/media/gallery/MED-001-abcdefabcdef.webp'),
-        db: fakeDb({}), bucket, expectedBucket: 'demo-bucket.appspot.com'
+        db: fakeDb({}), bucket, expectedBucket: 'demo-bucket.appspot.com', productionGate: testProductionGate
     });
     assert.equal(result.action, 'KEEP');
     assert.equal(bucket.deleted.length, 0);
@@ -41,7 +42,7 @@ test('purge en curso y estados posteriores eliminan late object con generation',
         const result = await handleLatePurgedEventObject({
             event: objectEvent('eventos/EVT-PURGE/invitacion/media/gallery/MED-001-abcdefabcdef.webp'),
             db: fakeDb({ 'administrativePurgeRecords/PURGE-EVT-PURGE': record }), bucket,
-            expectedBucket: 'demo-bucket.appspot.com'
+            expectedBucket: 'demo-bucket.appspot.com', productionGate: testProductionGate
         });
         assert.equal(result.action, 'DELETE_LATE_OBJECT');
         assert.deepEqual(bucket.deleted[0].options, { ifGenerationMatch: '42' });
@@ -53,7 +54,7 @@ test('lock activo elimina aunque todavía no exista Final Record destructivo', a
     const result = await handleLatePurgedEventObject({
         event: objectEvent('eventos/EVT-LOCK/invitacion/media/gallery/MED-001-abcdefabcdef.webp'),
         db: fakeDb({ 'eventos/EVT-LOCK': { purgeLock: { operationId: 'PURGE-LOCK' } } }), bucket,
-        expectedBucket: 'demo-bucket.appspot.com'
+        expectedBucket: 'demo-bucket.appspot.com', productionGate: testProductionGate
     });
     assert.equal(result.action, 'DELETE_LATE_OBJECT');
     assert.equal(bucket.deleted.length, 1);
@@ -64,15 +65,15 @@ test('root inexistente sólo elimina si el tombstone indica destrucción', async
     const result = await handleLatePurgedEventObject({
         event: objectEvent('eventos/EVT-ROOT/invitacion/media/cover/MED-001-abcdefabcdef.webp'),
         db: fakeDb({ 'administrativePurgeRecords/PURGE-EVT-ROOT': { status: 'PURGED' } }), bucket,
-        expectedBucket: 'demo-bucket.appspot.com'
+        expectedBucket: 'demo-bucket.appspot.com', productionGate: testProductionGate
     });
     assert.equal(result.action, 'DELETE_LATE_OBJECT');
 });
 
 test('shared DEMO y otro prefijo nunca se eliminan', async () => {
     const bucket = fakeBucket();
-    const demo = await handleLatePurgedEventObject({ event: objectEvent('demo-library/DML-test.webp'), db: fakeDb({}), bucket });
-    const other = await handleLatePurgedEventObject({ event: objectEvent('unrelated/important.webp'), db: fakeDb({}), bucket });
+    const demo = await handleLatePurgedEventObject({ event: objectEvent('demo-library/DML-test.webp'), db: fakeDb({}), bucket, productionGate: testProductionGate });
+    const other = await handleLatePurgedEventObject({ event: objectEvent('unrelated/important.webp'), db: fakeDb({}), bucket, productionGate: testProductionGate });
     assert.equal(demo.action, 'IGNORE');
     assert.equal(other.action, 'IGNORE');
     assert.equal(bucket.deleted.length, 0);
@@ -83,6 +84,6 @@ test('fallo de delete se propaga para permitir retry', async () => {
     await assert.rejects(handleLatePurgedEventObject({
         event: objectEvent('eventos/EVT-RETRY/invitacion/media/gallery/MED-001-abcdefabcdef.webp'),
         db: fakeDb({ 'administrativePurgeRecords/PURGE-EVT-RETRY': { status: 'PURGED' } }), bucket,
-        expectedBucket: 'demo-bucket.appspot.com'
+        expectedBucket: 'demo-bucket.appspot.com', productionGate: testProductionGate
     }), { code: 503 });
 });
