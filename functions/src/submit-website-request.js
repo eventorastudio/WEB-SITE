@@ -46,6 +46,7 @@ const labels = {
 
 export const submitWebsiteRequest = onRequest({
     region,
+    invoker: 'public',
     cors: false,
     secrets: [emailUser, emailAppPassword],
     timeoutSeconds: 30,
@@ -133,7 +134,12 @@ export const submitWebsiteRequest = onRequest({
 
         res.status(200).json({ ok: true });
     } catch (error) {
-        logger.error('Website request email failed.', { code: 'website-request/email-failed' });
+        logger.error('Website request email failed.', {
+            code: 'website-request/email-failed',
+            mailCode: safeMailErrorCode(error),
+            smtpCode: Number.isInteger(error?.responseCode) ? error.responseCode : undefined,
+            command: typeof error?.command === 'string' ? error.command : undefined
+        });
         res.status(500).json({ ok: false, message: 'No pudimos enviar tu solicitud. Inténtalo nuevamente en unos momentos.' });
     }
 });
@@ -206,4 +212,9 @@ function buildHtmlEmail(data) {
 
 function escapeHtml(value) {
     return String(value).replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
+}
+
+function safeMailErrorCode(error) {
+    const code = String(error?.code || 'unknown').toUpperCase();
+    return /^[A-Z0-9_-]+$/.test(code) ? code : 'UNKNOWN';
 }
