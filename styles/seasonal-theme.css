@@ -134,6 +134,11 @@ body.theme-halloween .hero-preview::after {
   opacity: .8;
 }
 
+/* Keep the homepage mockup navigation unobstructed. */
+body.theme-halloween .hero-visual::before {
+  content: none;
+}
+
 body.theme-halloween .website-mockup,
 body.theme-halloween .preview-window-main {
   background: linear-gradient(135deg, #f9dec3 0%, #e8b891 44%, #57365f 100%);
@@ -484,8 +489,8 @@ body.theme-halloween .contact-mail {
 
 body.theme-halloween .footer {
   position: relative;
-  background: var(--season-bg-deep);
-  color: var(--season-text-light);
+  background: #e5e5e1;
+  color: #29242e;
 }
 
 body.theme-halloween .footer::after {
@@ -513,7 +518,7 @@ body.theme-halloween .footer::before {
 body.theme-halloween .footer-grid p,
 body.theme-halloween .footer-column a,
 body.theme-halloween .footer-bottom {
-  color: var(--season-muted-light);
+  color: #66646a;
 }
 
 body.theme-halloween .footer-brand::after {
