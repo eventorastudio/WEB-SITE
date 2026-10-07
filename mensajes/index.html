@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="description" content="Bandeja privada de solicitudes de Eventora Studio.">
+  <title>Mensajes | Eventora Studio</title>
+  <link rel="icon" type="image/x-icon" href="/assets/brand/favicon/favicon.ico">
+  <link rel="stylesheet" href="/principal/public-socials.css?v=public-home-20261006">
+  <link rel="stylesheet" href="./style.css?v=messages-auth-20261006">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main class="messages-shell">
+    <section id="login-view" class="login-card" aria-labelledby="login-title">
+      <a class="brand" href="/principal/" aria-label="Eventora Studio, inicio">
+        <img class="brand-logo" src="/assets/brand/logo-trimmed.png" alt="Eventora Studio">
+      </a>
+      <h1 id="login-title">Mensajes</h1>
+      <p>Accede a las solicitudes de páginas de Eventora Studio.</p>
+      <form id="login-form" novalidate>
+        <label for="login-email">Correo</label>
+        <input id="login-email" type="email" autocomplete="username" required>
+        <label for="login-password">Contraseña</label>
+        <input id="login-password" type="password" autocomplete="current-password" required>
+        <button class="button button-dark" type="submit">ENTRAR</button>
+        <p id="login-status" class="status" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section id="app-view" class="app-view" hidden aria-labelledby="app-title">
+      <header class="app-header">
+        <div>
+          <a class="brand" href="/principal/" aria-label="Eventora Studio, inicio">
+            <img class="brand-logo" src="/assets/brand/logo-trimmed.png" alt="Eventora Studio">
+          </a>
+          <h1 id="app-title">Mensajes</h1>
+        </div>
+        <button id="logout-button" class="button button-light" type="button">Cerrar sesión</button>
+      </header>
+      <div id="app-status" class="status" role="status" aria-live="polite"></div>
+      <div class="summary-grid" aria-label="Resumen de solicitudes">
+        <article><strong id="total-count">0</strong><span>Total</span></article>
+        <article><strong id="new-count">0</strong><span>Nuevas</span></article>
+        <article><strong id="progress-count">0</strong><span>En proceso</span></article>
+      </div>
+      <div class="inbox-layout">
+        <section class="request-list-panel" aria-labelledby="list-title">
+          <div class="panel-heading"><h2 id="list-title">Solicitudes</h2><button id="refresh-button" class="text-button" type="button">Actualizar</button></div>
+          <div id="request-list" class="request-list"></div>
+        </section>
+        <aside id="request-detail" class="request-detail" aria-live="polite">
+          <p class="empty-state">Selecciona una solicitud para ver sus detalles.</p>
+        </aside>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="./script.js?v=messages-auth-20261006"></script>
+</body>
+</html>

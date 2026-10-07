@@ -8,12 +8,14 @@ import { reconcileCurrentRsvpResponse } from './src/rsvp-reconciliation.js';
 import { resolveGuestQrToken } from './src/guest-qr-access.js';
 import { createCalendarHttpHandler } from './src/calendar-http.js';
 import { submitWebsiteRequest as submitWebsiteRequestHandler } from './src/submit-website-request.js';
+import { deleteWebsiteRequest, getWebsiteRequests, updateWebsiteRequestStatus } from './src/admin-website-requests.js';
 
 initializeApp();
 
 export const calendar = onRequest({ region: 'us-central1' }, createCalendarHttpHandler({ db: getFirestore() }));
 
 export const submitWebsiteRequest = submitWebsiteRequestHandler;
+export { deleteWebsiteRequest, getWebsiteRequests, updateWebsiteRequestStatus };
 
 export const syncRsvpResponseToGuest = onDocumentWritten({
     document: 'eventos/{eventId}/rsvpResponses/{token}',

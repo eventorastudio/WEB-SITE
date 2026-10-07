@@ -1231,6 +1231,10 @@ service cloud.firestore {
       allow create, update, delete: if isThemeEditor();
     }
 
+    match /websiteRequests/{requestId} {
+      allow read, write: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
