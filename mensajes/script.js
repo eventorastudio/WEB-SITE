@@ -3,6 +3,7 @@ import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https:/
 import { auth } from '../admin/firebase.js';
 
 const authorizedEmail = 'messages@gmail.com';
+const authorizedAdminUid = '5I3NPSeJ09Q6No0SICx1dlpV1Wk1';
 const functionsBaseUrl = 'https://us-central1-eventorastudio-d6d95.cloudfunctions.net';
 const statusLabels = { new: 'Nueva', contacted: 'Contactado', in_progress: 'En proceso', completed: 'Finalizada' };
 const loginView = document.querySelector('#login-view');
@@ -43,9 +44,9 @@ onAuthStateChanged(auth, async (user) => {
         showLogin();
         return;
     }
-    if (user.email?.toLowerCase() !== authorizedEmail) {
+    if (user.uid !== authorizedAdminUid || user.email?.toLowerCase() !== authorizedEmail) {
         await signOut(auth);
-        loginStatus.textContent = 'Este usuario no tiene acceso a Mensajes.';
+        loginStatus.textContent = 'Acceso no autorizado.';
         return;
     }
     showApp();

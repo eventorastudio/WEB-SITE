@@ -1,9 +1,6 @@
 import { getAuth } from 'firebase-admin/auth';
-import { defineString } from 'firebase-functions/params';
 
-export const authorizedAdminUid = defineString('AUTHORIZED_ADMIN_UID', {
-    description: 'Firebase Auth UID allowed to access the Eventora website request inbox.'
-});
+export const AUTHORIZED_ADMIN_UID = '5I3NPSeJ09Q6No0SICx1dlpV1Wk1';
 
 const allowedOrigins = new Set([
     'https://eventorastudio.com',
@@ -40,15 +37,9 @@ export async function requireAuthorizedAdmin(req, res) {
         return null;
     }
 
-    const expectedUid = authorizedAdminUid.value().trim();
-    if (!expectedUid) {
-        res.status(503).json({ ok: false, message: 'El acceso administrativo todavía no está configurado.' });
-        return null;
-    }
-
     try {
         const decodedToken = await getAuth().verifyIdToken(match[1]);
-        if (decodedToken.uid !== expectedUid) {
+        if (decodedToken.uid !== AUTHORIZED_ADMIN_UID) {
             res.status(403).json({ ok: false, message: 'Usuario no autorizado.' });
             return null;
         }
