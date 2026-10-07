@@ -19,6 +19,8 @@
 body.theme-halloween {
   --season-surface: var(--season-bg);
   --season-panel: var(--season-bg-soft);
+  --season-hero-art: url('/assets/seasonal/halloween/halloween-hero.png');
+  --season-autumn-art: url('/assets/seasonal/halloween/halloween-autumn.png');
   background: var(--season-surface);
   overflow-x: hidden;
 }
@@ -41,6 +43,7 @@ body.theme-halloween .request-hero {
   isolation: isolate;
   color: var(--season-text-light);
   background:
+    var(--season-hero-art) right clamp(16px, 4vw, 64px) top clamp(18px, 3vw, 46px) / clamp(150px, 18vw, 230px) auto no-repeat,
     radial-gradient(circle at 82% 18%, rgba(242, 122, 37, .16), transparent 18rem),
     linear-gradient(135deg, var(--season-bg-deep), var(--season-bg-dark) 58%, var(--season-purple));
 }
@@ -185,6 +188,22 @@ body.theme-halloween .catalog {
   position: relative;
   isolation: isolate;
   background: var(--season-bg-soft);
+}
+
+/* Real seasonal art stays in section margins, behind content and never receives pointer events. */
+body.theme-halloween .packages {
+  background-image: var(--season-autumn-art), linear-gradient(var(--season-bg-soft), var(--season-bg-soft));
+  background-position: right clamp(18px, 4vw, 60px) bottom 28px, 0 0;
+  background-repeat: no-repeat;
+  background-size: clamp(150px, 18vw, 220px) auto, auto;
+}
+
+body.theme-halloween .catalog-cta,
+body.theme-halloween .request-footer-cta {
+  background-image: var(--season-autumn-art), linear-gradient(var(--season-bg-deep), var(--season-bg-deep));
+  background-position: right clamp(16px, 4vw, 54px) bottom 20px, 0 0;
+  background-repeat: no-repeat;
+  background-size: clamp(150px, 20vw, 250px) auto, auto;
 }
 
 body.theme-halloween .packages::after {
@@ -632,6 +651,23 @@ body.theme-halloween .hero-card::before {
 }
 
 @media (max-width: 768px) {
+  body.theme-halloween .hero {
+    background-image:
+      radial-gradient(circle at 82% 18%, rgba(242, 122, 37, .16), transparent 12rem),
+      linear-gradient(135deg, var(--season-bg-deep), var(--season-bg-dark) 58%, var(--season-purple));
+  }
+
+  body.theme-halloween .packages {
+    background-size: 132px auto, auto;
+    background-position: right 12px bottom 18px, 0 0;
+  }
+
+  body.theme-halloween .catalog-cta,
+  body.theme-halloween .request-footer-cta {
+    background-size: 138px auto, auto;
+    background-position: right 10px bottom 14px, 0 0;
+  }
+
   body.theme-halloween .hero::before,
   body.theme-halloween .catalog-hero::before,
   body.theme-halloween .request-hero::before {
