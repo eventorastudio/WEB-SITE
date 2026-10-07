@@ -6,7 +6,6 @@
   --season-purple-deep: #1d1728;
   --season-lime: #b8cc45;
   --season-glow: rgba(232, 121, 36, .2);
-  --season-package-copy: 'Tematización estacional disponible\A Halloween, Navidad, Día de Muertos y más';
 }
 
 body.theme-halloween {
@@ -104,22 +103,6 @@ body.theme-halloween .design-card .design-action::before {
   margin-right: 2px;
 }
 
-body.theme-halloween .packages-grid::after {
-  content: var(--season-package-copy);
-  white-space: pre-line;
-  display: flex;
-  align-items: flex-end;
-  min-height: 100%;
-  padding: 28px;
-  border: 1px solid rgba(232, 121, 36, .35);
-  border-radius: 28px;
-  background: linear-gradient(145deg, var(--season-purple), var(--season-purple-deep));
-  color: #fff7eb;
-  font: 600 20px/1.15 'Space Grotesk', sans-serif;
-  letter-spacing: -.04em;
-  box-shadow: 0 16px 44px rgba(48, 35, 63, .16);
-}
-
 body.theme-halloween .package-featured,
 body.theme-halloween .button-light {
   background: var(--season-accent);
@@ -139,12 +122,22 @@ body.theme-halloween .final-card {
   background: var(--season-purple-deep);
 }
 
-body.theme-halloween .section-ink::before,
-body.theme-halloween .footer::before {
+body.theme-halloween .section-ink::before {
   content: '✧  ·  ✦';
   display: block;
   width: min(1180px, calc(100% - 40px));
   margin: 0 auto -28px;
+  color: var(--season-accent);
+  font-size: 14px;
+  letter-spacing: 15px;
+  opacity: .7;
+}
+
+body.theme-halloween .footer::before {
+  content: '✧  ·  ✦';
+  display: block;
+  width: min(1180px, calc(100% - 40px));
+  margin: 0 auto 28px;
   color: var(--season-accent);
   font-size: 14px;
   letter-spacing: 15px;
@@ -193,10 +186,6 @@ body.theme-halloween .footer {
     letter-spacing: 6px;
   }
 
-  body.theme-halloween .packages-grid::after {
-    min-height: 150px;
-    font-size: 18px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -58,6 +58,13 @@
 .hosting-scope-note,.domain-note{color:var(--muted);font-size:13px;line-height:1.55;margin:24px 0 0}.domain-note{margin-top:8px;font-weight:600;color:var(--ink)}
 @media(max-width:900px){.hosting-grid{grid-template-columns:1fr 1fr}.hosting-card:last-child{grid-column:1/-1;max-width:calc(50% - 9px)}}
 @media(max-width:700px){.hosting-grid{grid-template-columns:1fr}.hosting-card:last-child{grid-column:auto;max-width:none}.hosting-card{padding:26px}.hosting-card>p{min-height:0}.hosting-note{min-height:0}}
+/* Keep the footer content in a natural, non-overlapping flow. */
+.footer-grid{grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr);align-items:start;min-height:0}
+.footer-grid>div:first-child{min-width:0}
+.footer-grid p{margin-bottom:0}
+.footer-bottom{align-items:center;gap:24px;flex-wrap:wrap}
+.footer-bottom span{display:block;min-width:0}
+@media(max-width:700px){.footer-grid{row-gap:34px}.footer-bottom{align-items:flex-start;gap:12px}}
 /* Final contrast and price formatting */
 .payment-note{background:#142019!important;border:1px solid #536b59;box-shadow:0 16px 44px rgba(18,24,24,.2);opacity:1}
 .payment-note p{color:#e1e9e1}.payment-step{background:#30483a;border:1px solid #78927b}.payment-step strong{color:#ecff91}.payment-step span{color:#e1e9e1}
