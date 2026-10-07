@@ -37,6 +37,8 @@
 .payment-step span{display:block;margin-top:7px;color:#bdc5bd;font-size:12px}
 @media(max-width:900px){.payment-note{grid-template-columns:1fr;gap:22px}}
 @media(max-width:700px){.package-badge{top:18px;right:18px}.package-featured h3{padding-right:88px}.payment-note{padding:25px}.payment-steps{gap:8px}.payment-step{padding:15px}}
+.extras-list{display:block;columns:2;column-gap:40px;column-fill:balance}.extras-list li{break-inside:avoid;margin-bottom:11px}
+@media(max-width:700px){.extras-list{columns:1}.extras-list li{margin-bottom:11px}}
 /* Hosting and maintenance offer */
 .payment-note{background:#1d2922;border:1px solid #3f5144;box-shadow:0 14px 36px rgba(18,24,24,.16)}
 .payment-note h3{color:#fff}.payment-note p{color:#d6ded6}
