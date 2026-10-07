@@ -6,6 +6,14 @@ const authorizedEmail = 'messages@gmail.com';
 const authorizedAdminUid = '5I3NPSeJ09Q6No0SICx1dlpV1Wk1';
 const functionsBaseUrl = 'https://us-central1-eventorastudio-d6d95.cloudfunctions.net';
 const statusLabels = { new: 'Nueva', contacted: 'Contactado', in_progress: 'En proceso', completed: 'Finalizada' };
+const needsLabels = {
+    'services-products': 'Servicios o productos',
+    gallery: 'Galería',
+    'hours-location': 'Horarios y ubicación',
+    'contact-social': 'Contacto y redes sociales',
+    about: 'Nosotros',
+    other: 'Otro'
+};
 const loginView = document.querySelector('#login-view');
 const appView = document.querySelector('#app-view');
 const loginForm = document.querySelector('#login-form');
@@ -102,7 +110,8 @@ function showDetail(id) {
     requestList.querySelectorAll('.request-card').forEach((card) => { card.toggleAttribute('aria-current', card.dataset.requestId === id); });
     const whatsapp = item.whatsapp.replace(/\D/g, '');
     const whatsappUrl = whatsapp ? `https://wa.me/${whatsapp}` : '';
-    requestDetail.innerHTML = `<h2>${escapeHtml(item.businessName || 'Solicitud')}</h2><div class="detail-section"><dl><dt>Contacto</dt><dd>${escapeHtml(item.contactName)}</dd><dt>WhatsApp</dt><dd>${escapeHtml(item.whatsapp)}</dd><dt>Correo</dt><dd>${escapeHtml(item.email || 'No proporcionado')}</dd></dl></div><div class="detail-section"><dl><dt>Giro</dt><dd>${escapeHtml(item.businessType)}</dd><dt>Ciudad/Zona</dt><dd>${escapeHtml(item.city || 'No especificada')}</dd><dt>Paquete</dt><dd>${escapeHtml(item.plan)}</dd><dt>Template</dt><dd>${escapeHtml(item.template)}</dd><dt>Necesidades</dt><dd>${escapeHtml(item.needs.join(', '))}</dd><dt>Comentarios</dt><dd>${escapeHtml(item.notes || 'Sin comentarios')}</dd><dt>Fecha</dt><dd>${escapeHtml(formatDate(item.createdAt))}</dd></dl></div><div class="detail-section"><label for="request-status">Estado</label><select id="request-status"><option value="new">Nueva</option><option value="contacted">Contactado</option><option value="in_progress">En proceso</option><option value="completed">Finalizada</option></select><div class="detail-actions">${whatsappUrl ? `<a class="button button-dark" href="${escapeAttribute(whatsappUrl)}" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a>` : ''}${item.email ? `<a class="button button-light" href="mailto:${escapeAttribute(item.email)}">Enviar correo</a>` : ''}<button id="delete-request" class="button danger-button" type="button">Eliminar solicitud</button></div></div>`;
+    const needs = Array.isArray(item.needs) ? item.needs.map((need) => needsLabels[need] || need) : [];
+    requestDetail.innerHTML = `<h2>${escapeHtml(item.businessName || 'Solicitud')}</h2><div class="detail-section"><dl><dt>Contacto</dt><dd>${escapeHtml(item.contactName)}</dd><dt>WhatsApp</dt><dd>${escapeHtml(item.whatsapp)}</dd><dt>Correo</dt><dd>${escapeHtml(item.email || 'No proporcionado')}</dd></dl></div><div class="detail-section"><dl><dt>Giro</dt><dd>${escapeHtml(item.businessType)}</dd><dt>Ciudad/Zona</dt><dd>${escapeHtml(item.city || 'No especificada')}</dd><dt>Paquete</dt><dd>${escapeHtml(item.plan)}</dd><dt>Template</dt><dd>${escapeHtml(item.template)}</dd><dt>Necesidades</dt><dd>${escapeHtml(needs.join(', '))}</dd><dt>Comentarios</dt><dd>${escapeHtml(item.notes || 'Sin comentarios')}</dd><dt>Fecha</dt><dd>${escapeHtml(formatDate(item.createdAt))}</dd></dl></div><div class="detail-section"><label for="request-status">Estado</label><select id="request-status"><option value="new">Nueva</option><option value="contacted">Contactado</option><option value="in_progress">En proceso</option><option value="completed">Finalizada</option></select><div class="detail-actions">${whatsappUrl ? `<a class="button button-dark" href="${escapeAttribute(whatsappUrl)}" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a>` : ''}${item.email ? `<a class="button button-light" href="mailto:${escapeAttribute(item.email)}">Enviar correo</a>` : ''}<button id="delete-request" class="button danger-button" type="button">Eliminar solicitud</button></div></div>`;
     const statusSelect = requestDetail.querySelector('#request-status');
     statusSelect.value = item.status;
     statusSelect.addEventListener('change', () => updateStatus(item.id, statusSelect.value));

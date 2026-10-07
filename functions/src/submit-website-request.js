@@ -14,7 +14,7 @@ const maxLengths = {
 };
 const allowedPlans = new Set(['esencial', 'profesional', 'a-medida', 'no-estoy-seguro']);
 const allowedTemplates = new Set(['template-01', 'template-02', 'template-03', 'no-estoy-seguro', 'algo-diferente']);
-const allowedNeeds = new Set(['Servicios', 'Productos', 'Galería', 'Horarios', 'Ubicación', 'WhatsApp', 'Redes sociales', 'Nosotros', 'Otro']);
+const allowedNeeds = new Set(['services-products', 'gallery', 'hours-location', 'contact-social', 'about', 'other']);
 const allowedOrigins = new Set([
     'https://eventorastudio.com',
     'https://www.eventorastudio.com',
