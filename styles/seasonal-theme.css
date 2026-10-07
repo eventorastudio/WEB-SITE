@@ -692,26 +692,26 @@ body.theme-halloween .hero-card::before {
   body.theme-halloween .hero,
   body.theme-halloween .catalog-hero,
   body.theme-halloween .request-hero {
-    padding-top: 128px;
+    padding-top: 116px;
   }
 
   body.theme-halloween .hero {
     background:
-      var(--season-hero-art) center top 12px / 116px auto no-repeat,
+      var(--season-hero-art) center top 22px / 116px auto no-repeat,
       radial-gradient(circle at 82% 18%, rgba(242, 122, 37, .16), transparent 12rem),
       linear-gradient(135deg, var(--season-bg-deep), var(--season-bg-dark) 58%, var(--season-purple));
   }
 
   body.theme-halloween .catalog-hero {
     background:
-      var(--season-hero-art) left 16px top 14px / 106px auto no-repeat,
+      var(--season-hero-art) left 18px top 24px / 106px auto no-repeat,
       radial-gradient(circle at 82% 18%, rgba(242, 122, 37, .16), transparent 12rem),
       linear-gradient(135deg, var(--season-bg-deep), var(--season-bg-dark) 58%, var(--season-purple));
   }
 
   body.theme-halloween .request-hero {
     background:
-      var(--season-hero-art) right 18px top 14px / 106px auto no-repeat,
+      var(--season-hero-art) right 20px top 24px / 106px auto no-repeat,
       radial-gradient(circle at 82% 18%, rgba(242, 122, 37, .16), transparent 12rem),
       linear-gradient(135deg, var(--season-bg-deep), var(--season-bg-dark) 58%, var(--season-purple));
   }
@@ -816,22 +816,22 @@ body.theme-halloween .hero-card::before {
   body.theme-halloween .hero,
   body.theme-halloween .catalog-hero,
   body.theme-halloween .request-hero {
-    padding-top: 116px;
+    padding-top: 104px;
   }
 
   body.theme-halloween .hero {
     background-size: 98px auto, auto, auto;
-    background-position: center top 8px, 0 0, 0 0;
+    background-position: center top 18px, 0 0, 0 0;
   }
 
   body.theme-halloween .catalog-hero {
     background-size: 90px auto, auto, auto;
-    background-position: left 12px top 8px, 0 0, 0 0;
+    background-position: left 14px top 18px, 0 0, 0 0;
   }
 
   body.theme-halloween .request-hero {
     background-size: 90px auto, auto, auto;
-    background-position: right 12px top 8px, 0 0, 0 0;
+    background-position: right 14px top 18px, 0 0, 0 0;
   }
 
   body.theme-halloween .catalog-cta {
