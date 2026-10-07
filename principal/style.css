@@ -22,3 +22,18 @@
 .package-scope-note{margin:24px 0 0;color:#7d8178;font-size:12px;line-height:1.5}
 @media(max-width:900px){.extras-panel{grid-template-columns:1fr;gap:20px}}
 @media(max-width:700px){.package-card{padding:26px}.package-card p{min-height:0}.extras-panel{padding:25px}.extras-list{grid-template-columns:1fr}}
+/* Pricing and payment details */
+.package-card{position:relative}
+.package-price{margin:0 0 14px;font:600 clamp(26px,3vw,34px)/1 'Space Grotesk',sans-serif;letter-spacing:-.05em}
+.package-price small{font:600 12px 'DM Sans',sans-serif;letter-spacing:.08em;color:var(--muted)}
+.package-badge{position:absolute;top:22px;right:24px;padding:6px 10px;border:1px solid var(--ink);border-radius:999px;color:var(--ink);font-size:10px;font-weight:700;letter-spacing:.04em}
+.package-featured h3{padding-right:105px}
+.payment-note{display:grid;grid-template-columns:1.2fr .8fr;gap:36px;align-items:center;margin-top:18px;padding:30px;border:1px solid var(--line);border-radius:var(--radius);background:var(--dark);color:#fff}
+.payment-note h3{margin:0 0 8px;font:600 25px 'Space Grotesk',sans-serif;letter-spacing:-.04em}
+.payment-note p{max-width:540px;margin:0;color:#bdc5bd;font-size:14px;line-height:1.6}
+.payment-steps{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.payment-step{padding:18px;border:1px solid #4d594e;border-radius:16px}
+.payment-step strong{display:block;color:var(--lime);font:600 31px/1 'Space Grotesk',sans-serif}
+.payment-step span{display:block;margin-top:7px;color:#bdc5bd;font-size:12px}
+@media(max-width:900px){.payment-note{grid-template-columns:1fr;gap:22px}}
+@media(max-width:700px){.package-badge{top:18px;right:18px}.package-featured h3{padding-right:88px}.payment-note{padding:25px}.payment-steps{gap:8px}.payment-step{padding:15px}}

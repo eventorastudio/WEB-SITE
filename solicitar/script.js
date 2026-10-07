@@ -6,12 +6,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const templateParam = new URLSearchParams(window.location.search).get("template");
   const planParam = new URLSearchParams(window.location.search).get("plan");
   const validTemplates = ["template-01", "template-02", "template-03", "no-estoy-seguro", "algo-diferente"];
-  const planLabels = { esencial: "Esencial", profesional: "Profesional", "a-medida": "A medida" };
+  const validPlans = ["esencial", "profesional", "a-medida", "no-estoy-seguro"];
+  const planLabels = { esencial: "Esencial", profesional: "Profesional", "a-medida": "A medida", "no-estoy-seguro": "No estoy seguro" };
   const eventoraWhatsapp = "525638830691";
   const eventoraEmail = "ev3ntorastudio@gmail.com";
 
   if (validTemplates.includes(templateParam)) {
     const selected = form.querySelector(`input[name="template"][value="${templateParam}"]`);
+    if (selected) selected.checked = true;
+  }
+
+  if (validPlans.includes(planParam)) {
+    const selected = form.querySelector(`input[name="plan"][value="${planParam}"]`);
     if (selected) selected.checked = true;
   }
 
@@ -41,6 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const business = String(data.get("businessName") || "").trim();
     const businessType = String(data.get("businessType") || "").trim();
     const city = String(data.get("city") || "").trim();
+    const plan = String(data.get("plan") || "");
     const template = String(data.get("template") || "");
     const needs = data.getAll("needs");
     const comments = String(data.get("notes") || "").trim();
@@ -51,6 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError("contact-email", "Revisa el formato del correo."); valid = false; }
     if (!business) { setError("business-name", "Escribe el nombre de tu negocio."); valid = false; }
     if (!businessType) { setError("business-type", "Cuéntanos qué tipo de negocio tienes."); valid = false; }
+    if (!plan) { setError("plan", "Elige un paquete para continuar."); valid = false; }
     if (!template) { setError("template", "Elige una dirección visual para continuar."); valid = false; }
     if (!needs.length) { setError("needs", "Selecciona al menos una necesidad."); valid = false; }
 
@@ -81,7 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
       `Ciudad: ${city || "No especificada"}`,
       "",
       "PAQUETE",
-      planLabels[planParam] || "Por definir",
+      planLabels[plan] || plan,
       "",
       "DISEÑO",
       templateLabels[template] || template,
