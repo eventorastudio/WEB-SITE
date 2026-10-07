@@ -1,0 +1,206 @@
+/* Reusable seasonal layer: page structure and behavior stay in each page stylesheet. */
+:root {
+  --season-accent: #e87924;
+  --season-accent-strong: #c85616;
+  --season-purple: #30233f;
+  --season-purple-deep: #1d1728;
+  --season-lime: #b8cc45;
+  --season-glow: rgba(232, 121, 36, .2);
+  --season-package-copy: 'Tematización estacional disponible\A Halloween, Navidad, Día de Muertos y más';
+}
+
+body.theme-halloween {
+  --season-surface: #fffaf4;
+  --season-panel: #f5eee8;
+  background: var(--season-surface);
+}
+
+body.theme-halloween .site-header {
+  background: rgba(255, 250, 244, .92);
+  border-bottom-color: rgba(48, 35, 63, .14);
+}
+
+body.theme-halloween .primary-nav a:hover,
+body.theme-halloween .footer a:hover,
+body.theme-halloween .text-link:hover {
+  color: var(--season-accent-strong);
+}
+
+body.theme-halloween .hero,
+body.theme-halloween .catalog-hero,
+body.theme-halloween .request-hero {
+  position: relative;
+  isolation: isolate;
+}
+
+body.theme-halloween .hero::before,
+body.theme-halloween .catalog-hero::before,
+body.theme-halloween .request-hero::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: 42px;
+  right: 5%;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: var(--season-accent);
+  box-shadow: 0 0 0 16px var(--season-glow), 0 0 54px var(--season-glow);
+  opacity: .9;
+}
+
+body.theme-halloween .hero::after,
+body.theme-halloween .catalog-hero::after,
+body.theme-halloween .request-hero::after {
+  content: '✦  ·  ✧';
+  position: absolute;
+  z-index: -1;
+  top: 65px;
+  right: calc(5% + 108px);
+  color: var(--season-purple);
+  font-size: 17px;
+  letter-spacing: 13px;
+  opacity: .7;
+}
+
+body.theme-halloween .hero h1 em,
+body.theme-halloween .section-heading h2 em,
+body.theme-halloween .intro h2 em,
+body.theme-halloween .process-intro h2 em,
+body.theme-halloween .contact h2 em,
+body.theme-halloween .cta-card h2 em,
+body.theme-halloween .request-intro h2 em,
+body.theme-halloween .final-card h2 em {
+  color: var(--season-accent-strong);
+}
+
+body.theme-halloween .hero-visual,
+body.theme-halloween .hero-preview {
+  box-shadow: 0 20px 60px var(--season-glow);
+}
+
+body.theme-halloween .design-card,
+body.theme-halloween .template-card,
+body.theme-halloween .package-card,
+body.theme-halloween .hosting-card,
+body.theme-halloween .extras-panel {
+  border-color: rgba(48, 35, 63, .16);
+}
+
+body.theme-halloween .template-card::after {
+  content: '✦';
+  position: absolute;
+  right: 22px;
+  top: 18px;
+  color: #ffd19b;
+  font-size: 18px;
+  opacity: .8;
+}
+
+body.theme-halloween .design-card .design-action::before {
+  content: '✦';
+  color: #ffd19b;
+  font-size: 15px;
+  margin-right: 2px;
+}
+
+body.theme-halloween .packages-grid::after {
+  content: var(--season-package-copy);
+  white-space: pre-line;
+  display: flex;
+  align-items: flex-end;
+  min-height: 100%;
+  padding: 28px;
+  border: 1px solid rgba(232, 121, 36, .35);
+  border-radius: 28px;
+  background: linear-gradient(145deg, var(--season-purple), var(--season-purple-deep));
+  color: #fff7eb;
+  font: 600 20px/1.15 'Space Grotesk', sans-serif;
+  letter-spacing: -.04em;
+  box-shadow: 0 16px 44px rgba(48, 35, 63, .16);
+}
+
+body.theme-halloween .package-featured,
+body.theme-halloween .button-light {
+  background: var(--season-accent);
+  border-color: var(--season-accent);
+}
+
+body.theme-halloween .package-featured > span,
+body.theme-halloween .package-card li::before,
+body.theme-halloween .hosting-card li::before {
+  color: var(--season-accent-strong);
+}
+
+body.theme-halloween .section-ink,
+body.theme-halloween .contact-card,
+body.theme-halloween .cta-card,
+body.theme-halloween .final-card {
+  background: var(--season-purple-deep);
+}
+
+body.theme-halloween .section-ink::before,
+body.theme-halloween .footer::before {
+  content: '✧  ·  ✦';
+  display: block;
+  width: min(1180px, calc(100% - 40px));
+  margin: 0 auto -28px;
+  color: var(--season-accent);
+  font-size: 14px;
+  letter-spacing: 15px;
+  opacity: .7;
+}
+
+body.theme-halloween .request-section {
+  background: var(--season-panel);
+}
+
+body.theme-halloween .request-section .style-option:has(input:checked),
+body.theme-halloween .request-section .check-option:has(input:checked) {
+  border-color: var(--season-accent);
+  background: #fff9f1;
+}
+
+body.theme-halloween .request-section .submit-button {
+  background: var(--season-purple);
+}
+
+body.theme-halloween .request-section .submit-button:hover {
+  background: var(--season-purple-deep);
+}
+
+body.theme-halloween .footer {
+  background: var(--season-surface);
+}
+
+@media (max-width: 700px) {
+  body.theme-halloween .hero::before,
+  body.theme-halloween .catalog-hero::before,
+  body.theme-halloween .request-hero::before {
+    top: 26px;
+    right: 10%;
+    width: 54px;
+    height: 54px;
+    box-shadow: 0 0 0 9px var(--season-glow), 0 0 30px var(--season-glow);
+  }
+
+  body.theme-halloween .hero::after,
+  body.theme-halloween .catalog-hero::after,
+  body.theme-halloween .request-hero::after {
+    top: 40px;
+    right: calc(10% + 68px);
+    font-size: 12px;
+    letter-spacing: 6px;
+  }
+
+  body.theme-halloween .packages-grid::after {
+    min-height: 150px;
+    font-size: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.theme-halloween .hero::before,
+  body.theme-halloween .catalog-hero::before,
+  body.theme-halloween .request-hero::before { box-shadow: 0 0 0 9px var(--season-glow); }
+}
