@@ -365,6 +365,13 @@ body.theme-halloween .hosting-card-featured .hosting-note {
   color: var(--season-muted-light);
 }
 
+body.theme-halloween .package-card:nth-child(2) .package-price,
+body.theme-halloween .package-card:nth-child(2) .package-price small,
+body.theme-halloween .hosting-card-featured .hosting-price strong,
+body.theme-halloween .hosting-card-featured .hosting-price small {
+  color: var(--season-text-light);
+}
+
 body.theme-halloween .package-card li::before,
 body.theme-halloween .hosting-card li::before,
 body.theme-halloween .extras-list li::before {
