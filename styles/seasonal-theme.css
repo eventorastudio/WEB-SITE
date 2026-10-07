@@ -689,26 +689,28 @@ body.theme-halloween .hero-card::before {
 }
 
 @media (max-width: 768px) {
-  body.theme-halloween .hero {
-    background-image:
+  body.theme-halloween .hero,
+  body.theme-halloween .catalog-hero,
+  body.theme-halloween .request-hero {
+    padding-top: 128px;
+    background:
+      var(--season-hero-art) right 12px top 10px / 112px auto no-repeat,
       radial-gradient(circle at 82% 18%, rgba(242, 122, 37, .16), transparent 12rem),
       linear-gradient(135deg, var(--season-bg-deep), var(--season-bg-dark) 58%, var(--season-purple));
   }
 
   body.theme-halloween .catalog-cta,
   body.theme-halloween .request-footer-cta {
+    background-image: var(--season-autumn-art), linear-gradient(var(--season-bg-dark), var(--season-bg-dark));
     background-size: 138px auto, auto;
     background-position: right 10px bottom 14px, 0 0;
+    background-repeat: no-repeat;
   }
 
   body.theme-halloween .hero::before,
   body.theme-halloween .catalog-hero::before,
   body.theme-halloween .request-hero::before {
-    top: 48px;
-    right: 9%;
-    width: 56px;
-    height: 56px;
-    box-shadow: 0 0 0 9px var(--season-glow), 0 0 34px var(--season-glow);
+    content: none;
   }
 
   body.theme-halloween .hero::after,
@@ -723,10 +725,35 @@ body.theme-halloween .hero-card::before {
   body.theme-halloween .benefits,
   body.theme-halloween .section-ink,
   body.theme-halloween .designs,
-  body.theme-halloween .contact,
-  body.theme-halloween .catalog-cta,
-  body.theme-halloween .request-footer-cta {
+  body.theme-halloween .contact {
     background: var(--season-bg-dark);
+  }
+
+  body.theme-halloween .hosting {
+    position: relative;
+    isolation: isolate;
+  }
+
+  body.theme-halloween .hosting::after {
+    content: '';
+    position: absolute;
+    z-index: 0;
+    top: 18px;
+    right: 10px;
+    width: 112px;
+    height: 82px;
+    background: var(--season-autumn-art) center / contain no-repeat;
+    opacity: .78;
+    pointer-events: none;
+  }
+
+  body.theme-halloween .hosting > .shell {
+    position: relative;
+    z-index: 1;
+  }
+
+  body.theme-halloween .hosting .section-heading {
+    padding-right: 112px;
   }
 
   body.theme-halloween .benefits::after,
@@ -755,6 +782,26 @@ body.theme-halloween .hero-card::before {
   body.theme-halloween .footer::before {
     width: calc(100% - 28px);
     margin-bottom: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  body.theme-halloween .hero,
+  body.theme-halloween .catalog-hero,
+  body.theme-halloween .request-hero {
+    padding-top: 116px;
+    background-size: 96px auto, auto, auto;
+    background-position: right 10px top 8px, 0 0, 0 0;
+  }
+
+  body.theme-halloween .hosting::after {
+    width: 96px;
+    height: 70px;
+    right: 6px;
+  }
+
+  body.theme-halloween .hosting .section-heading {
+    padding-right: 92px;
   }
 }
 
