@@ -1,4 +1,5 @@
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
+import { logger } from 'firebase-functions';
 import { onRequest } from 'firebase-functions/v2/https';
 const region = 'us-central1';
 const maxBodyLength = 20000;
@@ -108,7 +109,13 @@ export const submitWebsiteRequest = onRequest({
             notes: data.notes
         });
         res.status(200).json({ ok: true, id: reference.id });
-    } catch {
+    } catch (error) {
+        logger.error('Website request Firestore write failed.', {
+            code: 'website-request/firestore-write-failed',
+            errorName: String(error?.name || 'UnknownError'),
+            errorCode: String(error?.code || 'unknown'),
+            errorMessage: String(error?.message || 'Unknown Firestore write error')
+        });
         res.status(500).json({ ok: false, message: 'No pudimos guardar tu solicitud. Inténtalo nuevamente en unos momentos.' });
     }
 });
