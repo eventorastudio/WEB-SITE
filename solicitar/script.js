@@ -7,6 +7,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const planParam = new URLSearchParams(window.location.search).get("plan");
   const validTemplates = ["template-01", "template-02", "template-03", "no-estoy-seguro", "algo-diferente"];
   const validPlans = ["esencial", "profesional", "a-medida", "no-estoy-seguro"];
+  const eventoraWhatsapp = "525638830691";
+  const planLabels = { esencial: "Esencial", profesional: "Profesional", "a-medida": "A medida", "no-estoy-seguro": "No estoy seguro" };
+  const templateLabels = {
+    "template-01": "Template 01",
+    "template-02": "Template 02",
+    "template-03": "Template 03",
+    "no-estoy-seguro": "No estoy seguro",
+    "algo-diferente": "Quiero algo diferente"
+  };
   const submitButton = form.querySelector(".submit-button");
 
   if (validTemplates.includes(templateParam)) {
@@ -35,17 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
     formStatus.removeAttribute("data-state");
   };
 
-  const setSubmitting = (isSubmitting) => {
-    submitButton.disabled = isSubmitting;
-    submitButton.innerHTML = isSubmitting ? "ENVIANDO..." : 'ENVIAR <i data-lucide="arrow-up-right"></i>';
-    if (!isSubmitting && window.lucide?.createIcons) window.lucide.createIcons();
-  };
-
-  const endpoint = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-    ? "http://127.0.0.1:5001/eventorastudio-d6d95/us-central1/submitWebsiteRequest"
-    : "https://us-central1-eventorastudio-d6d95.cloudfunctions.net/submitWebsiteRequest";
-
-  form.addEventListener("submit", async (event) => {
+  form.addEventListener("submit", (event) => {
     event.preventDefault();
     clearErrors();
 
@@ -77,38 +76,36 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const payload = {
-      contactName: name,
-      whatsapp,
-      email,
-      businessName: business,
-      businessType,
-      city,
-      plan,
-      template,
-      needs,
-      notes: comments,
-      website: String(data.get("website") || "")
-    };
+    const message = [
+      "Hola, quiero solicitar una página con Eventora Studio.",
+      "",
+      "DATOS DE CONTACTO",
+      `Nombre: ${name}`,
+      `WhatsApp: ${whatsapp}`,
+      `Correo: ${email || "No proporcionado"}`,
+      "",
+      "NEGOCIO",
+      `Nombre del negocio: ${business}`,
+      `Giro: ${businessType}`,
+      `Ciudad/Zona: ${city || "No especificada"}`,
+      "",
+      "PAQUETE",
+      planLabels[plan] || plan,
+      "",
+      "DISEÑO",
+      templateLabels[template] || template,
+      "",
+      "NECESITO",
+      ...needs.map((need) => `- ${need}`),
+      "",
+      "COMENTARIOS",
+      comments || "Sin comentario adicional."
+    ].join("\n");
 
-    setSubmitting(true);
-    try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok || !result.ok) throw new Error("request-failed");
-
-      formStatus.dataset.state = "success";
-      formStatus.textContent = "Solicitud enviada correctamente. Revisaremos tu información y nos pondremos en contacto contigo.";
-      form.querySelectorAll("input, textarea").forEach((field) => { field.disabled = true; });
-    } catch (error) {
-      console.error("No se pudo enviar la solicitud.", error);
-      formStatus.dataset.state = "error";
-      formStatus.textContent = "No pudimos enviar tu solicitud. Inténtalo nuevamente en unos momentos.";
-      setSubmitting(false);
-    }
+    submitButton.disabled = true;
+    submitButton.textContent = "ABRIENDO WHATSAPP...";
+    formStatus.dataset.state = "redirecting";
+    formStatus.textContent = "Te llevaremos a WhatsApp para completar el envío.";
+    window.location.href = `https://wa.me/${eventoraWhatsapp}?text=${encodeURIComponent(message)}`;
   });
 });
