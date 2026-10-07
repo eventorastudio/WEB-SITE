@@ -10,4 +10,4 @@ fieldset > textarea{display:block;width:100%;min-height:190px;margin:0;border:1p
 .brand-logo{display:block;width:210px;height:56px;object-fit:contain}
 .footer-brand .brand-logo{width:220px;height:60px}
 @media(max-width:768px){.brand-logo{width:145px;height:36px}.footer-brand .brand-logo{width:175px;height:44px}}
-.form-status[data-state="redirecting"]{color:#7b827a}
+.form-status[data-state="success"]{color:#55751f}.form-status[data-state="sending"]{color:#7b827a}.form-honeypot{position:absolute;left:-10000px;width:1px;height:1px;opacity:0;pointer-events:none}
