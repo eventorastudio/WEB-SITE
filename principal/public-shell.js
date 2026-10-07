@@ -4,6 +4,19 @@
         globalThis.lucide.createIcons();
     };
 
+    const initializePublicFooter = async () => {
+        const mount = document.querySelector("[data-public-footer]");
+        if (!mount) return;
+
+        try {
+            const response = await fetch("/shared/public-footer.html", { cache: "no-cache" });
+            if (!response.ok) throw new Error(`Footer request failed: ${response.status}`);
+            mount.innerHTML = await response.text();
+        } catch (error) {
+            console.error("No se pudo cargar el footer público compartido.", error);
+        }
+    };
+
     const initializePublicHeader = () => {
         const header = document.querySelector("header");
         const toggle = document.querySelector(".menu-toggle");
@@ -63,7 +76,8 @@
         }
     };
 
-    const initializePublicShell = () => {
+    const initializePublicShell = async () => {
+        await initializePublicFooter();
         initializeLucideIcons();
         initializePublicHeader();
     };

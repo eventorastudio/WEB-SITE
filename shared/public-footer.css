@@ -1,0 +1,104 @@
+/* Canonical footer for the public commercial pages. */
+.footer {
+  background: var(--paper);
+  padding: 72px 0 28px;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 70px;
+  padding-bottom: 58px;
+  align-items: start;
+  min-height: 0;
+}
+
+.footer-grid > div:first-child {
+  min-width: 0;
+}
+
+.footer-brand {
+  display: inline-flex;
+}
+
+.footer-grid p {
+  max-width: 310px;
+  color: var(--muted);
+  margin: 22px 0 0;
+}
+
+.footer-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.footer-column strong {
+  font: 600 14px 'Space Grotesk', sans-serif;
+  margin-bottom: 8px;
+}
+
+.footer-column a {
+  color: var(--muted);
+}
+
+.footer-bottom {
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  color: #8b8e86;
+  font-size: 12px;
+}
+
+.footer-bottom span {
+  display: block;
+  min-width: 0;
+}
+
+.footer-bottom a {
+  color: inherit;
+}
+
+body.theme-halloween .footer {
+  background: #e5e5e1;
+  color: #29242e;
+}
+
+body.theme-halloween .footer-grid p,
+body.theme-halloween .footer-column a,
+body.theme-halloween .footer-bottom {
+  color: #66646a;
+}
+
+@media (max-width: 900px) {
+  .footer-grid {
+    gap: 35px;
+  }
+}
+
+@media (max-width: 700px) {
+  .footer {
+    padding-top: 54px;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 38px;
+    row-gap: 34px;
+  }
+
+  .footer-grid > div:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .footer-bottom {
+    align-items: flex-start;
+    gap: 12px;
+    flex-direction: column;
+  }
+}
