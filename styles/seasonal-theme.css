@@ -51,17 +51,7 @@ body.theme-halloween .request-hero {
 body.theme-halloween .hero::before,
 body.theme-halloween .catalog-hero::before,
 body.theme-halloween .request-hero::before {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  top: 70px;
-  right: 7%;
-  width: 92px;
-  height: 92px;
-  border-radius: 50%;
-  background: var(--season-orange);
-  box-shadow: 0 0 0 14px var(--season-glow), 0 0 70px var(--season-glow);
-  opacity: .95;
+  content: none;
 }
 
 body.theme-halloween .hero::after,
@@ -106,39 +96,11 @@ body.theme-halloween .hero-preview {
   box-shadow: 0 24px 80px var(--season-glow);
 }
 
-/* CSS witch hat silhouette and magical sparks: decorative, never interactive. */
+/* Keep every main preview free of decorative overlays. */
 body.theme-halloween .hero-visual::before,
-body.theme-halloween .hero-preview::before {
-  content: '';
-  position: absolute;
-  z-index: 4;
-  top: 18px;
-  right: 28px;
-  width: 76px;
-  height: 62px;
-  background: linear-gradient(155deg, transparent 0 31%, var(--season-bg-deep) 32% 74%, transparent 75%), var(--season-orange);
-  clip-path: polygon(49% 0, 70% 63%, 100% 73%, 100% 88%, 0 88%, 0 73%, 32% 63%);
-  opacity: .9;
-  transform: rotate(9deg);
-}
-
+body.theme-halloween .hero-preview::before,
 body.theme-halloween .hero-visual::after,
 body.theme-halloween .hero-preview::after {
-  content: '';
-  position: absolute;
-  right: 30px;
-  bottom: 25px;
-  z-index: 4;
-  width: 30px;
-  height: 38px;
-  border-radius: 50% 50% 40% 40%;
-  background: radial-gradient(circle at 35% 40%, var(--season-bg-deep) 0 2px, transparent 3px), radial-gradient(circle at 68% 40%, var(--season-bg-deep) 0 2px, transparent 3px), #fff7eb;
-  box-shadow: 0 5px 0 -1px #fff7eb, 8px 4px 0 -4px #fff7eb, -8px 4px 0 -4px #fff7eb;
-  opacity: .8;
-}
-
-/* Keep the homepage mockup navigation unobstructed. */
-body.theme-halloween .hero-visual::before {
   content: none;
 }
 
@@ -192,10 +154,11 @@ body.theme-halloween .catalog {
 
 /* Real seasonal art stays in section margins, behind content and never receives pointer events. */
 body.theme-halloween .packages {
-  background-image: var(--season-autumn-art), linear-gradient(var(--season-bg-soft), var(--season-bg-soft));
-  background-position: right clamp(18px, 4vw, 60px) bottom 28px, 0 0;
-  background-repeat: no-repeat;
-  background-size: clamp(150px, 18vw, 220px) auto, auto;
+  background-image: linear-gradient(var(--season-bg-soft), var(--season-bg-soft));
+}
+
+body.theme-halloween .hosting {
+  background-image: linear-gradient(var(--season-bg), var(--season-bg));
 }
 
 body.theme-halloween .catalog-cta,
@@ -207,17 +170,7 @@ body.theme-halloween .request-footer-cta {
 }
 
 body.theme-halloween .packages::after {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  right: 5%;
-  bottom: 54px;
-  width: 44px;
-  height: 34px;
-  border-radius: 46% 46% 42% 42%;
-  background: repeating-linear-gradient(90deg, #df5d1c 0 7px, var(--season-orange) 7px 13px);
-  box-shadow: 0 -8px 0 -6px #4c6b37;
-  opacity: .55;
+  content: none;
 }
 
 body.theme-halloween .catalog::after {
@@ -443,7 +396,7 @@ body.theme-halloween .payment-step strong {
 }
 
 body.theme-halloween .hosting {
-  background: var(--season-bg);
+  background-color: var(--season-bg);
 }
 
 body.theme-halloween .extras {
@@ -645,6 +598,91 @@ body.theme-halloween .hero-card::before {
   background: #ffd19b;
 }
 
+/* Desktop composition: reserve the upper-right margin for seasonal art and keep previews clear. */
+@media (min-width: 901px) {
+  body.theme-halloween .hero {
+    padding-top: 104px;
+    background:
+      var(--season-hero-art) right 4% top 22px / 190px auto no-repeat,
+      radial-gradient(circle at 82% 18%, rgba(242, 122, 37, .16), transparent 18rem),
+      linear-gradient(135deg, var(--season-bg-deep), var(--season-bg-dark) 58%, var(--season-purple));
+  }
+
+  body.theme-halloween .hero .hero-grid {
+    grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+    gap: 56px;
+  }
+
+  body.theme-halloween .hero-visual {
+    width: calc(100% - 12px);
+    margin: 28px 0 0 auto;
+    transform: rotate(.6deg) scale(.96);
+    transform-origin: center top;
+  }
+
+  body.theme-halloween .catalog-hero {
+    padding-top: 98px;
+    background:
+      var(--season-hero-art) right 3% top 18px / 176px auto no-repeat,
+      radial-gradient(circle at 82% 18%, rgba(242, 122, 37, .16), transparent 18rem),
+      linear-gradient(135deg, var(--season-bg-deep), var(--season-bg-dark) 58%, var(--season-purple));
+  }
+
+  body.theme-halloween .catalog-hero .hero-grid {
+    grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr);
+    gap: 54px;
+  }
+
+  body.theme-halloween .catalog-hero .hero-preview {
+    width: calc(100% - 14px);
+    margin: 34px 0 0 auto;
+    transform: rotate(.6deg) scale(.94);
+    transform-origin: center top;
+  }
+
+  body.theme-halloween .request-hero {
+    padding-top: 124px;
+    background:
+      var(--season-hero-art) right 3% top 18px / 176px auto no-repeat,
+      radial-gradient(circle at 82% 18%, rgba(242, 122, 37, .16), transparent 18rem),
+      linear-gradient(135deg, var(--season-bg-deep), var(--season-bg-dark) 58%, var(--season-purple));
+  }
+
+  body.theme-halloween .request-hero .hero-grid {
+    grid-template-columns: minmax(0, 1.08fr) minmax(340px, .62fr);
+    gap: 76px;
+  }
+
+  body.theme-halloween .request-hero .hero-card {
+    width: calc(100% - 10px);
+    min-height: 338px;
+    margin: 26px 0 0 auto;
+  }
+
+  body.theme-halloween .hosting {
+    position: relative;
+    isolation: isolate;
+  }
+
+  body.theme-halloween .hosting::after {
+    content: '';
+    position: absolute;
+    z-index: 0;
+    top: 28px;
+    right: 4%;
+    width: 205px;
+    height: 150px;
+    background: var(--season-autumn-art) center / contain no-repeat;
+    opacity: .9;
+    pointer-events: none;
+  }
+
+  body.theme-halloween .hosting > .shell {
+    position: relative;
+    z-index: 1;
+  }
+}
+
 @keyframes season-drift {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
@@ -655,11 +693,6 @@ body.theme-halloween .hero-card::before {
     background-image:
       radial-gradient(circle at 82% 18%, rgba(242, 122, 37, .16), transparent 12rem),
       linear-gradient(135deg, var(--season-bg-deep), var(--season-bg-dark) 58%, var(--season-purple));
-  }
-
-  body.theme-halloween .packages {
-    background-size: 132px auto, auto;
-    background-position: right 12px bottom 18px, 0 0;
   }
 
   body.theme-halloween .catalog-cta,
@@ -685,14 +718,6 @@ body.theme-halloween .hero-card::before {
     right: calc(9% + 70px);
     font-size: 12px;
     letter-spacing: 4px;
-  }
-
-  body.theme-halloween .hero-visual::before,
-  body.theme-halloween .hero-preview::before {
-    top: 13px;
-    right: 17px;
-    transform: scale(.72) rotate(9deg);
-    transform-origin: top right;
   }
 
   body.theme-halloween .benefits,
