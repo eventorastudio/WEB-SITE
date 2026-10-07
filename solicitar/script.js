@@ -4,7 +4,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const notesCount = document.querySelector("#notes-count");
   const formStatus = document.querySelector("#form-status");
   const templateParam = new URLSearchParams(window.location.search).get("template");
+  const planParam = new URLSearchParams(window.location.search).get("plan");
   const validTemplates = ["template-01", "template-02", "template-03", "no-estoy-seguro", "algo-diferente"];
+  const planLabels = { esencial: "Esencial", profesional: "Profesional", "a-medida": "A medida" };
   const eventoraWhatsapp = "525638830691";
   const eventoraEmail = "ev3ntorastudio@gmail.com";
 
@@ -77,6 +79,9 @@ document.addEventListener("DOMContentLoaded", () => {
       `Nombre: ${business}`,
       `Giro: ${businessType}`,
       `Ciudad: ${city || "No especificada"}`,
+      "",
+      "PAQUETE",
+      planLabels[planParam] || "Por definir",
       "",
       "DISEÑO",
       templateLabels[template] || template,
