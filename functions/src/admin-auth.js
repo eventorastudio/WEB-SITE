@@ -1,6 +1,9 @@
 import { getAuth } from 'firebase-admin/auth';
 
-export const AUTHORIZED_ADMIN_UID = 'fzERhhRbsAfHcm55drt5lmAxn6J3';
+export const AUTHORIZED_USERS = Object.freeze([
+    Object.freeze({ email: 'messages@gmail.com', uid: 'fzERhhRbsAfHcm55drt5lmAxn6J3' }),
+    Object.freeze({ email: 'ev3ntorastudio@gmail.com', uid: 'aE9nvEOlExYjYxPfAEnoEt3XIdv2' })
+]);
 
 const allowedOrigins = new Set([
     'https://eventorastudio.com',
@@ -39,7 +42,7 @@ export async function requireAuthorizedAdmin(req, res) {
 
     try {
         const decodedToken = await getAuth().verifyIdToken(match[1]);
-        if (decodedToken.uid !== AUTHORIZED_ADMIN_UID) {
+        if (!isAuthorizedAdmin(decodedToken)) {
             res.status(403).json({ ok: false, message: 'Usuario no autorizado.' });
             return null;
         }
@@ -48,4 +51,10 @@ export async function requireAuthorizedAdmin(req, res) {
         res.status(401).json({ ok: false, message: 'Sesión inválida o expirada.' });
         return null;
     }
+}
+
+export function isAuthorizedAdmin(decodedToken) {
+    const email = String(decodedToken?.email || '').trim().toLowerCase();
+    const uid = String(decodedToken?.uid || '').trim();
+    return AUTHORIZED_USERS.some((user) => user.uid === uid && user.email === email);
 }

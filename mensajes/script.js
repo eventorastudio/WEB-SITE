@@ -2,8 +2,10 @@ import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https:/
 import { auth } from './firebase.js';
 import { buildWhatsAppUrl, normalizeWhatsAppNumber } from '../shared/utils/whatsapp.js';
 
-const authorizedEmail = 'messages@gmail.com';
-const authorizedAdminUid = 'fzERhhRbsAfHcm55drt5lmAxn6J3';
+const authorizedUsers = [
+    { email: 'messages@gmail.com', uid: 'fzERhhRbsAfHcm55drt5lmAxn6J3' },
+    { email: 'ev3ntorastudio@gmail.com', uid: 'aE9nvEOlExYjYxPfAEnoEt3XIdv2' }
+];
 const functionsBaseUrl = 'https://us-central1-eventorastudio-d6d95.cloudfunctions.net';
 const statusLabels = { new: 'Nueva', contacted: 'Contactado', in_progress: 'En proceso', completed: 'Finalizada' };
 const statusKeys = Object.keys(statusLabels);
@@ -56,7 +58,9 @@ document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && 
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     if (!user) { showLogin(); return; }
-    if (user.uid !== authorizedAdminUid || user.email?.toLowerCase() !== authorizedEmail) {
+    const normalizedEmail = user.email?.trim().toLowerCase();
+    const isAuthorized = authorizedUsers.some((authorizedUser) => authorizedUser.uid === user.uid && authorizedUser.email === normalizedEmail);
+    if (!isAuthorized) {
         await signOut(auth);
         loginStatus.textContent = 'Acceso no autorizado.';
         return;
