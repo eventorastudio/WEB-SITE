@@ -34,10 +34,24 @@ test('Functions de proyectos exigen el UID y correo exclusivos del propietario',
   assert.match(auth, /aE9nvEOlExYjYxPfAEnoEt3XIdv2/);
   assert.match(auth, /status\(401\)/);
   assert.match(auth, /status\(403\)/);
-  for (const name of ['getProjects', 'getProject', 'createProject', 'updateProject', 'deleteProject', 'getProjectUpdates', 'addProjectUpdate']) assert.match(functions, new RegExp(`export const ${name}`));
+  for (const name of ['getProjects', 'getProject', 'createProject', 'updateProject', 'deleteProject', 'getProjectUpdates', 'addProjectUpdate', 'registerMaintenanceActivity']) assert.match(functions, new RegExp(`export const ${name}`));
   assert.match(functions, /collectionName = 'projects'/);
   assert.match(functions, /collection\('updates'\)/);
+  assert.match(functions, /MAINTENANCE_LIMIT_REACHED/);
+  assert.match(functions, /runTransaction/);
   assert.match(read('functions/index.js'), /getProjects/);
+});
+
+test('mantenimiento documenta revisiones, límites y exclusiones', () => {
+  const terms = read('legal/terminos/index.html');
+  const policies = read('legal/politicas/index.html');
+  const docs = read('docs/hosting-maintenance-policy.md');
+  for (const content of [terms, policies, docs]) {
+    assert.match(content, /revisi[oó]n preventiva/i);
+    assert.match(content, /revisi[oó]n (general|trimestral)/i);
+    assert.match(content, /2 solicitudes/i);
+    assert.match(content, /no son acumulables/i);
+  }
 });
 
 test('reporter valida ADC, proyecto, fase, dry-run y coincidencia de negocio', () => {
