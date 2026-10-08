@@ -68,3 +68,4 @@
 .hosting-price small{flex-basis:auto;color:#6e756d;font-size:12px;line-height:1.3}
 
 .designs-bridge{display:flex;align-items:end;justify-content:space-between;gap:48px}.designs-bridge .section-heading{margin:0}.designs-bridge .section-note{max-width:520px;color:var(--muted);margin:24px 0 0}@media(max-width:700px){.designs-bridge{align-items:flex-start;flex-direction:column;gap:28px}.designs-bridge .section-heading{margin:0}.designs-bridge .section-note{font-size:16px;margin-top:18px}.designs-bridge .button{width:100%}}
+body.menu-open{overflow:visible}

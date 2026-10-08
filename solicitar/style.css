@@ -14,3 +14,4 @@ fieldset > textarea{display:block;width:100%;min-height:190px;margin:0;border:1p
 .form-status[data-state="success"]{color:#55751f}.form-status[data-state="sending"]{color:#7b827a}.form-honeypot{position:absolute;left:-10000px;width:1px;height:1px;opacity:0;pointer-events:none}
 
 .form-intent-note{max-width:620px;margin:0 0 12px;color:#7b827a;font-size:12px;line-height:1.5}
+body.menu-open{overflow:visible}
