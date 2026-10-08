@@ -5,3 +5,4 @@
 .menu-open .car-nav .business-menu-toggle{position:fixed;top:14px;right:14px;z-index:2}
 .car-nav~main [id]{scroll-margin-top:84px}.technical-grid .demo-button,.contact-card .demo-button{margin-top:20px}
 .review-stack{display:grid;gap:clamp(24px,3vw,40px);align-content:start}.review-stack .contact-card{grid-column:auto}.review-card p{color:#f5f8fb}.review-card cite{color:#c3cdd5}
+.review-quotes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(16px,2vw,24px)}.review-quotes .review-card{height:100%}.review-stack .contact-card{grid-column:1/-1}@media(max-width:768px){.review-quotes{grid-template-columns:1fr}}
