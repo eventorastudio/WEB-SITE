@@ -36,3 +36,20 @@ test('template demos do not execute external business actions', () => {
     assert.doesNotMatch(read(`disenos/${template}/script.js`), forbidden, template);
   }
 });
+
+test('design showcase and templates expose commercial metadata and internal routes', () => {
+  const catalog = read('disenos/index.html');
+  assert.match(catalog, /<link rel="canonical" href="https:\/\/eventorastudio\.com\/disenos\/">/);
+  assert.match(catalog, /property="og:title"/);
+  assert.match(catalog, /href="\/solicitar\/"/);
+  for (const template of ['template-01', 'template-02', 'template-03']) {
+    const html = read(`disenos/${template}/index.html`);
+    assert.match(html, new RegExp(`https://eventorastudio\\.com/disenos/${template}/`));
+    assert.match(html, /property="og:image"/);
+    const footer = html.match(/<footer[\s\S]*?<\/footer>/)?.[0] || '';
+    const footerText = footer.replace(/<[^>]+>/g, ' ');
+    assert.doesNotMatch(footerText, /de prueba|demostraci[oó]n|demo|fictici/i);
+    assert.match(html, new RegExp(`/solicitar/\\?template=${template}`));
+    assert.match(html, /href="\/disenos\/"/);
+  }
+});
