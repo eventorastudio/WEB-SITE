@@ -3,5 +3,6 @@ Allow: /
 Disallow: /admin/
 Disallow: /portal/
 Disallow: /mensajes/
+Disallow: /proyectos/
 
 Sitemap: https://eventorastudio.com/sitemap.xml

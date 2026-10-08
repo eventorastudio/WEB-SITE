@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="description" content="Panel privado de seguimiento de proyectos de Eventora Studio.">
+  <title>Proyectos | Eventora Studio</title>
+  <link rel="icon" type="image/x-icon" href="/assets/brand/favicon/favicon.ico">
+  <link rel="stylesheet" href="./style.css?v=projects-20261008">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main class="projects-shell">
+    <section id="login-view" class="login-card" aria-labelledby="login-title">
+      <a class="brand" href="/principal/" aria-label="Eventora Studio, inicio"><img src="/assets/brand/logo-trimmed.png" alt="Eventora Studio"></a>
+      <h1 id="login-title">Proyectos</h1>
+      <p>Seguimiento de desarrollo, revisiones, hosting y mantenimiento.</p>
+      <form id="login-form" novalidate>
+        <label for="login-email">Correo</label><input id="login-email" type="email" autocomplete="username" required>
+        <label for="login-password">Contraseña</label><input id="login-password" type="password" autocomplete="current-password" required>
+        <button class="button button-dark" type="submit">ENTRAR</button>
+        <p id="login-status" class="status" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section id="app-view" hidden aria-labelledby="app-title">
+      <header class="app-header">
+        <div><a class="brand" href="/principal/" aria-label="Eventora Studio, inicio"><img src="/assets/brand/logo-trimmed.png" alt="Eventora Studio"></a><h1 id="app-title">Proyectos</h1></div>
+        <div class="header-actions"><button id="new-project-button" class="button button-dark" type="button">Nuevo proyecto</button><button id="logout-button" class="button button-light" type="button">Cerrar sesión</button></div>
+      </header>
+      <div id="app-status" class="status" role="status" aria-live="polite"></div>
+      <section class="summary-grid" aria-label="Resumen de proyectos">
+        <article><strong id="total-count">0</strong><span>Total</span></article><article><strong id="active-count">0</strong><span>Activos</span></article><article><strong id="review-count">0</strong><span>En revisión</span></article><article><strong id="payment-count">0</strong><span>Esperando pago</span></article><article><strong id="published-count">0</strong><span>Publicados</span></article>
+      </section>
+      <section class="toolbar" aria-label="Buscar y filtrar proyectos">
+        <label class="search-field" for="project-search">Buscar negocio, cliente o ciudad<input id="project-search" type="search" placeholder="Ej. Yogurt Arte Sanar" autocomplete="off"></label>
+        <label for="project-status-filter">Estado<select id="project-status-filter"><option value="all">Todos</option><option value="lead">Prospecto</option><option value="awaiting-deposit">Esperando anticipo</option><option value="active">Activo</option><option value="client-review">Revisión del cliente</option><option value="awaiting-final-payment">Esperando pago final</option><option value="ready-to-publish">Listo para publicar</option><option value="published">Publicado</option><option value="paused">Pausado</option><option value="cancelled">Cancelado</option><option value="completed">Completado</option></select></label>
+        <label for="project-stage-filter">Fase<select id="project-stage-filter"><option value="all">Todas</option><option value="not-started">Sin comenzar</option><option value="setup">Configuración inicial</option><option value="skeleton">Esqueleto / estructura</option><option value="visual-design">Diseño visual</option><option value="content">Contenido</option><option value="functionality">Funcionalidades</option><option value="responsive">Responsive</option><option value="qa">QA</option><option value="client-review">Revisión del cliente</option><option value="revisions">Cambios</option><option value="final-review">Revisión final</option><option value="ready-to-publish">Listo para publicar</option><option value="published">Publicado</option></select></label>
+        <button id="refresh-button" class="button button-light" type="button">Actualizar</button>
+      </section>
+      <p id="results-summary" class="results-summary" aria-live="polite"></p>
+      <section id="project-list" class="project-grid" aria-label="Lista de proyectos"></section>
+      <section id="project-detail" class="detail-view" hidden aria-live="polite"></section>
+      <dialog id="project-dialog" class="project-dialog"><form id="project-form" method="dialog"><div class="dialog-heading"><h2 id="project-dialog-title">Nuevo proyecto</h2><button class="icon-button" value="cancel" type="submit" aria-label="Cerrar">×</button></div><div class="form-grid" id="project-fields"></div><div class="dialog-actions"><button class="button button-light" value="cancel" type="submit">Cancelar</button><button class="button button-dark" id="save-project-button" value="default" type="submit">Guardar proyecto</button></div><p id="project-form-status" class="status" role="status"></p></form></dialog>
+      <dialog id="update-dialog" class="project-dialog"><form id="update-form" method="dialog"><div class="dialog-heading"><h2>Registrar avance</h2><button class="icon-button" value="cancel" type="submit" aria-label="Cerrar">×</button></div><div class="form-grid" id="update-fields"></div><div class="dialog-actions"><button class="button button-light" value="cancel" type="submit">Cancelar</button><button class="button button-dark" value="default" type="submit">Registrar avance</button></div><p id="update-form-status" class="status" role="status"></p></form></dialog>
+    </section>
+  </main>
+  <script type="module" src="./script.js?v=projects-20261008"></script>
+</body>
+</html>
