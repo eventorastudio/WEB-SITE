@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const planParam = new URLSearchParams(window.location.search).get("plan");
   const validTemplates = ["template-01", "template-02", "template-03", "no-estoy-seguro", "algo-diferente"];
   const validPlans = ["esencial", "profesional", "a-medida", "no-estoy-seguro"];
+  const validNeeds = ["services-products", "gallery", "hours-location", "contact-social", "about", "other"];
   const submitButton = form.querySelector(".submit-button");
 
   if (validTemplates.includes(templateParam)) {
@@ -25,11 +26,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const setError = (id, message) => {
     const error = document.querySelector(`#${id}-error`);
-    if (error) error.textContent = message;
+    if (error) {
+      error.textContent = message;
+      error.setAttribute("role", "alert");
+    }
   };
 
   const clearErrors = () => {
-    document.querySelectorAll(".field-error").forEach((error) => { error.textContent = ""; });
+    document.querySelectorAll(".field-error").forEach((error) => {
+      error.textContent = "";
+      error.removeAttribute("role");
+    });
     document.querySelectorAll(".has-error").forEach((field) => field.classList.remove("has-error"));
     formStatus.textContent = "";
     formStatus.removeAttribute("data-state");
@@ -62,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!businessType) { setError("business-type", "Cuéntanos qué tipo de negocio tienes."); valid = false; }
     if (!plan) { setError("plan", "Elige un paquete para continuar."); valid = false; }
     if (!template) { setError("template", "Elige una dirección visual para continuar."); valid = false; }
-    if (!needs.length) { setError("needs", "Selecciona al menos una necesidad."); valid = false; }
+    if (!needs.length || needs.some((need) => !validNeeds.includes(need))) { setError("needs", "Selecciona al menos una necesidad."); valid = false; }
 
     if (!valid) {
       const firstError = form.querySelector(".field-error:not(:empty)");
@@ -73,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
     submitButton.disabled = true;
     submitButton.textContent = "ENVIANDO...";
     formStatus.dataset.state = "sending";
-    formStatus.textContent = "Estamos guardando tu solicitud.";
+    formStatus.textContent = "Enviando...";
 
     try {
       const response = await fetch(endpoint, {
@@ -84,12 +91,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await response.json().catch(() => ({}));
       if (!response.ok || !result.ok) throw new Error("request-failed");
       formStatus.dataset.state = "success";
-      formStatus.textContent = "Solicitud enviada correctamente. Revisaremos tu información y nos pondremos en contacto contigo.";
+      formStatus.textContent = "Solicitud recibida. La revisaremos y te contactaremos para definir el alcance. No se realizó ningún cobro.";
       form.querySelectorAll("input, textarea").forEach((field) => { field.disabled = true; });
     } catch (error) {
-      console.error("No se pudo guardar la solicitud.", error);
       formStatus.dataset.state = "error";
-      formStatus.textContent = "No pudimos guardar tu solicitud. Inténtalo nuevamente en unos momentos.";
+      formStatus.textContent = "No pudimos enviar tu solicitud. Intenta de nuevo en unos momentos.";
       submitButton.disabled = false;
       submitButton.textContent = "ENVIAR";
     }
