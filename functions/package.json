@@ -1,5 +1,5 @@
 {
-  "name": "eventora-rsvp-reconciliation-functions",
+  "name": "eventora-website-requests-functions",
   "private": true,
   "type": "module",
   "main": "index.js",
