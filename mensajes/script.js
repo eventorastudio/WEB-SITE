@@ -3,7 +3,7 @@ import { auth } from './firebase.js';
 import { buildWhatsAppUrl, normalizeWhatsAppNumber } from '../shared/utils/whatsapp.js';
 
 const authorizedEmail = 'messages@gmail.com';
-const authorizedAdminUid = '5I3NPSeJ09Q6No0SICx1dlpV1Wk1';
+const authorizedAdminUid = 'fzERhhRbsAfHcm55drt5lmAxn6J3';
 const functionsBaseUrl = 'https://us-central1-eventorastudio-d6d95.cloudfunctions.net';
 const statusLabels = { new: 'Nueva', contacted: 'Contactado', in_progress: 'En proceso', completed: 'Finalizada' };
 const statusKeys = Object.keys(statusLabels);

@@ -1,6 +1,6 @@
 import { getAuth } from 'firebase-admin/auth';
 
-export const AUTHORIZED_ADMIN_UID = '5I3NPSeJ09Q6No0SICx1dlpV1Wk1';
+export const AUTHORIZED_ADMIN_UID = 'fzERhhRbsAfHcm55drt5lmAxn6J3';
 
 const allowedOrigins = new Set([
     'https://eventorastudio.com',
