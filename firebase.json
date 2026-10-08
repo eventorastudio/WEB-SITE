@@ -4,10 +4,7 @@
   },
   "functions": {
     "source": "functions",
-    "codebase": "rsvp-reconciliation",
-    "predeploy": [
-      "npm --prefix \"$RESOURCE_DIR\" run build"
-    ]
+    "codebase": "website-requests"
   },
   "storage": {
     "rules": "storage.rules"
