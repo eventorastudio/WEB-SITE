@@ -1,19 +1,15 @@
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-
 import { auth } from './firebase.js';
+import { buildWhatsAppUrl, normalizeWhatsAppNumber } from '../shared/utils/whatsapp.js';
 
 const authorizedEmail = 'messages@gmail.com';
 const authorizedAdminUid = '5I3NPSeJ09Q6No0SICx1dlpV1Wk1';
 const functionsBaseUrl = 'https://us-central1-eventorastudio-d6d95.cloudfunctions.net';
 const statusLabels = { new: 'Nueva', contacted: 'Contactado', in_progress: 'En proceso', completed: 'Finalizada' };
-const needsLabels = {
-    'services-products': 'Servicios o productos',
-    gallery: 'Galería',
-    'hours-location': 'Horarios y ubicación',
-    'contact-social': 'Contacto y redes sociales',
-    about: 'Nosotros',
-    other: 'Otro'
-};
+const statusKeys = Object.keys(statusLabels);
+const planLabels = { esencial: 'Esencial', profesional: 'Profesional', 'a-medida': 'A medida', 'no-estoy-seguro': 'Sin definir' };
+const templateLabels = { 'template-01': 'Eagles Burger', 'template-02': 'My Love Flowers', 'template-03': 'Premium Car', 'no-estoy-seguro': 'Sin diseño definido', 'algo-diferente': 'Otro diseño' };
+const needsLabels = { 'services-products': 'Servicios / productos', gallery: 'Galería', 'hours-location': 'Horarios / ubicación', 'contact-social': 'Contacto / redes', about: 'Sobre nosotros', other: 'Otro' };
 const loginView = document.querySelector('#login-view');
 const appView = document.querySelector('#app-view');
 const loginForm = document.querySelector('#login-form');
@@ -21,8 +17,17 @@ const loginStatus = document.querySelector('#login-status');
 const appStatus = document.querySelector('#app-status');
 const requestList = document.querySelector('#request-list');
 const requestDetail = document.querySelector('#request-detail');
+const searchInput = document.querySelector('#request-search');
+const statusFilter = document.querySelector('#status-filter');
+const planFilter = document.querySelector('#plan-filter');
+const sortOrder = document.querySelector('#sort-order');
+const resultsSummary = document.querySelector('#results-summary');
+const deleteDialog = document.querySelector('#delete-dialog');
+const confirmDeleteButton = document.querySelector('#confirm-delete');
 let currentUser = null;
 let requests = [];
+let selectedRequestId = null;
+let pendingDeleteId = null;
 
 loginForm.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -30,28 +35,27 @@ loginForm.addEventListener('submit', async (event) => {
     const email = document.querySelector('#login-email').value.trim();
     const password = document.querySelector('#login-password').value;
     if (!email || !password) { loginStatus.textContent = 'Escribe tu correo y contraseña.'; return; }
-
     const button = loginForm.querySelector('button');
     button.disabled = true;
     button.textContent = 'ENTRANDO...';
-    try {
-        await signInWithEmailAndPassword(auth, email, password);
-    } catch {
-        loginStatus.textContent = 'No pudimos iniciar sesión con esos datos.';
-        button.disabled = false;
-        button.textContent = 'ENTRAR';
-    }
+    try { await signInWithEmailAndPassword(auth, email, password); }
+    catch { loginStatus.textContent = 'No pudimos iniciar sesión con esos datos.'; button.disabled = false; button.textContent = 'ENTRAR'; }
 });
 
 document.querySelector('#logout-button').addEventListener('click', () => signOut(auth));
 document.querySelector('#refresh-button').addEventListener('click', () => loadRequests());
+searchInput.addEventListener('input', renderList);
+statusFilter.addEventListener('change', renderList);
+planFilter.addEventListener('change', renderList);
+sortOrder.addEventListener('change', renderList);
+document.querySelector('#cancel-delete').addEventListener('click', closeDeleteDialog);
+confirmDeleteButton.addEventListener('click', confirmDelete);
+deleteDialog.addEventListener('click', (event) => { if (event.target === deleteDialog) closeDeleteDialog(); });
+document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && !deleteDialog.hidden) closeDeleteDialog(); });
 
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
-    if (!user) {
-        showLogin();
-        return;
-    }
+    if (!user) { showLogin(); return; }
     if (user.uid !== authorizedAdminUid || user.email?.toLowerCase() !== authorizedEmail) {
         await signOut(auth);
         loginStatus.textContent = 'Acceso no autorizado.';
@@ -64,84 +68,222 @@ onAuthStateChanged(auth, async (user) => {
 async function loadRequests() {
     if (!currentUser) return;
     appStatus.textContent = 'Cargando solicitudes...';
-    requestList.innerHTML = '<p class="loading">Cargando solicitudes...</p>';
+    renderLoading();
     try {
-        const requestsResponse = await authorizedFetch('/getWebsiteRequests');
-        requests = Array.isArray(requestsResponse.requests) ? requestsResponse.requests : [];
+        const response = await authorizedFetch('/getWebsiteRequests');
+        requests = Array.isArray(response.requests) ? response.requests : [];
+        selectedRequestId = null;
         renderSummary();
         renderList();
+        showEmptyDetail();
         appStatus.textContent = '';
     } catch (error) {
-        requestList.innerHTML = '';
-        appStatus.textContent = error.message || 'No pudimos cargar las solicitudes.';
+        requestList.replaceChildren();
+        appStatus.textContent = friendlyError(error, 'No pudimos cargar las solicitudes.');
     }
 }
 
 async function authorizedFetch(path, options = {}) {
     const token = await currentUser.getIdToken();
-    const response = await fetch(`${functionsBaseUrl}${path}`, {
-        ...options,
-        headers: { ...(options.headers || {}), Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-    });
+    const response = await fetch(`${functionsBaseUrl}${path}`, { ...options, headers: { ...(options.headers || {}), Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } });
     const result = await response.json().catch(() => ({}));
     if (!response.ok || !result.ok) throw new Error(result.message || 'La operación no pudo completarse.');
     return result;
 }
 
 function renderSummary() {
-    document.querySelector('#total-count').textContent = requests.length;
-    document.querySelector('#new-count').textContent = requests.filter((item) => item.status === 'new').length;
-    document.querySelector('#progress-count').textContent = requests.filter((item) => item.status === 'in_progress').length;
+    setText('#total-count', requests.length);
+    setText('#new-count', countByStatus('new'));
+    setText('#contacted-count', countByStatus('contacted'));
+    setText('#progress-count', countByStatus('in_progress'));
+    setText('#completed-count', countByStatus('completed'));
 }
 
 function renderList() {
-    if (!requests.length) {
-        requestList.innerHTML = '<p class="empty-state">Todavía no hay solicitudes.</p>';
-        requestDetail.innerHTML = '<p class="empty-state">Las nuevas solicitudes aparecerán aquí.</p>';
-        return;
-    }
-    requestList.innerHTML = requests.map((item) => `<button class="request-card" type="button" data-request-id="${escapeAttribute(item.id)}"><strong>${escapeHtml(item.businessName || 'Negocio sin nombre')}</strong><small>${escapeHtml(item.contactName || 'Contacto sin nombre')}</small><span class="request-card-meta"><span>${escapeHtml(formatDate(item.createdAt))}</span><span class="status-pill">${escapeHtml(statusLabels[item.status] || item.status)}</span></span></button>`).join('');
-    requestList.querySelectorAll('[data-request-id]').forEach((card) => card.addEventListener('click', () => showDetail(card.dataset.requestId)));
+    const filtered = getFilteredRequests();
+    resultsSummary.textContent = requests.length ? `${filtered.length} de ${requests.length} solicitudes` : '';
+    requestList.replaceChildren();
+    if (!requests.length) { requestList.append(createMessage('Todavía no hay solicitudes.', 'empty-state')); return; }
+    if (!filtered.length) { requestList.append(createMessage('Sin resultados para estos filtros.', 'empty-state')); return; }
+    filtered.forEach((item) => requestList.append(createRequestCard(item)));
+}
+
+function getFilteredRequests() {
+    const query = normalizeText(searchInput.value);
+    const selectedStatus = statusFilter.value;
+    const selectedPlan = planFilter.value;
+    const filtered = [...requests]
+        .filter((item) => selectedStatus === 'all' || item.status === selectedStatus)
+        .filter((item) => selectedPlan === 'all' || item.plan === selectedPlan || (selectedPlan === 'no-estoy-seguro' && !planLabels[item.plan]))
+        .filter((item) => !query || [item.contactName, item.businessName, item.whatsapp, item.email, item.city].some((value) => normalizeText(value).includes(query)))
+        .sort((left, right) => getTime(left.createdAt) - getTime(right.createdAt) || String(left.id).localeCompare(String(right.id)));
+    return sortOrder.value === 'newest' ? filtered.reverse() : filtered;
+}
+
+function createRequestCard(item) {
+    const button = document.createElement('button');
+    button.className = 'request-card';
+    button.type = 'button';
+    button.dataset.requestId = item.id;
+    button.setAttribute('aria-current', String(item.id === selectedRequestId));
+    const title = document.createElement('strong');
+    title.textContent = item.businessName || 'Negocio sin nombre';
+    const contact = document.createElement('small');
+    contact.textContent = item.contactName || 'Contacto sin nombre';
+    const meta = document.createElement('span');
+    meta.className = 'request-card-meta';
+    const date = document.createElement('span');
+    date.textContent = formatDate(item.createdAt);
+    const status = document.createElement('span');
+    status.className = `status-pill status-${statusKeys.includes(item.status) ? item.status : 'new'}`;
+    status.textContent = statusLabels[item.status] || 'Nueva';
+    meta.append(date, status);
+    button.append(title, contact, meta);
+    button.addEventListener('click', () => showDetail(item.id));
+    return button;
 }
 
 function showDetail(id) {
     const item = requests.find((request) => request.id === id);
     if (!item) return;
-    requestList.querySelectorAll('.request-card').forEach((card) => { card.toggleAttribute('aria-current', card.dataset.requestId === id); });
-    const whatsapp = item.whatsapp.replace(/\D/g, '');
-    const whatsappUrl = whatsapp ? `https://wa.me/${whatsapp}` : '';
-    const needs = Array.isArray(item.needs) ? item.needs.map((need) => needsLabels[need] || need) : [];
-    requestDetail.innerHTML = `<h2>${escapeHtml(item.businessName || 'Solicitud')}</h2><div class="detail-section"><dl><dt>Contacto</dt><dd>${escapeHtml(item.contactName)}</dd><dt>WhatsApp</dt><dd>${escapeHtml(item.whatsapp)}</dd><dt>Correo</dt><dd>${escapeHtml(item.email || 'No proporcionado')}</dd></dl></div><div class="detail-section"><dl><dt>Giro</dt><dd>${escapeHtml(item.businessType)}</dd><dt>Ciudad/Zona</dt><dd>${escapeHtml(item.city || 'No especificada')}</dd><dt>Paquete</dt><dd>${escapeHtml(item.plan)}</dd><dt>Template</dt><dd>${escapeHtml(item.template)}</dd><dt>Necesidades</dt><dd>${escapeHtml(needs.join(', '))}</dd><dt>Comentarios</dt><dd>${escapeHtml(item.notes || 'Sin comentarios')}</dd><dt>Fecha</dt><dd>${escapeHtml(formatDate(item.createdAt))}</dd></dl></div><div class="detail-section"><label for="request-status">Estado</label><select id="request-status"><option value="new">Nueva</option><option value="contacted">Contactado</option><option value="in_progress">En proceso</option><option value="completed">Finalizada</option></select><div class="detail-actions">${whatsappUrl ? `<a class="button button-dark" href="${escapeAttribute(whatsappUrl)}" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a>` : ''}${item.email ? `<a class="button button-light" href="mailto:${escapeAttribute(item.email)}">Enviar correo</a>` : ''}<button id="delete-request" class="button danger-button" type="button">Eliminar solicitud</button></div></div>`;
-    const statusSelect = requestDetail.querySelector('#request-status');
-    statusSelect.value = item.status;
-    statusSelect.addEventListener('change', () => updateStatus(item.id, statusSelect.value));
-    requestDetail.querySelector('#delete-request').addEventListener('click', () => deleteRequest(item.id));
+    selectedRequestId = id;
+    requestList.querySelectorAll('.request-card').forEach((card) => card.setAttribute('aria-current', String(card.dataset.requestId === id)));
+    requestDetail.replaceChildren();
+    const title = document.createElement('h2');
+    title.textContent = item.businessName || 'Solicitud';
+    requestDetail.append(title, createContactSection(item), createBusinessSection(item), createActionsSection(item));
 }
 
-async function updateStatus(id, status) {
+function createContactSection(item) {
+    const section = createDetailSection();
+    addDefinition(section, 'Contacto', item.contactName || 'No proporcionado');
+    addDefinition(section, 'WhatsApp', item.whatsapp || 'No proporcionado');
+    addDefinition(section, 'Correo', item.email || 'No proporcionado');
+    return section;
+}
+
+function createBusinessSection(item) {
+    const section = createDetailSection();
+    addDefinition(section, 'Giro', item.businessType || 'No especificado');
+    addDefinition(section, 'Ciudad / zona', item.city || 'No especificada');
+    addDefinition(section, 'Paquete', planLabels[item.plan] || 'Sin definir');
+    addDefinition(section, 'Diseño', templateLabels[item.template] || 'Sin diseño definido');
+    addDefinition(section, 'Necesidades', formatNeeds(item.needs));
+    addDefinition(section, 'Comentarios', item.notes || 'Sin comentarios');
+    addDefinition(section, 'Fecha', formatDate(item.createdAt));
+    return section;
+}
+
+function createActionsSection(item) {
+    const section = createDetailSection();
+    const statusLabel = document.createElement('label');
+    statusLabel.htmlFor = 'request-status';
+    statusLabel.textContent = 'Estado';
+    const statusSelect = document.createElement('select');
+    statusSelect.id = 'request-status';
+    statusKeys.forEach((key) => statusSelect.append(new Option(statusLabels[key], key, false, key === item.status)));
+    statusSelect.addEventListener('change', () => updateStatus(item.id, statusSelect));
+    const actions = document.createElement('div');
+    actions.className = 'detail-actions';
+    const whatsapp = createWhatsAppAction(item);
+    if (whatsapp) actions.append(whatsapp);
+    if (item.email) actions.append(createCopyButton('Copiar correo', item.email));
+    if (item.whatsapp) actions.append(createCopyButton('Copiar WhatsApp', item.whatsapp));
+    const deleteButton = document.createElement('button');
+    deleteButton.id = 'delete-request';
+    deleteButton.className = 'button danger-button';
+    deleteButton.type = 'button';
+    deleteButton.textContent = 'Eliminar solicitud';
+    deleteButton.addEventListener('click', () => openDeleteDialog(item.id));
+    actions.append(deleteButton);
+    section.append(statusLabel, statusSelect, actions);
+    return section;
+}
+
+function createWhatsAppAction(item) {
     try {
-        await authorizedFetch('/updateWebsiteRequestStatus', { method: 'POST', body: JSON.stringify({ id, status }) });
+        const number = normalizeWhatsAppNumber(item.whatsapp);
+        const url = buildWhatsAppUrl(number, `Hola, soy Pablo de Eventora Studio. Recibimos tu solicitud para ${item.businessName || 'tu negocio'}.`);
+        const link = document.createElement('a');
+        link.className = 'button button-dark';
+        link.href = url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = 'Abrir WhatsApp';
+        return link;
+    } catch { return null; }
+}
+
+function createCopyButton(label, value) {
+    const button = document.createElement('button');
+    button.className = 'button button-light';
+    button.type = 'button';
+    button.textContent = label;
+    button.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(value); setAppStatus('Copiado.'); }
+        catch { setAppStatus('No se pudo copiar el dato.'); }
+    });
+    return button;
+}
+
+async function updateStatus(id, select) {
+    const previous = requests.find((item) => item.id === id)?.status || 'new';
+    select.disabled = true;
+    setAppStatus('Actualizando estado...');
+    try {
+        await authorizedFetch('/updateWebsiteRequestStatus', { method: 'POST', body: JSON.stringify({ id, status: select.value }) });
         const item = requests.find((request) => request.id === id);
-        if (item) item.status = status;
+        if (item) item.status = select.value;
         renderSummary();
         renderList();
         showDetail(id);
-    } catch (error) { appStatus.textContent = error.message; }
+        setAppStatus('Estado actualizado.');
+    } catch {
+        select.value = previous;
+        select.disabled = false;
+        setAppStatus('No se pudo actualizar el estado.');
+    }
 }
 
-async function deleteRequest(id) {
-    if (!window.confirm('¿Eliminar esta solicitud? Esta acción no se puede deshacer.')) return;
+function openDeleteDialog(id) { pendingDeleteId = id; deleteDialog.hidden = false; confirmDeleteButton.focus(); }
+function closeDeleteDialog() { pendingDeleteId = null; deleteDialog.hidden = true; }
+
+async function confirmDelete() {
+    if (!pendingDeleteId) return;
+    const id = pendingDeleteId;
+    confirmDeleteButton.disabled = true;
+    confirmDeleteButton.textContent = 'Eliminando...';
     try {
         await authorizedFetch('/deleteWebsiteRequest', { method: 'POST', body: JSON.stringify({ id }) });
         requests = requests.filter((request) => request.id !== id);
+        selectedRequestId = null;
+        closeDeleteDialog();
         renderSummary();
         renderList();
-        appStatus.textContent = 'Solicitud eliminada.';
-    } catch (error) { appStatus.textContent = error.message; }
+        showEmptyDetail();
+        setAppStatus('Solicitud eliminada.');
+    } catch { setAppStatus('No se pudo eliminar la solicitud.'); }
+    finally { confirmDeleteButton.disabled = false; confirmDeleteButton.textContent = 'Eliminar'; }
 }
 
+function addDefinition(section, term, value) {
+    const dt = document.createElement('dt');
+    dt.textContent = term;
+    const dd = document.createElement('dd');
+    dd.textContent = value;
+    section.querySelector('dl').append(dt, dd);
+}
+function createDetailSection() { const section = document.createElement('div'); section.className = 'detail-section'; section.append(document.createElement('dl')); return section; }
+function renderLoading() { requestList.replaceChildren(createMessage('Cargando solicitudes...', 'loading')); }
+function showEmptyDetail() { requestDetail.replaceChildren(createMessage('Selecciona una solicitud para ver sus detalles.', 'empty-state')); }
+function createMessage(text, className) { const message = document.createElement('p'); message.className = className; message.textContent = text; return message; }
+function countByStatus(status) { return requests.filter((item) => item.status === status).length; }
+function formatNeeds(needs) { const labels = Array.isArray(needs) ? needs.map((need) => needsLabels[need] || 'Otra necesidad') : []; return labels.length ? labels.join(', ') : 'No especificadas'; }
+function formatDate(value) { const date = value ? new Date(value) : null; return date && !Number.isNaN(date.valueOf()) ? new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short' }).format(date) : 'Fecha pendiente'; }
+function getTime(value) { const time = value ? new Date(value).valueOf() : 0; return Number.isNaN(time) ? 0 : time; }
+function normalizeText(value) { return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim(); }
+function setText(selector, value) { document.querySelector(selector).textContent = String(value); }
+function setAppStatus(message) { appStatus.textContent = message; }
+function friendlyError(error, fallback) { return error?.message && !/firebase|permission|function|network/i.test(error.message) ? error.message : fallback; }
 function showLogin() { loginView.hidden = false; appView.hidden = true; }
 function showApp() { loginView.hidden = true; appView.hidden = false; }
-function formatDate(value) { return value ? new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : 'Fecha pendiente'; }
-function escapeHtml(value) { return String(value).replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character])); }
-function escapeAttribute(value) { return escapeHtml(value).replace(/`/g, '&#96;'); }

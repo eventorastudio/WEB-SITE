@@ -45,16 +45,28 @@
       <div class="summary-grid" aria-label="Resumen de solicitudes">
         <article><strong id="total-count">0</strong><span>Total</span></article>
         <article><strong id="new-count">0</strong><span>Nuevas</span></article>
+        <article><strong id="contacted-count">0</strong><span>Contactadas</span></article>
         <article><strong id="progress-count">0</strong><span>En proceso</span></article>
+        <article><strong id="completed-count">0</strong><span>Finalizadas</span></article>
       </div>
       <div class="inbox-layout">
         <section class="request-list-panel" aria-labelledby="list-title">
           <div class="panel-heading"><h2 id="list-title">Solicitudes</h2><button id="refresh-button" class="text-button" type="button">Actualizar</button></div>
+          <div class="filters" aria-label="Filtros de solicitudes">
+            <div class="filter-field filter-search"><label for="request-search">Buscar</label><input id="request-search" type="search" placeholder="Nombre, negocio, WhatsApp, correo o ciudad" autocomplete="off"></div>
+            <div class="filter-field"><label for="status-filter">Estado</label><select id="status-filter"><option value="all">Todos</option><option value="new">Nueva</option><option value="contacted">Contactado</option><option value="in_progress">En proceso</option><option value="completed">Finalizada</option></select></div>
+            <div class="filter-field"><label for="plan-filter">Paquete</label><select id="plan-filter"><option value="all">Todos</option><option value="esencial">Esencial</option><option value="profesional">Profesional</option><option value="a-medida">A medida</option><option value="no-estoy-seguro">Sin definir</option></select></div>
+            <div class="filter-field"><label for="sort-order">Orden</label><select id="sort-order"><option value="newest">Más recientes</option><option value="oldest">Más antiguas</option></select></div>
+          </div>
+          <p id="results-summary" class="results-summary" aria-live="polite"></p>
           <div id="request-list" class="request-list"></div>
         </section>
         <aside id="request-detail" class="request-detail" aria-live="polite">
           <p class="empty-state">Selecciona una solicitud para ver sus detalles.</p>
         </aside>
+      </div>
+      <div id="delete-dialog" class="delete-dialog" hidden role="dialog" aria-modal="true" aria-labelledby="delete-title">
+        <div class="delete-dialog-card"><h2 id="delete-title">Eliminar solicitud</h2><p>¿Eliminar esta solicitud? Esta acción no se puede deshacer.</p><div class="dialog-actions"><button id="cancel-delete" class="button button-light" type="button">Cancelar</button><button id="confirm-delete" class="button danger-button" type="button">Eliminar</button></div></div>
       </div>
     </section>
   </main>
