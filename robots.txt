@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /portal/
+Disallow: /mensajes/
 
 Sitemap: https://eventorastudio.com/sitemap.xml
