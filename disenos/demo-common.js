@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }));
 
   document.querySelectorAll("[data-demo-action]").forEach((control) => {
+    if (control.hasAttribute("data-utility-action")) return;
     control.addEventListener("click", (event) => {
       event.preventDefault();
       if (!modal) return;
