@@ -7,4 +7,5 @@
 .floral-nav .nav-subtle-cta{display:none}
 @media(max-width:768px){.floral-nav .nav-subtle-cta{display:block;margin-top:18px;padding:14px 12px!important;border:1px solid var(--demo-accent);text-align:center;color:var(--demo-accent)!important;font:500 14px 'Playfair Display',serif}.floral-nav .nav-subtle-cta:after{display:none!important}}
 .floral-nav~main [id]{scroll-margin-top:24px}.flower-card .text-link{display:inline-flex;margin-top:18px}.flower-card .demo-button{margin-top:18px}
-.demo-card>.demo-button,.demo-card>.text-link{margin-top:20px}.demo-dark .demo-quote{color:#fff1f3}
+.demo-card>.demo-button,.demo-card>.text-link{margin-top:20px}
+.demo-dark .demo-quote{color:#4b343e!important;font-weight:600}.demo-dark .demo-quote cite{color:#80616b!important;font-weight:500}
