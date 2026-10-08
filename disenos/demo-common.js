@@ -3,6 +3,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const menuButton = document.querySelector(".menu-toggle");
   const nav = document.querySelector(".primary-nav");
   const modal = document.querySelector("[data-demo-modal]");
+  const showDemoAction = (control) => {
+    if (!modal) return;
+    const title = modal.querySelector("h2");
+    const message = modal.querySelector("p");
+    if (title) title.textContent = control.dataset.demoTitle || "Función de demostración";
+    if (message) message.textContent = control.dataset.demoMessage || "Esta función estará disponible en el sitio final.";
+    modal.hidden = false;
+    document.body.classList.add("modal-open");
+    modal.querySelector("button")?.focus();
+  };
+  globalThis.EventoraDemo = { showDemoAction };
   const closeModal = () => {
     if (!modal) return;
     modal.hidden = true;
@@ -22,10 +33,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (control.hasAttribute("data-utility-action")) return;
     control.addEventListener("click", (event) => {
       event.preventDefault();
-      if (!modal) return;
-      modal.hidden = false;
-      body.classList.add("modal-open");
-      modal.querySelector("button")?.focus();
+      showDemoAction(control);
+    });
+  });
+  document.querySelectorAll("[data-utility-action]").forEach((control) => {
+    control.addEventListener("click", (event) => {
+      event.preventDefault();
+      showDemoAction(control);
     });
   });
   modal?.querySelectorAll("[data-demo-close]").forEach((control) => control.addEventListener("click", closeModal));

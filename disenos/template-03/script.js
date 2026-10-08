@@ -1,38 +1,25 @@
-import { buildGoogleCalendarUrl, buildIcsEvent } from '../../shared/utils/calendar.js';
-import { buildGoogleMapsUrl } from '../../shared/utils/maps.js';
-import { downloadText } from '../../shared/utils/downloads.js';
-import { buildWhatsAppUrl } from '../../shared/utils/whatsapp.js';
-
-const WHATSAPP = '+52 844 123 4567';
-const APPOINTMENT = {
-  title: 'Diagnóstico Premium Car',
-  start: '2026-11-07T10:00:00-06:00',
-  end: '2026-11-07T11:00:00-06:00',
-  location: 'Av. Industria 480, Saltillo, Coahuila',
-  description: 'Cita de demostración para diagnóstico y cuidado automotriz.'
-};
-
-const markUtility = (element, name, value = '') => {
+const setDemoAction = (element, title, message) => {
   if (!element) return;
   element.setAttribute('data-utility-action', '');
-  element.setAttribute(name, value);
+  element.dataset.demoTitle = title;
+  element.dataset.demoMessage = message;
 };
 
-const configureActions = () => {
+const configureDemoActions = () => {
   document.querySelectorAll('.business-links a[data-demo-action], .demo-actions a[data-demo-action]').forEach((link) => {
-    if (link.textContent.toLowerCase().includes('agendar')) markUtility(link, 'data-car-calendar');
+    if (link.textContent.toLowerCase().includes('agendar')) setDemoAction(link, 'Cita de demostración', 'En el sitio final, este botón abriría el calendario para agendar un servicio.');
   });
-  document.querySelectorAll('.tech-card a[data-demo-action]').forEach((link) => markUtility(link, 'data-car-whatsapp', link.closest('article')?.querySelector('h3')?.textContent.trim() || 'un servicio'));
+  document.querySelectorAll('.tech-card a[data-demo-action]').forEach((link) => setDemoAction(link, 'Servicio de demostración', 'En el sitio final, aquí podrías consultar este servicio por WhatsApp.'));
   const diagnostic = [...document.querySelectorAll('[data-demo-action]')].find((link) => link.textContent.toLowerCase().includes('diagnóstico'));
-  markUtility(diagnostic, 'data-car-whatsapp', 'un diagnóstico');
+  setDemoAction(diagnostic, 'Diagnóstico de demostración', 'En el sitio final, aquí podrías solicitar un diagnóstico por WhatsApp.');
   const maps = [...document.querySelectorAll('.contact-card a[data-demo-action]')].find((link) => link.textContent.toLowerCase().includes('maps'));
-  markUtility(maps, 'data-car-maps');
+  setDemoAction(maps, 'Ubicación de demostración', 'En el sitio final, este botón abriría la ubicación en Google Maps.');
   document.querySelectorAll('.demo-footer a[data-demo-action]').forEach((link) => {
-    if (link.textContent.toLowerCase().includes('whatsapp')) markUtility(link, 'data-car-whatsapp', 'una cita');
+    if (link.textContent.toLowerCase().includes('whatsapp')) setDemoAction(link, 'Contacto de demostración', 'En el sitio final, aquí podrías consultar una cita por WhatsApp.');
   });
 };
 
-configureActions();
+configureDemoActions();
 
 document.addEventListener('DOMContentLoaded', () => {
   const frame = document.querySelector('.comparison-frame');
@@ -92,38 +79,27 @@ document.addEventListener('DOMContentLoaded', () => {
   syncNav();
   window.addEventListener('scroll', syncNav, { passive: true });
 
-  document.querySelectorAll('[data-car-whatsapp]').forEach((link) => {
-    link.href = buildWhatsAppUrl(WHATSAPP, `Hola, quiero consultar ${link.dataset.carWhatsapp || 'un servicio'} en Premium Car.`);
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-  });
-  document.querySelectorAll('[data-car-maps]').forEach((link) => {
-    link.href = buildGoogleMapsUrl({ address: APPOINTMENT.location });
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-  });
-  document.querySelectorAll('[data-car-calendar]').forEach((link) => {
-    link.href = buildGoogleCalendarUrl(APPOINTMENT);
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-  });
   const contact = document.querySelector('.contact-card');
   if (contact) {
     const calendarActions = document.createElement('div');
     calendarActions.className = 'car-calendar-actions';
     calendarActions.setAttribute('aria-label', 'Opciones de calendario');
+    const calendarLink = document.createElement('a');
+    calendarLink.className = 'text-link';
+    calendarLink.href = '#';
+    calendarLink.textContent = 'Añadir cita al calendario ↗';
+    setDemoAction(calendarLink, 'Calendario de demostración', 'En el sitio final, aquí podrías abrir Google Calendar para agendar el servicio.');
     const icsLink = document.createElement('a');
     icsLink.className = 'text-link';
     icsLink.href = '#';
     icsLink.textContent = 'Descargar cita .ics ↗';
-    icsLink.setAttribute('data-utility-action', '');
-    icsLink.setAttribute('data-car-ics', '');
-    calendarActions.append(icsLink);
+    setDemoAction(icsLink, 'Archivo de calendario de demostración', 'En el sitio final, aquí podrías descargar una cita .ics para tu calendario.');
+    calendarActions.append(calendarLink, icsLink);
     contact.append(calendarActions);
-    icsLink.addEventListener('click', (event) => {
+    [calendarLink, icsLink].forEach((link) => link.addEventListener('click', (event) => {
       event.preventDefault();
-      downloadText(buildIcsEvent(APPOINTMENT), 'premium-car-cita.ics', 'text/calendar;charset=utf-8');
-    });
+      globalThis.EventoraDemo?.showDemoAction(link);
+    }));
   }
 
   const reveal = document.querySelectorAll('.lab-section,.demo-cta');

@@ -11,15 +11,14 @@ test('public templates load their module integration scripts', () => {
   for (const template of ['template-01', 'template-02', 'template-03']) {
     const html = read(`disenos/${template}/index.html`);
     assert.match(html, /<script type="module" src="\.\/script\.js"><\/script>/, template);
-    assert.match(read(`disenos/${template}/script.js`), /\.\.\/\.\.\/shared\/utils\//, template);
   }
 });
 
 test('template actions expose the reusable utility integration points', () => {
   const expectations = {
-    'template-01': ['data-whatsapp-action', 'data-order-item', 'data-menu-download', 'data-maps-action'],
-    'template-02': ['data-flower-whatsapp', 'data-flower-configure', 'data-flower-download', 'data-flower-maps'],
-    'template-03': ['data-car-whatsapp', 'data-car-calendar', 'data-car-maps', 'data-car-ics']
+    'template-01': ['data-utility-action', 'data-order-item', 'menu-actions', 'location-card'],
+    'template-02': ['data-utility-action', 'data-size', 'data-wrap', 'data-price'],
+    'template-03': ['data-utility-action', 'comparison-frame', 'car-calendar-actions', 'showDemoAction']
   };
   for (const [template, markers] of Object.entries(expectations)) {
     const source = read(`disenos/${template}/script.js`);
@@ -29,4 +28,11 @@ test('template actions expose the reusable utility integration points', () => {
 
 test('the shared demo modal leaves utility actions available to their handlers', () => {
   assert.match(read('disenos/demo-common.js'), /data-utility-action/);
+});
+
+test('template demos do not execute external business actions', () => {
+  const forbidden = /window\.open|location\.(href|assign)|wa\.me|google\.com\/maps|calendar\.google\.com|downloadText|buildWhatsAppUrl|buildGoogleMapsUrl|buildGoogleCalendarUrl|buildIcsEvent|download=/;
+  for (const template of ['template-01', 'template-02', 'template-03']) {
+    assert.doesNotMatch(read(`disenos/${template}/script.js`), forbidden, template);
+  }
 });
