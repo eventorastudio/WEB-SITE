@@ -124,6 +124,6 @@ function setText(selector, value) { document.querySelector(selector).textContent
 function friendlyError(error, fallback) { return error?.message && !/firebase|permission|function|network/i.test(error.message) ? error.message : fallback; }
 function normalizeText(value) { return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim(); }
 function formatDate(value) { const date = value ? new Date(value) : null; return date && !Number.isNaN(date.valueOf()) ? new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short' }).format(date) : 'Pendiente'; }
-function formatMoney(value) { return Number(value) ? new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(value) : 'Sin definir'; }
+function formatMoney(value) { const amount = Number(value); if (!amount) return 'Sin definir'; return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: Number.isInteger(amount) ? 0 : 2, maximumFractionDigits: 2 }).format(amount); }
 function paymentLabel(value) { return ({ pending: 'Pendiente', 'deposit-paid': 'Anticipo pagado', paid: 'Pagado' })[value] || 'Sin definir'; }
 function hostingLabel(value) { return ({ 'not-applicable': 'No aplica', pending: 'Pendiente', active: 'Activo', expiring: 'Por renovar', expired: 'Vencido', cancelled: 'Cancelado' })[value] || 'Sin definir'; }
