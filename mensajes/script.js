@@ -1,6 +1,6 @@
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
-import { auth } from '../admin/firebase.js';
+import { auth } from './firebase.js';
 
 const authorizedEmail = 'messages@gmail.com';
 const authorizedAdminUid = '5I3NPSeJ09Q6No0SICx1dlpV1Wk1';
