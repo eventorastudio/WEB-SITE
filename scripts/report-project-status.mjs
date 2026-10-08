@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { applicationDefault, getApps, initializeApp } from '../functions/node_modules/firebase-admin/lib/esm/app/index.js';
 import { FieldValue, getFirestore } from '../functions/node_modules/firebase-admin/lib/esm/firestore/index.js';
@@ -19,8 +20,9 @@ if (args.help || (!args.project && !args.status)) {
 }
 
 const credential = applicationDefault();
-const adcProjectId = await credential.getProjectId();
+const adcProjectId = await getAdcProjectId(credential);
 if (adcProjectId && adcProjectId !== EXPECTED_FIREBASE_PROJECT) abort(`ADC apunta a ${adcProjectId}; se esperaba ${EXPECTED_FIREBASE_PROJECT}.`);
+if (!adcProjectId) abort(`No se pudo confirmar el proyecto ADC. Se esperaba ${EXPECTED_FIREBASE_PROJECT}.`);
 if (!getApps().length) initializeApp({ credential, projectId: EXPECTED_FIREBASE_PROJECT });
 const db = getFirestore();
 const projectId = validateProjectId(args.project);
@@ -80,6 +82,14 @@ async function readLocalConfig() {
     try { return JSON.parse(await fs.readFile(file, 'utf8')); } catch { abort('No se encontró un .eventora-project.json válido en la carpeta actual.'); }
 }
 function detectCommit() { try { return execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: process.cwd(), encoding: 'utf8' }).trim() || null; } catch { return null; } }
+async function getAdcProjectId(credential) {
+    try { return await credential.getProjectId(); } catch { /* authorized_user ADC may not expose projectId through google-auth */ }
+    const adcPath = process.env.GOOGLE_APPLICATION_CREDENTIALS || path.join(process.env.APPDATA || path.join(os.homedir(), '.config'), 'gcloud', 'application_default_credentials.json');
+    try {
+        const adc = JSON.parse(await fs.readFile(adcPath, 'utf8'));
+        return adc.quota_project_id || adc.project_id || process.env.GOOGLE_CLOUD_PROJECT || '';
+    } catch { return process.env.GOOGLE_CLOUD_PROJECT || ''; }
+}
 function printStatus(data) { console.log(`Negocio: ${data.businessName || 'Sin nombre'}`); console.log(`Estado: ${data.projectStatus || 'Sin definir'}`); console.log(`Fase actual: ${STAGES.get(data.developmentStage) || data.developmentStage || 'Sin comenzar'}`); console.log(`Última actualización: ${data.lastUpdateSummary || 'Sin avances registrados.'}`); }
 function normalize(value) { return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase(); }
 function abort(message) { console.error(`ERROR: ${message}`); process.exit(1); }
