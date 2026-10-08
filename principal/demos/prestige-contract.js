@@ -1,10 +1,9 @@
 /**
  * Contrato comercial de las demostraciones Prestige.
  *
- * Fuente de verdad: paquetes/index.html (secciones #esencial, #premium y
- * #prestige). Prestige es acumulativo: incluye Premium y Premium incluye
- * Esencial. Los beneficios de servicio se conservan en PACKAGE_MATRIX, pero
- * solo las capacidades observables se exigen dentro de una invitación demo.
+ * Contrato legacy conservado temporalmente para el builder de invitaciones.
+ * Los beneficios de servicio se conservan en PACKAGE_MATRIX, pero solo las
+ * capacidades observables se exigen dentro de una invitación demo.
  */
 export const PACKAGE_MATRIX = Object.freeze({
   esencial: Object.freeze([
@@ -62,53 +61,6 @@ export const PRESTIGE_DEMO_FEATURES = Object.freeze([
   'advanced-personalization',
   'demo-notice',
   'footer-disclosure'
-]);
-
-export const PRESTIGE_DEMO_ARCHITECTURE = Object.freeze({
-  sourceRoute: '/paquetes/demos/prestige/',
-  sourceFiles: Object.freeze(['index.html', 'demo.css', 'demo.js']),
-  requiredSections: Object.freeze([
-    'opening',
-    'hero',
-    'welcome-story',
-    'welcome-video',
-    'countdown',
-    'gallery',
-    'dress-code',
-    'itinerary-and-locations',
-    'gift-registry',
-    'rsvp-and-access',
-    'advanced-personalization',
-    'footer-disclosure'
-  ]),
-  requiredInteractions: Object.freeze([
-    'open-after-user-action',
-    'music-after-user-action',
-    'countdown-live-region',
-    'video-preview-control',
-    'pass-selection',
-    'digital-or-printed-access-preview',
-    'demo-mode-external-action-interception',
-    'accessible-demo-dialog',
-    'internal-navigation',
-    'reduced-motion'
-  ]),
-  requiredConfig: Object.freeze([
-    'demoMode',
-    'guest.defaultName',
-    'guest.defaultPasses',
-    'event.title',
-    'event.date',
-    'event.time',
-    'locations',
-    'links'
-  ])
-});
-
-export const PRESTIGE_SERVICE_BENEFITS = Object.freeze([
-  'Atención personalizada',
-  'Más cambios incluidos',
-  'Atención prioritaria'
 ]);
 
 export const PRESTIGE_COMMERCIAL_DEMO_MAP = Object.freeze({
