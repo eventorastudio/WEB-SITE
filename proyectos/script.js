@@ -49,6 +49,8 @@ document.querySelector('#project-status-filter').addEventListener('change', rend
 document.querySelector('#project-stage-filter').addEventListener('change', renderProjectList);
 projectForm.addEventListener('submit', saveProject);
 updateForm.addEventListener('submit', saveUpdate);
+document.querySelector('#save-project-button').addEventListener('click', saveProject);
+document.querySelector('#save-update-button').addEventListener('click', saveUpdate);
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     if (!user) { showLogin(); return; }
