@@ -16,8 +16,7 @@ const updateSources = new Set(['codex', 'manual']);
 const fieldLimits = {
     businessName: 160, clientName: 160, businessType: 120, city: 120, whatsapp: 40, email: 254,
     package: 80, template: 80, hostingPlan: 80, maintenancePlan: 80, previewUrl: 500,
-    productionUrl: 500, repositoryUrl: 500, localProjectName: 120, scope: 2000, notes: 4000,
-    lastUpdateSummary: 500
+    productionUrl: 500, repositoryUrl: 500, localProjectName: 120, scope: 2000, notes: 4000
 };
 
 export const getProjects = onRequest({ region, invoker: 'public' }, async (req, res) => {
