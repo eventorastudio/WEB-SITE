@@ -42,3 +42,18 @@ test('website request form keeps template and plan query param whitelists', () =
   assert.match(script, /validTemplates\.includes\(templateParam\)/);
   assert.match(script, /validPlans\.includes\(planParam\)/);
 });
+
+test('website request form captures the required hosting preference', () => {
+  const script = read('solicitar/script.js');
+  const backend = read('functions/src/submit-website-request.js');
+  const messages = read('mensajes/script.js');
+  for (const value of ['files-only', 'hosting', 'hosting-maintenance', 'undecided']) {
+    assert.match(script, new RegExp(value));
+    assert.match(backend, new RegExp(value));
+  }
+  assert.match(script, /hostingPreference/);
+  assert.match(backend, /allowedHostingPreferences/);
+  assert.match(backend, /Selecciona una opci[oó]n de alojamiento v[aá]lida/);
+  assert.match(messages, /Preferencia de alojamiento/);
+  assert.match(messages, /No especificado/);
+});

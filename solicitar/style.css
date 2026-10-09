@@ -21,4 +21,4 @@ body.menu-open{overflow:visible}
 .request-process li::marker{color:#879f2d;font-weight:700}
 .form-payment-note{max-width:620px;margin:0 0 14px;color:#65705f;font-size:12px;line-height:1.55;font-weight:600}
 @media(max-width:700px){.request-process{margin-top:24px;padding-top:18px}.request-process h2{font-size:19px}.form-payment-note{margin-bottom:12px}}
-.promotion-callout{margin:1.25rem 0;padding:1rem 1.15rem;border:1px solid #d9e7d8;background:#f3f8f1;border-radius:18px;color:#17351d}.promotion-callout strong,.promotion-callout span{display:block}.promotion-callout span{margin-top:.3rem;color:#4c6250;font-size:.9rem;line-height:1.5}.promotion-callout a{display:inline-block;margin-top:.65rem;color:#17351d;font-weight:700}[data-promotion][hidden]{display:none!important}
+.hosting-preference-fieldset{border-color:#d9e7d8}.hosting-promotion-note{margin:18px 0 0;padding:12px 14px;border-left:3px solid #a6bf45;background:#f5f8ef;color:#65705f;font-size:12px;line-height:1.55}.hosting-promotion-note a{color:#42551a;font-weight:700;text-underline-offset:3px}

@@ -8,6 +8,7 @@ const statusKeys = Object.keys(statusLabels);
 const planLabels = { esencial: 'Esencial', profesional: 'Profesional', 'a-medida': 'A medida', 'no-estoy-seguro': 'Sin definir' };
 const templateLabels = { 'template-01': 'Eagles Burger', 'template-02': 'My Love Flowers', 'template-03': 'Premium Car', 'no-estoy-seguro': 'Sin diseño definido', 'algo-diferente': 'Otro diseño' };
 const needsLabels = { 'services-products': 'Servicios / productos', gallery: 'Galería', 'hours-location': 'Horarios / ubicación', 'contact-social': 'Contacto / redes', about: 'Sobre nosotros', other: 'Otro' };
+const hostingPreferenceLabels = { 'files-only': 'Solo entrega de archivos', hosting: 'Hosting', 'hosting-maintenance': 'Hosting + mantenimiento', undecided: 'Aún no lo sé' };
 const appView = document.querySelector('#app-view');
 const appStatus = document.querySelector('#app-status');
 const requestList = document.querySelector('#request-list');
@@ -143,6 +144,7 @@ function createBusinessSection(item) {
     addDefinition(section, 'Giro', item.businessType || 'No especificado');
     addDefinition(section, 'Ciudad / zona', item.city || 'No especificada');
     addDefinition(section, 'Paquete', planLabels[item.plan] || 'Sin definir');
+    addDefinition(section, 'Preferencia de alojamiento', hostingPreferenceLabels[item.hostingPreference] || 'No especificado');
     addDefinition(section, 'Diseño', templateLabels[item.template] || 'Sin diseño definido');
     addDefinition(section, 'Necesidades', formatNeeds(item.needs));
     addDefinition(section, 'Comentarios', item.notes || 'Sin comentarios');

@@ -9,6 +9,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const validPlans = ["esencial", "profesional", "a-medida", "no-estoy-seguro"];
   const validNeeds = ["services-products", "gallery", "hours-location", "contact-social", "about", "other"];
   const submitButton = form.querySelector(".submit-button");
+  addHostingPreferenceField();
+
+  function addHostingPreferenceField() {
+    const fieldset = document.createElement("fieldset");
+    fieldset.className = "hosting-preference-fieldset";
+    fieldset.innerHTML = `<legend>¿Qué opción prefieres para tu sitio?</legend><div class="style-options"><label class="style-option"><input type="radio" name="hostingPreference" value="files-only" required><span><strong>Solo entrega de archivos</strong><small>Sin mensualidad. Te entregamos el sitio para que lo alojes donde prefieras.</small></span></label><label class="style-option"><input type="radio" name="hostingPreference" value="hosting"><span><strong>Hosting</strong><small>$99 MXN / mes o $999 MXN / año · Publicamos y alojamos tu sitio.</small></span></label><label class="style-option"><input type="radio" name="hostingPreference" value="hosting-maintenance"><span><strong>Hosting + mantenimiento</strong><small>$199 MXN / mes o $1,999 MXN / año · Publicamos, alojamos y damos mantenimiento periódico.</small></span></label><label class="style-option"><input type="radio" name="hostingPreference" value="undecided"><span><strong>Aún no lo sé</strong><small>Podemos recomendarte la opción más conveniente.</small></span></label></div><p class="hosting-promotion-note">Promoción vigente: nuevos proyectos contratados antes del 31 de diciembre de 2026 incluyen 60 días GRATIS de Hosting + mantenimiento desde la publicación del sitio. <a href="/legal/terminos/">Aplican términos y condiciones.</a></p><small class="field-error" id="hostingPreference-error"></small>`;
+    form.querySelector("fieldset").after(fieldset);
+  }
 
   if (validTemplates.includes(templateParam)) {
     const selected = form.querySelector(`input[name="template"][value="${templateParam}"]`);
@@ -56,6 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const businessType = String(data.get("businessType") || "").trim();
     const city = String(data.get("city") || "").trim();
     const plan = String(data.get("plan") || "");
+    const hostingPreference = String(data.get("hostingPreference") || "");
     const template = String(data.get("template") || "");
     const needs = data.getAll("needs");
     const comments = String(data.get("notes") || "").trim();
@@ -68,6 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!business) { setError("business-name", "Escribe el nombre de tu negocio."); valid = false; }
     if (!businessType) { setError("business-type", "Cuéntanos qué tipo de negocio tienes."); valid = false; }
     if (!plan) { setError("plan", "Elige un paquete para continuar."); valid = false; }
+    if (!["files-only", "hosting", "hosting-maintenance", "undecided"].includes(hostingPreference)) { setError("hostingPreference", "Elige una opción de alojamiento para continuar."); valid = false; }
     if (!template) { setError("template", "Elige una dirección visual para continuar."); valid = false; }
     if (!needs.length || needs.some((need) => !validNeeds.includes(need))) { setError("needs", "Selecciona al menos una necesidad."); valid = false; }
 
@@ -86,7 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contactName: name, whatsapp, email, businessName: business, businessType, city, plan, template, needs, notes: comments, website })
+        body: JSON.stringify({ contactName: name, whatsapp, email, businessName: business, businessType, city, plan, template, hostingPreference, needs, notes: comments, website })
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok || !result.ok) throw new Error("request-failed");

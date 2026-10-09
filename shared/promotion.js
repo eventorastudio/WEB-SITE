@@ -42,10 +42,6 @@ function addPromotionMarkup() {
     if (hosting) hosting.after(makeCallout('promotion-callout', 'Promoción para nuevos proyectos', 'Incluye 60 días sin costo y no se renueva automáticamente.'));
   }
 
-  if (path === '/solicitar/' || path === '/solicitar') {
-    const intro = document.querySelector('.request-intro');
-    if (intro) intro.after(makeCallout('promotion-callout', 'Promoción vigente', `Tu proyecto puede incluir 60 días de Hosting + mantenimiento GRATIS si contratas antes del ${hostingMaintenancePromotion.endDateText}.`));
-  }
 }
 
 if (typeof document !== 'undefined') {

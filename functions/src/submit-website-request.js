@@ -10,11 +10,13 @@ const maxLengths = {
     businessName: 160,
     businessType: 160,
     city: 160,
+    hostingPreference: 24,
     notes: 700
 };
 const allowedPlans = new Set(['esencial', 'profesional', 'a-medida', 'no-estoy-seguro']);
 const allowedTemplates = new Set(['template-01', 'template-02', 'template-03', 'no-estoy-seguro', 'algo-diferente']);
 const allowedNeeds = new Set(['services-products', 'gallery', 'hours-location', 'contact-social', 'about', 'other']);
+const allowedHostingPreferences = new Set(['files-only', 'hosting', 'hosting-maintenance', 'undecided']);
 const allowedOrigins = new Set([
     'https://eventorastudio.com',
     'https://www.eventorastudio.com',
@@ -79,7 +81,7 @@ export const submitWebsiteRequest = onRequest({
 
     const unexpectedKeys = Object.keys(payload).filter((key) => !new Set([
         'contactName', 'whatsapp', 'email', 'businessName', 'businessType', 'city',
-        'plan', 'template', 'needs', 'notes', 'website'
+        'plan', 'template', 'hostingPreference', 'needs', 'notes', 'website'
     ]).has(key));
     if (unexpectedKeys.length) {
         res.status(400).json({ ok: false, message: 'Solicitud inválida.' });
@@ -105,6 +107,7 @@ export const submitWebsiteRequest = onRequest({
             city: data.city,
             plan: data.plan,
             template: data.template,
+            hostingPreference: data.hostingPreference,
             needs: data.needs,
             notes: data.notes
         });
@@ -134,6 +137,7 @@ function normalizePayload(payload) {
         city: normalizeString(payload.city),
         plan: normalizeString(payload.plan),
         template: normalizeString(payload.template),
+        hostingPreference: normalizeString(payload.hostingPreference),
         needs: Array.isArray(payload.needs)
             ? [...new Set(payload.needs.filter((value) => typeof value === 'string').map((value) => value.trim()))]
             : [],
@@ -154,6 +158,7 @@ function validatePayload(data) {
     if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) return 'El correo no es válido.';
     if (!data.businessName || !data.businessType) return 'Faltan datos del negocio.';
     if (!allowedPlans.has(data.plan) || !allowedTemplates.has(data.template)) return 'El paquete o diseño no es válido.';
+    if (!allowedHostingPreferences.has(data.hostingPreference)) return 'Selecciona una opción de alojamiento válida.';
     if (!data.needs.length || data.needs.length > allowedNeeds.size || data.needs.some((need) => !allowedNeeds.has(need))) return 'Selecciona necesidades válidas.';
     return '';
 }
