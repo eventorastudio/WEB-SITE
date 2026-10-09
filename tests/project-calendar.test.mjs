@@ -45,3 +45,13 @@ test('panel y backend exponen la vista y funciones protegidas del calendario', (
   assert.match(functions, /requireProjectAdmin/);
   assert.match(functions, /FieldValue\.serverTimestamp/);
 });
+
+test('el modal sólo valida al guardar y los controles de cierre no hacen submit', () => {
+  const html = read('proyectos/index.html');
+  assert.match(html, /id="close-calendar-event-button"[^>]+type="button"/);
+  assert.match(html, /id="cancel-calendar-event-button"[^>]+type="button"/);
+  assert.match(html, /id="save-calendar-event-button"[^>]+type="submit"/);
+  assert.doesNotMatch(html, /id="calendar-event-form"[^>]+method="dialog"/);
+  assert.match(read('proyectos/script.js'), /calendarEventDialog\.addEventListener\('click'/);
+  assert.match(read('proyectos/script.js'), /calendarEventForm\.addEventListener\('submit', saveCalendarEvent\)/);
+});
