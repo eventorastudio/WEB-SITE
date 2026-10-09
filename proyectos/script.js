@@ -1,9 +1,7 @@
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { auth } from './firebase.js';
 import { buildMonthGrid, calendarRange, calendarWeekdays, dateKey, eventStatus, filterEvents, monthLabel } from './calendar.js';
 
-const AUTHORIZED_UID = 'aE9nvEOlExYjYxPfAEnoEt3XIdv2';
-const AUTHORIZED_EMAIL = 'ev3ntorastudio@gmail.com';
 const functionsBaseUrl = 'https://us-central1-eventorastudio-d6d95.cloudfunctions.net';
 const maintenanceActivityUrl = '/registerMaintenanceActivity';
 const calendarEventsUrl = '/getCalendarEvents';
@@ -16,10 +14,7 @@ const projectFields = [
     ['businessName', 'Negocio*', 'text'], ['clientName', 'Cliente*', 'text'], ['businessType', 'Giro', 'text'], ['city', 'Ciudad', 'text'], ['whatsapp', 'WhatsApp', 'tel'], ['email', 'Correo', 'email'], ['package', 'Paquete*', 'text'], ['template', 'Diseño de referencia', 'text'], ['totalPrice', 'Precio total', 'number'], ['depositAmount', 'Anticipo', 'number'], ['remainingAmount', 'Saldo restante', 'number'], ['projectStatus', 'Estado', 'select:lead|awaiting-deposit|active|client-review|awaiting-final-payment|ready-to-publish|published|paused|cancelled|completed'], ['developmentStage', 'Fase de desarrollo', 'select:not-started|setup|skeleton|visual-design|content|functionality|responsive|qa|client-review|revisions|final-review|ready-to-publish|published'], ['paymentStatus', 'Estado de pago', 'select:pending|deposit-paid|paid'], ['hostingPlan', 'Plan de hosting', 'text'], ['hostingStartDate', 'Inicio hosting', 'date'], ['hostingRenewalDate', 'Renovación hosting', 'date'], ['maintenancePlan', 'Plan de mantenimiento', 'text'], ['maintenanceFrequency', 'Frecuencia mantenimiento', 'select:monthly'], ['maintenanceRequestsLimit', 'Límite mensual', 'number'], ['maintenanceRequestsUsed', 'Cambios utilizados', 'number'], ['maintenancePeriodStart', 'Inicio del periodo', 'date'], ['maintenancePeriodEnd', 'Fin del periodo', 'date'], ['lastMaintenanceReviewAt', 'Última revisión preventiva', 'date'], ['nextMaintenanceReviewAt', 'Próxima revisión preventiva', 'date'], ['lastQuarterlyReviewAt', 'Última revisión trimestral', 'date'], ['nextQuarterlyReviewAt', 'Próxima revisión trimestral', 'date'], ['maintenanceRenewalDate', 'Renovación mantenimiento', 'date'], ['maintenanceNotes', 'Notas de mantenimiento', 'textarea'], ['localProjectName', 'Referencia local', 'text'], ['previewUrl', 'URL de preview', 'url'], ['productionUrl', 'URL de producción', 'url'], ['repositoryUrl', 'Repositorio', 'url'], ['scope', 'Alcance', 'textarea'], ['notes', 'Notas internas', 'textarea']
 ];
 const updateFields = [['stage', 'Fase', 'select-stages'], ['title', 'Título', 'text'], ['description', 'Descripción', 'textarea'], ['commit', 'Commit opcional', 'text']];
-const loginView = document.querySelector('#login-view');
 const appView = document.querySelector('#app-view');
-const loginForm = document.querySelector('#login-form');
-const loginStatus = document.querySelector('#login-status');
 const appStatus = document.querySelector('#app-status');
 const projectList = document.querySelector('#project-list');
 const detailView = document.querySelector('#project-detail');
@@ -49,17 +44,6 @@ let currentProject = null;
 
 renderFields(document.querySelector('#project-fields'), projectFields);
 renderFields(document.querySelector('#update-fields'), updateFields);
-loginForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    loginStatus.textContent = '';
-    const email = document.querySelector('#login-email').value.trim().toLowerCase();
-    const password = document.querySelector('#login-password').value;
-    if (!email || !password) { loginStatus.textContent = 'Escribe tu correo y contraseña.'; return; }
-    const button = loginForm.querySelector('button'); button.disabled = true; button.textContent = 'ENTRANDO...';
-    try { await signInWithEmailAndPassword(auth, email, password); }
-    catch { loginStatus.textContent = 'No pudimos iniciar sesión con esos datos.'; button.disabled = false; button.textContent = 'ENTRAR'; }
-});
-document.querySelector('#logout-button').addEventListener('click', () => signOut(auth));
 document.querySelector('#refresh-button').addEventListener('click', loadProjects);
 document.querySelector('#new-project-button').addEventListener('click', () => openProjectDialog());
 document.querySelector('#project-search').addEventListener('input', renderProjectList);
@@ -87,9 +71,7 @@ document.querySelector('#save-project-button').addEventListener('click', savePro
 document.querySelector('#save-update-button').addEventListener('click', saveUpdate);
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
-    if (!user) { showLogin(); return; }
-    const authorized = user.uid === AUTHORIZED_UID && user.email?.trim().toLowerCase() === AUTHORIZED_EMAIL;
-    if (!authorized) { await signOut(auth); loginStatus.textContent = 'Acceso no autorizado.'; return; }
+    if (!user) { redirectToAdmin(); return; }
     showApp(); await loadProjects(); if (location.hash === '#calendario') activateView('calendar');
 });
 
@@ -170,8 +152,8 @@ function actionButton(label, handler) { const button = document.createElement('b
 function createPill(text, status) { const pill = document.createElement('span'); pill.className = `pill ${status === 'client-review' ? 'review' : status?.includes('payment') ? 'payment' : ''}`; pill.textContent = text; return pill; }
 function createMessage(text, className) { const message = document.createElement('p'); message.className = className; message.textContent = text; return message; }
 async function authorizedFetch(path, options = {}) { const token = await currentUser.getIdToken(); const response = await fetch(`${functionsBaseUrl}${path}`, { ...options, headers: { ...(options.headers || {}), Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }); const result = await response.json().catch(() => ({})); if (!response.ok || !result.ok) throw new Error(result.message || 'La operación no pudo completarse.'); return result; }
-function showLogin() { loginView.hidden = false; appView.hidden = true; }
-function showApp() { loginView.hidden = true; appView.hidden = false; }
+function redirectToAdmin() { if (window.top === window.self) location.replace('/admin/#proyectos'); }
+function showApp() { appView.hidden = false; }
 function setAppStatus(value) { appStatus.textContent = value; }
 function setText(selector, value) { document.querySelector(selector).textContent = String(value); }
 function friendlyError(error, fallback) { return error?.message && !/firebase|permission|function|network/i.test(error.message) ? error.message : fallback; }

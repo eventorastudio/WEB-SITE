@@ -15,23 +15,7 @@
 </head>
 <body>
   <main class="messages-shell">
-    <section id="login-view" class="login-card" aria-labelledby="login-title">
-      <a class="brand" href="/principal/" aria-label="Eventora Studio, inicio">
-        <img class="brand-logo" src="/assets/brand/logo-trimmed.png" alt="Eventora Studio">
-      </a>
-      <h1 id="login-title">Mensajes</h1>
-      <p>Accede a las solicitudes de páginas de Eventora Studio.</p>
-      <form id="login-form" novalidate>
-        <label for="login-email">Correo</label>
-        <input id="login-email" type="email" autocomplete="username" required>
-        <label for="login-password">Contraseña</label>
-        <input id="login-password" type="password" autocomplete="current-password" required>
-        <button class="button button-dark" type="submit">ENTRAR</button>
-        <p id="login-status" class="status" role="status" aria-live="polite"></p>
-      </form>
-    </section>
-
-    <section id="app-view" class="app-view" hidden aria-labelledby="app-title">
+    <section id="app-view" class="app-view" aria-labelledby="app-title" hidden>
       <header class="app-header">
         <div>
           <a class="brand" href="/principal/" aria-label="Eventora Studio, inicio">
@@ -39,7 +23,6 @@
           </a>
           <h1 id="app-title">Mensajes</h1>
         </div>
-        <button id="logout-button" class="button button-light" type="button">Cerrar sesión</button>
       </header>
       <div id="app-status" class="status" role="status" aria-live="polite"></div>
       <div class="summary-grid" aria-label="Resumen de solicitudes">

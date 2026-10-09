@@ -1,21 +1,14 @@
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { auth } from './firebase.js';
 import { buildWhatsAppUrl, normalizeWhatsAppNumber } from '../shared/utils/whatsapp.js';
 
-const authorizedUsers = [
-    { email: 'messages@gmail.com', uid: 'fzERhhRbsAfHcm55drt5lmAxn6J3' },
-    { email: 'ev3ntorastudio@gmail.com', uid: 'aE9nvEOlExYjYxPfAEnoEt3XIdv2' }
-];
 const functionsBaseUrl = 'https://us-central1-eventorastudio-d6d95.cloudfunctions.net';
 const statusLabels = { new: 'Nueva', contacted: 'Contactado', in_progress: 'En proceso', completed: 'Finalizada' };
 const statusKeys = Object.keys(statusLabels);
 const planLabels = { esencial: 'Esencial', profesional: 'Profesional', 'a-medida': 'A medida', 'no-estoy-seguro': 'Sin definir' };
 const templateLabels = { 'template-01': 'Eagles Burger', 'template-02': 'My Love Flowers', 'template-03': 'Premium Car', 'no-estoy-seguro': 'Sin diseño definido', 'algo-diferente': 'Otro diseño' };
 const needsLabels = { 'services-products': 'Servicios / productos', gallery: 'Galería', 'hours-location': 'Horarios / ubicación', 'contact-social': 'Contacto / redes', about: 'Sobre nosotros', other: 'Otro' };
-const loginView = document.querySelector('#login-view');
 const appView = document.querySelector('#app-view');
-const loginForm = document.querySelector('#login-form');
-const loginStatus = document.querySelector('#login-status');
 const appStatus = document.querySelector('#app-status');
 const requestList = document.querySelector('#request-list');
 const requestDetail = document.querySelector('#request-detail');
@@ -31,20 +24,6 @@ let requests = [];
 let selectedRequestId = null;
 let pendingDeleteId = null;
 
-loginForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    loginStatus.textContent = '';
-    const email = document.querySelector('#login-email').value.trim();
-    const password = document.querySelector('#login-password').value;
-    if (!email || !password) { loginStatus.textContent = 'Escribe tu correo y contraseña.'; return; }
-    const button = loginForm.querySelector('button');
-    button.disabled = true;
-    button.textContent = 'ENTRANDO...';
-    try { await signInWithEmailAndPassword(auth, email, password); }
-    catch { loginStatus.textContent = 'No pudimos iniciar sesión con esos datos.'; button.disabled = false; button.textContent = 'ENTRAR'; }
-});
-
-document.querySelector('#logout-button').addEventListener('click', () => signOut(auth));
 document.querySelector('#refresh-button').addEventListener('click', () => loadRequests());
 searchInput.addEventListener('input', renderList);
 statusFilter.addEventListener('change', renderList);
@@ -57,14 +36,7 @@ document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && 
 
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
-    if (!user) { showLogin(); return; }
-    const normalizedEmail = user.email?.trim().toLowerCase();
-    const isAuthorized = authorizedUsers.some((authorizedUser) => authorizedUser.uid === user.uid && authorizedUser.email === normalizedEmail);
-    if (!isAuthorized) {
-        await signOut(auth);
-        loginStatus.textContent = 'Acceso no autorizado.';
-        return;
-    }
+    if (!user) { redirectToAdmin(); return; }
     showApp();
     await loadRequests();
 });
@@ -289,5 +261,5 @@ function normalizeText(value) { return String(value ?? '').normalize('NFD').repl
 function setText(selector, value) { document.querySelector(selector).textContent = String(value); }
 function setAppStatus(message) { appStatus.textContent = message; }
 function friendlyError(error, fallback) { return error?.message && !/firebase|permission|function|network/i.test(error.message) ? error.message : fallback; }
-function showLogin() { loginView.hidden = false; appView.hidden = true; }
-function showApp() { loginView.hidden = true; appView.hidden = false; }
+function redirectToAdmin() { if (window.top === window.self) location.replace('/admin/#mensajes'); }
+function showApp() { appView.hidden = false; }

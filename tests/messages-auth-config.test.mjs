@@ -7,20 +7,14 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 
-test('mensajes usa exclusivamente las combinaciones administrativas autorizadas', () => {
+test('admin centraliza el acceso y mensajes conserva la protección de backend', () => {
   const frontend = read('mensajes/script.js');
+  const admin = read('admin/script.js');
   const backend = read('functions/src/admin-auth.js');
-  const users = [
-    ['messages@gmail.com', 'fzERhhRbsAfHcm55drt5lmAxn6J3'],
-    ['ev3ntorastudio@gmail.com', 'aE9nvEOlExYjYxPfAEnoEt3XIdv2']
-  ];
-  for (const source of [frontend, backend]) {
-    for (const [email, uid] of users) {
-      assert.match(source, new RegExp(email.replace('.', '\\.'), 'i'));
-      assert.match(source, new RegExp(uid));
-    }
-  }
-  assert.match(frontend, /authorizedUsers\.some/);
+  assert.match(admin, /ev3ntorastudio@gmail\.com/);
+  assert.match(admin, /aE9nvEOlExYjYxPfAEnoEt3XIdv2/);
+  assert.match(frontend, /redirectToAdmin/);
+  assert.doesNotMatch(frontend, /signInWithEmailAndPassword/);
   assert.match(backend, /AUTHORIZED_USERS\.some/);
   assert.match(backend, /decodedToken\??\.email/);
   assert.match(backend, /decodedToken\??\.uid/);

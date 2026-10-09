@@ -21,7 +21,8 @@ test('proyectos usa App Check, Auth y no Firestore directo', () => {
   assert.match(frontend, /initializeAppCheck/);
   assert.match(frontend, /ReCaptchaV3Provider/);
   assert.match(frontend, /isTokenAutoRefreshEnabled: true/);
-  assert.match(script, /signInWithEmailAndPassword/);
+  assert.match(script, /redirectToAdmin/);
+  assert.doesNotMatch(script, /signInWithEmailAndPassword/);
   assert.match(script, /getIdToken/);
   assert.doesNotMatch(script, /firebase-firestore|initializeFirestore|getFirestore/);
   assert.doesNotMatch(script, /innerHTML/);

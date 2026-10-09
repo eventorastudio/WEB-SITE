@@ -14,22 +14,10 @@
 </head>
 <body>
   <main class="projects-shell">
-    <section id="login-view" class="login-card" aria-labelledby="login-title">
-      <a class="brand" href="/principal/" aria-label="Eventora Studio, inicio"><img src="/assets/brand/logo-trimmed.png" alt="Eventora Studio"></a>
-      <h1 id="login-title">Proyectos</h1>
-      <p>Seguimiento de desarrollo, revisiones, hosting y mantenimiento.</p>
-      <form id="login-form" novalidate>
-        <label for="login-email">Correo</label><input id="login-email" type="email" autocomplete="username" required>
-        <label for="login-password">Contraseña</label><input id="login-password" type="password" autocomplete="current-password" required>
-        <button class="button button-dark" type="submit">ENTRAR</button>
-        <p id="login-status" class="status" role="status" aria-live="polite"></p>
-      </form>
-    </section>
-
-    <section id="app-view" hidden aria-labelledby="app-title">
+    <section id="app-view" aria-labelledby="app-title" hidden>
       <header class="app-header">
         <div><a class="brand" href="/principal/" aria-label="Eventora Studio, inicio"><img src="/assets/brand/logo-trimmed.png" alt="Eventora Studio"></a><h1 id="app-title">Proyectos</h1></div>
-        <div class="header-actions"><button id="new-project-button" class="button button-dark" type="button">Nuevo proyecto</button><button id="logout-button" class="button button-light" type="button">Cerrar sesión</button></div>
+        <div class="header-actions"><button id="new-project-button" class="button button-dark" type="button">Nuevo proyecto</button></div>
       </header>
       <div id="app-status" class="status" role="status" aria-live="polite"></div>
       <nav class="view-tabs" aria-label="Vistas del panel"><a id="projects-tab" class="view-tab active" href="/proyectos/" aria-current="page">Proyectos</a><a id="calendar-tab" class="view-tab" href="/proyectos/#calendario">Calendario<span id="calendar-pending-badge" class="tab-badge" hidden></span></a></nav>

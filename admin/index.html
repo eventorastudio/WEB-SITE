@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow"><meta name="description" content="Administración privada de Eventora Studio.">
+  <title>Admin | Eventora Studio</title>
+  <link rel="icon" href="/assets/brand/favicon/favicon.ico"><link rel="stylesheet" href="./style.css?v=admin-v1">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main class="admin-shell">
+    <section id="login-view" class="login-card" aria-labelledby="login-title">
+      <a class="brand" href="/principal/"><img src="/assets/brand/logo-trimmed.png" alt="Eventora Studio"></a>
+      <p class="eyebrow">Panel privado</p><h1 id="login-title">Admin</h1>
+      <p>Proyectos, mensajes y prospección comercial en un solo lugar.</p>
+      <form id="login-form" novalidate><label for="login-email">Correo</label><input id="login-email" type="email" autocomplete="username" required>
+        <label for="login-password">Contraseña</label><input id="login-password" type="password" autocomplete="current-password" required>
+        <button class="button button-dark" type="submit">ENTRAR</button><p id="login-status" class="status" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+    <section id="app-view" class="app-view" hidden aria-labelledby="app-title">
+      <header class="app-header"><div><a class="brand" href="/principal/"><img src="/assets/brand/logo-trimmed.png" alt="Eventora Studio"></a><p class="eyebrow">Centro de operaciones</p><h1 id="app-title">Admin</h1></div>
+        <button id="logout-button" class="button button-light" type="button">Cerrar sesión</button></header>
+      <div id="app-status" class="status" role="status" aria-live="polite"></div>
+      <nav class="admin-nav" aria-label="Módulos de administración"><button class="nav-button active" data-module="#prospeccion" type="button">Prospección</button><button class="nav-button" data-module="#proyectos" type="button">Proyectos</button><button class="nav-button" data-module="#mensajes" type="button">Mensajes</button></nav>
+      <section class="module-frame"><iframe id="module-frame" title="Módulo de administración" src="/admin/prospeccion/"></iframe></section>
+    </section>
+  </main>
+  <script type="module" src="./script.js?v=admin-v1"></script>
+</body>
+</html>

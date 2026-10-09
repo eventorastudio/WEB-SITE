@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/current-public-flow.test.mjs tests/website-utils.test.mjs tests/template-integrations.test.mjs tests/website-request-form.test.mjs tests/messages-panel.test.mjs tests/messages-auth-config.test.mjs tests/seo-public-metadata.test.mjs tests/principal-conversion.test.mjs tests/projects-panel.test.mjs tests/project-calendar.test.mjs"
+    "test": "node --test tests/current-public-flow.test.mjs tests/website-utils.test.mjs tests/template-integrations.test.mjs tests/website-request-form.test.mjs tests/messages-panel.test.mjs tests/messages-auth-config.test.mjs tests/admin-panel.test.mjs tests/seo-public-metadata.test.mjs tests/principal-conversion.test.mjs tests/projects-panel.test.mjs tests/project-calendar.test.mjs"
   }
 }
