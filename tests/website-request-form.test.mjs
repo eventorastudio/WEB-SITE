@@ -76,3 +76,16 @@ test('website request flow preserves all hosting preference labels through the a
     assert.match(messages, new RegExp(label.replace(/[+]/g, '\\+')));
   }
 });
+
+test('website request submit restores state on success, error and timeout', () => {
+  const script = read('solicitar/script.js');
+  assert.match(script, /let isSubmitting = false/);
+  assert.match(script, /if \(isSubmitting\) return/);
+  assert.match(script, /const setSubmitting = \(submitting\)/);
+  assert.match(script, /form\.reset\(\)/);
+  assert.match(script, /notesCount\.textContent = "0"/);
+  assert.match(script, /finally \{\s*setSubmitting\(false\)/s);
+  assert.match(script, /error\?\.status === 429/);
+  assert.match(script, /error\?\.name === "AbortError"/);
+  assert.doesNotMatch(script, /form\.querySelectorAll\("input, textarea"\)\.forEach\(\(field\) => \{ field\.disabled = true/);
+});

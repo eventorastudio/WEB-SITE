@@ -9,6 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const validPlans = ["esencial", "profesional", "a-medida", "no-estoy-seguro"];
   const validNeeds = ["services-products", "gallery", "hours-location", "contact-social", "about", "other"];
   const submitButton = form.querySelector(".submit-button");
+  const originalButtonMarkup = submitButton.innerHTML;
+  let isSubmitting = false;
   addHostingPreferenceField();
 
   function addHostingPreferenceField() {
@@ -41,19 +43,38 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const clearErrors = () => {
+    clearFieldErrors();
+    formStatus.textContent = "";
+    formStatus.removeAttribute("data-state");
+  };
+
+  const clearFieldErrors = () => {
     document.querySelectorAll(".field-error").forEach((error) => {
       error.textContent = "";
       error.removeAttribute("role");
     });
     document.querySelectorAll(".has-error").forEach((field) => field.classList.remove("has-error"));
-    formStatus.textContent = "";
-    formStatus.removeAttribute("data-state");
+  };
+
+  const setSubmitting = (submitting) => {
+    isSubmitting = submitting;
+    submitButton.disabled = submitting;
+    submitButton.setAttribute("aria-busy", String(submitting));
+    submitButton.innerHTML = submitting ? "ENVIANDO..." : originalButtonMarkup;
+    if (!submitting && window.lucide?.createIcons) window.lucide.createIcons();
+  };
+
+  const resetFormAfterSuccess = () => {
+    form.reset();
+    notesCount.textContent = "0";
+    clearFieldErrors();
   };
 
   const endpoint = "https://us-central1-eventorastudio-d6d95.cloudfunctions.net/submitWebsiteRequest";
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (isSubmitting) return;
     clearErrors();
 
     const data = new FormData(form);
@@ -87,8 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    submitButton.disabled = true;
-    submitButton.textContent = "ENVIANDO...";
+    setSubmitting(true);
     formStatus.dataset.state = "sending";
     formStatus.textContent = "Enviando...";
 
@@ -97,12 +117,16 @@ document.addEventListener("DOMContentLoaded", () => {
       await apiFetch(endpoint, { appCheck, getAppCheckToken: getToken, options: { method: "POST", body: JSON.stringify({ contactName: name, whatsapp, email, businessName: business, businessType, city, plan, template, hostingPreference, needs, notes: comments, website }) } });
       formStatus.dataset.state = "success";
       formStatus.textContent = "Solicitud recibida. La revisaremos y te contactaremos para definir el alcance. No se realizó ningún cobro.";
-      form.querySelectorAll("input, textarea").forEach((field) => { field.disabled = true; });
+      resetFormAfterSuccess();
     } catch (error) {
       formStatus.dataset.state = "error";
-      formStatus.textContent = error?.name === "AbortError" ? "La solicitud está tardando demasiado. Intenta nuevamente." : "No pudimos enviar tu solicitud. Intenta de nuevo en unos momentos.";
-      submitButton.disabled = false;
-      submitButton.textContent = "ENVIAR";
+      formStatus.textContent = error?.name === "AbortError"
+        ? "La solicitud está tardando demasiado. Intenta nuevamente."
+        : error?.status === 429
+          ? "Demasiadas solicitudes. Intenta de nuevo más tarde."
+          : "No pudimos enviar tu solicitud. Intenta de nuevo en unos momentos.";
+    } finally {
+      setSubmitting(false);
     }
   });
 });
