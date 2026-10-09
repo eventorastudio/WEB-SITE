@@ -3,6 +3,7 @@ import { logger } from 'firebase-functions';
 import { onRequest } from 'firebase-functions/v2/https';
 
 import { applyProjectCors, requireProjectAdmin } from './project-auth.js';
+import { promotionIsEligible } from './promotion.js';
 
 const region = 'us-central1';
 const projectsCollection = 'projects';
@@ -95,6 +96,7 @@ function deriveProjectEvents(project, range) {
         add(project.maintenanceRenewalDate, 'maintenance-renewal', 'Renovación de mantenimiento', 'Renovación · Mantenimiento');
     }
     if (project.hostingEnabled === true) add(project.hostingRenewalDate, 'hosting-renewal', 'Renovación de hosting', 'Renovación · Hosting');
+    if (promotionIsEligible(project, project.id) && project.promotionStatus === 'active') add(project.promotionEndDate, 'promotion-end', 'Fin de 60 días gratis', 'Promoción');
     return events;
 }
 

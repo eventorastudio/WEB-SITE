@@ -6,7 +6,7 @@ import { applyProjectCors, requireProjectAdmin } from './project-auth.js';
 const region = 'us-central1';
 const collectionName = 'prospects';
 const statuses = new Set(['new', 'review', 'ready_to_contact', 'contacted', 'follow_up', 'responded', 'interested', 'proposal', 'negotiation', 'client', 'not_interested', 'no_response', 'discarded']);
-const fields = ['businessName', 'category', 'city', 'email', 'phone', 'website', 'facebook', 'instagram', 'contactStatus', 'channel', 'package', 'priceReference', 'proposal', 'angle', 'notes', 'firstContactAt', 'lastContactAt', 'nextFollowUpAt', 'priority', 'score'];
+const fields = ['businessName', 'category', 'city', 'email', 'phone', 'website', 'facebook', 'instagram', 'contactStatus', 'channel', 'package', 'priceReference', 'proposal', 'angle', 'notes', 'firstContactAt', 'lastContactAt', 'nextFollowUpAt', 'priority', 'score', 'promotion'];
 
 export const getProspects = onRequest({ region, invoker: 'public' }, async (req, res) => {
   if (!applyProjectCors(req, res)) return; if (req.method === 'OPTIONS') return res.status(204).send(''); if (req.method !== 'GET') return res.status(405).json({ ok: false, message: 'Método no permitido.' }); if (!await requireProjectAdmin(req, res)) return;
@@ -42,7 +42,7 @@ export const deleteProspect = onRequest({ region, invoker: 'public' }, async (re
   catch (error) { logger.error('Prospect delete failed.', error); res.status(500).json({ ok: false, message: 'No pudimos eliminar el prospecto.' }); }
 });
 
-function normalize(body = {}) { const data = Object.fromEntries(fields.map((field) => [field, String(body[field] ?? '').trim()])); if (!statuses.has(data.contactStatus)) data.contactStatus = 'new'; return data; }
+function normalize(body = {}) { const data = Object.fromEntries(fields.map((field) => [field, String(body[field] ?? '').trim()])); data.promotionEligible = body.promotionEligible === true || body.promotionEligible === 'true' || body.promotionEligible === 'on'; if (!statuses.has(data.contactStatus)) data.contactStatus = 'new'; return data; }
 function normalizeKey(value) { return String(value || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
 function serialize(document) { const data = document.data(); return { id: document.id, ...data, createdAt: iso(data.createdAt), updatedAt: iso(data.updatedAt) }; }
 function iso(value) { return value?.toDate instanceof Function ? value.toDate().toISOString() : null; }

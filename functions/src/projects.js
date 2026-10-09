@@ -3,6 +3,7 @@ import { logger } from 'firebase-functions';
 import { onRequest } from 'firebase-functions/v2/https';
 
 import { applyProjectCors, requireProjectAdmin } from './project-auth.js';
+import { applyPromotionLifecycle } from './promotion.js';
 
 const region = 'us-central1';
 const collectionName = 'projects';
@@ -16,12 +17,15 @@ const maintenanceFrequencies = new Set(['monthly']);
 const maintenanceActivityTypes = new Set(['preventive', 'quarterly', 'request']);
 const maintenanceRequestTypes = new Set(['included', 'extra']);
 const updateSources = new Set(['codex', 'manual']);
+const promotionStatuses = new Set(['eligible', 'active', 'expired', 'converted', 'declined']);
+const promotionContinuityOptions = new Set(['pending', 'hosting-monthly', 'hosting-annual', 'maintenance-monthly', 'maintenance-annual', 'no-continues']);
 const fieldLimits = {
     businessName: 160, clientName: 160, businessType: 120, city: 120, whatsapp: 40, email: 254,
     package: 80, template: 80, hostingPlan: 80, maintenancePlan: 80, previewUrl: 500,
     productionUrl: 500, repositoryUrl: 500, localProjectName: 120, scope: 2000, notes: 4000, maintenanceNotes: 2000,
     hostingStartDate: 10, hostingRenewalDate: 10, maintenanceFrequency: 20, maintenancePeriodStart: 10, maintenancePeriodEnd: 10,
-    lastMaintenanceReviewAt: 10, nextMaintenanceReviewAt: 10, lastQuarterlyReviewAt: 10, nextQuarterlyReviewAt: 10, maintenanceRenewalDate: 10
+    lastMaintenanceReviewAt: 10, nextMaintenanceReviewAt: 10, lastQuarterlyReviewAt: 10, nextQuarterlyReviewAt: 10, maintenanceRenewalDate: 10,
+    promotionCode: 80, promotionStartDate: 10, promotionEndDate: 10, promotionStatus: 20, promotionContinuity: 40
 };
 
 export const getProjects = onRequest({ region, invoker: 'public' }, async (req, res) => {
@@ -60,7 +64,7 @@ export const createProject = onRequest({ region, invoker: 'public' }, async (req
     if (req.method === 'OPTIONS') { res.status(204).send(''); return; }
     if (req.method !== 'POST') { res.status(405).json({ ok: false, message: 'Método no permitido.' }); return; }
     if (!await requireProjectAdmin(req, res)) return;
-    const data = normalizeProject(req.body);
+    const data = applyPromotionLifecycle(normalizeProject(req.body));
     const validationError = validateProject(data, true);
     if (validationError) { res.status(400).json({ ok: false, message: validationError }); return; }
     try {
@@ -84,11 +88,14 @@ export const updateProject = onRequest({ region, invoker: 'public' }, async (req
     if (req.method !== 'POST') { res.status(405).json({ ok: false, message: 'Método no permitido.' }); return; }
     if (!await requireProjectAdmin(req, res)) return;
     const id = readId(req.body?.id);
-    const data = normalizeProject(req.body);
-    const validationError = validateProject(data, true);
-    if (!id || validationError) { res.status(400).json({ ok: false, message: validationError || 'Proyecto inválido.' }); return; }
     try {
-        await getFirestore().collection(collectionName).doc(id).update({ ...data, updatedAt: FieldValue.serverTimestamp() });
+        const reference = getFirestore().collection(collectionName).doc(id);
+        const current = await reference.get();
+        if (!current.exists) { res.status(404).json({ ok: false, message: 'Proyecto no encontrado.' }); return; }
+        const data = applyPromotionLifecycle(normalizeProject(req.body), id);
+        const validationError = validateProject(data, true);
+        if (validationError) { res.status(400).json({ ok: false, message: validationError }); return; }
+        await reference.update({ ...data, updatedAt: FieldValue.serverTimestamp() });
         res.json({ ok: true });
     } catch (error) {
         logFailure('project/update-failed', error);
@@ -226,6 +233,7 @@ function normalizeProject(payload) {
         maintenanceStatus: maintenanceEnabled ? (text('maintenanceStatus') || 'pending') : 'not-applicable', maintenanceFrequency: maintenanceEnabled ? (text('maintenanceFrequency') || 'monthly') : '',
         maintenanceRequestsLimit, maintenanceRequestsUsed: integer('maintenanceRequestsUsed'), maintenancePeriodStart: text('maintenancePeriodStart'), maintenancePeriodEnd: text('maintenancePeriodEnd'),
         lastMaintenanceReviewAt: text('lastMaintenanceReviewAt'), nextMaintenanceReviewAt: text('nextMaintenanceReviewAt'), lastQuarterlyReviewAt: text('lastQuarterlyReviewAt'), nextQuarterlyReviewAt: text('nextQuarterlyReviewAt'), maintenanceRenewalDate: text('maintenanceRenewalDate'), maintenanceNotes: text('maintenanceNotes'),
+        promotionCode: text('promotionCode'), promotionStartDate: text('promotionStartDate'), promotionEndDate: text('promotionEndDate'), promotionStatus: text('promotionStatus'), promotionContinuity: text('promotionContinuity') || 'pending',
         previewUrl: text('previewUrl'), productionUrl: text('productionUrl'), repositoryUrl: text('repositoryUrl'), localProjectName: text('localProjectName'),
         scope: text('scope'), notes: text('notes')
     };
@@ -240,8 +248,10 @@ function validateProject(data, required) {
     if (data.paymentStatus && !paymentStatuses.has(data.paymentStatus)) return 'Estado de pago inválido.';
     if (!hostingStatuses.has(data.hostingStatus) || !hostingStatuses.has(data.maintenanceStatus)) return 'Estado de servicio inválido.';
     if (data.maintenanceEnabled && !maintenanceFrequencies.has(data.maintenanceFrequency)) return 'Frecuencia de mantenimiento inválida.';
+    if (data.promotionStatus && !promotionStatuses.has(data.promotionStatus)) return 'Estado de promoción inválido.';
+    if (!promotionContinuityOptions.has(data.promotionContinuity)) return 'Continuidad de promoción inválida.';
     if (data.maintenanceRequestsLimit < 0 || data.maintenanceRequestsLimit > 100 || data.maintenanceRequestsUsed < 0 || data.maintenanceRequestsUsed > data.maintenanceRequestsLimit) return 'Límite o uso de solicitudes inválido.';
-    for (const key of ['hostingStartDate', 'hostingRenewalDate', 'maintenanceRenewalDate', 'maintenancePeriodStart', 'maintenancePeriodEnd', 'lastMaintenanceReviewAt', 'nextMaintenanceReviewAt', 'lastQuarterlyReviewAt', 'nextQuarterlyReviewAt']) if (data[key] && !isDateString(data[key])) return 'Una fecha de mantenimiento no es válida.';
+    for (const key of ['hostingStartDate', 'hostingRenewalDate', 'maintenanceRenewalDate', 'maintenancePeriodStart', 'maintenancePeriodEnd', 'lastMaintenanceReviewAt', 'nextMaintenanceReviewAt', 'lastQuarterlyReviewAt', 'nextQuarterlyReviewAt', 'promotionStartDate', 'promotionEndDate']) if (data[key] && !isDateString(data[key])) return 'Una fecha de mantenimiento o promoción no es válida.';
     if (data.email && !/^\S+@\S+\.\S+$/.test(data.email)) return 'El correo no es válido.';
     for (const key of ['previewUrl', 'productionUrl', 'repositoryUrl']) if (data[key] && !/^https?:\/\//i.test(data[key])) return 'Las URLs deben comenzar con http o https.';
     return '';
