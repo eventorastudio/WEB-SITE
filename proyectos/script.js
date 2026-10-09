@@ -1,10 +1,13 @@
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { auth } from './firebase.js';
+import { buildMonthGrid, calendarRange, calendarWeekdays, dateKey, eventStatus, filterEvents, monthLabel } from './calendar.js';
 
 const AUTHORIZED_UID = 'aE9nvEOlExYjYxPfAEnoEt3XIdv2';
 const AUTHORIZED_EMAIL = 'ev3ntorastudio@gmail.com';
 const functionsBaseUrl = 'https://us-central1-eventorastudio-d6d95.cloudfunctions.net';
 const maintenanceActivityUrl = '/registerMaintenanceActivity';
+const calendarEventsUrl = '/getCalendarEvents';
+const calendarEventTypes = { maintenance: 'Mantenimiento', quarterly: 'Trimestral', 'maintenance-renewal': 'Renovación · Mantenimiento', 'hosting-renewal': 'Renovación · Hosting', renewal: 'Renovación', review: 'Revisión', reminder: 'Recordatorio', client: 'Cliente', other: 'Otro' };
 const statusLabels = { lead: 'Prospecto', 'awaiting-deposit': 'Esperando anticipo', active: 'Activo', 'client-review': 'Revisión del cliente', 'awaiting-final-payment': 'Esperando pago final', 'ready-to-publish': 'Listo para publicar', published: 'Publicado', paused: 'Pausado', cancelled: 'Cancelado', completed: 'Completado' };
 const stageLabels = { 'not-started': 'Sin comenzar', setup: 'Configuración inicial', skeleton: 'Esqueleto / estructura', 'visual-design': 'Diseño visual', content: 'Contenido', functionality: 'Funcionalidades', responsive: 'Responsive', qa: 'QA', 'client-review': 'Revisión del cliente', revisions: 'Cambios', 'final-review': 'Revisión final', 'ready-to-publish': 'Listo para publicar', published: 'Publicado' };
 const phaseOrder = ['not-started', 'setup', 'skeleton', 'visual-design', 'content', 'functionality', 'responsive', 'qa', 'client-review', 'revisions', 'final-review', 'ready-to-publish', 'published'];
@@ -26,6 +29,19 @@ const projectForm = document.querySelector('#project-form');
 const updateForm = document.querySelector('#update-form');
 const projectFormStatus = document.querySelector('#project-form-status');
 const updateFormStatus = document.querySelector('#update-form-status');
+const projectsView = document.querySelector('#projects-view');
+const calendarView = document.querySelector('#calendar-view');
+const calendarGrid = document.querySelector('#calendar-grid');
+const calendarAgenda = document.querySelector('#calendar-agenda');
+const calendarStatus = document.querySelector('#calendar-status');
+const calendarEventDialog = document.querySelector('#calendar-event-dialog');
+const calendarEventForm = document.querySelector('#calendar-event-form');
+const calendarEventFormStatus = document.querySelector('#calendar-event-form-status');
+const calendarDetailDialog = document.querySelector('#calendar-detail-dialog');
+const calendarDetailContent = document.querySelector('#calendar-detail-content');
+let calendarDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1, 12);
+let calendarEvents = [];
+let calendarEditingEvent = null;
 let currentUser = null;
 let projects = [];
 let currentProject = null;
@@ -49,6 +65,17 @@ document.querySelector('#project-search').addEventListener('input', renderProjec
 document.querySelector('#project-status-filter').addEventListener('change', renderProjectList);
 document.querySelector('#project-stage-filter').addEventListener('change', renderProjectList);
 document.querySelector('#maintenance-filter').addEventListener('change', renderProjectList);
+document.querySelector('#projects-tab').addEventListener('click', (event) => { event.preventDefault(); history.replaceState(null, '', `${location.pathname}${location.search}`); activateView('projects'); });
+document.querySelector('#calendar-tab').addEventListener('click', (event) => { event.preventDefault(); history.replaceState(null, '', `${location.pathname}${location.search}#calendario`); activateView('calendar'); });
+document.querySelector('#previous-month-button').addEventListener('click', () => changeCalendarMonth(-1));
+document.querySelector('#next-month-button').addEventListener('click', () => changeCalendarMonth(1));
+document.querySelector('#today-button').addEventListener('click', () => { const now = new Date(); calendarDate = new Date(now.getFullYear(), now.getMonth(), 1, 12); loadCalendar(); });
+document.querySelector('#new-calendar-event-button').addEventListener('click', () => openCalendarEventDialog());
+document.querySelector('#calendar-type-filter').addEventListener('change', renderCalendar);
+document.querySelector('#calendar-project-filter').addEventListener('change', renderCalendar);
+document.querySelector('#calendar-search').addEventListener('input', renderCalendar);
+document.querySelector('#save-calendar-event-button').addEventListener('click', saveCalendarEvent);
+document.querySelector('#close-calendar-detail-button').addEventListener('click', () => calendarDetailDialog.close());
 projectForm.addEventListener('submit', saveProject);
 updateForm.addEventListener('submit', saveUpdate);
 document.querySelector('#save-project-button').addEventListener('click', saveProject);
@@ -58,7 +85,7 @@ onAuthStateChanged(auth, async (user) => {
     if (!user) { showLogin(); return; }
     const authorized = user.uid === AUTHORIZED_UID && user.email?.trim().toLowerCase() === AUTHORIZED_EMAIL;
     if (!authorized) { await signOut(auth); loginStatus.textContent = 'Acceso no autorizado.'; return; }
-    showApp(); await loadProjects();
+    showApp(); await loadProjects(); if (location.hash === '#calendario') activateView('calendar');
 });
 
 async function loadProjects() {
@@ -66,6 +93,22 @@ async function loadProjects() {
     try { const result = await authorizedFetch('/getProjects'); projects = Array.isArray(result.projects) ? result.projects : []; renderSummary(); renderProjectList(); setAppStatus(''); openQueryProject(); }
     catch (error) { setAppStatus(friendlyError(error, 'No pudimos cargar los proyectos.')); }
 }
+function activateView(view) { const calendar = view === 'calendar'; projectsView.hidden = calendar; calendarView.hidden = !calendar; document.querySelector('#projects-tab').classList.toggle('active', !calendar); document.querySelector('#projects-tab').toggleAttribute('aria-current', !calendar); document.querySelector('#calendar-tab').classList.toggle('active', calendar); document.querySelector('#calendar-tab').toggleAttribute('aria-current', calendar); if (calendar) { populateCalendarProjects(); loadCalendar(); } }
+async function loadCalendar() {
+    const range = calendarRange(calendarDate.getFullYear(), calendarDate.getMonth()); calendarStatus.textContent = 'Cargando eventos...';
+    try { const result = await authorizedFetch(`${calendarEventsUrl}?start=${range.start}&end=${range.end}`); calendarEvents = Array.isArray(result.events) ? result.events : []; populateCalendarProjects(); renderCalendar(); calendarStatus.textContent = ''; } catch (error) { calendarStatus.textContent = friendlyError(error, 'No pudimos cargar el calendario.'); calendarEvents = []; renderCalendar(); }
+}
+function changeCalendarMonth(offset) { calendarDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + offset, 1, 12); loadCalendar(); }
+function populateCalendarProjects() { const selects = [document.querySelector('#calendar-project-filter'), calendarEventForm.querySelector('[name="projectId"]')]; const values = [...new Map(projects.map((project) => [project.id, project.businessName || 'Proyecto sin nombre'])).entries()]; selects.forEach((select, index) => { const selected = select.value; select.replaceChildren(); if (index === 0) select.append(new Option('Todos', 'all')); else select.append(new Option('Sin proyecto', '')); values.forEach(([id, name]) => select.append(new Option(name, id))); select.value = values.some(([id]) => id === selected) ? selected : index === 0 ? 'all' : ''; }); }
+function renderCalendar() { const range = calendarRange(calendarDate.getFullYear(), calendarDate.getMonth()); const filtered = filterEvents(calendarEvents, { type: document.querySelector('#calendar-type-filter').value, projectId: document.querySelector('#calendar-project-filter').value, query: document.querySelector('#calendar-search').value }); document.querySelector('#calendar-month-label').textContent = monthLabel(calendarDate.getFullYear(), calendarDate.getMonth()); renderCalendarSummary(calendarEvents); renderCalendarGrid(range, filtered); renderCalendarAgenda(filtered); }
+function renderCalendarSummary(events) { const today = dateKey(new Date()); const now = new Date(); const inSeven = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7, 12); setText('#today-events-count', events.filter((event) => event.date === today).length); setText('#next-events-count', events.filter((event) => event.date > today && event.date <= dateKey(inSeven)).length); setText('#overdue-events-count', events.filter((event) => event.date < today).length); const overdue = events.filter((event) => event.date < today).length; const badge = document.querySelector('#calendar-pending-badge'); badge.hidden = !overdue; badge.textContent = overdue ? `${overdue} pendientes` : ''; }
+function renderCalendarGrid(range, events) { calendarGrid.replaceChildren(...calendarWeekdays.map((day) => { const heading = document.createElement('div'); heading.className = 'calendar-weekday'; heading.textContent = day; return heading; })); const today = dateKey(new Date()); buildMonthGrid(calendarDate.getFullYear(), calendarDate.getMonth()).forEach((cell) => { const day = document.createElement('article'); day.className = `calendar-day ${cell.outside ? 'outside' : ''} ${cell.key === today ? 'today' : ''}`; const number = document.createElement('div'); number.className = 'calendar-day-number'; number.textContent = cell.day; if (cell.key === today) { const mark = document.createElement('span'); mark.className = 'today-mark'; mark.title = 'Hoy'; number.append(mark); day.setAttribute('aria-current', 'date'); } const list = document.createElement('div'); list.className = 'calendar-event-list'; events.filter((event) => event.date === cell.key).slice(0, 3).forEach((event) => list.append(createCalendarEventButton(event))); const more = events.filter((event) => event.date === cell.key).length - 3; if (more > 0) { const label = document.createElement('p'); label.className = 'calendar-more'; label.textContent = `+${more} más`; list.append(label); } day.append(number, list); day.addEventListener('click', (event) => { if (event.target.closest('.calendar-event')) return; openCalendarEventDialog(cell.key); }); calendarGrid.append(day); }); }
+function renderCalendarAgenda(events) { calendarAgenda.replaceChildren(); const days = [...new Set(events.map((event) => event.date))].sort(); if (!days.length) { calendarAgenda.append(createMessage('No hay eventos programados este mes.', 'empty-state')); return; } days.forEach((dayKey) => { const section = document.createElement('section'); section.className = 'agenda-day'; const heading = document.createElement('h3'); heading.textContent = new Intl.DateTimeFormat('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(`${dayKey}T12:00:00`)); const dateText = document.createElement('span'); dateText.textContent = dayKey; heading.append(dateText); const list = document.createElement('div'); list.className = 'calendar-event-list'; events.filter((event) => event.date === dayKey).forEach((event) => list.append(createCalendarEventButton(event))); section.append(heading, list); calendarAgenda.append(section); }); }
+function createCalendarEventButton(event) { const button = document.createElement('button'); button.type = 'button'; button.className = 'calendar-event'; button.dataset.type = event.type; const content = document.createElement('span'); const title = document.createElement('strong'); title.textContent = event.title; const meta = document.createElement('span'); meta.textContent = `${event.projectName || 'Eventora'} · ${event.time || event.typeLabel || calendarEventTypes[event.type] || 'Evento'}`; content.append(title, meta); button.append(content); button.addEventListener('click', () => openCalendarDetail(event)); return button; }
+function openCalendarDetail(event) { document.querySelector('#calendar-detail-title').textContent = event.title; calendarDetailContent.replaceChildren(definitionList([['Proyecto', event.projectName || 'Sin proyecto'], ['Tipo', event.typeLabel || calendarEventTypes[event.type] || 'Evento'], ['Fecha', formatDateOnly(event.date)], ['Estado', event.status === 'today' ? 'Hoy' : event.status === 'overdue' ? 'Vencido' : 'Próximo'], ['Notas', event.notes || 'Sin notas.']])); const actions = document.createElement('div'); actions.className = 'event-detail-actions'; if (event.projectId) actions.append(actionButton('Abrir proyecto', () => { calendarDetailDialog.close(); activateView('projects'); showDetail(event.projectId); })); if (event.canEdit) { actions.append(actionButton('Editar', () => { calendarDetailDialog.close(); openCalendarEventDialog('', event); }), actionButton('Eliminar', () => deleteCalendarEvent(event))); } calendarDetailContent.append(actions); calendarDetailDialog.showModal(); }
+function openCalendarEventDialog(date = '', event = null) { calendarEditingEvent = event; document.querySelector('#calendar-event-dialog-title').textContent = event ? 'Editar evento' : 'Añadir evento'; calendarEventFormStatus.textContent = ''; const values = { title: event?.title || '', date: date || event?.date || dateKey(new Date()), time: event?.time || '', type: event?.type || 'reminder', projectId: event?.projectId || '', notes: event?.notes || '' }; Object.entries(values).forEach(([key, value]) => { const field = calendarEventForm.elements[key]; if (field) field.value = value; }); populateCalendarProjects(); calendarEventForm.elements.projectId.value = values.projectId; calendarEventDialog.showModal(); }
+async function saveCalendarEvent() { if (!calendarEventForm.reportValidity()) return; calendarEventFormStatus.textContent = 'Guardando...'; try { const body = { ...formDataToObject(calendarEventForm) }; const path = calendarEditingEvent ? '/updateCalendarEvent' : '/createCalendarEvent'; if (calendarEditingEvent) body.id = calendarEditingEvent.id; await authorizedFetch(path, { method: 'POST', body: JSON.stringify(body) }); calendarEventDialog.close(); calendarEditingEvent = null; await loadCalendar(); } catch (error) { calendarEventFormStatus.textContent = friendlyError(error, 'No pudimos guardar el evento.'); } }
+async function deleteCalendarEvent(event) { if (!window.confirm(`¿Eliminar el evento “${event.title}”?`)) return; try { await authorizedFetch('/deleteCalendarEvent', { method: 'POST', body: JSON.stringify({ id: event.id }) }); calendarDetailDialog.close(); await loadCalendar(); } catch (error) { calendarStatus.textContent = friendlyError(error, 'No pudimos eliminar el evento.'); } }
 async function openQueryProject() { const id = new URLSearchParams(location.search).get('id'); if (id) await showDetail(id); }
 async function showDetail(id) {
     setAppStatus('Cargando detalle...');
