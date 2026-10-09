@@ -1,4 +1,5 @@
 import { getAuth } from 'firebase-admin/auth';
+import { requireAppCheck } from './app-check.js';
 
 export const AUTHORIZED_USERS = Object.freeze([
     Object.freeze({ email: 'messages@gmail.com', uid: 'fzERhhRbsAfHcm55drt5lmAxn6J3' }),
@@ -28,7 +29,7 @@ export function applyAdminCors(req, res) {
     if (origin) res.set('Access-Control-Allow-Origin', origin);
     res.set('Vary', 'Origin');
     res.set('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-    res.set('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+    res.set('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Firebase-AppCheck');
     return true;
 }
 
@@ -46,6 +47,7 @@ export async function requireAuthorizedAdmin(req, res) {
             res.status(403).json({ ok: false, message: 'Usuario no autorizado.' });
             return null;
         }
+        if (!await requireAppCheck(req, res)) return null;
         return decodedToken;
     } catch {
         res.status(401).json({ ok: false, message: 'Sesión inválida o expirada.' });

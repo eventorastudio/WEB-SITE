@@ -11,8 +11,8 @@ test('mensajes conserva funciones protegidas y evita Firestore directo', () => {
   const html = read('mensajes/index.html');
   const script = read('mensajes/script.js');
   for (const functionName of ['getWebsiteRequests', 'updateWebsiteRequestStatus', 'deleteWebsiteRequest']) assert.match(script, new RegExp(functionName));
-  assert.match(script, /getIdToken/);
-  assert.match(script, /Authorization/);
+  assert.match(script, /apiFetch/);
+  assert.match(script, /getAppCheckToken/);
   assert.doesNotMatch(script, /firebase-firestore|initializeFirestore|getFirestore/);
   assert.doesNotMatch(script, /\.innerHTML/);
   assert.match(html, /noindex,nofollow/);

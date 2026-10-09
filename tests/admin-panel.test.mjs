@@ -22,7 +22,7 @@ test('prospección usa funciones protegidas y no Firestore directo', () => {
   for (const name of ['getProspects', 'seedProspects', 'createProspect', 'updateProspect', 'deleteProspect']) assert.match(functions, new RegExp(`export const ${name}`));
   for (const status of ['new', 'review', 'ready_to_contact', 'contacted', 'follow_up', 'responded', 'interested', 'proposal', 'negotiation', 'client', 'not_interested', 'no_response', 'discarded']) assert.match(functions, new RegExp(status));
   for (const field of ['contactStatus', 'channel', 'priceReference', 'proposal', 'angle', 'firstContactAt', 'nextFollowUpAt', 'priority', 'score']) assert.match(functions, new RegExp(field));
-  assert.match(script, /getIdToken/); assert.match(script, /Authorization/);
+  assert.match(script, /apiFetch/); assert.match(script, /getAppCheckToken/);
   assert.doesNotMatch(script, /firebase-firestore|initializeFirestore|getFirestore|innerHTML/);
   assert.match(read('functions/index.js'), /getProspects/);
 });

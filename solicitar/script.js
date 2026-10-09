@@ -93,19 +93,14 @@ document.addEventListener("DOMContentLoaded", () => {
     formStatus.textContent = "Enviando...";
 
     try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contactName: name, whatsapp, email, businessName: business, businessType, city, plan, template, hostingPreference, needs, notes: comments, website })
-      });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok || !result.ok) throw new Error("request-failed");
+      const [{ getToken }, { appCheck }, { apiFetch }] = await Promise.all([import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js"), import("./firebase.js"), import("../shared/api.js")]);
+      await apiFetch(endpoint, { appCheck, getAppCheckToken: getToken, options: { method: "POST", body: JSON.stringify({ contactName: name, whatsapp, email, businessName: business, businessType, city, plan, template, hostingPreference, needs, notes: comments, website }) } });
       formStatus.dataset.state = "success";
       formStatus.textContent = "Solicitud recibida. La revisaremos y te contactaremos para definir el alcance. No se realizó ningún cobro.";
       form.querySelectorAll("input, textarea").forEach((field) => { field.disabled = true; });
     } catch (error) {
       formStatus.dataset.state = "error";
-      formStatus.textContent = "No pudimos enviar tu solicitud. Intenta de nuevo en unos momentos.";
+      formStatus.textContent = error?.name === "AbortError" ? "La solicitud está tardando demasiado. Intenta nuevamente." : "No pudimos enviar tu solicitud. Intenta de nuevo en unos momentos.";
       submitButton.disabled = false;
       submitButton.textContent = "ENVIAR";
     }

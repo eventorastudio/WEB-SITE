@@ -1,6 +1,8 @@
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { auth } from './firebase.js';
+import { getToken } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js';
+import { auth, appCheck } from './firebase.js';
 import { buildMonthGrid, calendarRange, calendarWeekdays, dateKey, eventStatus, filterEvents, monthLabel } from './calendar.js';
+import { apiFetch, isTimeoutError } from '../shared/api.js';
 
 const functionsBaseUrl = 'https://us-central1-eventorastudio-d6d95.cloudfunctions.net';
 const maintenanceActivityUrl = '/registerMaintenanceActivity';
@@ -153,7 +155,7 @@ function metaItem(label, value) { const wrapper = document.createElement('div');
 function actionButton(label, handler) { const button = document.createElement('button'); button.className = 'button button-light'; button.type = 'button'; button.textContent = label; button.addEventListener('click', handler); return button; }
 function createPill(text, status) { const pill = document.createElement('span'); pill.className = `pill ${status === 'client-review' ? 'review' : status?.includes('payment') ? 'payment' : ''}`; pill.textContent = text; return pill; }
 function createMessage(text, className) { const message = document.createElement('p'); message.className = className; message.textContent = text; return message; }
-async function authorizedFetch(path, options = {}) { const token = await currentUser.getIdToken(); const response = await fetch(`${functionsBaseUrl}${path}`, { ...options, headers: { ...(options.headers || {}), Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }); const result = await response.json().catch(() => ({})); if (!response.ok || !result.ok) throw new Error(result.message || 'La operación no pudo completarse.'); return result; }
+async function authorizedFetch(path, options = {}) { try { return await apiFetch(`${functionsBaseUrl}${path}`, { user: currentUser, appCheck, getAppCheckToken: getToken, options }); } catch (error) { if (isTimeoutError(error)) throw new Error('La solicitud está tardando demasiado. Intenta nuevamente.'); throw error; } }
 function redirectToAdmin() { if (window.top === window.self) location.replace('/admin/#proyectos'); }
 function showApp() { appView.hidden = false; }
 function setAppStatus(value) { appStatus.textContent = value; }

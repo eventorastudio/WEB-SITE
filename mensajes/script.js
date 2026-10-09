@@ -1,6 +1,8 @@
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { auth } from './firebase.js';
+import { getToken } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js';
+import { auth, appCheck } from './firebase.js';
 import { buildWhatsAppUrl, normalizeWhatsAppNumber } from '../shared/utils/whatsapp.js';
+import { apiFetch, isTimeoutError } from '../shared/api.js';
 
 const functionsBaseUrl = 'https://us-central1-eventorastudio-d6d95.cloudfunctions.net';
 const statusLabels = { new: 'Nueva', contacted: 'Contactado', in_progress: 'En proceso', completed: 'Finalizada' };
@@ -61,11 +63,8 @@ async function loadRequests() {
 }
 
 async function authorizedFetch(path, options = {}) {
-    const token = await currentUser.getIdToken();
-    const response = await fetch(`${functionsBaseUrl}${path}`, { ...options, headers: { ...(options.headers || {}), Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } });
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok || !result.ok) throw new Error(result.message || 'La operación no pudo completarse.');
-    return result;
+    try { return await apiFetch(`${functionsBaseUrl}${path}`, { user: currentUser, appCheck, getAppCheckToken: getToken, options }); }
+    catch (error) { if (isTimeoutError(error)) throw new Error('La solicitud está tardando demasiado. Intenta nuevamente.'); throw error; }
 }
 
 function renderSummary() {

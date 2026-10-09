@@ -1,6 +1,8 @@
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
 import { onRequest } from 'firebase-functions/v2/https';
+import { requireAppCheck } from './app-check.js';
+import { enforceWebsiteRequestRateLimit } from './rate-limit.js';
 const region = 'us-central1';
 const maxBodyLength = 20000;
 const maxLengths = {
@@ -46,7 +48,7 @@ export const submitWebsiteRequest = onRequest({
     if (origin) res.set('Access-Control-Allow-Origin', origin);
     res.set('Vary', 'Origin');
     res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, X-Firebase-AppCheck');
 
     if (req.method === 'OPTIONS') {
         res.status(204).send('');
@@ -62,6 +64,9 @@ export const submitWebsiteRequest = onRequest({
         res.status(415).json({ ok: false, message: 'Formato no permitido.' });
         return;
     }
+
+    if (!await enforceWebsiteRequestRateLimit(req, res)) return;
+    if (!await requireAppCheck(req, res)) return;
 
     if (Number(req.get('content-length') || 0) > maxBodyLength) {
         res.status(413).json({ ok: false, message: 'Solicitud demasiado grande.' });
