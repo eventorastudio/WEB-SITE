@@ -53,3 +53,18 @@ test('design showcase and templates expose commercial metadata and internal rout
     assert.match(html, /href="\/disenos\/"/);
   }
 });
+
+test('design catalog uses real WebP previews and the correct commercial links', () => {
+  const html = read('disenos/index.html');
+  const previews = [
+    ['eagles-burger.webp', 'template-01'],
+    ['my-love-flowers.webp', 'template-02'],
+    ['premium-car.webp', 'template-03']
+  ];
+  previews.forEach(([asset, template]) => {
+    assert.match(html, new RegExp(`assets/previews/${asset}`));
+    assert.match(html, new RegExp(`href="${template}/"`));
+    assert.match(html, new RegExp(`href="/solicitar/\\?template=${template}"`));
+  });
+  assert.doesNotMatch(html, /preview-services|preview-creative|preview-professional/);
+});

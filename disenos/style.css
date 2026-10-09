@@ -6,3 +6,17 @@
 .footer-brand .brand-logo{width:220px;height:60px}
 @media(max-width:768px){.brand-logo{width:145px;height:36px}.footer-brand .brand-logo{width:175px;height:44px}}
 body.menu-open{overflow:visible}
+
+/* Real template previews: one coherent gallery system across all three designs. */
+.template-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.template-card-large,.template-card-dark,.template-card-wide{grid-column:auto;display:flex;flex-direction:column}
+.template-preview{aspect-ratio:16/10;min-height:0;height:auto;background:#e8ebe5;overflow:hidden}
+.template-preview img{display:block;width:100%;height:100%;object-fit:cover;object-position:top;transition:transform .25s ease}
+.template-card:hover .template-preview img{transform:scale(1.015)}
+.template-info{flex:1;flex-direction:column;padding:28px 28px 30px}
+.card-actions{width:100%;margin-top:auto;padding-top:26px;flex-direction:column;gap:14px}
+.card-actions .button-small{padding:12px 17px;font-size:13px}
+.template-card:focus-within{transform:translateY(-4px);box-shadow:var(--shadow)}
+@media(max-width:900px){.template-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.template-card-wide{grid-column:1/-1}}
+@media(max-width:767px){.template-grid{grid-template-columns:1fr}.template-card-wide{grid-column:auto}}
+@media(prefers-reduced-motion:reduce){.template-card,.template-preview img{transition:none}.template-card:hover,.template-card:focus-within{transform:none}.template-card:hover .template-preview img{transform:none}}
