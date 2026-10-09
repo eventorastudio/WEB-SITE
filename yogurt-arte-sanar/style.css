@@ -100,7 +100,7 @@ h3 { margin: 0; color: var(--olive-deep); line-height: 1.2; }
 .product-card p { color: var(--muted); }
 .price { display: block; margin-top: 18px; color: var(--orange); font: 700 1.3rem Arial, sans-serif; }
 
-.menu-grid, .about-grid, .info-grid, .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(48px, 7vw, 104px); align-items: center; }
+.menu-grid, .about-grid, .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(48px, 7vw, 104px); align-items: center; }
 .menu-grid > div:first-child { max-width: 520px; }
 .flavor-list { margin: 32px 0 22px; }
 .flavor-list article { display: flex; gap: 20px; align-items: flex-start; padding: 20px 0; border-bottom: 1px solid var(--border); }
@@ -143,11 +143,6 @@ figcaption { margin-top: 10px; color: var(--muted); font: italic .9rem Arial, sa
 .gallery-grid img:nth-child(2) { height: 300px; margin-top: 60px; }
 .gallery-grid img:nth-child(3) { height: 260px; margin-top: 100px; }
 
-.info-grid { align-items: stretch; }
-.info-grid > div:first-child { display: flex; flex-direction: column; justify-content: center; }
-.info-grid > div:first-child p { color: var(--muted); font-size: 1.1rem; }
-.map-frame { width: 100%; min-height: 230px; margin-top: 28px; overflow: hidden; border: 1px solid var(--border); border-radius: 22px; background: var(--surface-warm); box-shadow: var(--shadow-soft); }
-.map-frame iframe { display: block; width: 100%; min-height: 230px; border: 0; }
 .info-card { display: flex; flex-direction: column; justify-content: center; min-height: 190px; padding: 36px; border: 1px solid var(--border); border-radius: var(--radius-card); background: var(--surface); box-shadow: var(--shadow-soft); }
 .info-card p { color: var(--muted); }
 .hours-list { display: grid; gap: 14px; margin-top: 20px; }
@@ -223,16 +218,14 @@ figcaption { margin-top: 10px; color: var(--muted); font: italic .9rem Arial, sa
 .section-ornament svg { width: 34px; height: 34px; color: var(--season-orange); opacity: .55; }
 .section-ornament svg:nth-child(2) { color: var(--olive); transform: rotate(-18deg); }
 .section-ornament svg:nth-child(3) { color: var(--gold); width: 16px; height: 16px; }
-#productos, #menu, #nosotros, #galeria, #ubicacion { position: relative; overflow: hidden; }
-#productos > .container, #menu > .container, #nosotros > .container, #galeria > .container, #ubicacion > .container { position: relative; z-index: 1; }
+#productos, #menu, #nosotros, #galeria { position: relative; overflow: hidden; }
+#productos > .container, #menu > .container, #nosotros > .container, #galeria > .container { position: relative; z-index: 1; }
 .products-ornament { right: 3%; bottom: 12%; flex-direction: row-reverse; }
 .products-ornament svg:first-child { width: 48px; height: 42px; }
 .menu-ornament { top: 10%; right: 3%; }
 .about-ornament { right: 4%; bottom: 8%; }
 .about-ornament svg:nth-child(2) { width: 26px; height: 26px; transform: rotate(45deg); }
 .gallery-ornament { top: 7%; right: 3%; }
-.location-ornament { right: 3%; bottom: 9%; }
-.location-ornament svg:first-child { width: 42px; height: 38px; }
 .card-ornament { position: absolute; z-index: 1; pointer-events: none; }
 .cup-customizer { position: relative; overflow: hidden; }
 .card-ornament-pumpkin { right: 15px; bottom: 14px; width: 28px; height: 25px; color: var(--season-orange); opacity: .3; }
@@ -255,7 +248,7 @@ figcaption { margin-top: 10px; color: var(--muted); font: italic .9rem Arial, sa
   .site-nav.is-open { display: flex; }
   .site-nav a { padding: 10px 8px; border-bottom: 1px solid var(--border); }
   .site-nav .button { margin-top: 10px; border-bottom: 0; text-align: center; }
-  .hero-grid, .menu-grid, .about-grid, .info-grid, .contact-grid { grid-template-columns: 1fr; }
+  .hero-grid, .menu-grid, .about-grid, .contact-grid { grid-template-columns: 1fr; }
   .contact-grid { gap: 34px; }
   .hero { padding-top: 68px; }
   .hero-media { max-width: 680px; margin-inline: auto; }
@@ -300,8 +293,8 @@ figcaption { margin-top: 10px; color: var(--muted); font: italic .9rem Arial, sa
   .products-ornament { right: 4px; bottom: 7%; }
   .products-ornament svg:first-child { width: 30px; height: 26px; }
   .menu-ornament { top: 4%; right: 4px; }
-  .about-ornament, .gallery-ornament, .location-ornament { right: 4px; }
-  .about-ornament svg, .gallery-ornament svg, .location-ornament svg { width: 24px; height: 24px; }
+  .about-ornament, .gallery-ornament { right: 4px; }
+  .about-ornament svg, .gallery-ornament svg { width: 24px; height: 24px; }
   .card-ornament-pumpkin { right: 10px; bottom: 10px; width: 22px; height: 20px; }
   .footer-seasonal-garland { right: 12%; left: 12%; }
   .footer-seasonal-garland svg:nth-child(2), .footer-seasonal-garland svg:nth-child(5) { display: none; }

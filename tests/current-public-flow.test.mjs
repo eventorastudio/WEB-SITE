@@ -59,3 +59,13 @@ test('los recursos compartidos críticos actuales permanecen disponibles', async
     await access(new URL(`../${path}`, import.meta.url));
   }
 });
+
+test('Yogurt Arte Sanar no publica ubicación provisional', async () => {
+  const html = await read('yogurt-arte-sanar/index.html');
+  assert.doesNotMatch(html, /Nueva Galicia|Saltillo|Coahuila|google\.com\/maps|#ubicacion|map-frame|streetAddress|addressLocality|addressRegion|\"geo\"/i);
+  assert.doesNotMatch(html, /<a[^>]+>Ubicación<\/a>/i);
+  assert.match(html, /wa\.me\/528447801458/);
+  assert.match(html, /Instagram/);
+  assert.match(html, /Facebook/);
+  assert.match(html, /Lunes a viernes/);
+});
