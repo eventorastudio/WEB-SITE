@@ -46,6 +46,7 @@ test('website request form keeps template and plan query param whitelists', () =
 test('website request form captures the required hosting preference', () => {
   const script = read('solicitar/script.js');
   const backend = read('functions/src/submit-website-request.js');
+  const adminBackend = read('functions/src/admin-website-requests.js');
   const messages = read('mensajes/script.js');
   for (const value of ['files-only', 'hosting', 'hosting-maintenance', 'undecided']) {
     assert.match(script, new RegExp(value));
@@ -53,7 +54,25 @@ test('website request form captures the required hosting preference', () => {
   }
   assert.match(script, /hostingPreference/);
   assert.match(backend, /allowedHostingPreferences/);
+  assert.match(backend, /hostingPreference: data\.hostingPreference/);
+  assert.match(adminBackend, /hostingPreference: data\.hostingPreference/);
   assert.match(backend, /Selecciona una opci[oó]n de alojamiento v[aá]lida/);
   assert.match(messages, /Preferencia de alojamiento/);
   assert.match(messages, /No especificado/);
+});
+
+test('website request flow preserves all hosting preference labels through the admin response', () => {
+  const script = read('solicitar/script.js');
+  const adminBackend = read('functions/src/admin-website-requests.js');
+  const messages = read('mensajes/script.js');
+  for (const [value, label] of [
+    ['files-only', 'Solo entrega de archivos'],
+    ['hosting', 'Hosting'],
+    ['hosting-maintenance', 'Hosting + mantenimiento'],
+    ['undecided', 'Aún no lo sé']
+  ]) {
+    assert.match(script, new RegExp(value));
+    assert.match(adminBackend, /hostingPreference: data\.hostingPreference/);
+    assert.match(messages, new RegExp(label.replace(/[+]/g, '\\+')));
+  }
 });

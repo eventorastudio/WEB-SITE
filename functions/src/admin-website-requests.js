@@ -69,7 +69,7 @@ export const deleteWebsiteRequest = onRequest({ region, invoker: 'public' }, asy
     }
 });
 
-function serializeRequest(document) {
+export function serializeRequest(document) {
     const data = document.data();
     return {
         id: document.id,
@@ -81,6 +81,7 @@ function serializeRequest(document) {
         city: data.city || '',
         plan: data.plan || '',
         template: data.template || '',
+        hostingPreference: data.hostingPreference || '',
         needs: Array.isArray(data.needs) ? data.needs : [],
         notes: data.notes || '',
         status: allowedStatuses.has(data.status) ? data.status : 'new',
