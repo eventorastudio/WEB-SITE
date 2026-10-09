@@ -27,6 +27,18 @@ test('principal conserva precios, pago y alcance comercial', () => {
   assert.match(html, /Para los que quieren mantener su página publicada/);
 });
 
+test('principal presenta paquetes comparables y hosting fuera del desarrollo', () => {
+  for (const plan of ['esencial', 'profesional', 'a-medida']) {
+    assert.match(html, new RegExp(`data-plan-id="${plan}"`));
+    assert.match(html, new RegExp(`href="/solicitar/\\?plan=${plan}"`));
+  }
+  assert.match(html, /package-ideal/);
+  assert.match(html, /package-badge">Recomendado/);
+  assert.match(html, /package-guidance/);
+  assert.match(html, /href="\/solicitar\/">Ayúdame a elegir/);
+  assert.match(html, /id="hosting"/);
+});
+
 test('principal no expone legacy ni datos internos y conserva SEO de Fase 8E', () => {
   assert.doesNotMatch(html, /invitaci[oó]n|RSVP|eventos digitales|messages@gmail\.com|\/paquetes\/|\/Invitaciones\//i);
   assert.match(html, /rel="canonical" href="https:\/\/eventorastudio\.com\/principal\/"/);
