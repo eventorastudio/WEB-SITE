@@ -100,3 +100,17 @@ body.menu-open{overflow:visible}
 @media(prefers-reduced-motion:reduce){.package-card,.package-featured{transition:none}.package-card:hover,.package-featured:hover{transform:none}}
 [data-promotion][hidden]{display:none!important}
 @media (max-width:768px){.promotion-card{align-items:flex-start;flex-direction:column;gap:.55rem}.promotion-card a{white-space:normal}.promotion-badge{font-size:.76rem}}
+/* Principal hero polish: stronger first-screen hierarchy without new assets. */
+.hero{padding-top:72px;padding-bottom:88px}
+.hero-grid{grid-template-columns:minmax(0,1.02fr) minmax(0,1.08fr);gap:44px}
+.hero h1{font-size:clamp(42px,4.4vw,64px)}
+.hero-lead{max-width:500px;margin:24px 0 14px;line-height:1.58}
+.hero-price{margin:0 0 26px;color:var(--muted);font-size:14px}.hero-price strong{color:var(--ink);font-weight:700}
+.theme-halloween .hero-price strong{color:#f7f1e8}
+.hero-actions{gap:20px}.hero-actions .button{padding:14px 20px}.hero-actions .text-link{padding-bottom:3px}
+.hero-proof{margin-top:34px;font-size:11px}.hero-proof .proof-dots{flex:none}
+.hero-visual{padding:16px 16px 14px;box-shadow:0 22px 60px rgba(18,24,24,.12)}
+.website-mockup{min-height:400px}
+@media(max-width:900px){.hero{padding-top:62px;padding-bottom:78px}.hero-grid{grid-template-columns:1fr;gap:48px}}
+@media(max-width:768px){.hero{padding-top:44px;padding-bottom:64px}.hero h1{font-size:clamp(40px,12vw,58px);line-height:1}.hero-lead{margin-top:22px;font-size:16px;line-height:1.58}.hero-price{margin-bottom:24px}.hero-actions{gap:17px}.hero-actions .button{min-height:48px;padding:13px 19px}.hero-proof{margin-top:30px;line-height:1.45}.hero-visual{padding:11px}.website-mockup{min-height:340px}}
+@media(prefers-reduced-motion:reduce){.hero-visual{transform:none}}

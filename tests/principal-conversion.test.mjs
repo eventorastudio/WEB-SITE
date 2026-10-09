@@ -14,6 +14,9 @@ test('principal comunica el servicio y mantiene la jerarquía de conversión', (
   assert.match(html, /id="como-funciona"/);
   assert.match(html, /id="paquetes"/);
   assert.match(html, /id="contacto"/);
+  assert.match(html, /class="hero-price">Proyectos desde <strong>\$599 MXN<\/strong>/);
+  assert.match(html, /Cambios dentro del alcance acordado/);
+  assert.match(html, /class="hero-visual bento-card"/);
 });
 
 test('principal conserva precios, pago y alcance comercial', () => {
