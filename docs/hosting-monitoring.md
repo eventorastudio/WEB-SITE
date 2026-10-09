@@ -2,7 +2,7 @@
 
 ## Arquitectura
 
-El módulo privado `/admin/#hosting` lee únicamente proyectos de `projects` que tienen `hostingEnabled === true`, `hostingStatus === "active"`, `projectStatus === "published"` y una `productionUrl` HTTPS válida. La sincronización es idempotente: cada proyecto usa un monitor `project_<projectId>` en `websiteMonitors` y nunca se hardcodea Yogurt Arte Sanar.
+El módulo privado `/admin/#hosting` lee únicamente proyectos de `projects` que tienen `hostingEnabled === true`, `hostingStatus === "active"`, no están cancelados y tienen una `productionUrl` HTTPS válida. La sincronización es idempotente: cada proyecto usa un monitor `project_<projectId>` en `websiteMonitors` y nunca se hardcodea Yogurt Arte Sanar. Un proyecto puede seguir monitorizado en estados `active`, `published` o `completed` mientras el servicio operativo permanezca activo.
 
 El navegador solicita datos a Functions protegidas; no consulta Firestore directamente ni hace el check principal desde el navegador.
 

@@ -115,7 +115,7 @@ export const scheduledHostingChecks = onSchedule({ region, schedule: 'every 5 mi
 
 async function syncHostingMonitors() {
     const projects = await db().collection('projects').limit(200).get();
-    const eligible = projects.docs.filter((doc) => isEligibleProject(doc.data()));
+    const eligible = projects.docs.filter((doc) => isProjectHostingMonitorEligible(doc.data()));
     const existing = await db().collection(monitorCollection).get();
     const byProject = new Map(existing.docs.map((doc) => [doc.data().projectId, doc]));
     const batch = db().batch();
@@ -134,8 +134,8 @@ async function syncHostingMonitors() {
     return (await db().collection(monitorCollection).get()).docs.filter((doc) => eligible.some((project) => project.id === doc.data().projectId));
 }
 
-function isEligibleProject(data) {
-    return data?.hostingEnabled === true && data?.hostingStatus === 'active' && data?.projectStatus === 'published' && /^https:\/\//i.test(String(data.productionUrl || '')) && isSafeUrl(data.productionUrl);
+export function isProjectHostingMonitorEligible(data) {
+    return data?.hostingEnabled === true && data?.hostingStatus === 'active' && data?.projectStatus !== 'cancelled' && /^https:\/\//i.test(String(data.productionUrl || '')) && isSafeUrl(data.productionUrl);
 }
 
 async function performCheck(ref, monitor) {
