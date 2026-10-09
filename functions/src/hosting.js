@@ -124,7 +124,7 @@ async function syncHostingMonitors() {
         const current = byProject.get(project.id);
         const ref = current?.ref || db().collection(monitorCollection).doc(`project_${project.id}`);
         batch.set(ref, {
-            projectId: project.id, businessName: data.businessName || 'Sitio sin nombre', url: normalizeHttpsUrl(data.productionUrl),
+            projectId: project.id, businessName: data.businessName || 'Sitio sin nombre', projectStatus: data.projectStatus || '', url: normalizeHttpsUrl(data.productionUrl),
             hostingEnabled: true, hostingStatus: data.hostingStatus || 'active', hostingPlan: data.hostingPlan || '', maintenanceEnabled: data.maintenanceEnabled === true,
             hostingRenewalDate: data.hostingRenewalDate || '', enabled: current?.data().enabled !== false, currentStatus: current?.data().currentStatus || 'unknown',
             createdAt: current?.data().createdAt || FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp()
@@ -204,7 +204,7 @@ async function serializeMonitor(document) {
     const data = document.data();
     const checks = await document.ref.collection(checksSubcollection).orderBy('checkedAt', 'desc').limit(50).get();
     const checkData = checks.docs.map(serializeCheck);
-    return { id: document.id, ...serializePlain(data), projectStatus: data.hostingStatus || 'active', statusStale: !data.lastCheckedAt || Date.now() - toMillis(data.lastCheckedAt) > STALE_AFTER_MS, uptime: calculateUptime(checkData), latencyAverageMs: average(checkData.filter((item) => Number.isFinite(item.responseTimeMs)).map((item) => item.responseTimeMs)), recentChecks: checkData.slice(0, 24) };
+    return { id: document.id, ...serializePlain(data), projectStatus: data.projectStatus || '', statusStale: !data.lastCheckedAt || Date.now() - toMillis(data.lastCheckedAt) > STALE_AFTER_MS, uptime: calculateUptime(checkData), uptimeCheckCount: checkData.length, latencyAverageMs: average(checkData.filter((item) => Number.isFinite(item.responseTimeMs)).map((item) => item.responseTimeMs)), recentChecks: checkData.slice(0, 24) };
 }
 function calculateUptime(checks) { const now = Date.now(); return [24, 168, 720].reduce((all, hours) => { const selected = checks.filter((item) => now - toMillis(item.checkedAt) <= hours * 60 * 60 * 1000); all[`${hours}h`] = selected.length ? Number((selected.filter((item) => ['healthy', 'degraded'].includes(item.status)).length / selected.length * 100).toFixed(2)) : null; return all; }, {}); }
 function average(values) { return values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : null; }

@@ -22,6 +22,7 @@ test('la política de estado requiere dos fallos consecutivos para caída', () =
   assert.match(source, /consecutiveFailures >= 2/);
   assert.match(source, /confirmedDown/);
   assert.match(source, /durationMs/);
+  assert.match(source, /uptimeCheckCount/);
 });
 
 test('el modelo real de Yogurt es elegible aunque siga en estado active', () => {
