@@ -10,7 +10,7 @@ const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 test('public templates load their module integration scripts', () => {
   for (const template of ['template-01', 'template-02', 'template-03']) {
     const html = read(`disenos/${template}/index.html`);
-    assert.match(html, /<script type="module" src="\.\/script\.js"><\/script>/, template);
+    assert.match(html, /<script type="module" src="\.\/script\.js(?:\?[^\"]+)?"><\/script>/, template);
   }
 });
 

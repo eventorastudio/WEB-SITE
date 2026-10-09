@@ -19,8 +19,8 @@
 body.theme-halloween {
   --season-surface: var(--season-bg);
   --season-panel: var(--season-bg-soft);
-  --season-hero-art: url('/assets/seasonal/halloween/halloween-hero.png');
-  --season-autumn-art: url('/assets/seasonal/halloween/halloween-autumn.png');
+  --season-hero-art: url('/assets/seasonal/halloween/halloween-hero.webp');
+  --season-autumn-art: url('/assets/seasonal/halloween/halloween-autumn.webp');
   background: var(--season-surface);
   overflow-x: hidden;
 }
