@@ -34,3 +34,15 @@ test('principal no expone legacy ni datos internos y conserva SEO de Fase 8E', (
   assert.match(html, /name="twitter:card" content="summary_large_image"/);
   assert.match(html, /application\/ld\+json/);
 });
+
+test('principal presenta el caso real de Yogurt Arte Sanar sin métricas inventadas', () => {
+  assert.match(html, /id="proyecto-real"/);
+  assert.match(html, /Yogurt Arte Sanar/);
+  assert.match(html, /href="https:\/\/eventorastudio\.com\/yogurt-arte-sanar\//);
+  assert.match(html, /href="\/solicitar\/">Quiero algo así/);
+  assert.match(html, /assets\/portfolio\/yogurt-arte-sanar\.webp/);
+  assert.match(html, /alt="Vista real del sitio web de Yogurt Arte Sanar/);
+  assert.match(html, /Responsive/);
+  assert.match(html, /Pedidos por WhatsApp/);
+  assert.doesNotMatch(html, /\+\d+\s*(ventas|conversiones|pedidos)/i);
+});
