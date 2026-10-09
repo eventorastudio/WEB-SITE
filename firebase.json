@@ -1,4 +1,13 @@
 {
+  "hosting": {
+    "site": "eventorastudio-d6d95",
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  },
   "firestore": {
     "rules": "firestore.rules"
   },
