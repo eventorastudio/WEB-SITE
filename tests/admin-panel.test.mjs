@@ -17,6 +17,20 @@ test('admin integra los módulos privados y mantiene robots privados', () => {
   assert.match(script, /location\.hash/);
 });
 
+test('mensajes y proyectos solo redirigen en navegación top-level', () => {
+  const modules = [
+    ['mensajes/index.html', '/admin/#mensajes'],
+    ['proyectos/index.html', '/admin/#proyectos']
+  ];
+
+  for (const [file, destination] of modules) {
+    const html = read(file);
+    assert.match(html, /window\.top\s*===\s*window\.self/);
+    assert.match(html, new RegExp(`window\\.location\\.replace\\(['"]${destination.replaceAll('/', '\\\/')}['"]\\)`));
+    assert.match(html, /noindex,nofollow/);
+  }
+});
+
 test('prospección usa funciones protegidas y no Firestore directo', () => {
   const script = read('admin/prospeccion/script.js'); const functions = read('functions/src/prospects.js');
   for (const name of ['getProspects', 'seedProspects', 'createProspect', 'updateProspect', 'deleteProspect']) assert.match(functions, new RegExp(`export const ${name}`));

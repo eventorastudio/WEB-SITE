@@ -1,6 +1,15 @@
 <!doctype html>
 <html lang="es">
 <head>
+  <script>
+    (() => {
+      try {
+        if (window.top === window.self) window.location.replace('/admin/#proyectos');
+      } catch (_) {
+        // Keep the module available when it is embedded from a restricted frame.
+      }
+    })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
