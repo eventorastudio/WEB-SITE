@@ -11,10 +11,18 @@ test('admin integra los módulos privados y mantiene robots privados', () => {
   const html = read('admin/index.html'); const script = read('admin/script.js');
   const source = `${html}\n${script}`;
   assert.match(html, /noindex,nofollow/);
-  for (const route of ['/admin/prospeccion/', '/proyectos/', '/mensajes/']) assert.match(source, new RegExp(route.replaceAll('/', '\\/')));
+  for (const route of ['/admin/prospeccion/', '/proyectos/', '/mensajes/', '/admin/hosting/']) assert.match(source, new RegExp(route.replaceAll('/', '\\/')));
   assert.match(script, /signInWithEmailAndPassword/);
   assert.match(script, /aE9nvEOlExYjYxPfAEnoEt3XIdv2/);
   assert.match(script, /location\.hash/);
+});
+
+test('hosting se integra como módulo privado y conserva el acceso por Functions', () => {
+  const html = read('admin/hosting/index.html'); const script = read('admin/hosting/script.js'); const functions = read('functions/src/hosting.js');
+  assert.match(html, /noindex,nofollow/); assert.match(html, /id="monitor-list"/);
+  for (const endpoint of ['getHostingMonitors', 'getHostingHistory', 'runHostingCheck']) assert.match(functions, new RegExp(`export const ${endpoint}`));
+  assert.match(script, /getAppCheckToken/); assert.match(script, /apiFetch/); assert.doesNotMatch(script, /firebase-firestore|innerHTML/);
+  assert.match(functions, /requireProjectAdmin/); assert.match(functions, /scheduledHostingChecks/); assert.match(functions, /PRIVATE_IP/); assert.match(functions, /CHECK_TIMEOUT_MS/);
 });
 
 test('mensajes y proyectos solo redirigen en navegación top-level', () => {

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <script>(()=>{try{if(window.top===window.self)window.location.replace('/admin/#hosting')}catch(_){}})();</script>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+  <title>Hosting | Eventora Studio</title>
+  <link rel="stylesheet" href="./style.css?v=hosting-v1">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main class="hosting-shell">
+    <section id="app-view" hidden>
+      <header class="hosting-header"><div><p class="eyebrow">Estado de hosting</p><h1>Hosting</h1><p class="intro">Estado y rendimiento de los sitios alojados por Eventora.</p></div><button id="refresh-button" class="button button-light" type="button">Actualizar</button></header>
+      <p id="app-status" class="status" role="status" aria-live="polite"></p>
+      <section id="summary" class="summary-grid" aria-label="Resumen de hosting"></section>
+      <section class="toolbar" aria-label="Buscar y filtrar sitios"><label class="search-field">Buscar negocio o dominio<input id="search" type="search" placeholder="Ej. Yogurt Arte Sanar" autocomplete="off"></label><label>Estado<select id="status-filter"><option value="all">Todos</option><option value="healthy">En línea</option><option value="degraded">Con problemas</option><option value="down">Caídos</option><option value="unknown">Sin datos</option><option value="paused">Pausados</option></select></label></section>
+      <div id="alert" class="alert" hidden></div>
+      <section id="monitor-list" class="monitor-list" aria-label="Sitios monitorizados"></section>
+      <dialog id="detail-dialog" class="detail-dialog"><div class="dialog-heading"><div><p class="eyebrow">Detalle del monitor</p><h2 id="detail-title">Sitio</h2></div><button id="close-detail" class="icon-button" type="button" aria-label="Cerrar">×</button></div><div id="detail-content"></div></dialog>
+    </section>
+    <p id="login-message" class="empty-state" hidden>Inicia sesión desde el panel Admin para consultar Hosting.</p>
+  </main>
+  <script type="module" src="./script.js?v=hosting-v1"></script>
+</body>
+</html>

@@ -8,7 +8,7 @@ const appView = document.querySelector('#app-view');
 const loginForm = document.querySelector('#login-form');
 const loginStatus = document.querySelector('#login-status');
 const frame = document.querySelector('#module-frame');
-const modules = { '#prospeccion': '/admin/prospeccion/', '#proyectos': '/proyectos/', '#mensajes': '/mensajes/' };
+const modules = { '#prospeccion': '/admin/prospeccion/', '#proyectos': '/proyectos/', '#mensajes': '/mensajes/', '#hosting': '/admin/hosting/' };
 
 loginForm.addEventListener('submit', async (event) => {
   event.preventDefault(); loginStatus.textContent = '';
