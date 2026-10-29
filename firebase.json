@@ -6,6 +6,15 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+    ],
+    "rewrites": [
+      { "source": "/invitaciones/paulette/", "destination": "/Invitaciones/paulette/index.html" },
+      { "source": "/invitaciones/paulette/index.html", "destination": "/Invitaciones/paulette/index.html" },
+      { "source": "/invitaciones/paulette/main.js", "destination": "/Invitaciones/paulette/main.js" },
+      { "source": "/invitaciones/paulette/styles.css", "destination": "/Invitaciones/paulette/styles.css" },
+      { "source": "/invitaciones/paulette/event-data.js", "destination": "/Invitaciones/paulette/event-data.js" },
+      { "source": "/invitaciones/paulette/assets/favicon.ico", "destination": "/Invitaciones/paulette/assets/favicon.ico" },
+      { "source": "/invitaciones/paulette/assets/stage-atmosphere.png", "destination": "/Invitaciones/paulette/assets/stage-atmosphere.png" }
     ]
   },
   "firestore": {
