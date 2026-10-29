@@ -6,10 +6,17 @@
   <meta name="theme-color" content="#12051f">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <meta name="description" content="Una invitación especial para celebrar a Paulette.">
-  <meta property="og:title" content="Paulette · Birthday Stage">
-  <meta property="og:description" content="Una tarde para brillar. Sábado 26 de diciembre de 2026.">
+  <meta property="og:title" content="¡Estás invitado al cumpleaños de Paulette!">
+  <meta property="og:description" content="Una tarde para brillar. Te esperamos el 26 de diciembre a las 3:00 p. m.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://eventorastudio-d6d95.web.app/invitaciones/paulette/assets/fondo-inicio.webp">
+  <meta property="og:image:alt" content="Paulette · Invitación de cumpleaños">
+  <meta property="og:url" content="https://eventorastudio-d6d95.web.app/invitaciones/paulette/">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="¡Estás invitado al cumpleaños de Paulette!">
+  <meta name="twitter:description" content="Una tarde para brillar. Te esperamos el 26 de diciembre a las 3:00 p. m.">
+  <meta name="twitter:image" content="https://eventorastudio-d6d95.web.app/invitaciones/paulette/assets/fondo-inicio.webp">
+  <link rel="canonical" href="https://eventorastudio-d6d95.web.app/invitaciones/paulette/">
   <title>Paulette · Birthday Stage</title>
   <script>
     (() => {
@@ -50,6 +57,7 @@
     <h1 id="entry-title">PAULETTE</h1>
     <p class="entry__subtitle">¡Estás invitado a mi cumpleaños!</p>
     <button class="button button--primary" id="enter-button" type="button">Entrar a la fiesta <span aria-hidden="true">↗</span></button>
+    <button class="audio-toggle entry-audio-toggle" id="entry-audio-toggle" type="button" aria-label="Reproducir música de la portada" aria-pressed="false"><span class="audio-toggle__icon" aria-hidden="true">◉</span><span id="entry-audio-label">AUDIO OFF</span></button>
     <p class="entry__hint">Toca para activar la experiencia</p>
   </div>
 
@@ -57,7 +65,7 @@
     <header class="topbar">
       <a class="brand" href="#top" aria-label="Ir al inicio">E<span>·</span>S</a>
       <p class="topbar__label">PAULETTE / BIRTHDAY STAGE</p>
-      <button class="audio-toggle" id="audio-toggle" type="button" aria-label="Música no disponible" aria-pressed="false" disabled>
+      <button class="audio-toggle" id="audio-toggle" type="button" aria-label="Reproducir música de la invitación" aria-pressed="false">
         <span class="audio-toggle__icon" aria-hidden="true">◉</span><span id="audio-label">AUDIO OFF</span>
       </button>
     </header>
@@ -104,6 +112,8 @@
 
     <footer class="footer section-pad reveal"><div class="footer__flare" aria-hidden="true"></div><p class="eyebrow">SEE YOU ON THE STAGE</p><h2>¡Prepárate<br><em>para brillar!</em></h2><p>Con cariño,<br><strong>Paulette</strong></p><div class="footer__rule"></div><p class="footer__small">EVENTORA STUDIO · SPECIAL BIRTHDAY EDITION · 2026</p></footer>
   </main>
+  <audio id="intro-audio" preload="none" loop></audio>
+  <audio id="invitation-audio" preload="none" loop></audio>
   <script type="module" src="./main.js"></script>
 </body>
 </html>

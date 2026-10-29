@@ -12,6 +12,10 @@ export const EVENT = Object.freeze({
   address: 'Real Cedros #325, Zona Centro, Arteaga, Coahuila, México',
   mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Sal%C3%B3n%20Cavel%27s%2C%20Real%20Cedros%20%23325%2C%20Zona%20Centro%2C%20Arteaga%2C%20Coahuila%2C%20M%C3%A9xico',
   song: 'Golden',
-  artist: 'HUNTR/X'
+  artist: 'HUNTR/X',
+  audio: Object.freeze({
+    intro: Object.freeze({ src: './audio/inicio/inicio.mp3', enabled: false }),
+    invitation: Object.freeze({ src: './audio/invitacion/invitacion.mp3', enabled: false })
+  })
 });
 
