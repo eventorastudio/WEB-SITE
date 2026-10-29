@@ -12,9 +12,14 @@
       { "source": "/invitaciones/paulette/index.html", "destination": "/Invitaciones/paulette/index.html" },
       { "source": "/invitaciones/paulette/main.js", "destination": "/Invitaciones/paulette/main.js" },
       { "source": "/invitaciones/paulette/styles.css", "destination": "/Invitaciones/paulette/styles.css" },
+      { "source": "/invitaciones/paulette/enhancements.css", "destination": "/Invitaciones/paulette/enhancements.css" },
       { "source": "/invitaciones/paulette/event-data.js", "destination": "/Invitaciones/paulette/event-data.js" },
       { "source": "/invitaciones/paulette/assets/favicon.ico", "destination": "/Invitaciones/paulette/assets/favicon.ico" },
-      { "source": "/invitaciones/paulette/assets/stage-atmosphere.png", "destination": "/Invitaciones/paulette/assets/stage-atmosphere.png" }
+      { "source": "/invitaciones/paulette/assets/stage-atmosphere.png", "destination": "/Invitaciones/paulette/assets/stage-atmosphere.png" },
+      { "source": "/invitaciones/paulette/assets/stage-atmosphere.webp", "destination": "/Invitaciones/paulette/assets/stage-atmosphere.webp" },
+      { "source": "/invitaciones/paulette/assets/FONDO%20INICIO.jpg", "destination": "/Invitaciones/paulette/assets/FONDO INICIO.jpg" },
+      { "source": "/invitaciones/paulette/assets/fondo-inicio.webp", "destination": "/Invitaciones/paulette/assets/fondo-inicio.webp" },
+      { "source": "/invitaciones/paulette/assets/paulette-qr.svg", "destination": "/Invitaciones/paulette/assets/paulette-qr.svg" }
     ]
   },
   "firestore": {
