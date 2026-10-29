@@ -19,7 +19,11 @@
       { "source": "/invitaciones/paulette/assets/stage-atmosphere.webp", "destination": "/Invitaciones/paulette/assets/stage-atmosphere.webp" },
       { "source": "/invitaciones/paulette/assets/FONDO%20INICIO.jpg", "destination": "/Invitaciones/paulette/assets/FONDO INICIO.jpg" },
       { "source": "/invitaciones/paulette/assets/fondo-inicio.webp", "destination": "/Invitaciones/paulette/assets/fondo-inicio.webp" },
-      { "source": "/invitaciones/paulette/assets/paulette-qr.svg", "destination": "/Invitaciones/paulette/assets/paulette-qr.svg" }
+      { "source": "/invitaciones/paulette/assets/paulette-qr.svg", "destination": "/Invitaciones/paulette/assets/paulette-qr.svg" },
+      { "source": "/invitaciones/paulette/audio/inicio/README.md", "destination": "/Invitaciones/paulette/audio/inicio/README.md" },
+      { "source": "/invitaciones/paulette/audio/invitacion/README.md", "destination": "/Invitaciones/paulette/audio/invitacion/README.md" },
+      { "source": "/invitaciones/paulette/audio/inicio/inicio.mp3", "destination": "/Invitaciones/paulette/audio/inicio/inicio.mp3" },
+      { "source": "/invitaciones/paulette/audio/invitacion/invitacion.mp3", "destination": "/Invitaciones/paulette/audio/invitacion/invitacion.mp3" }
     ]
   },
   "firestore": {
