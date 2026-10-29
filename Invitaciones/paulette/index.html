@@ -7,33 +7,53 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <meta name="description" content="Una invitación especial para celebrar a Paulette.">
   <meta property="og:title" content="Paulette · Birthday Stage">
-  <meta property="og:description" content="Una noche para brillar. Sábado 26 de diciembre de 2026.">
+  <meta property="og:description" content="Una tarde para brillar. Sábado 26 de diciembre de 2026.">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="https://eventorastudio.com/invitaciones/paulette/assets/stage-atmosphere.png">
+  <meta property="og:image" content="https://eventorastudio-d6d95.web.app/invitaciones/paulette/assets/fondo-inicio.webp">
   <title>Paulette · Birthday Stage</title>
+  <script>
+    (() => {
+      const compact = window.matchMedia('(max-width: 1023px)').matches;
+      const coarse = window.matchMedia('(pointer: coarse)').matches;
+      document.documentElement.dataset.experience = compact || coarse ? 'invitation' : 'desktop';
+    })();
+  </script>
   <link rel="icon" href="./assets/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./enhancements.css">
 </head>
 <body>
   <div class="noise" aria-hidden="true"></div>
   <div class="ambient-glow ambient-glow--one" aria-hidden="true"></div>
   <div class="ambient-glow ambient-glow--two" aria-hidden="true"></div>
 
+  <section class="desktop-gate" id="desktop-gate" aria-labelledby="desktop-title">
+    <div class="desktop-gate__halo" aria-hidden="true"></div>
+    <div class="desktop-gate__phone" aria-hidden="true"><span></span><i></i><b></b></div>
+    <p class="eyebrow">EVENTORA STUDIO <span>·</span> MOBILE EDITION</p>
+    <h1 id="desktop-title">¡La fiesta de<br><em>Paulette</em> está<br>en tu celular!</h1>
+    <p class="desktop-gate__copy">Abre esta invitación desde tu teléfono o tablet para disfrutar de la experiencia completa.</p>
+    <div class="desktop-gate__qr-wrap"><img src="./assets/paulette-qr.svg" alt="Código QR para abrir la invitación de Paulette en un teléfono"><span>ESCANEA PARA ENTRAR</span></div>
+    <button class="button button--primary desktop-gate__copy-button" id="copy-link" type="button"><span aria-hidden="true">↗</span> Copiar enlace</button>
+    <p class="desktop-gate__status" id="copy-status" role="status" aria-live="polite"></p>
+    <p class="desktop-gate__brand">EVENTORA STUDIO · SPECIAL EDITION · 2026</p>
+  </section>
+
   <div class="entry" id="entry" role="dialog" aria-labelledby="entry-title" aria-modal="true">
     <div class="entry__scanline" aria-hidden="true"></div>
     <p class="eyebrow">EVENTORA STUDIO <span>·</span> SPECIAL EDITION</p>
     <div class="entry__orb" aria-hidden="true"><span></span></div>
-    <p class="entry__kicker">ONE NIGHT ONLY</p>
+    <p class="entry__kicker">ONE SPECIAL CELEBRATION</p>
     <h1 id="entry-title">PAULETTE</h1>
     <p class="entry__subtitle">¡Estás invitado a mi cumpleaños!</p>
     <button class="button button--primary" id="enter-button" type="button">Entrar a la fiesta <span aria-hidden="true">↗</span></button>
     <p class="entry__hint">Toca para activar la experiencia</p>
   </div>
 
-  <main class="site-shell" id="invitation" aria-hidden="true">
+  <main class="site-shell" id="invitation" aria-hidden="true" tabindex="-1">
     <header class="topbar">
       <a class="brand" href="#top" aria-label="Ir al inicio">E<span>·</span>S</a>
       <p class="topbar__label">PAULETTE / BIRTHDAY STAGE</p>
@@ -49,14 +69,15 @@
         <p class="eyebrow">THE PARTY FILE / 001</p>
         <p class="hero__date">{EVENT DATE}</p>
         <h2><span>PAU</span><em>LETTE</em></h2>
-        <p class="hero__lead">Una noche para brillar,<br>cantar y celebrar.</p>
+        <p class="hero__lead">Una tarde para brillar,<br>cantar y celebrar.</p>
         <div class="hero__meta">
           <span>26.12.26</span><i></i><span>3:00 PM</span><i></i><span>ARTEAGA, COAH.</span>
         </div>
-        <a class="button button--ghost" href="#details">Descubrir la noche <span aria-hidden="true">↓</span></a>
+        <a class="button button--ghost" href="#details">Descubrir la celebración <span aria-hidden="true">↓</span></a>
       </div>
       <div class="hero__vertical">BIRTHDAY TOUR · ARTEAGA · 2026</div>
       <div class="hero__stamp" aria-hidden="true"><span>GLOW</span><strong>26</strong><small>DEC</small></div>
+      <div class="hero__music-mark" aria-hidden="true"><span>✦</span><b>♪</b><span>✧</span></div>
     </section>
 
     <section class="countdown-section section-pad reveal" aria-labelledby="countdown-title">
@@ -71,7 +92,7 @@
     </section>
 
     <section class="details section-pad" id="details">
-      <div class="details__intro reveal"><p class="eyebrow">SAVE THE DATE</p><h2>La noche<br><em>es nuestra.</em></h2><p>Ven a celebrar conmigo una nueva vuelta al sol en una noche inspirada en el brillo, la música y la energía de un gran escenario.</p></div>
+      <div class="details__intro reveal"><p class="eyebrow">SAVE THE DATE</p><h2>La tarde<br><em>es nuestra.</em></h2><p>Ven a celebrar conmigo una nueva vuelta al sol en una tarde inspirada en el brillo, la música y la energía de un gran escenario.</p></div>
       <div class="detail-card detail-card--date reveal"><span class="card-index">01</span><span class="card-label">CUÁNDO</span><strong>SÁBADO<br><em>26 DIC</em></strong><small>2026 · 3:00 PM</small></div>
       <div class="detail-card detail-card--venue reveal"><span class="card-index">02</span><span class="card-label">DÓNDE</span><strong>Salón<br><em>Cavel’s</em></strong><small>Real Cedros #325 · Zona Centro<br>Arteaga, Coahuila, México</small><a class="text-link" href="https://www.google.com/maps/search/?api=1&query=Sal%C3%B3n%20Cavel%27s%2C%20Real%20Cedros%20%23325%2C%20Zona%20Centro%2C%20Arteaga%2C%20Coahuila%2C%20M%C3%A9xico" target="_blank" rel="noreferrer">Abrir en Maps <span>↗</span></a></div>
     </section>
